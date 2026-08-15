@@ -1,7 +1,7 @@
 # Contexto Activo (Active Context) — Crazy Go
 
-> **Última Actualización:** 15 de Agosto de 2026 (Sesión 69)  
-> **Estado General:** ✅ Totalmente Funcional, Compilado en TypeScript/Vite (0 errores), Navegación de Héroes 1 en 1 Corregida y Sincronizado en GitHub.
+> **Última Actualización:** 15 de Agosto de 2026 (Sesión 70)  
+> **Estado General:** ✅ Totalmente Funcional, Compilado en TypeScript/Vite (0 errores), Alineación Vertical de Standees Ajustada (+30px Rivales/Normal, -30px Campeones) y Sincronizado en GitHub.
 
 ---
 
