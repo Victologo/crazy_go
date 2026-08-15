@@ -13,6 +13,7 @@ import { ScreenManager } from '../ui/ScreenManager';
 import { RoguelikeRunManager } from '../core/RoguelikeRunManager';
 import { BossManager } from '../core/BossManager';
 import { VFXManager } from '../graphics/VFXManager';
+import { RoninVFX } from '../graphics/vfx/RoninVFX';
 import { RulesEngine } from '../core/RulesEngine';
 import type { HeroId } from '../types';
 
@@ -33,7 +34,7 @@ export type SandboxBrush =
     | 'terrain_destroyed'
     | 'eraser';
 
-export type PresetScenario = 'ko_test' | 'atari_chain' | 'sacred_test' | 'islands_sprout' | 'two_eyes_alive' | 'empty_clean';
+export type PresetScenario = 'ko_test' | 'atari_chain' | 'sacred_test' | 'islands_sprout' | 'two_eyes_alive' | 'ronin_slash_demo' | 'empty_clean';
 
 export class SandboxController {
     public static isSandboxActive: boolean = false;
@@ -246,6 +247,11 @@ export class SandboxController {
                 HUDController.showAlert("🔄 Escenario de Ko cargado: Juega con Negras en (4,4) para capturar. ¡Comprueba que Blancas no pueden recapturar inmediatamente!");
                 break;
 
+            case 'ronin_slash_demo':
+                this.setupRoninSlashScenario(board, state);
+                HUDController.showAlert("🗡️ Escenario de Ronin cargado: Pulsa '🗡️ Probar Tajo de Ronin' o juega en el tablero para ver la animación.");
+                break;
+
             case 'atari_chain':
                 this.setupAtariScenario(board, state);
                 HUDController.showAlert("💥 Escenario de Atari Múltiple cargado: Juega en el hueco libre para capturar el grupo enemigo en cadena.");
@@ -382,7 +388,7 @@ export class SandboxController {
         } else if (hero === 'grey_dragon_boss') {
             this.forceDragonCornerBurn(board, state, onRefresh);
         } else if (hero === 'ronin') {
-            this.forceChromaticConversion(onRefresh);
+            this.forceRoninSlash(board, state, onRefresh);
         } else if (hero === 'kitsune') {
             this.forceDivineShieldTarget(onRefresh);
         } else {
@@ -442,6 +448,65 @@ export class SandboxController {
             chosen.forEach((_, idx) => placeStoneAt(idx));
             onAllFinished();
         }
+    }
+
+    /**
+     * Fuerza el Tajo de Katana / Filo del Samurai de Ronin sobre una piedra enemiga (o aleatoria)
+     */
+    public static forceRoninSlash(board: GraphBoard, state: GameState, onRefresh: () => void) {
+        const playerId = state.currentPlayer;
+        const enemyNodes: { id: string; x: number; y: number }[] = [];
+        const allOccupied: { id: string; x: number; y: number }[] = [];
+
+        board.nodes.forEach((node, id) => {
+            if (node.stone) {
+                allOccupied.push({ id, x: node.x, y: node.y });
+                if (node.stone.playerId !== playerId && !node.stone.isIndestructible) {
+                    enemyNodes.push({ id, x: node.x, y: node.y });
+                }
+            }
+        });
+
+        let target = enemyNodes.length > 0
+            ? enemyNodes[Math.floor(Math.random() * enemyNodes.length)]
+            : (allOccupied.length > 0 ? allOccupied[Math.floor(Math.random() * allOccupied.length)] : null);
+
+        // Si el tablero está completamente vacío, colocar una piedra enemiga en el centro para poder cortarla
+        if (!target) {
+            const centerNode = Array.from(board.nodes.values())[Math.floor(board.nodes.size / 2)];
+            if (centerNode) {
+                centerNode.stone = {
+                    id: state.entityManager.createEntity(),
+                    playerId: playerId === 1 ? 2 : 1,
+                    isInvisible: false,
+                    isIndestructible: false,
+                    isFrozen: false,
+                    stoneType: 'single'
+                };
+                target = { id: centerNode.id, x: centerNode.x, y: centerNode.y };
+            }
+        }
+
+        if (!target) {
+            HUDController.showAlert("No se encontró ninguna posición para ejecutar el tajo.");
+            return;
+        }
+
+        const targetNode = board.nodes.get(target.id);
+        if (targetNode) {
+            targetNode.stone = null;
+            state.addCaptures(playerId, 1);
+        }
+
+        const svgElement = document.getElementById('board-svg') as unknown as SVGSVGElement | null;
+        ModalManager.closeSandboxModal();
+        onRefresh();
+
+        if (svgElement) {
+            RoninVFX.triggerWindSlash({ x: target.x, y: target.y }, svgElement);
+        }
+
+        HUDController.showAlert(`🗡️💨 ¡Filo del Samurai de Ronin! La katana rebanó la piedra en [${target.id}].`);
     }
 
     /**
@@ -565,6 +630,25 @@ export class SandboxController {
         this.placeCustomStone(board.nodes.get('4,5'), board, state, 2, false, 'single');
 
         state.currentPlayer = 2;
+    }
+
+    private static setupRoninSlashScenario(board: GraphBoard, state: GameState) {
+        BoardGenerators.generate(board, 'square', 9);
+        this.clearAllStones(board, state);
+
+        ChampionManager.currentHero = 'ronin';
+        state.currentPlayer = 1;
+
+        // Piedras enemigas blancas dispersas
+        this.placeCustomStone(board.nodes.get('2,2'), board, state, 2, false, 'single');
+        this.placeCustomStone(board.nodes.get('2,6'), board, state, 2, false, 'single');
+        this.placeCustomStone(board.nodes.get('4,4'), board, state, 2, false, 'single');
+        this.placeCustomStone(board.nodes.get('6,2'), board, state, 2, false, 'single');
+        this.placeCustomStone(board.nodes.get('6,6'), board, state, 2, false, 'single');
+
+        // Piedras aliadas negras
+        this.placeCustomStone(board.nodes.get('3,3'), board, state, 1, false, 'single');
+        this.placeCustomStone(board.nodes.get('5,5'), board, state, 1, false, 'single');
     }
 
     private static setupTwoEyesScenario(board: GraphBoard, state: GameState) {

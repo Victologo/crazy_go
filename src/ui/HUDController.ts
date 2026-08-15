@@ -770,15 +770,15 @@ export class HUDController {
                 aiName = chosenMonk.name;
                 aiRank = chosenMonk.rank;
             } else if (difficulty === 'hard') {
-                aiImage = '/enemies/samurai.png';
-                aiIcon = '⚔️';
-                aiName = 'Samurái Ronin';
-                aiRank = '4 Kyu • Avanzado';
+                aiImage = chosenSage.image;
+                aiIcon = chosenSage.icon;
+                aiName = chosenSage.name;
+                aiRank = chosenSage.rank;
             } else if (difficulty === 'dan') {
                 aiImage = '/enemies/boss.png';
                 aiIcon = '👑';
-                aiName = 'Gran Maestro Zen';
-                aiRank = '2 Dan • Maestro KataGo';
+                aiName = '🐉 Gran Maestro Zen';
+                aiRank = '2 Dan • Sabio Supremo';
             }
 
             if (eImg) eImg.src = aiImage;

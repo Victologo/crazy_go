@@ -224,14 +224,12 @@ export class RoguelikeMapGenerator {
             { name: 'Masashi el Sabio', image: '/enemies/sage_3.png', icon: '📜' },
             { name: 'Tetsuo el Sabio', image: '/enemies/sage_4.png', icon: '📜' },
             { name: 'Genzaburo el Sabio', image: '/enemies/sage_5.png', icon: '📜' },
-            // 5 Monjes Novatos (Fondos transparentes integrados)
+            // 5 Monjes Jóvenes (Fondos transparentes integrados)
             { name: 'Joven Ren', image: '/enemies/monk_1.png', icon: '🧘' },
             { name: 'Joven Hiro', image: '/enemies/monk_2.png', icon: '🧘' },
             { name: 'Joven Sora', image: '/enemies/monk_3.png', icon: '🧘' },
             { name: 'Joven Daiki', image: '/enemies/monk_4.png', icon: '🧘' },
-            { name: 'Joven Kazuki', image: '/enemies/monk_5.png', icon: '🧘' },
-            // Maestros de Batalla del Clan
-            { name: 'Estratega del Clan', image: '/enemies/samurai.png', icon: '⚔️' }
+            { name: 'Joven Kazuki', image: '/enemies/monk_5.png', icon: '🧘' }
         ];
 
         let enemyName = '';

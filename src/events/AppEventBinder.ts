@@ -1026,6 +1026,12 @@ export class AppEventBinder {
             }
         });
 
+        document.getElementById('btn-sandbox-force-ronin-slash')?.addEventListener('click', () => {
+            if (GameController.board && GameController.state) {
+                SandboxController.forceRoninSlash(GameController.board, GameController.state, () => GameController.updateInGameUI());
+            }
+        });
+
         document.getElementById('btn-sandbox-force-stone-rain')?.addEventListener('click', () => {
             if (GameController.board && GameController.state) {
                 SandboxController.forceStoneRain(GameController.board, GameController.state, () => GameController.updateInGameUI());
