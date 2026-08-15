@@ -8,7 +8,7 @@
 ## 1. 📌 Visión y Estado Global del Proyecto
 Crazy Go es un roguelite estratégico basado en **Go Canónico** con topologías procedurales asimétricas, 6 Campeones Místicos balanceados, entidades capturables en el Goban, temporizadores clásicos de Go, fichas poliminó tácticas, hechizos consumibles y multijugador online P2P WebRTC (Duelo Competitivo y Roguelike Cooperativo).
 
-* **Fase Actual:** Fase 17 — Temporizadores Clásicos, Entidades Capturables, Alquimista y Roguelike Co-op Online.
+* **Fase Actual:** Fase 19 — Modo Historia: Crónicas del Goban (Campañas narrativas visuales).
 * **Plataforma:** Web (Vite + TS) y Desktop Nativo Windows (`CrazyGo.exe`).
 
 ---
@@ -79,6 +79,10 @@ El juego respeta la división estricta entre **Habilidades Activas** (con objeti
        8. **Duplicidad 2x1 (🀄)**: Puente unificador en `3,6` para conectar `1 [ ] [ ] 1 1` con rotación `[R]`.
        9. **Monolito 2x2 (🧱)**: Despliegue del bloque colosal de 4 piedras en `6,1`.
        10. Conclusión y maestría del arsenal místico.
+  17. **Modo Historia: Crónicas del Goban (Novela Visual):**
+     - Orquestador de campaña en `StoryController.ts` y listado de misiones en `StoryCampaign.ts`.
+     - Nuevo overlay tipo Novela Visual en `StoryDialogueRenderer.ts` y `story.css`.
+     - Integración con motor de captura de entidades (`RulesEngine.resolveCaptiveCaptures`).
 - **Roster de Personajes:** Hombre Normal (👤), Tengu (🦅), Himiko (✨), Kitsune (🦊), Ronin (⚡), Alquimista (⚗️), Ryūjin (🐲).
 
 
@@ -92,6 +96,7 @@ El juego respeta la división estricta entre **Habilidades Activas** (con objeti
   - **Condición Ortogonal:** 100% de vecinos cardinales deben pertenecer al mismo grupo aliado.
   - **Control Diagonal contra Ojos Falsos (False Eyes):** $\ge 3/4$ diagonales controladas en el centro, y $100\%$ en bordes y esquinas. Evita falsos positivos en formas abiertas con fisuras.
 - **Captura tras Transmutación (`RulesEngine.resolveBoardCaptures`):** Cualquier cambio de color (Ronin, Inversión Yin-Yang) evalúa y retira al instante las piedras enemigas que se queden con 0 libertades.
+- **Captura de Entidades:** El motor detecta cuando objetos neutrales (cofres, monjes) se quedan con 0 libertades vacías y los marca como capturados para entregar recompensas o avanzar historia.
 * **Conteo Territorial Robusto (`TerritoryScorer.ts`):**
   * **Sistema de Umbral del 74%:** Si un jugador controla $\ge 74\%$ de la frontera de una región vacía, se adjudica íntegramente el territorio, neutralizando invasiones de piedras muertas.
   * **Komi y Prisioneros:** Desglose visual exacto de territorio, capturas y Komi ($6.5$ pts en 2P, $0.5$ pts en 4P).
@@ -169,9 +174,13 @@ src/
 │   ├── GameController.ts  # Partida local, turnos, pases y fin de juego
 │   ├── RoguelikeController.ts # Nodos de expedición, recompensas y mercader
 │   └── SandboxController.ts   # Modo laboratorio, pinceles libres y troubleshooter
+├── story/                 # Modo Historia (Misiones narrativas y diálogos)
+│   ├── StoryCampaign.ts   # Estructura de misiones y niveles
+│   └── StoryController.ts # Lógica de flujo del modo historia y desencadenamiento de eventos
 ├── ui/                    # Presentación visual y componentes
 │   ├── HUDController.ts   # Barra superior, capturas con Komi dinámico y hechizos
 │   ├── ModalManager.ts    # Fachada unificada de modales
+│   ├── StoryDialogueRenderer.ts # Renderizado de novela visual del modo historia
 │   └── modals/            # ScoreModalRenderer y RogueModalRenderer
 └── events/                # Controladores de interacción
     ├── AppEventBinder.ts  # Eventos del DOM, Wizard y navegación global por teclado

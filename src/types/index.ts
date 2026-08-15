@@ -40,7 +40,7 @@ export interface BoardNode {
 // 2. Modos, Topologías y Configuración de Partida
 export type BoardShape = 'square' | 'triangle' | 'hex' | 'eroded' | 'islands' | 'cross' | 'procedural';
 export type BoardSize = 9 | 13 | 19;
-export type GameMode = '1v1' | '1via' | 'online';
+export type GameMode = '1v1' | '1via' | 'online' | 'story';
 export type RuleStyle = 'classic' | 'roguelite';
 export type AIDifficulty = 'easy' | 'medium' | 'hard' | 'dan';
 export type AppTheme = 'dark' | 'light';

@@ -146,6 +146,12 @@
 - [x] **Tarea 116**: Unificación de Pantalla de Victoria Roguelike, Fondo Translúcido del Campeón, Inspección de Tablero y Economía Gratuita sin Magatamas (`index.html`, `src/style.css`, `ScoreModalRenderer.ts`, `RoguelikeController.ts`, `GameController.ts`, `AppEventBinder.ts`: Fusión completa de desglose territorial y 3 cartas de recompensas en un único modal panorámico `.modal-victory-unified` con silueta translúcida del héroe de fondo; corrección del nombre real y rango del rival derrotado con Komi dinámico real; botón funcional de "Inspeccionar Tablero" con botón flotante `#floating-inspect-btn` para retornar; eliminación universal de Magatamas y reconversión del Mercader en selección gratuita de hasta 2 objetos de entre 4 opciones y bendición sagrada de poliminós en santuarios).
 
 
+## Fase 19: Modo Historia y Campañas de Rescate (Completada)
+- [x] **Tarea 136**: Arquitectura del Modo Historia (`StoryController.ts`, `StoryCampaign.ts` con sistema de Capítulos, Escenarios asimétricos y personajes con diálogos).
+- [x] **Tarea 137**: Interfaz de Diálogo tipo Novela Visual (`StoryDialogueRenderer.ts`, `story.css` con `fade-in`, retratos laterales en primer plano y marco de texto inmersivo).
+- [x] **Tarea 138**: Motor de Captura de Entidades (`RulesEngine.ts` interactuando con `StoryController` para disparar eventos narrativos o victorias `capture_specific` al retirar todas las libertades a un objeto en el tablero).
+- [x] **Tarea 139**: Integración en el Menú Principal (Botón "Modo Historia" lanza directamente el Capítulo 1 en el mapa de islas asimétrico).
+
 ## Fase 15: Corrección de Modo Online y Conexión de Invitados (Guest Joining) (Completada)
 - [x] **Tarea 50**: Corrección de conmutación de pestañas en modal online (`ModalManager.switchOnlineTab` con `view-create-room` y `view-join-room`).
 - [x] **Tarea 51**: Corrección de desplazamiento de argumentos en `OnlineController.joinOnlineRoom` con soporte de héroes y callbacks de error / inicio.

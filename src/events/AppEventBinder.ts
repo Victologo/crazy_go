@@ -20,6 +20,7 @@ import { RoguelikeRunManager } from '../core/RoguelikeRunManager';
 import { SandboxController, type SandboxBrush, type PresetScenario } from '../controllers/SandboxController';
 import { TutorialManager } from '../tutorial/TutorialManager';
 import { KeyboardController } from './KeyboardController';
+import { StoryController } from '../story/StoryController';
 
 export class AppEventBinder {
     public static init() {
@@ -81,25 +82,11 @@ export class AppEventBinder {
             SoundFX.playPlaceStone();
         });
 
-        // Botón y Modal de Modo Historia (Roadmap & Misiones de Rescate)
-        const storyModal = document.getElementById('modal-story-mode');
+        // Botón de Modo Historia
         document.getElementById('btn-menu-story')?.addEventListener('click', () => {
-            if (storyModal) {
-                storyModal.classList.remove('hidden');
-                SoundFX.playSpecial();
-            }
-        });
-        document.getElementById('btn-story-modal-close')?.addEventListener('click', () => {
-            if (storyModal) {
-                storyModal.classList.add('hidden');
-                SoundFX.playPlaceStone();
-            }
-        });
-        document.getElementById('btn-story-modal-close-icon')?.addEventListener('click', () => {
-            if (storyModal) {
-                storyModal.classList.add('hidden');
-                SoundFX.playPlaceStone();
-            }
+            ScreenManager.showGameScreen();
+            StoryController.startCampaign();
+            SoundFX.playSpecial();
         });
 
         document.getElementById('btn-menu-dojo')?.addEventListener('click', () => {

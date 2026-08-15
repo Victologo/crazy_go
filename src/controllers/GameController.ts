@@ -8,6 +8,7 @@ import type {
 } from '../types';
 import { GraphBoard, type BoardNode } from '../core/GraphBoard';
 import { GameState } from '../core/GameState';
+import { StoryController } from '../story/StoryController';
 import { BoardGenerators } from '../graphics/BoardGenerators';
 import { SVGRenderer } from '../graphics/SVGRenderer';
 import { GoAI } from '../ai/GoAI';
@@ -321,20 +322,24 @@ export class GameController {
 
             // Comprobar captura de entidades neutrales (objetos/rehenes)
             RulesEngine.resolveCaptiveCaptures(this.board, this.state, this.state.currentPlayer, (captive) => {
-                if (captive.type === 'chest') {
-                    RoguelikeRunManager.addPolyomino('domino', 1);
-                    RoguelikeRunManager.addPolyomino('sprouting', 1);
-                    HUDController.showAlert("🎁 ¡Has liberado el Cofre! (+1 Dominó y +1 Germinante)");
-                } else if (captive.type === 'hostage') {
-                    ChampionManager.activeChargesLeft += 1;
-                    RoguelikeRunManager.permanentKomiBonus += 1.0;
-                    HUDController.showAlert("🧙 ¡Has rescatado al Monje! (+1 Carga de Habilidad y +1.0 Komi)");
-                } else if (captive.type === 'scroll_relic') {
-                    RogueliteManager.addSpell('rewind', 1);
-                    HUDController.showAlert("📜 ¡Has obtenido el Pergamino Sagrado de Rebobinar (+1)!");
-                } else if (captive.type === 'spirit') {
-                    RoguelikeRunManager.permanentKomiBonus += 2.0;
-                    HUDController.showAlert("✨ ¡Has liberado al Espíritu Guardián! (+2.0 Komi Permanente)");
+                if (this.config.gameMode === 'story') {
+                    StoryController.onCaptiveCaptured(captive.id);
+                } else {
+                    if (captive.type === 'chest') {
+                        RoguelikeRunManager.addPolyomino('domino', 1);
+                        RoguelikeRunManager.addPolyomino('sprouting', 1);
+                        HUDController.showAlert("🎁 ¡Has liberado el Cofre! (+1 Dominó y +1 Germinante)");
+                    } else if (captive.type === 'hostage') {
+                        ChampionManager.activeChargesLeft += 1;
+                        RoguelikeRunManager.permanentKomiBonus += 1.0;
+                        HUDController.showAlert("🧙 ¡Has rescatado al Monje! (+1 Carga de Habilidad y +1.0 Komi)");
+                    } else if (captive.type === 'scroll_relic') {
+                        RogueliteManager.addSpell('rewind', 1);
+                        HUDController.showAlert("📜 ¡Has obtenido el Pergamino Sagrado de Rebobinar (+1)!");
+                    } else if (captive.type === 'spirit') {
+                        RoguelikeRunManager.permanentKomiBonus += 2.0;
+                        HUDController.showAlert("✨ ¡Has liberado al Espíritu Guardián! (+2.0 Komi Permanente)");
+                    }
                 }
                 SoundFX.playSpecial();
                 this.renderer.render();

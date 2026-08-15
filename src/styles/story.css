@@ -1,0 +1,108 @@
+/* story.css - Estilos para el Modo Historia y Diálogos (Visual Novel) */
+
+.story-dialogue-overlay {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: auto;
+    z-index: 2000;
+    display: flex;
+    align-items: flex-end;
+    justify-content: center;
+    padding-bottom: 20px;
+    background: linear-gradient(to top, rgba(0,0,0,0.8) 0%, rgba(0,0,0,0.5) 30%, transparent 100%);
+}
+
+.story-dialogue-box {
+    width: 90%;
+    max-width: 900px;
+    background: rgba(15, 23, 42, 0.95);
+    border: 2px solid var(--accent-gold);
+    border-radius: 12px;
+    display: flex;
+    flex-direction: row;
+    align-items: flex-end;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.5), inset 0 0 20px rgba(234, 179, 8, 0.1);
+    position: relative;
+    padding: 20px;
+    gap: 20px;
+    transition: all 0.3s ease;
+    animation: slideUpFade 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.story-dialogue-box.right {
+    flex-direction: row-reverse;
+}
+
+.story-portrait {
+    width: 140px;
+    height: 140px;
+    object-fit: cover;
+    border-radius: 8px;
+    border: 2px solid var(--accent-gold);
+    box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+}
+
+.story-portrait.left-portrait {
+    animation: fade-in-left 0.4s ease forwards;
+}
+
+.story-portrait.right-portrait {
+    animation: fade-in-right 0.4s ease forwards;
+    transform: scaleX(-1);
+}
+
+.story-text-content {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    color: var(--text-light);
+}
+
+.story-speaker-name {
+    font-family: var(--font-display);
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--accent-gold);
+    margin-bottom: 8px;
+    text-shadow: 0 2px 4px rgba(0,0,0,0.5);
+}
+
+.story-text-body {
+    font-family: var(--font-body);
+    font-size: 1.2rem;
+    line-height: 1.6;
+    text-shadow: 0 1px 2px rgba(0,0,0,0.5);
+    min-height: 60px;
+}
+
+.story-continue-hint {
+    align-self: flex-end;
+    font-size: 0.9rem;
+    color: var(--text-muted);
+    margin-top: 10px;
+    animation: pulseHint 2s infinite;
+}
+
+@keyframes slideUpFade {
+    from { opacity: 0; transform: translateY(40px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes fade-in-left {
+    from { opacity: 0; transform: translateX(-20px); }
+    to { opacity: 1; transform: translateX(0); }
+}
+
+@keyframes fade-in-right {
+    from { opacity: 0; transform: translateX(20px) scaleX(-1); }
+    to { opacity: 1; transform: translateX(0) scaleX(-1); }
+}
+
+@keyframes pulseHint {
+    0%, 100% { opacity: 0.5; }
+    50% { opacity: 1; }
+}
