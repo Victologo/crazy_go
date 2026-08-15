@@ -1,7 +1,7 @@
 # Contexto Activo (Active Context) — Crazy Go
 
-> **Última Actualización:** 15 de Agosto de 2026 (Sesión 73)  
-> **Estado General:** ✅ Totalmente Funcional, Compilado en TypeScript/Vite (0 errores), Modo Historia Optimizado (Transiciones Rápidas de 600ms + Avance de Diálogos con Teclado) y Sincronizado en GitHub.
+> **Última Actualización:** 15 de Agosto de 2026 (Sesión 74)  
+> **Estado General:** ✅ Totalmente Funcional, Compilado en TypeScript/Vite (0 errores), Tajo de Ronin Rediseñado (Único, 50% Más Compacto, Centrado en Casilla y Ejecutado al Final del Turno) y Sincronizado en GitHub.
 
 ---
 
