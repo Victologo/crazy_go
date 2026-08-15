@@ -1,6 +1,7 @@
 // RoguelikeMapRenderer.ts - Renderizado del Mapa Procedural de Nodos para Crazy Go
 import type { RoguelikeMap, MapNode } from '../core/RoguelikeMapGenerator';
 import { SoundFX } from '../audio/SoundFX';
+import { t, translateEnemyName } from '../i18n/i18n';
 
 export class RoguelikeMapRenderer {
     private container: HTMLElement;
@@ -81,7 +82,7 @@ export class RoguelikeMapRenderer {
                 ${unitHereHtml}
                 <div class="node-tooltip">
                     <strong class="tooltip-title">${node.title}</strong>
-                    ${node.battleConfig ? `<span class="tooltip-sub">${node.battleConfig.enemyName} (${node.battleConfig.rankLabel}) • Tablero ${node.battleConfig.shape}</span>` : ''}
+                    ${node.battleConfig ? `<span class="tooltip-sub">${translateEnemyName(node.battleConfig.enemyName)} (${node.battleConfig.rankLabel}) • ${t('wizard.shape_' + node.battleConfig.shape) || node.battleConfig.shape}</span>` : ''}
                     <p class="tooltip-desc">${node.description}</p>
                 </div>
             `;

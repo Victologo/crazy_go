@@ -2,17 +2,21 @@ import { STORY_CAMPAIGN, type StoryDialogueLine } from './StoryCampaign';
 import { GameController } from '../controllers/GameController';
 import { HUDController } from '../ui/HUDController';
 import { StoryDialogueRenderer } from '../ui/StoryDialogueRenderer';
+import { ChampionManager } from '../core/ChampionManager';
 import { SoundFX } from '../audio/SoundFX';
+import type { HeroId, PlayerId } from '../types';
 
 export class StoryController {
     public static currentChapterIndex: number = 0;
     public static isDialogueActive: boolean = false;
+    public static selectedPlayerHero: HeroId = 'normal';
     private static currentDialogues: StoryDialogueLine[] = [];
     private static dialogueIndex: number = 0;
     private static resolveDialogueComplete: (() => void) | null = null;
 
     public static startCampaign() {
         this.currentChapterIndex = 0;
+        this.selectedPlayerHero = 'normal';
         this.startChapter(this.currentChapterIndex);
     }
 
@@ -24,40 +28,50 @@ export class StoryController {
 
     public static startChapter(index: number) {
         if (index >= STORY_CAMPAIGN.length) {
-            HUDController.showAlert("🎉 ¡Campaña Completada!", 5000);
+            SoundFX.playSpecial();
+            HUDController.showAlert("🏆 ¡FELICIDADES! ¡Has completado todas las Crónicas del Goban!", 6000);
             return;
         }
 
+        this.currentChapterIndex = index;
         const chapter = STORY_CAMPAIGN[index];
         
-        // Initialize GameController for story mode
+        // El héroe del jugador puede ser el Hombre Normal (cap 1-2) o el Campeón elegido en el Draft
+        const playerHero = (index >= 2 && this.selectedPlayerHero !== 'normal') 
+            ? this.selectedPlayerHero 
+            : chapter.heroId;
+
+        // Configuración de GameController para la misión de historia
         GameController.config = {
             ...GameController.config,
             gameMode: 'story',
             playerCount: 2,
             humanColor: 1,
-            difficulty: index === 0 ? 'easy' : 'medium',
+            difficulty: index <= 1 ? 'easy' : (index === 2 ? 'medium' : 'hard'),
             size: chapter.boardSize,
-            heroId: chapter.heroId,
+            heroId: playerHero,
             enemyHeroId: chapter.enemyHeroId,
             komi: chapter.komi,
             shape: chapter.boardShape,
             ruleStyle: 'roguelite',
             specialStones: {
-                enabled: true,
-                playerSprouting: 2,
-                playerDomino: 2,
-                playerMonolith: 1,
-                aiEnabled: false,
-                aiSprouting: 0,
-                aiDomino: 0,
-                aiMonolith: 0
+                enabled: index >= 2,
+                playerSprouting: index >= 2 ? 2 : 0,
+                playerDomino: index >= 2 ? 2 : 0,
+                playerMonolith: index >= 2 ? 1 : 0,
+                aiEnabled: index >= 3,
+                aiSprouting: index >= 3 ? 1 : 0,
+                aiDomino: index >= 3 ? 1 : 0,
+                aiMonolith: index >= 3 ? 1 : 0
             }
         };
 
         GameController.initGame(GameController.config);
 
-        // Place initial stones and captives
+        // Equipar al campeón en el ChampionManager
+        ChampionManager.setHero(playerHero, chapter.boardSize);
+
+        // Colocar piedras iniciales y entidades/reliquias
         if (GameController.state && GameController.board) {
             for (const s of chapter.initialStones) {
                 const node = GameController.board.nodes.get(`${s.x},${s.y}`);
@@ -78,6 +92,7 @@ export class StoryController {
                 return {
                     id: c.id,
                     nodeId: nodeId,
+                    nodeIds: c.nodeIds,
                     type: c.type,
                     name: c.name,
                     icon: c.icon,
@@ -90,12 +105,11 @@ export class StoryController {
             GameController.renderer?.render();
         }
 
-        // Check for pre_battle event
+        // Diálogo pre-batalla si existe
         const preBattleEvent = chapter.events.find(e => e.trigger === 'pre_battle');
         if (preBattleEvent) {
             this.playDialogueSequence(preBattleEvent.dialogues).then(() => {
-                // Battle starts after dialogue
-                HUDController.showAlert(`▶ Comienza: ${chapter.title}`);
+                HUDController.showAlert(`▶ Comienza: ${chapter.title}`, 2500);
             });
         }
     }
@@ -121,12 +135,13 @@ export class StoryController {
 
         this.dialogueIndex++;
         if (this.dialogueIndex >= this.currentDialogues.length) {
-            // Finish dialogue
+            // Fin de la secuencia de diálogo
             this.isDialogueActive = false;
             StoryDialogueRenderer.hide();
             if (this.resolveDialogueComplete) {
-                this.resolveDialogueComplete();
+                const cb = this.resolveDialogueComplete;
                 this.resolveDialogueComplete = null;
+                cb();
             }
         } else {
             this.renderCurrentDialogue();
@@ -138,13 +153,38 @@ export class StoryController {
         StoryDialogueRenderer.renderLine(line);
     }
 
-    public static onCaptiveCaptured(captiveId: string) {
+    public static onCaptiveCaptured(captiveId: string, capturingPlayerId: PlayerId = 1) {
         const chapter = STORY_CAMPAIGN[this.currentChapterIndex];
-        const captureEvent = chapter.events.find(e => e.trigger === 'on_capture' && e.targetId === captiveId);
-        
-        if (captureEvent) {
-            this.playDialogueSequence(captureEvent.dialogues).then(() => {
-                this.checkWinCondition();
+        if (!chapter) return;
+
+        // Comprobar si el capturador fue el rival (Blancas) o el jugador (Negras)
+        const isEnemyCapture = capturingPlayerId === 2;
+        let event = isEnemyCapture 
+            ? chapter.events.find(e => e.trigger === 'on_enemy_capture' && e.targetId === captiveId)
+            : chapter.events.find(e => e.trigger === 'on_capture' && e.targetId === captiveId);
+
+        if (!event && !isEnemyCapture) {
+            event = chapter.events.find(e => e.trigger === 'on_capture');
+        }
+
+        if (event) {
+            this.playDialogueSequence(event.dialogues).then(async () => {
+                // 1. Si el evento desencadena la ruptura del tablero
+                if (event.shatterBoard && GameController.renderer) {
+                    await GameController.renderer.triggerBoardShatterAnimation();
+                }
+
+                // 2. Si el evento ofrece el modal de selección de poder
+                if (event.offerPowerDraft) {
+                    await StoryDialogueRenderer.showPowerDraftModal((chosenHero) => {
+                        this.selectedPlayerHero = chosenHero;
+                        ChampionManager.setHero(chosenHero, chapter.boardSize);
+                        HUDController.showAlert(`✨ ¡Has dominado el Qi de ${chosenHero.toUpperCase()}!`);
+                        this.onChapterComplete();
+                    });
+                } else {
+                    this.checkWinCondition();
+                }
             });
         } else {
             this.checkWinCondition();
@@ -153,21 +193,44 @@ export class StoryController {
 
     public static checkWinCondition() {
         const chapter = STORY_CAMPAIGN[this.currentChapterIndex];
+        if (!chapter) return;
+
         if (chapter.winCondition === 'capture_specific' && chapter.targetCaptiveId) {
             const target = GameController.state?.captives.find(c => c.id === chapter.targetCaptiveId);
-            if (target && target.isCaptured) {
+            if (target && target.isCaptured && target.capturedBy === 1) {
                 this.onChapterComplete();
             }
         }
     }
 
-    private static onChapterComplete() {
+    public static onMatchEnded(winnerPlayerId: PlayerId) {
+        const chapter = STORY_CAMPAIGN[this.currentChapterIndex];
+        if (!chapter) return;
+
+        if (chapter.winCondition === 'territory') {
+            if (winnerPlayerId === 1) {
+                // Victoria humana
+                const postBattle = chapter.events.find(e => e.trigger === 'post_battle');
+                if (postBattle) {
+                    this.playDialogueSequence(postBattle.dialogues).then(() => {
+                        this.onChapterComplete();
+                    });
+                } else {
+                    this.onChapterComplete();
+                }
+            } else {
+                HUDController.showAlert("💀 Has sido superado en territorio. Pulsa 🔄 para reiniciar el capítulo.", 4000);
+            }
+        }
+    }
+
+    public static onChapterComplete() {
         SoundFX.playSpecial();
-        HUDController.showAlert("⭐ ¡Capítulo Completado! ⭐", 1800);
+        HUDController.showAlert("⭐ ¡Capítulo Completado! ⭐", 2200);
         
         setTimeout(() => {
             this.currentChapterIndex++;
             this.startChapter(this.currentChapterIndex);
-        }, 600);
+        }, 1000);
     }
 }

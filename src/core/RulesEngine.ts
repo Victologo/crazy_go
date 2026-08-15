@@ -368,12 +368,13 @@ export class RulesEngine {
 
     /**
      * Comprueba si algún objeto, cofre o rehén neutral ha sido rodeado completamente (0 libertades restantes)
+     * Soporta entidades de 1 casilla (nodeId) o múltiples casillas contiguas (nodeIds) y determina quién lo capturó.
      */
     public static resolveCaptiveCaptures(
         board: GraphBoard, 
         state: GameState, 
-        _capturingPlayerId?: PlayerId,
-        onCaptureCallback?: (captive: any) => void
+        capturingPlayerId?: PlayerId,
+        onCaptureCallback?: (captive: any, capturingPlayerId: PlayerId) => void
     ): number {
         if (!state.captives || state.captives.length === 0) return 0;
 
@@ -381,31 +382,56 @@ export class RulesEngine {
         for (const captive of state.captives) {
             if (captive.isCaptured) continue;
 
-            const targetNode = board.nodes.get(captive.nodeId);
-            if (!targetNode) continue;
+            const entityNodeIds = captive.nodeIds && captive.nodeIds.length > 0 
+                ? captive.nodeIds 
+                : [captive.nodeId];
+            
+            const entitySet = new Set(entityNodeIds);
+            const exteriorNeighbors = new Set<string>();
 
-            // Contar libertades vacías alrededor del nodo donde reside la entidad
+            // Recolectar todos los vecinos exteriores de la entidad multi-casilla
+            for (const nId of entityNodeIds) {
+                const targetNode = board.nodes.get(nId);
+                if (!targetNode) continue;
+                for (const neighborId of targetNode.neighbors) {
+                    if (!entitySet.has(neighborId)) {
+                        exteriorNeighbors.add(neighborId);
+                    }
+                }
+            }
+
+            if (exteriorNeighbors.size === 0) continue;
+
             let emptyLiberties = 0;
             let surroundingCount = 0;
+            const playerCounts: Record<PlayerId, number> = { 1: 0, 2: 0, 3: 0, 4: 0 };
 
-            for (const neighborId of targetNode.neighbors) {
+            for (const neighborId of exteriorNeighbors) {
                 const neighbor = board.nodes.get(neighborId);
                 if (neighbor) {
                     if (!neighbor.stone && neighbor.terrain !== 'DESTROYED' && neighbor.terrain !== 'OBSTACLE') {
                         emptyLiberties++;
                     } else if (neighbor.stone) {
                         surroundingCount++;
+                        playerCounts[neighbor.stone.playerId] = (playerCounts[neighbor.stone.playerId] || 0) + 1;
                     }
                 }
             }
 
-            // Si todas sus libertades cardinales están ocupadas (0 libertades restantes)
+            // Si todas sus libertades exteriores están ocupadas (0 libertades restantes)
             if (emptyLiberties === 0 && surroundingCount > 0) {
                 captive.isCaptured = true;
+                
+                // Determinar quién completó la captura
+                let finalCapturer: PlayerId = capturingPlayerId || 1;
+                if (!capturingPlayerId) {
+                    finalCapturer = (playerCounts[2] > playerCounts[1]) ? 2 : 1;
+                }
+                captive.capturedBy = finalCapturer;
                 rescuedCount++;
 
                 if (onCaptureCallback) {
-                    onCaptureCallback(captive);
+                    onCaptureCallback(captive, finalCapturer);
                 }
             }
         }

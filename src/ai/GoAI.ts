@@ -65,7 +65,7 @@ export class GoAI {
         // RESPUESTA INMEDIATA TRAS PASE DEL OPONENTE:
         const opponentJustPassed = (state.lastMoveNodeId === null || state.consecutivePasses >= 1) && state.currentTurn > 2;
         if (opponentJustPassed && myChainsInAtari.length === 0 && enemyChainsInAtari.length === 0) {
-            if (currentNetLead > 0) {
+            if (currentNetLead >= 0) {
                 return {
                     nodeId: null,
                     reason: `Victoria asegurada por ventaja de +${currentNetLead.toFixed(1)} pts (Pasar y finalizar)`,
@@ -87,22 +87,34 @@ export class GoAI {
         const candidateMoves: EvaluatedCandidate[] = [];
 
         for (const [nodeId, node] of board.nodes.entries()) {
-            const isCaptiveNode = state.captives?.some(c => c.nodeId === nodeId && !c.isCaptured);
+            const isCaptiveNode = state.captives?.some(c => (c.nodeId === nodeId || c.nodeIds?.includes(nodeId)) && !c.isCaptured);
             if (node.stone !== null || node.terrain === 'DESTROYED' || node.terrain === 'OBSTACLE' || isCaptiveNode) {
                 continue;
             }
 
-            // A. Protección de Territorio Propio / Ojos Verdaderos:
+            // A. Protección Estricta de Territorio Propio, Ojos Verdaderos y Relleno de Casillas Seguras Internas:
             const isOwnedTerritory = currentScore.territoryMap.get(nodeId) === aiPlayerId;
-            if (isOwnedTerritory) {
-                if (myChainsInAtari.length === 0 && myChainsWeak.length === 0) {
-                    continue; // Rellenar territorio propio destruye 1 punto neto en reglas de Go
-                }
+            
+            let friendlyNeighbors = 0;
+            let enemyNeighbors = 0;
+            for (const nId of node.neighbors) {
+                const nNode = board.nodes.get(nId);
+                if (nNode?.stone?.playerId === aiPlayerId) friendlyNeighbors++;
+                else if (nNode?.stone && nNode.stone.playerId !== aiPlayerId) enemyNeighbors++;
             }
 
-            if (this.isTrueEye(board, nodeId, aiPlayerId)) {
-                if (myChainsInAtari.length === 0) {
-                    continue; // Descartar jugada que destruye ojos propios
+            const isSurroundedByFriendly = (friendlyNeighbors >= 2 && enemyNeighbors === 0);
+            const isTrueEye = this.isTrueEye(board, nodeId, aiPlayerId);
+
+            if (isOwnedTerritory || isSurroundedByFriendly || isTrueEye) {
+                // Comprobar si esta intersección es una libertad directa y vital para salvar una cadena propia en Atari
+                const isDirectAtariSave = myChainsInAtari.some(c => {
+                    const firstId = Array.from(c)[0];
+                    return board.getLiberties(firstId).has(nodeId);
+                });
+
+                if (!isDirectAtariSave) {
+                    continue; // NUNCA rellenar territorio propio, ojos ni casillas internas seguras (resta puntos en Go y se perjudica)
                 }
             }
 
@@ -117,8 +129,13 @@ export class GoAI {
 
             // C. Descartar invasiones suicidas en territorio rival ya cerrado para TODOS los niveles (FFA multi-rival)
             const isEnemyTerritory = currentScore.territoryMap.has(nodeId) && currentScore.territoryMap.get(nodeId) !== aiPlayerId;
+            let enemyNeighborsNear = 0;
+            for (const nId of node.neighbors) {
+                const nNode = board.nodes.get(nId);
+                if (nNode?.stone && nNode.stone.playerId !== aiPlayerId) enemyNeighborsNear++;
+            }
             const mySimLibs = simBoard.getLiberties(nodeId);
-            if (isEnemyTerritory && result.capturedCount === 0 && mySimLibs.size <= 2) {
+            if ((isEnemyTerritory || enemyNeighborsNear >= 3) && result.capturedCount === 0 && mySimLibs.size <= 2) {
                 continue; // Piedra muerta que solo regalaría prisioneros al oponente
             }
 
@@ -258,7 +275,8 @@ export class GoAI {
                     reason = `Ganar +${scoreDelta.toFixed(1)} pts netos de territorio`;
                 }
             } else if (scoreDelta < 0 && result.capturedCount === 0) {
-                score -= (difficulty === 'dan' ? 1100 : (difficulty === 'hard' ? 600 : (difficulty === 'medium' ? 350 : 100)));
+                // Penalizar fuertemente cualquier jugada que reduzca el territorio neto o rellene ojos propios
+                score -= (difficulty === 'dan' ? 1600 : (difficulty === 'hard' ? 1000 : (difficulty === 'medium' ? 700 : 450)));
             }
 
             // ==================== VII. CAMPO DE INFLUENCIA & MOYO (KATAGO) ====================
@@ -270,8 +288,9 @@ export class GoAI {
             }
 
             // ==================== VIII. FORMAS CANÓNICAS Y PERSONALIDAD ESTRATÉGICA ====================
-            const isEarlyOrOpen = state.currentTurn <= 24 || currentScore.territoryMap.size < board.nodes.size * 0.65;
-            if (isEarlyOrOpen) {
+            const isNearEnemy = enemyNeighbors > 0;
+            const isEarlyOrOpen = state.currentTurn <= 20 || (isNearEnemy && currentScore.territoryMap.size < board.nodes.size * 0.65);
+            if (isEarlyOrOpen && scoreDelta >= 0) {
                 // Penalización Anti-Dango en Apertura (no apelotonar 3 piedras en la esquina en líneas 1 y 2 sin contacto enemigo)
                 if (boardLine <= 2 && state.currentTurn <= 20) {
                     let friendlyNearby = 0;
@@ -348,20 +367,36 @@ export class GoAI {
                     enemyAdjacentChains.add(Array.from(chain).sort().join('|'));
                 }
             }
+
+            // ==================== IX. DISPUTA DE RELIQUIAS Y OBJETOS CAPTURABLES ====================
+            if (state.captives && state.captives.length > 0) {
+                for (const captive of state.captives) {
+                    if (captive.isCaptured) continue;
+                    const entityNodeIds = captive.nodeIds && captive.nodeIds.length > 0 ? captive.nodeIds : [captive.nodeId];
+                    const isAdjacentToCaptive = entityNodeIds.some(cNodeId => {
+                        const cNode = board.nodes.get(cNodeId);
+                        return cNode?.neighbors.has(nodeId);
+                    });
+                    if (isAdjacentToCaptive) {
+                        score += (difficulty === 'dan' ? 750 : (difficulty === 'hard' ? 600 : (difficulty === 'medium' ? 450 : 250)));
+                        if (reason === 'Desarrollo de influencia') reason = `Asediar y disputar ${captive.name}`;
+                    }
+                }
+            }
             if (enemyAdjacentChains.size >= 2) {
                 score += (difficulty === 'dan' ? 650 : (difficulty === 'hard' ? 450 : (difficulty === 'medium' ? 340 : 130)));
                 if (reason === 'Desarrollo de influencia') reason = 'Corte táctico de grupos rivales';
             }
 
             // ==================== IX. CALIBRACIÓN DE TEMPERATURA ====================
-            if (isEasyBlunderTurn && score > 0 && myLibertiesAfter.size >= 2) {
+            if (isEasyBlunderTurn && score > 0 && scoreDelta >= 0 && myLibertiesAfter.size >= 2) {
                 // Despiste humanizado de principiante: jugar en zona abierta con libertades saludables
-                score = Math.random() * 70 + 25;
+                score = Math.random() * 50 + 20;
                 reason = 'Desarrollo relajado';
             } else {
                 switch (difficulty) {
-                    case 'easy': score += (Math.random() * 30) - 10; break;
-                    case 'medium': score += (Math.random() * 14) - 5; break;
+                    case 'easy': score += (Math.random() * 20) - 5; break;
+                    case 'medium': score += (Math.random() * 12) - 4; break;
                     case 'hard': score += (Math.random() * 4); break;
                     case 'dan': score += (Math.random() * 0.5); break; // Cero ruido en Dan
                 }
@@ -428,41 +463,51 @@ export class GoAI {
         // ==================== EVALUACIÓN Y DECISIÓN DE PASAR TURNO ====================
         // 1. Si el oponente acaba de pasar turno:
         if (opponentJustPassed) {
-            if (finalMove.scoreDelta <= 0 && myChainsInAtari.length === 0 && enemyChainsInAtari.length === 0) {
-                return {
-                    nodeId: null,
-                    reason: 'Aceptar fin de partida tras pase del rival (Territorios fijados)',
-                    score: 0
-                };
-            }
-            if (finalMove.score <= 40 && myChainsInAtari.length === 0) {
-                return {
-                    nodeId: null,
-                    reason: 'Partida finalizada tras pase del oponente',
-                    score: 0
-                };
+            // Si no hay capturas inmediatas en Atari que realizar:
+            if (enemyChainsInAtari.length === 0 && myChainsInAtari.length === 0) {
+                // Si la jugada no aporta ganancia neta o su puntuación es residual/baja:
+                if (finalMove.scoreDelta <= 0 || finalMove.score <= 100) {
+                    return {
+                        nodeId: null,
+                        reason: 'Aceptar fin de partida tras pase del rival (Territorios fijados)',
+                        score: 0
+                    };
+                }
             }
         }
 
         // 2. Iniciativa proactiva de fin de partida (Endgame consolidado / Sin jugadas de valor):
-        if (state.currentTurn > 6) {
-            const hasUrgentAtari = myChainsInAtari.length > 0 || enemyChainsInAtari.length > 0;
-            if (!hasUrgentAtari) {
+        if (state.currentTurn > 4) {
+            const hasUrgentCombat = myChainsInAtari.length > 0 || enemyChainsInAtari.length > 0;
+            if (!hasUrgentCombat) {
+                // A. Puntuación nula o negativa
                 if (finalMove.score <= 0) {
                     return {
                         nodeId: null,
-                        reason: 'No quedan jugadas viables que aporten territorio o vida (Pasar)',
+                        reason: 'No quedan jugadas viables que aporten territorio o vida (Pasar turno)',
                         score: 0
                     };
                 }
 
-                const isConsolidated = currentScore.territoryMap.size >= board.nodes.size * 0.35;
-                if (isConsolidated && finalMove.scoreDelta <= 0 && finalMove.score <= 45) {
+                // B. Sin ganancia neta de puntos y puntuación modesta (evita jugar piedras superfluas en territorio propio)
+                if (finalMove.scoreDelta <= 0 && finalMove.score <= 75) {
                     return {
                         nodeId: null,
                         reason: 'Territorio consolidado. No quedan jugadas que aumenten la puntuación (Pasar)',
                         score: 0
                     };
+                }
+
+                // C. Si las fronteras de territorio están selladas y no hay capturas ni cortes
+                const isBoardMostlySettled = currentScore.territoryMap.size >= board.nodes.size * 0.35 || state.currentTurn >= 12;
+                if (isBoardMostlySettled && finalMove.scoreDelta <= 0 && !finalMove.reason.includes('Capturar') && !finalMove.reason.includes('Atari')) {
+                    if (finalMove.score <= 110) {
+                        return {
+                            nodeId: null,
+                            reason: 'Fronteras de territorio selladas. Pasar para finalizar la partida.',
+                            score: 0
+                        };
+                    }
                 }
             }
         }

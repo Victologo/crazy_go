@@ -11,9 +11,11 @@ export interface StoryDialogueLine {
 }
 
 export interface StoryEvent {
-    trigger: 'pre_battle' | 'post_battle' | 'on_capture' | 'turn_start';
+    trigger: 'pre_battle' | 'post_battle' | 'on_capture' | 'on_enemy_capture' | 'turn_start';
     targetId?: string;
     dialogues: StoryDialogueLine[];
+    shatterBoard?: boolean;
+    offerPowerDraft?: boolean;
 }
 
 export interface StoryCaptiveConfig {
@@ -22,6 +24,7 @@ export interface StoryCaptiveConfig {
     name: string;
     x: number;
     y: number;
+    nodeIds?: string[]; // Para entidades multi-casilla contiguas (ej: ['6,6', '6,7'])
     icon: string;
     description: string;
     rewardType: 'poly' | 'spell' | 'komi' | 'transmute';
@@ -40,7 +43,7 @@ export interface StoryChapter {
     initialStones: { x: number; y: number; player: number }[];
     captives: StoryCaptiveConfig[];
     events: StoryEvent[];
-    winCondition: 'eliminate' | 'capture_all' | 'capture_specific' | 'survive';
+    winCondition: 'eliminate' | 'capture_all' | 'capture_specific' | 'survive' | 'territory';
     targetCaptiveId?: string;
 }
 
@@ -75,7 +78,7 @@ export const STORY_CAMPAIGN_ES: StoryChapter[] = [
                     { speakerName: 'Voz del Vacío', speakerImage: '', text: 'Tu conciencia despierta en el abismo. El Goban primordial... se ha quebrado.', position: 'center' },
                     { speakerName: 'Espíritu Guardián', speakerImage: '/enemies/spirit_1.png', text: 'Viajero... mi esencia se apaga. ¡Ancla mi espíritu antes de que me disperse!', position: 'right' },
                     { speakerName: 'Hombre Normal', speakerImage: '/heroes/normal_face.jpg', text: '¿Cómo? Solo tengo estas piedras negras de Go...', position: 'left' },
-                    { speakerName: 'Espíritu Guardián', speakerImage: '/enemies/spirit_1.png', text: 'Son condensaciones de tu propio Qi. Sella las 4 fisuras cardinales a mi alrededor (arriba, abajo, izquierda, derecha). ¡Ciérralas todas y sálvame!', position: 'right' }
+                    { speakerName: 'Espíritu Guardián', speakerImage: '/enemies/spirit_1.png', text: 'Son condensaciones de tu propio Qi. Sella las 4 libertades cardinales a mi alrededor (arriba, abajo, izquierda, derecha). ¡Ciérralas todas y sálvame!', position: 'right' }
                 ]
             },
             {
@@ -128,14 +131,143 @@ export const STORY_CAMPAIGN_ES: StoryChapter[] = [
             {
                 trigger: 'on_capture',
                 targetId: 'scroll_target',
+                shatterBoard: true,
+                offerPowerDraft: true,
                 dialogues: [
-                    { speakerName: 'Sabio de la Niebla', speakerImage: '/heroes/kitsune_face.jpg', text: '¡Imposible! ¡Has sellado el Pergamino Sagrado y disipado mi niebla!', position: 'right' },
-                    { speakerName: 'Hombre Normal', speakerImage: '/heroes/normal_face.jpg', text: 'El territorio está seguro. Y tu niebla... se ha disuelto.', position: 'left' }
+                    { speakerName: 'Sabio de la Niebla', speakerImage: '/heroes/kitsune_face.jpg', text: '¡Imposible! ¡Has sellado el Pergamino Sagrado y purificado la niebla!', position: 'right' },
+                    { speakerName: 'Hombre Normal', speakerImage: '/heroes/normal_face.jpg', text: 'El Qi primordial está despertando... ¡La reliquia resuena con una fuerza colosal!', position: 'left' },
+                    { speakerName: 'Sabio de la Niebla', speakerImage: '/heroes/kitsune_face.jpg', text: '¡Cuidado! ¡La sobrecarga de Qi va a quebrar el Goban en mil pedazos!', position: 'right' },
+                    { speakerName: 'Voz del Vacío', speakerImage: '', text: 'El pergamino se disuelve en tu espíritu. Las piedras se destruyen... ¡Elige el poder que guiará tu destino!', position: 'center' }
                 ]
             }
         ],
         winCondition: 'capture_specific',
         targetCaptiveId: 'scroll_target'
+    },
+    {
+        id: 'cap_3_asymmetric_battle',
+        title: 'Capítulo 3: La Batalla del Vacío Asimétrico (13x13)',
+        description: 'Empuñando tu nuevo poder místico, enfréntate al Maestro del Vacío en un colosal tablero irregular de 13x13 y conquista el territorio.',
+        boardShape: 'eroded',
+        boardSize: 13,
+        heroId: 'normal',
+        enemyHeroId: 'ronin',
+        komi: 6.5,
+        initialStones: [
+            { x: 3, y: 3, player: 2 },
+            { x: 9, y: 3, player: 2 },
+            { x: 3, y: 9, player: 2 }
+        ],
+        captives: [],
+        events: [
+            {
+                trigger: 'pre_battle',
+                dialogues: [
+                    { speakerName: 'Maestro del Vacío', speakerImage: '/heroes/ronin_face.jpg', text: 'Veo que has absorbido el Qi del Pergamino... Pero este Goban Asimétrico de 13x13 no perdona errores tácticos.', position: 'right' },
+                    { speakerName: 'Tú (Campeón)', speakerImage: '/heroes/normal_face.jpg', text: 'Mi poder místico y la pureza del Go decidirán el destino de este reino.', position: 'left' },
+                    { speakerName: 'Maestro del Vacío', speakerImage: '/heroes/ronin_face.jpg', text: '¡Demuéstralo! ¡Lucha por el control absoluto del territorio!', position: 'right' }
+                ]
+            },
+            {
+                trigger: 'post_battle',
+                dialogues: [
+                    { speakerName: 'Maestro del Vacío', speakerImage: '/heroes/ronin_face.jpg', text: 'Increíble... Tu lectura táctica y la maestría de tu poder han dominado el Goban.', position: 'right' },
+                    { speakerName: 'Tú (Campeón)', speakerImage: '/heroes/normal_face.jpg', text: 'El territorio ha sido pacificado. Pero aún siento perturbaciones más adelante...', position: 'left' }
+                ]
+            }
+        ],
+        winCondition: 'territory'
+    },
+    {
+        id: 'cap_4_relic_dispute',
+        title: 'Capítulo 4: La Disputa de los Tres Relicarios',
+        description: 'Tres reliquias sagradas yacen en el tablero asimétrico, incluyendo el Monolito de 2 casillas contiguas. ¡Rodéalas antes de que la IA de Blancas se apropie de su poder!',
+        boardShape: 'cross',
+        boardSize: 13,
+        heroId: 'normal',
+        enemyHeroId: 'kitsune',
+        komi: 5.5,
+        initialStones: [
+            { x: 2, y: 6, player: 2 },
+            { x: 10, y: 6, player: 2 }
+        ],
+        captives: [
+            {
+                id: 'monolith_qi',
+                type: 'chest',
+                name: 'Monolito de Qi Ancestral (2x1)',
+                x: 6,
+                y: 6,
+                nodeIds: ['6,6', '6,7'],
+                icon: '🀄',
+                description: 'Reliquia colosal de 2 casillas. Otorga fichas tácticas a quien rodee su perímetro.',
+                rewardType: 'poly',
+                rewardValue: 'monolith'
+            },
+            {
+                id: 'thunder_orb',
+                type: 'scroll_relic',
+                name: 'Orbe de Fuego Astral',
+                x: 3,
+                y: 9,
+                icon: '⚡',
+                description: 'Condensación de relámpago que otorga hechizos de Meteorito al ser capturado.',
+                rewardType: 'spell',
+                rewardValue: 'meteor'
+            },
+            {
+                id: 'sacred_totem',
+                type: 'spirit',
+                name: 'Tótem Sagrado de Armonía',
+                x: 9,
+                y: 3,
+                icon: '🛡️',
+                description: 'Pilar espiritual que bendice con +3.0 puntos de Komi territorial a quien lo selle.',
+                rewardType: 'komi',
+                rewardValue: 3.0
+            }
+        ],
+        events: [
+            {
+                trigger: 'pre_battle',
+                dialogues: [
+                    { speakerName: 'Hechicera de las Sombras', speakerImage: '/heroes/kitsune_face.jpg', text: 'Observa este santuario. Hay 3 relicarios místicos en el Goban, ¡incluido el colosal Monolito de Qi de 2 casillas!', position: 'right' },
+                    { speakerName: 'Tú (Campeón)', speakerImage: '/heroes/normal_face.jpg', text: 'Debo rodearlos con mis piedras negras para canalizar sus bendiciones.', position: 'left' },
+                    { speakerName: 'Hechicera de las Sombras', speakerImage: '/heroes/kitsune_face.jpg', text: '¡Si mis piedras blancas los asedian primero, absorberé sus reliquias y te arrebataré su poder!', position: 'right' }
+                ]
+            },
+            {
+                trigger: 'on_capture',
+                targetId: 'monolith_qi',
+                dialogues: [
+                    { speakerName: 'Tú (Campeón)', speakerImage: '/heroes/normal_face.jpg', text: '¡He sellado el Monolito de 2 casillas! ¡El Qi de los Titanes potencia mi arsenal!', position: 'left' },
+                    { speakerName: 'Hechicera de las Sombras', speakerImage: '/heroes/kitsune_face.jpg', text: '¡Maldición! ¡Llegué demasiado tarde a su perímetro exterior!', position: 'right' }
+                ]
+            },
+            {
+                trigger: 'on_enemy_capture',
+                targetId: 'monolith_qi',
+                dialogues: [
+                    { speakerName: 'Hechicera de las Sombras', speakerImage: '/heroes/kitsune_face.jpg', text: '¡Jajaja! ¡Mis piedras blancas han rodeado el Monolito! ¡Su poder ahora me pertenece!', position: 'right' },
+                    { speakerName: 'Tú (Campeón)', speakerImage: '/heroes/normal_face.jpg', text: '¡Ha consumido el Monolito! Debo asegurar las reliquias restantes antes de que gane más ventaja.', position: 'left' }
+                ]
+            },
+            {
+                trigger: 'on_capture',
+                targetId: 'thunder_orb',
+                dialogues: [
+                    { speakerName: 'Tú (Campeón)', speakerImage: '/heroes/normal_face.jpg', text: '¡Orbe de Fuego asegurado! ¡La energía destructiva responde a mi llamada!', position: 'left' }
+                ]
+            },
+            {
+                trigger: 'on_capture',
+                targetId: 'sacred_totem',
+                dialogues: [
+                    { speakerName: 'Tú (Campeón)', speakerImage: '/heroes/normal_face.jpg', text: '¡Tótem purificado! Una barrera sagrada de armonía refuerza nuestro territorio.', position: 'left' }
+                ]
+            }
+        ],
+        winCondition: 'territory'
     }
 ];
 
@@ -170,7 +302,7 @@ export const STORY_CAMPAIGN_EN: StoryChapter[] = [
                     { speakerName: 'Voice of the Void', speakerImage: '', text: 'Your consciousness awakens in the abyss. The primordial Goban... has shattered.', position: 'center' },
                     { speakerName: 'Guardian Spirit', speakerImage: '/enemies/spirit_1.png', text: 'Traveler... my essence is fading. Anchor my spirit before I disperse!', position: 'right' },
                     { speakerName: 'Normal Apprentice', speakerImage: '/heroes/normal_face.jpg', text: 'How? I only hold these black Go stones...', position: 'left' },
-                    { speakerName: 'Guardian Spirit', speakerImage: '/enemies/spirit_1.png', text: 'They are condensations of your own Qi. Seal the 4 cardinal fissures around me (top, bottom, left, right). Enclose them all and save me!', position: 'right' }
+                    { speakerName: 'Guardian Spirit', speakerImage: '/enemies/spirit_1.png', text: 'They are condensations of your own Qi. Seal the 4 cardinal liberties around me (top, bottom, left, right). Enclose them all and save me!', position: 'right' }
                 ]
             },
             {
@@ -223,14 +355,143 @@ export const STORY_CAMPAIGN_EN: StoryChapter[] = [
             {
                 trigger: 'on_capture',
                 targetId: 'scroll_target',
+                shatterBoard: true,
+                offerPowerDraft: true,
                 dialogues: [
                     { speakerName: 'Sage of the Mist', speakerImage: '/heroes/kitsune_face.jpg', text: 'Impossible! You anchored the Sacred Scroll and repelled my mist!', position: 'right' },
-                    { speakerName: 'Normal Apprentice', speakerImage: '/heroes/normal_face.jpg', text: 'The territory is secure. And your mist... has cleared.', position: 'left' }
+                    { speakerName: 'Normal Apprentice', speakerImage: '/heroes/normal_face.jpg', text: 'The primordial Qi is awakening... The relic resonates with colossal force!', position: 'left' },
+                    { speakerName: 'Sage of the Mist', speakerImage: '/heroes/kitsune_face.jpg', text: 'Watch out! The Qi overload is about to shatter the Goban into a thousand pieces!', position: 'right' },
+                    { speakerName: 'Voice of the Void', speakerImage: '', text: 'The scroll dissolves into your soul. The stones shatter... Choose the Champion power that will guide your destiny!', position: 'center' }
                 ]
             }
         ],
         winCondition: 'capture_specific',
         targetCaptiveId: 'scroll_target'
+    },
+    {
+        id: 'cap_3_asymmetric_battle',
+        title: 'Chapter 3: The Asymmetric Void Battle (13x13)',
+        description: 'Wielding your newly chosen Champion blessing, face the Void Master in a colossal irregular 13x13 board and conquer the territory.',
+        boardShape: 'eroded',
+        boardSize: 13,
+        heroId: 'normal',
+        enemyHeroId: 'ronin',
+        komi: 6.5,
+        initialStones: [
+            { x: 3, y: 3, player: 2 },
+            { x: 9, y: 3, player: 2 },
+            { x: 3, y: 9, player: 2 }
+        ],
+        captives: [],
+        events: [
+            {
+                trigger: 'pre_battle',
+                dialogues: [
+                    { speakerName: 'Void Master', speakerImage: '/heroes/ronin_face.jpg', text: 'I see you absorbed the Sacred Scroll Qi... But this 13x13 Asymmetric Goban forgives no tactical blunders.', position: 'right' },
+                    { speakerName: 'You (Champion)', speakerImage: '/heroes/normal_face.jpg', text: 'My mystic power and canonical Go mastery will decide the fate of this realm.', position: 'left' },
+                    { speakerName: 'Void Master', speakerImage: '/heroes/ronin_face.jpg', text: 'Prove it! Fight for total territorial dominion!', position: 'right' }
+                ]
+            },
+            {
+                trigger: 'post_battle',
+                dialogues: [
+                    { speakerName: 'Void Master', speakerImage: '/heroes/ronin_face.jpg', text: 'Remarkable... Your tactical reading and power mastery have conquered the Goban.', position: 'right' },
+                    { speakerName: 'You (Champion)', speakerImage: '/heroes/normal_face.jpg', text: 'The territory is safe. Yet I sense deeper cosmic disturbances ahead...', position: 'left' }
+                ]
+            }
+        ],
+        winCondition: 'territory'
+    },
+    {
+        id: 'cap_4_relic_dispute',
+        title: 'Chapter 4: The Dispute of the Three Relics',
+        description: 'Three sacred relics lie upon the asymmetric board, including the 2-cell Monolith. Enclose them before the White AI claims their powers!',
+        boardShape: 'cross',
+        boardSize: 13,
+        heroId: 'normal',
+        enemyHeroId: 'kitsune',
+        komi: 5.5,
+        initialStones: [
+            { x: 2, y: 6, player: 2 },
+            { x: 10, y: 6, player: 2 }
+        ],
+        captives: [
+            {
+                id: 'monolith_qi',
+                type: 'chest',
+                name: 'Ancestral Qi Monolith (2x1)',
+                x: 6,
+                y: 6,
+                nodeIds: ['6,6', '6,7'],
+                icon: '🀄',
+                description: 'Colossal 2-cell relic. Grants tactical polyomino tiles to whoever encloses its perimeter.',
+                rewardType: 'poly',
+                rewardValue: 'monolith'
+            },
+            {
+                id: 'thunder_orb',
+                type: 'scroll_relic',
+                name: 'Astral Fire Orb',
+                x: 3,
+                y: 9,
+                icon: '⚡',
+                description: 'Astral lightning condensation granting Meteor Rain spells upon capture.',
+                rewardType: 'spell',
+                rewardValue: 'meteor'
+            },
+            {
+                id: 'sacred_totem',
+                type: 'spirit',
+                name: 'Sacred Harmony Totem',
+                x: 9,
+                y: 3,
+                icon: '🛡️',
+                description: 'Spiritual pillar granting +3.0 permanent Komi to whoever encloses it.',
+                rewardType: 'komi',
+                rewardValue: 3.0
+            }
+        ],
+        events: [
+            {
+                trigger: 'pre_battle',
+                dialogues: [
+                    { speakerName: 'Shadow Sorceress', speakerImage: '/heroes/kitsune_face.jpg', text: 'Behold this sanctuary. Three mystical relics rest on the Goban, including the colossal 2-cell Monolith!', position: 'right' },
+                    { speakerName: 'You (Champion)', speakerImage: '/heroes/normal_face.jpg', text: 'I must seal them with my black stones to channel their blessings.', position: 'left' },
+                    { speakerName: 'Shadow Sorceress', speakerImage: '/heroes/kitsune_face.jpg', text: 'If my white stones enclose them first, I shall absorb their relics and seize their power from you!', position: 'right' }
+                ]
+            },
+            {
+                trigger: 'on_capture',
+                targetId: 'monolith_qi',
+                dialogues: [
+                    { speakerName: 'You (Champion)', speakerImage: '/heroes/normal_face.jpg', text: 'I have sealed the 2-cell Monolith! The Titan Qi supercharges my tactical arsenal!', position: 'left' },
+                    { speakerName: 'Shadow Sorceress', speakerImage: '/heroes/kitsune_face.jpg', text: 'Curse you! I arrived too late to its outer perimeter!', position: 'right' }
+                ]
+            },
+            {
+                trigger: 'on_enemy_capture',
+                targetId: 'monolith_qi',
+                dialogues: [
+                    { speakerName: 'Shadow Sorceress', speakerImage: '/heroes/kitsune_face.jpg', text: 'Hahaha! My white stones enclosed the Monolith! Its power belongs to the mist now!', position: 'right' },
+                    { speakerName: 'You (Champion)', speakerImage: '/heroes/normal_face.jpg', text: 'She consumed the Monolith! I must secure the remaining relics before she gains total dominion.', position: 'left' }
+                ]
+            },
+            {
+                trigger: 'on_capture',
+                targetId: 'thunder_orb',
+                dialogues: [
+                    { speakerName: 'You (Champion)', speakerImage: '/heroes/normal_face.jpg', text: 'Fire Orb secured! Astral power answers my command!', position: 'left' }
+                ]
+            },
+            {
+                trigger: 'on_capture',
+                targetId: 'sacred_totem',
+                dialogues: [
+                    { speakerName: 'You (Champion)', speakerImage: '/heroes/normal_face.jpg', text: 'Totem purified! A divine barrier reinforces our territory.', position: 'left' }
+                ]
+            }
+        ],
+        winCondition: 'territory'
     }
 ];
 

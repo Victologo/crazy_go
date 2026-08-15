@@ -341,9 +341,9 @@ export class GameController {
             }
 
             // Comprobar captura de entidades neutrales (objetos/rehenes)
-            RulesEngine.resolveCaptiveCaptures(this.board, this.state, this.state.currentPlayer, (captive) => {
+            RulesEngine.resolveCaptiveCaptures(this.board, this.state, this.config.humanColor, (captive, capturerId) => {
                 if (this.config.gameMode === 'story') {
-                    StoryController.onCaptiveCaptured(captive.id);
+                    StoryController.onCaptiveCaptured(captive.id, capturerId);
                 } else {
                     if (captive.type === 'chest') {
                         RoguelikeRunManager.addPolyomino('domino', 1);
@@ -550,7 +550,9 @@ export class GameController {
                     let maxEnemyStonesInZone = 0;
 
                     for (const node of this.board.nodes.values()) {
+                        if (node.terrain === 'DESTROYED' || node.terrain === 'OBSTACLE') continue;
                         const zone = ChampionManager.getMeteorZoneNodes(this.board, node.id);
+                        if (zone.length === 0) continue;
                         const enemyCount = zone.filter(n => n.stone && n.stone.playerId === humanPlayerId && !n.stone.isIndestructible).length;
                         if (enemyCount > maxEnemyStonesInZone) {
                             maxEnemyStonesInZone = enemyCount;
@@ -580,7 +582,7 @@ export class GameController {
                         };
 
                         if (svgElement) {
-                            VFXManager.triggerMeteorShower(impactCoords, svgElement, onImpactNode, onFinishedMeteors);
+                            VFXManager.triggerMeteorShower(impactCoords, svgElement, onImpactNode, onFinishedMeteors, this.renderer.currentStoneRadius);
                         } else {
                             impactNodes.forEach((_, idx) => onImpactNode(idx));
                             onFinishedMeteors();
@@ -686,6 +688,17 @@ export class GameController {
             } else {
                 // La IA ejecuta la jugada
                 this.renderer.handleNodeClick(aiChoice.nodeId, false);
+
+                // Comprobar si la jugada de la IA capturó alguna entidad neutral
+                RulesEngine.resolveCaptiveCaptures(this.board, this.state, 2, (captive, capturerId) => {
+                    if (this.config.gameMode === 'story') {
+                        StoryController.onCaptiveCaptured(captive.id, capturerId);
+                    } else {
+                        HUDController.showAlert(`⚠️ ¡El rival ha asediado y absorbido ${captive.name}!`);
+                    }
+                    SoundFX.playSpecial();
+                    this.renderer.render();
+                });
 
                 // Fallback de seguridad: Si por alguna razón la jugada no avanzó el turno, pasar turno
                 if (this.state.currentPlayer === activePlayer) {
@@ -930,7 +943,12 @@ export class GameController {
 
         this.renderer.render();
 
-        const isRoguelike = RoguelikeRunManager.isRunActive;
+        if (this.config.gameMode === 'story') {
+            const winnerId = report.winner === 'black' ? 1 : 2;
+            StoryController.onMatchEnded(winnerId);
+        }
+
+        const isRoguelike = RoguelikeRunManager.isRunActive && this.config.gameMode !== 'story';
         const humanWon = isRoguelike
             ? (this.config.humanColor === 1 && report.winner === 'black') || (this.config.humanColor === 2 && report.winner === 'white')
             : false;

@@ -4,18 +4,24 @@ import { SoundFX } from '../../audio/SoundFX';
 export class TenguVFX {
     /**
      * Animación: Lluvia Meteórica (Meteor Shower de Tengu)
-     * Desata meteoros incandescentes fluidos con estelas de fuego que caen sobre las coordenadas seleccionadas,
-     * destruyendo piedras en impacto real con ondas de choque ígneas y chispas.
+     * Desata meteoros incandescentes fluidos con estelas de fuego que caen exactamente sobre las coordenadas
+     * de las intersecciones válidas seleccionadas, escaladas según la geometría del tablero.
      */
     public static triggerMeteorShower(
         impactCoords: { x: number; y: number }[], 
         svgElement: SVGSVGElement,
         onImpactNode: (index: number) => void,
-        onComplete: () => void
+        onComplete: () => void,
+        stoneRadius: number = 18
     ) {
         const vfxLayer = document.createElementNS('http://www.w3.org/2000/svg', 'g');
         vfxLayer.setAttribute('class', 'vfx-meteor-layer');
         svgElement.appendChild(vfxLayer);
+
+        const r = Math.max(10, stoneRadius);
+        const headR = r * 0.72;
+        const tailLenX = r * 3.6;
+        const tailLenY = r * 6.2;
 
         impactCoords.forEach((coord, idx) => {
             const delayMs = idx * 110;
@@ -27,24 +33,24 @@ export class TenguVFX {
 
                 // Estela exterior de fuego carmesí
                 const outerTail = document.createElementNS('http://www.w3.org/2000/svg', 'line');
-                outerTail.setAttribute('x1', `${coord.x - 70}`);
-                outerTail.setAttribute('y1', `${coord.y - 120}`);
+                outerTail.setAttribute('x1', `${coord.x - tailLenX}`);
+                outerTail.setAttribute('y1', `${coord.y - tailLenY}`);
                 outerTail.setAttribute('x2', `${coord.x}`);
                 outerTail.setAttribute('y2', `${coord.y}`);
                 outerTail.setAttribute('stroke', '#ef4444');
-                outerTail.setAttribute('stroke-width', '8');
+                outerTail.setAttribute('stroke-width', `${r * 0.44}`);
                 outerTail.setAttribute('stroke-linecap', 'round');
                 outerTail.setAttribute('opacity', '0.9');
                 meteorGroup.appendChild(outerTail);
 
                 // Núcleo brillante interior de plasma dorado
                 const coreTail = document.createElementNS('http://www.w3.org/2000/svg', 'line');
-                coreTail.setAttribute('x1', `${coord.x - 55}`);
-                coreTail.setAttribute('y1', `${coord.y - 95}`);
+                coreTail.setAttribute('x1', `${coord.x - tailLenX * 0.78}`);
+                coreTail.setAttribute('y1', `${coord.y - tailLenY * 0.78}`);
                 coreTail.setAttribute('x2', `${coord.x}`);
                 coreTail.setAttribute('y2', `${coord.y}`);
                 coreTail.setAttribute('stroke', '#fef08a');
-                coreTail.setAttribute('stroke-width', '3.5');
+                coreTail.setAttribute('stroke-width', `${r * 0.2}`);
                 coreTail.setAttribute('stroke-linecap', 'round');
                 coreTail.setAttribute('opacity', '0.95');
                 meteorGroup.appendChild(coreTail);
@@ -53,10 +59,10 @@ export class TenguVFX {
                 const head = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
                 head.setAttribute('cx', `${coord.x}`);
                 head.setAttribute('cy', `${coord.y}`);
-                head.setAttribute('r', '13');
+                head.setAttribute('r', `${headR}`);
                 head.setAttribute('fill', '#fbbf24');
                 head.setAttribute('stroke', '#ea580c');
-                head.setAttribute('stroke-width', '2.5');
+                head.setAttribute('stroke-width', `${r * 0.14}`);
                 head.setAttribute('filter', 'drop-shadow(0 0 12px #f97316)');
                 meteorGroup.appendChild(head);
 
@@ -78,14 +84,14 @@ export class TenguVFX {
                         setTimeout(() => boardTarget.classList.remove('vfx-screen-shake'), 140);
                     }
 
-                    // Anillo de explosión ígnea
+                    // Anillo de explosión ígnea centrado exactamente en la intersección
                     const burst = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
                     burst.setAttribute('cx', `${coord.x}`);
                     burst.setAttribute('cy', `${coord.y}`);
-                    burst.setAttribute('r', '6');
+                    burst.setAttribute('r', `${r * 0.35}`);
                     burst.setAttribute('fill', 'none');
                     burst.setAttribute('stroke', '#ef4444');
-                    burst.setAttribute('stroke-width', '4');
+                    burst.setAttribute('stroke-width', `${r * 0.22}`);
                     burst.setAttribute('class', 'vfx-meteor-burst');
                     vfxLayer.appendChild(burst);
 
@@ -93,25 +99,25 @@ export class TenguVFX {
                     const shockwave = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
                     shockwave.setAttribute('cx', `${coord.x}`);
                     shockwave.setAttribute('cy', `${coord.y}`);
-                    shockwave.setAttribute('r', '10');
+                    shockwave.setAttribute('r', `${r * 0.55}`);
                     shockwave.setAttribute('fill', 'none');
                     shockwave.setAttribute('stroke', '#f59e0b');
-                    shockwave.setAttribute('stroke-width', '2');
+                    shockwave.setAttribute('stroke-width', `${r * 0.12}`);
                     shockwave.setAttribute('class', 'vfx-shockwave-anim');
                     vfxLayer.appendChild(shockwave);
 
-                    // Chispas y ascuas incandescentes
+                    // Chispas y ascuas incandescentes radiales
                     const sparkAngles = [0, 90, 180, 270, 45, 135, 225, 315];
                     sparkAngles.forEach(deg => {
                         const rad = (deg * Math.PI) / 180;
-                        const dist = 18 + Math.random() * 14;
+                        const dist = r * (1.0 + Math.random() * 0.8);
                         const tx = Math.cos(rad) * dist;
                         const ty = Math.sin(rad) * dist;
 
                         const spark = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
                         spark.setAttribute('cx', `${coord.x}`);
                         spark.setAttribute('cy', `${coord.y}`);
-                        spark.setAttribute('r', (1.5 + Math.random() * 2).toString());
+                        spark.setAttribute('r', (r * (0.08 + Math.random() * 0.1)).toString());
                         spark.setAttribute('fill', Math.random() > 0.5 ? '#fbbf24' : '#ef4444');
                         spark.setAttribute('class', 'vfx-ember-particle');
                         spark.setAttribute('style', `--tx: ${tx}px; --ty: ${ty}px;`);

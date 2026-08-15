@@ -237,8 +237,8 @@ export class ChampionManager {
         return TenguChampion.getMeteorCount(board);
     }
 
-    public static getStoneRainCount(board: GraphBoard): number {
-        return HimikoChampion.getStoneRainCount(board);
+    public static getStoneRainCount(boardOrSize?: GraphBoard | BoardSize | number | null): number {
+        return HimikoChampion.getStoneRainCount(boardOrSize);
     }
 
     public static isValidTarget(board: GraphBoard, nodeId: string, playerId: PlayerId): boolean {

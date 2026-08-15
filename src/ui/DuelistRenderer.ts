@@ -3,7 +3,7 @@ import { RoguelikeRunManager } from '../core/RoguelikeRunManager';
 import { TutorialManager } from '../tutorial/TutorialManager';
 import { NetworkManager } from '../network/NetworkManager';
 import { GameState } from '../core/GameState';
-import { t } from '../i18n/i18n';
+import { t, getLanguage, translateEnemyName } from '../i18n/i18n';
 
 export class DuelistRenderer {
     public static updateDuelists(
@@ -63,34 +63,35 @@ export class DuelistRenderer {
                 if (pImg && hero) pImg.src = hero.image;
                 if (pIcon && hero) pIcon.innerText = hero.icon;
                 if (pName && hero) pName.innerText = t(`champion.${heroId}.name`) || hero.name;
-                if (pTitle) pTitle.innerText = '⚫ Negras (J1)';
+                if (pTitle) pTitle.innerText = `⚫ ${t('hud.player_black')} (${t('hud.player_num', { num: 1 })})`;
             } else {
                 if (pImg) pImg.src = '/heroes/ronin.png';
                 if (pIcon) pIcon.innerText = '⚫';
                 if (pName) pName.innerText = t('hud.player_you');
-                if (pTitle) pTitle.innerText = '⚫ Negras (J1)';
+                if (pTitle) pTitle.innerText = `⚫ ${t('hud.player_black')} (${t('hud.player_num', { num: 1 })})`;
             }
 
+            const isEn = getLanguage() === 'en';
             const randomMonk = [
-                { name: 'Joven Ren', avatar: '/enemies/monk_1.png', icon: '⚪', rank: '25 Kyu • IA Blanca' },
-                { name: 'Joven Hiro', avatar: '/enemies/monk_2.png', icon: '⚪', rank: '25 Kyu • IA Blanca' },
-                { name: 'Joven Sora', avatar: '/enemies/monk_3.png', icon: '⚪', rank: '25 Kyu • IA Blanca' },
-                { name: 'Joven Daiki', avatar: '/enemies/monk_4.png', icon: '⚪', rank: '25 Kyu • IA Blanca' },
-                { name: 'Joven Kazuki', avatar: '/enemies/monk_5.png', icon: '⚪', rank: '25 Kyu • IA Blanca' }
+                { name: translateEnemyName('Joven Ren'), avatar: '/enemies/monk_1.png', icon: '⚪', rank: `25 Kyu • ${isEn ? 'White AI' : 'IA Blanca'}` },
+                { name: translateEnemyName('Joven Hiro'), avatar: '/enemies/monk_2.png', icon: '⚪', rank: `25 Kyu • ${isEn ? 'White AI' : 'IA Blanca'}` },
+                { name: translateEnemyName('Joven Sora'), avatar: '/enemies/monk_3.png', icon: '⚪', rank: `25 Kyu • ${isEn ? 'White AI' : 'IA Blanca'}` },
+                { name: translateEnemyName('Joven Daiki'), avatar: '/enemies/monk_4.png', icon: '⚪', rank: `25 Kyu • ${isEn ? 'White AI' : 'IA Blanca'}` },
+                { name: translateEnemyName('Joven Kazuki'), avatar: '/enemies/monk_5.png', icon: '⚪', rank: `25 Kyu • ${isEn ? 'White AI' : 'IA Blanca'}` }
             ][Math.floor(Math.random() * 5)];
 
             const randomSage = [
-                { name: 'Kenshin el Sabio', avatar: '/enemies/sage_1.png', icon: '🟢', rank: '16 Kyu • IA Verde' },
-                { name: 'Nobunaga el Sabio', avatar: '/enemies/sage_2.png', icon: '🟢', rank: '16 Kyu • IA Verde' },
-                { name: 'Masashi el Sabio', avatar: '/enemies/sage_3.png', icon: '🟢', rank: '16 Kyu • IA Verde' },
-                { name: 'Tetsuo el Sabio', avatar: '/enemies/sage_4.png', icon: '🟢', rank: '16 Kyu • IA Verde' },
-                { name: 'Genzaburo el Sabio', avatar: '/enemies/sage_5.png', icon: '🟢', rank: '16 Kyu • IA Verde' }
+                { name: translateEnemyName('Kenshin el Sabio'), avatar: '/enemies/sage_1.png', icon: '🟢', rank: `16 Kyu • ${isEn ? 'Green AI' : 'IA Verde'}` },
+                { name: translateEnemyName('Nobunaga el Sabio'), avatar: '/enemies/sage_2.png', icon: '🟢', rank: `16 Kyu • ${isEn ? 'Green AI' : 'IA Verde'}` },
+                { name: translateEnemyName('Masashi el Sabio'), avatar: '/enemies/sage_3.png', icon: '🟢', rank: `16 Kyu • ${isEn ? 'Green AI' : 'IA Verde'}` },
+                { name: translateEnemyName('Tetsuo el Sabio'), avatar: '/enemies/sage_4.png', icon: '🟢', rank: `16 Kyu • ${isEn ? 'Green AI' : 'IA Verde'}` },
+                { name: translateEnemyName('Genzaburo el Sabio'), avatar: '/enemies/sage_5.png', icon: '🟢', rank: `16 Kyu • ${isEn ? 'Green AI' : 'IA Verde'}` }
             ][Math.floor(Math.random() * 5)];
 
             const aiOpponents = [
                 { pid: 2, name: randomMonk.name, icon: randomMonk.icon, avatar: randomMonk.avatar, rank: randomMonk.rank },
                 { pid: 3, name: randomSage.name, icon: randomSage.icon, avatar: randomSage.avatar, rank: randomSage.rank },
-                { pid: 4, name: 'Centinela Dragón', icon: '🟣', avatar: '/enemies/boss.png', rank: '4 Kyu • IA Púrpura' }
+                { pid: 4, name: translateEnemyName('Centinela Dragón'), icon: '🟣', avatar: '/enemies/boss.png', rank: `4 Kyu • ${isEn ? 'Purple AI' : 'IA Púrpura'}` }
             ];
 
             multiEnemyCard.innerHTML = '';
@@ -109,7 +110,7 @@ export class DuelistRenderer {
                         </div>
                         <small class="mini-opponent-sub">${ai.rank}</small>
                         <span class="mini-opponent-status ${isTurn ? 'playing' : 'waiting'}">
-                            ${isTurn ? '🤖 ¡Pensando jugada...!' : '⏳ En espera'}
+                            ${isTurn ? `🤖 ${t('hud.ai_thinking')}` : `⏳ ${t('hud.waiting')}`}
                         </span>
                     </div>
                 `;
@@ -131,7 +132,7 @@ export class DuelistRenderer {
             if (pImg) pImg.src = currentHeroData.img;
             if (pIcon) pIcon.innerText = currentHeroData.icon;
             if (pName) pName.innerText = currentHeroData.name;
-            if (pTitle) pTitle.innerText = `${currentHeroData.title} • ¡Te toca mover!`;
+            if (pTitle) pTitle.innerText = `${currentHeroData.title} • ${t('hud.your_turn_move')}`;
 
             const waitingPlayers = [1, 2, 3, 4].filter(p => p !== activeP);
             multiEnemyCard.innerHTML = '';
@@ -149,7 +150,7 @@ export class DuelistRenderer {
                             <strong class="mini-opponent-name">${hData.name}</strong>
                         </div>
                         <small class="mini-opponent-sub">${hData.title}</small>
-                        <span class="mini-opponent-status waiting">⏳ Esperando turno</span>
+                        <span class="mini-opponent-status waiting">⏳ ${t('hud.waiting_turn')}</span>
                     </div>
                 `;
                 multiEnemyCard.appendChild(card);
@@ -255,11 +256,13 @@ export class DuelistRenderer {
             const bConfig = node?.battleConfig;
             if (eImg) eImg.src = bConfig?.enemyImage || '/enemies/monk_1.png';
             if (eIcon) eIcon.innerText = bConfig?.enemyIcon || '🧘';
-            if (eName) eName.innerText = bConfig?.enemyName || 'Monk';
+            if (eName) eName.innerText = translateEnemyName(bConfig?.enemyName || t('hud.player_rival'));
             if (eRank) {
+                const shapeKey = bConfig?.shape ? `wizard.shape_${bConfig.shape}` : 'wizard.shape_square';
+                const shapeText = t(shapeKey) || bConfig?.shape || 'square';
                 eRank.innerText = node?.type === 'boss'
                     ? `👑 ${t('champion.boss.name')} • ${t('champion.boss.active_name')}`
-                    : `${bConfig?.rankLabel || '30 Kyu'} • ${bConfig?.shape || 'square'}`;
+                    : `${bConfig?.rankLabel || '30 Kyu'} • ${shapeText}`;
             }
         } else if (gameMode === '1via') {
             const pImg = document.getElementById('duel-player-img') as HTMLImageElement | null;
@@ -334,7 +337,7 @@ export class DuelistRenderer {
 
             if (eImg) eImg.src = aiImage;
             if (eIcon) eIcon.innerText = aiIcon;
-            if (eName) eName.innerText = aiName;
+            if (eName) eName.innerText = translateEnemyName(aiName);
             if (eRank) eRank.innerText = aiRank;
         } else {
             const pImg = document.getElementById('duel-player-img') as HTMLImageElement | null;

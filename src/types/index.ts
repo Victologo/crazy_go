@@ -65,6 +65,7 @@ export type CaptiveType = 'chest' | 'hostage' | 'scroll_relic' | 'spirit';
 export interface CaptiveEntity {
     id: string;
     nodeId: string;
+    nodeIds?: string[]; // Para entidades que ocupan múltiples casillas contiguas (ej: 2x1)
     type: CaptiveType;
     name: string;
     icon: string;
@@ -72,6 +73,7 @@ export interface CaptiveEntity {
     rewardType: 'poly' | 'spell' | 'komi' | 'transmute';
     rewardValue?: any;
     isCaptured: boolean;
+    capturedBy?: PlayerId; // Jugador que completó la captura (1 = Negras/Humano, 2 = Blancas/IA)
 }
 
 export interface SpecialStonesConfig {

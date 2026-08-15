@@ -14,6 +14,7 @@ import { ScreenManager } from '../ui/ScreenManager';
 import { ModalManager } from '../ui/ModalManager';
 import { HUDController } from '../ui/HUDController';
 import { GameController } from './GameController';
+import { t, translateEnemyName } from '../i18n/i18n';
 
 export class RoguelikeController {
     public static tempRogueDifficulty: RogueliteDifficulty = 'easy';
@@ -175,7 +176,8 @@ export class RoguelikeController {
             heroId: RoguelikeRunManager.selectedHero,
             enemyHeroId: node.battleConfig?.enemyHeroId || null
         });
-        HUDController.showAlert(`⚔️ ¡Comienza la batalla contra ${node.battleConfig?.enemyName || 'el rival'}!`);
+        const enemy = translateEnemyName(node.battleConfig?.enemyName || t('hud.player_rival'));
+        HUDController.showAlert(t('roguelike.battle_start', { enemy }));
     }
 
     public static getRewardOptionsForBattle(): { type: 'spell' | 'poly'; id: string; name: string; icon: string; desc: string }[] {

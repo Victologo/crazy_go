@@ -21,8 +21,8 @@ El juego respeta la división estricta entre **Habilidades Activas** (con objeti
 | :--- | :--- | :--- | :--- |
 | **Hombre Normal** | Ninguna | **Desafío Puro** | Personaje sin rostro ni habilidades. Ideal para puristas del Go que buscan ascensión táctica sin magias en modo Roguelike. |
 | **Tengu** | Activa (1 carga) | **Lluvia Meteórica** | Destruye piedras no protegidas en área: **5** en $9\times9$, **9** en $13\times13$, **15** en $19\times19$. |
-| **Himiko** | Pasiva | **Lluvia Pétrea Celestial** | Al **finalizar el Turno 15 personal**, caen piedras bendecidas en casillas aleatorias: **4** en $9\times9$, **6** en $13\times13$, **9** en $19\times19$. |
-| **Kitsune** | Activa (2 a 4 cargas) | **Escudo Divino** | Consagra una piedra haciéndola **indestructible e inmune a capturas y poderes durante 2 turnos** (**2** cargas en $9\times9$, **3** en $13\times13$, **4** en $19\times19$). |
+| **Himiko** | Pasiva | **Lluvia Pétrea Celestial** | Al **finalizar el Turno 15 personal**, caen piedras bendecidas en casillas aleatorias mediante fórmula sublineal de rendimientos decrecientes $\operatorname{round}\left(4 \times (N/81)^{0.7885}\right)$: **4** en $9\times9$, **7** en $13\times13$, **13** en $19\times19$. |
+| **Kitsune** | Activa (2 a 5 cargas) | **Escudo Divino** | Consagra una piedra haciéndola **indestructible e inmune a capturas y poderes durante 2 turnos** (**2** cargas en $9\times9$, **3** en $13\times13$, **5** en $19\times19$). |
 | **Ronin** | Pasiva | **Filo del Samurai** | Cada **25 turnos transcurridos**, desenvaina su katana mística y destruye automáticamente **1 piedra enemiga aleatoria** en el Goban. |
 | **Alquimista** | Activa (1 carga) | **Inversión Cromática** | Transmuta el color de cualquier piedra (aliada o enemiga): **1** en $9\times9$, **2** en $13\times13$, **3** en $19\times19$ en el mismo turno. **Pasa el turno automáticamente** al finalizar las transmutaciones. |
 | **Ryūjin** | Pasiva | **Furia del Dragón** | Calcina cualquier piedra (aliada o enemiga): **2** en $9\times9$ (al formar 2 ojos), **3** en $13\times13$ (al formar 3+ ojos o múltiples grupos vivos), y **+1 por cada ojo adicional** en $19\times19$ ($n-1$). |
@@ -107,11 +107,18 @@ El juego respeta la división estricta entre **Habilidades Activas** (con objeti
        - Botón de habilidad de Campeón traducido con estados dinámicos: *Passive Skill* / *Habilidad Pasiva*, *🎯 Click Node* / *🎯 Clic en Casilla*, *Skill Depleted* / *Habilidad Agotada*.
      - **Refactorización Modular (Clean Architecture):**
        - Desacoplado el renderizado de cartas de duelistas a [`src/ui/DuelistRenderer.ts`](file:///C:/Users/VICTOR/Desktop/crazy_go/src/ui/DuelistRenderer.ts), reduciendo `HUDController.ts` de 876 a ~500 líneas con responsabilidades cohesivas.
-  20. **Control de Versiones y Sincronización en GitHub:**
-     - Repositorio Git inicializado en rama `main` con `.gitignore` optimizado.
-     - Código fuente y documentación AI Wiki completamente sincronizados con [Victologo/crazy_go](https://github.com/Victologo/crazy_go).
+   21. **Corrección de Navegación Home y Expansión Narrativa del Modo Historia (Sesión 79):**
+      - **Corrección de Retorno a Menú Principal:** Desacoplado `#btn-game-back` y navegación para validar estrictamente si el combate activo es de tipo Roguelike antes de invocar `resumeMap()`, asegurando salida limpia al Menú Principal.
+      - **Animación Cinemática de Ruptura y Colapso (Shatter VFX):** Al sellar el Pergamino Sagrado en el Capítulo 2, todas las piedras del tablero se fracturan y disuelven con onda de choque y sacudida de pantalla (`SVGRenderer.triggerBoardShatterAnimation`).
+      - **Modal de Despertar de Qi y Selección de Poder:** Modal inmersivo en `StoryDialogueRenderer.showPowerDraftModal` para equipar bendiciones de Campeón.
+      - **Capítulos 3 y 4:** Batalla $13\times13$ y disputa competitiva de reliquias multi-casilla 2x1.
+      - **Limpieza de Topbar y Traducción Completa de Combates (EN / ES):** Eliminado `#ui-rogue-stage-badge` y traducidos nombres de rivales y duelistas.
+      - **Recalibración Matemática y VFX de Tengu en Topologías Irregulares y Hexagonales:** Filtrado de nodos jugables y escalado de animaciones según el radio real de las piedras.
+      - **Corrección Canónica de IA en Fin de Partida y Pase Decisivo (`GoAI.ts`):**
+        - Bloqueo estricto del autorelleno de territorio propio, ojos o casillas rodeadas de aliados en todas las dificultades (evita perder puntos o reducir libertades propias).
+        - Penalización inmediata de deltas negativos de puntuación y desactivación de bonos de apertura en tableros con fronteras cerradas.
+        - Detección y pase proactivo inmediato cuando el rival pasa o cuando ya no quedan movimientos que incrementen el territorio neto.
 - **Roster de Personajes:** Hombre Normal (👤), Tengu (🦅), Himiko (✨), Kitsune (🦊), Ronin (⚡), Alquimista (⚗️), Ryūjin (🐲).
-
 
 ---
 

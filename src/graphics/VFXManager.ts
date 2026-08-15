@@ -45,9 +45,10 @@ export class VFXManager {
         impactCoords: { x: number; y: number }[], 
         svgElement: SVGSVGElement,
         onImpactNode: (index: number) => void,
-        onComplete: () => void
+        onComplete: () => void,
+        stoneRadius: number = 18
     ) {
-        TenguVFX.triggerMeteorShower(impactCoords, svgElement, onImpactNode, onComplete);
+        TenguVFX.triggerMeteorShower(impactCoords, svgElement, onImpactNode, onComplete, stoneRadius);
     }
 
     /**

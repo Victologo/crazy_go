@@ -13,20 +13,27 @@ export const TenguActiveSkill: ChampionActiveSkill = {
 export class TenguChampion {
     /**
      * Calcula la zona de impacto de la lluvia meteórica:
-     * Dispersión proporcional del 25% del tamaño total del tablero (mínimo 9 casillas).
+     * Dispersión proporcional del 25% del total de intersecciones válidas y jugables del tablero.
+     * Compatible con topologías cuadradas, erosionadas, islas, cruz, hexagonales, triangulares y procedurales.
      */
     public static getMeteorZoneNodes(board: GraphBoard, centerNodeId: string): BoardNode[] {
         const centerNode = board.nodes.get(centerNodeId);
-        if (!centerNode) return [];
+        if (!centerNode || centerNode.terrain === 'DESTROYED' || centerNode.terrain === 'OBSTACLE') {
+            return [];
+        }
 
-        const allNodes = Array.from(board.nodes.values());
-        const totalNodesCount = allNodes.length;
+        // 1. Filtrar únicamente nodos válidos y jugables (descartar vacíos, destruidos y obstáculos)
+        const validNodes = Array.from(board.nodes.values()).filter(
+            n => n.terrain !== 'DESTROYED' && n.terrain !== 'OBSTACLE'
+        );
+        const totalValidCount = validNodes.length;
+        if (totalValidCount === 0) return [];
         
-        // Área proporcional del 25% del tablero (mínimo 9 nodos)
-        const zoneSize = Math.max(9, Math.round(totalNodesCount * 0.25));
+        // Área proporcional del 25% de intersecciones jugables (mínimo 5 nodos en tableros pequeños, máximo total)
+        const zoneSize = Math.max(5, Math.min(totalValidCount, Math.round(totalValidCount * 0.25)));
 
-        // Ordenar por distancia euclídea al nodo central
-        const sortedByDistance = [...allNodes].sort((a, b) => {
+        // 2. Ordenar por distancia euclídea real en el espacio 2D SVG respecto al nodo central
+        const sortedByDistance = [...validNodes].sort((a, b) => {
             const distA = Math.hypot(a.x - centerNode.x, a.y - centerNode.y);
             const distB = Math.hypot(b.x - centerNode.x, b.y - centerNode.y);
             return distA - distB;
@@ -36,19 +43,15 @@ export class TenguChampion {
     }
 
     /**
-     * Fórmula Matemática Universal para cualquier dimensión de tablero:
-     * - Base de calibración: exactamente 6 meteoros en 9x9 (81 casillas) -> Densidad = 6 / 81 (~7.407% del tablero).
-     * - 5x5 (25 nodos): 3 meteoros
-     * - 7x7 (49 nodos): 4 meteoros
-     * - 9x9 (81 nodos): 6 meteoros
-     * - 11x11 (121 nodos): 9 meteoros
-     * - 13x13 (169 nodos): 13 meteoros
-     * - 15x15 (225 nodos): 17 meteoros
-     * - 19x19 (361 nodos): 27 meteoros
+     * Fórmula Matemática Universal de Meteoros:
+     * - Base de calibración: exactamente 6 meteoros en 9x9 estándar (81 casillas) -> Densidad = 6 / 81 (~7.407% del tablero).
+     * - Se adapta de forma continua y proporcional al recuento exacto de intersecciones válidas del tablero.
      */
     public static getMeteorCount(board: GraphBoard): number {
-        const totalNodes = board.nodes.size;
-        return Math.max(3, Math.round(totalNodes * (6 / 81)));
+        const validCount = Array.from(board.nodes.values()).filter(
+            n => n.terrain !== 'DESTROYED' && n.terrain !== 'OBSTACLE'
+        ).length;
+        return Math.max(3, Math.min(validCount, Math.round(validCount * (6 / 81))));
     }
 
     public static executeSkill(
@@ -59,14 +62,16 @@ export class TenguChampion {
         onComplete: () => void
     ): boolean {
         const centerNode = board.nodes.get(targetNodeId);
-        if (!centerNode) return false;
+        if (!centerNode || centerNode.terrain === 'DESTROYED' || centerNode.terrain === 'OBSTACLE') {
+            return false;
+        }
 
         const zoneNodes = this.getMeteorZoneNodes(board, targetNodeId);
         if (zoneNodes.length === 0) return false;
 
         const meteorCount = this.getMeteorCount(board);
 
-        // Generar impactos aleatorios equiprobables dentro de la zona del 25%
+        // Generar impactos seleccionando exclusivamente de entre los nodos válidos de la zona
         const impactNodes: BoardNode[] = [];
         for (let i = 0; i < meteorCount; i++) {
             const randIndex = Math.floor(Math.random() * zoneNodes.length);
@@ -89,8 +94,16 @@ export class TenguChampion {
             onComplete();
         };
 
+        // Calcular radio aproximado de piedra según la geometría del tablero para escalar la animación
+        let minDistance = 40;
+        if (zoneNodes.length > 1) {
+            const d1 = Math.hypot(zoneNodes[0].x - zoneNodes[1].x, zoneNodes[0].y - zoneNodes[1].y);
+            if (d1 > 0) minDistance = d1;
+        }
+        const stoneRadius = Math.max(10, Math.min(25, minDistance * 0.45));
+
         if (svgElement) {
-            TenguVFX.triggerMeteorShower(impactCoords, svgElement, onImpactNode, onAllFinished);
+            TenguVFX.triggerMeteorShower(impactCoords, svgElement, onImpactNode, onAllFinished, stoneRadius);
         } else {
             impactNodes.forEach((_, idx) => onImpactNode(idx));
             onAllFinished();

@@ -5,23 +5,44 @@ import type { GameState } from '../GameState';
 import { RulesEngine } from '../RulesEngine';
 import { HimikoVFX } from '../../graphics/vfx/HimikoVFX';
 
+import type { BoardSize } from '../../types';
+
 export const HimikoPassiveSkill: ChampionPassiveSkill = {
     name: 'Celestial Stone Rain',
     icon: '🌧️',
-    description: 'At the end of your 15th personal turn, allied stones rain down from heaven onto random empty intersections (4 on 9x9, 6 on 13x13, 9 on 19x19).',
+    description: 'At the end of your 15th personal turn, allied stones rain down from heaven onto random empty intersections (4 on 9x9, 7 on 13x13, 13 on 19x19).',
     conditionDesc: 'At end of Turn 15'
 };
 
 export class HimikoChampion {
-    public static getStoneRainCount(board: GraphBoard): number {
-        const totalNodes = board.nodes.size;
-        if (totalNodes > 220) {
-            return 9;  // 19x19
-        } else if (totalNodes > 100) {
-            return 6;  // 13x13
+    /**
+     * Sublinear Diminishing Returns Formula for Himiko's Celestial Stone Rain:
+     * - Reduces density as the board grows so larger boards are not overwhelmed:
+     *   f(N) = round( 4 * (N / 81)^0.7885 )
+     * - Exact values:
+     *   - 9x9 (81 intersections): 4 * (81/81)^0.7885 = 4 stones
+     *   - 13x13 (169 intersections): 4 * (169/81)^0.7885 ≈ 7.15 -> 7 stones
+     *   - 19x19 (361 intersections): 4 * (361/81)^0.7885 = 13.00 -> 13 stones
+     *   - Any future / procedural size (N intersections): Math.max(1, Math.min(validCount, Math.round(4 * Math.pow(validCount / 81, 0.7885))))
+     */
+    public static getStoneRainCount(boardOrSize?: GraphBoard | BoardSize | number | null): number {
+        if (!boardOrSize) return 4;
+
+        let validCount: number;
+        if (typeof boardOrSize === 'number') {
+            if (boardOrSize === 19) validCount = 361;
+            else if (boardOrSize === 13) validCount = 169;
+            else if (boardOrSize === 9) validCount = 81;
+            else validCount = boardOrSize;
+        } else if (typeof boardOrSize === 'object' && 'nodes' in boardOrSize) {
+            validCount = Array.from(boardOrSize.nodes.values()).filter(
+                n => n.terrain !== 'DESTROYED' && n.terrain !== 'OBSTACLE'
+            ).length;
         } else {
-            return 4;  // 9x9
+            validCount = 81;
         }
+
+        return Math.max(1, Math.min(validCount, Math.round(4 * Math.pow(validCount / 81, 0.7885))));
     }
 
     public static checkAndTriggerPassive(

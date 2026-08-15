@@ -7,7 +7,7 @@ import { SoundFX } from '../../audio/SoundFX';
 export const KitsuneActiveSkill: ChampionActiveSkill = {
     name: 'Divine Shield',
     icon: '🛡️',
-    description: 'Select an allied stone: it becomes a Sacred Stone with a Golden Aura, indestructible and immune to capture and skills for 2 turns (2 charges on 9x9, 3 on 13x13, 4 on 19x19).',
+    description: 'Select an allied stone: it becomes a Sacred Stone with a Golden Aura, indestructible and immune to capture and skills for 2 turns (2 charges on 9x9, 3 on 13x13, 5 on 19x19).',
     targetingMode: 'shield_target'
 };
 
@@ -28,7 +28,7 @@ export class KitsuneChampion {
         }
 
         if (totalNodes > 220) {
-            return 4; // 19x19 -> 4 divine shields
+            return 5; // 19x19 -> 5 divine shields
         } else if (totalNodes > 100) {
             return 3; // 13x13 -> 3 divine shields
         } else {

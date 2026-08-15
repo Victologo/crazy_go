@@ -358,7 +358,7 @@ export class SVGGhostPreview {
         }
 
         // Preview Estándar
-        const isCaptiveNode = state.captives?.some(c => c.nodeId === node.id && !c.isCaptured);
+        const isCaptiveNode = state.captives?.some(c => (c.nodeId === node.id || c.nodeIds?.includes(node.id)) && !c.isCaptured);
         if (node.stone !== null || isCaptiveNode) return;
 
         const ghostCircle = document.createElementNS("http://www.w3.org/2000/svg", "circle");

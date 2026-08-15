@@ -221,51 +221,137 @@ export class SVGRenderer {
 
         for (const captive of this.state.captives) {
             if (captive.isCaptured) continue;
-            const node = this.board.nodes.get(captive.nodeId);
-            if (!node || node.stone) continue;
+
+            const entityNodeIds = captive.nodeIds && captive.nodeIds.length > 0
+                ? captive.nodeIds
+                : [captive.nodeId];
+            
+            const nodes = entityNodeIds.map(id => this.board.nodes.get(id)).filter(n => !!n);
+            if (nodes.length === 0) continue;
 
             const cg = document.createElementNS("http://www.w3.org/2000/svg", "g");
             cg.setAttribute("class", "captive-entity-group");
 
-            // Anillo pulsante de libertades
-            const ring = document.createElementNS("http://www.w3.org/2000/svg", "circle");
-            ring.setAttribute("cx", node.x.toString());
-            ring.setAttribute("cy", node.y.toString());
-            ring.setAttribute("r", (stoneRadius * 1.25).toString());
-            ring.setAttribute("fill", "rgba(245, 158, 11, 0.15)");
-            ring.setAttribute("stroke", "#f59e0b");
-            ring.setAttribute("stroke-width", "2");
-            ring.setAttribute("stroke-dasharray", "4 2");
-            ring.setAttribute("class", "captive-entity-ring");
+            const avgX = nodes.reduce((sum, n) => sum + n!.x, 0) / nodes.length;
+            const avgY = nodes.reduce((sum, n) => sum + n!.y, 0) / nodes.length;
 
-            // Base de sello
-            const base = document.createElementNS("http://www.w3.org/2000/svg", "circle");
-            base.setAttribute("cx", node.x.toString());
-            base.setAttribute("cy", node.y.toString());
-            base.setAttribute("r", (stoneRadius * 0.9).toString());
-            base.setAttribute("fill", "#1e293b");
-            base.setAttribute("stroke", "#fbbf24");
-            base.setAttribute("stroke-width", "1.5");
+            if (nodes.length > 1) {
+                // Entidad Multi-Casilla (ej: Monolito 2x1)
+                for (const node of nodes) {
+                    const cellBase = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+                    cellBase.setAttribute("cx", node!.x.toString());
+                    cellBase.setAttribute("cy", node!.y.toString());
+                    cellBase.setAttribute("r", (stoneRadius * 0.95).toString());
+                    cellBase.setAttribute("fill", "#1e293b");
+                    cellBase.setAttribute("stroke", "#fbbf24");
+                    cellBase.setAttribute("stroke-width", "2");
+                    cg.appendChild(cellBase);
 
-            // Icono de la entidad (🎁, 🧙, 📜, ✨)
-            const text = document.createElementNS("http://www.w3.org/2000/svg", "text");
-            text.setAttribute("x", node.x.toString());
-            text.setAttribute("y", (node.y + stoneRadius * 0.38).toString());
-            text.setAttribute("text-anchor", "middle");
-            text.setAttribute("font-size", (stoneRadius * 1.15).toString());
-            text.textContent = captive.icon;
+                    const cellRing = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+                    cellRing.setAttribute("cx", node!.x.toString());
+                    cellRing.setAttribute("cy", node!.y.toString());
+                    cellRing.setAttribute("r", (stoneRadius * 1.25).toString());
+                    cellRing.setAttribute("fill", "rgba(245, 158, 11, 0.12)");
+                    cellRing.setAttribute("stroke", "#f59e0b");
+                    cellRing.setAttribute("stroke-width", "2");
+                    cellRing.setAttribute("stroke-dasharray", "4 2");
+                    cellRing.setAttribute("class", "captive-entity-ring");
+                    cg.appendChild(cellRing);
+                }
+
+                // Icono Central Destacado
+                const text = document.createElementNS("http://www.w3.org/2000/svg", "text");
+                text.setAttribute("x", avgX.toString());
+                text.setAttribute("y", (avgY + stoneRadius * 0.42).toString());
+                text.setAttribute("text-anchor", "middle");
+                text.setAttribute("font-size", (stoneRadius * 1.5).toString());
+                text.textContent = captive.icon;
+                cg.appendChild(text);
+            } else {
+                // Entidad de 1 Casilla Estándar
+                const node = nodes[0]!;
+
+                const ring = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+                ring.setAttribute("cx", node.x.toString());
+                ring.setAttribute("cy", node.y.toString());
+                ring.setAttribute("r", (stoneRadius * 1.25).toString());
+                ring.setAttribute("fill", "rgba(245, 158, 11, 0.15)");
+                ring.setAttribute("stroke", "#f59e0b");
+                ring.setAttribute("stroke-width", "2");
+                ring.setAttribute("stroke-dasharray", "4 2");
+                ring.setAttribute("class", "captive-entity-ring");
+
+                const base = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+                base.setAttribute("cx", node.x.toString());
+                base.setAttribute("cy", node.y.toString());
+                base.setAttribute("r", (stoneRadius * 0.9).toString());
+                base.setAttribute("fill", "#1e293b");
+                base.setAttribute("stroke", "#fbbf24");
+                base.setAttribute("stroke-width", "1.5");
+
+                const text = document.createElementNS("http://www.w3.org/2000/svg", "text");
+                text.setAttribute("x", node.x.toString());
+                text.setAttribute("y", (node.y + stoneRadius * 0.38).toString());
+                text.setAttribute("text-anchor", "middle");
+                text.setAttribute("font-size", (stoneRadius * 1.15).toString());
+                text.textContent = captive.icon;
+
+                cg.appendChild(ring);
+                cg.appendChild(base);
+                cg.appendChild(text);
+            }
 
             const title = document.createElementNS("http://www.w3.org/2000/svg", "title");
             title.textContent = `${captive.name}: ${captive.description} (¡Rodéalo con tus piedras para capturarlo!)`;
             cg.appendChild(title);
 
-            cg.appendChild(ring);
-            cg.appendChild(base);
-            cg.appendChild(text);
             captivesGroup.appendChild(cg);
         }
 
         this.svgElement.appendChild(captivesGroup);
+    }
+
+    /**
+     * Dispara la animación cinematográfica de ruptura y colapso de todas las piedras del tablero
+     */
+    public triggerBoardShatterAnimation(): Promise<void> {
+        return new Promise((resolve) => {
+            const stoneElements = this.svgElement.querySelectorAll('.stone');
+            const boardContainer = document.getElementById('board-container');
+            if (boardContainer) {
+                boardContainer.classList.add('vfx-screen-shake');
+                setTimeout(() => boardContainer.classList.remove('vfx-screen-shake'), 600);
+            }
+
+            // Onda de choque en el centro del SVG
+            const shockwave = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+            const bbox = this.svgElement.getBBox();
+            shockwave.setAttribute("cx", (bbox.x + bbox.width / 2).toString());
+            shockwave.setAttribute("cy", (bbox.y + bbox.height / 2).toString());
+            shockwave.setAttribute("class", "vfx-board-collapse-wave");
+            this.svgElement.appendChild(shockwave);
+
+            SoundFX.playCapture();
+
+            stoneElements.forEach((el, index) => {
+                const htmlEl = el as HTMLElement;
+                htmlEl.classList.add('vfx-stone-shatter');
+                htmlEl.style.animationDelay = `${(index % 6) * 40}ms`;
+            });
+
+            setTimeout(() => {
+                shockwave.remove();
+                // Limpiar todas las piedras del tablero lógico
+                for (const node of this.board.nodes.values()) {
+                    node.stone = null;
+                }
+                this.state.historyStack = [];
+                this.state.boardHistory = [];
+                this.render();
+                this.onUIUpdate();
+                resolve();
+            }, 850);
+        });
     }
 
     private renderStones(nodes: BoardNode[], stoneRadius: number) {

@@ -2,7 +2,7 @@
 import type { ScoreReport, PlayerId, HeroId } from '../../types';
 import { TerritoryScorer } from '../../core/TerritoryScorer';
 import { RoguelikeRunManager } from '../../core/RoguelikeRunManager';
-import { t } from '../../i18n/i18n';
+import { t, translateEnemyName } from '../../i18n/i18n';
 
 export class ScoreModalRenderer {
     public static showFinalScoreModal(
@@ -65,18 +65,14 @@ export class ScoreModalRenderer {
 
         if (playerCount === 4) {
             modalScoreCard?.classList.add('modal-score-4p');
-            modalScoreCard?.classList.remove('modal-victory-unified');
             grid?.classList.add('grid-4p');
             colP3?.classList.remove('hidden');
             colP4?.classList.remove('hidden');
-            rewardsSection?.classList.add('hidden');
-            starLeft?.classList.add('hidden');
-            starRight?.classList.add('hidden');
 
             if (title && subtitle) {
                 if (report.winner !== 'draw' && report.winnerPlayerId) {
-                    const winnerMeta = TerritoryScorer.PLAYER_META[report.winnerPlayerId];
-                    title.innerText = `🎉 ¡${winnerMeta.name}! ${winnerMeta.icon}`;
+                    const meta = TerritoryScorer.PLAYER_META[report.winnerPlayerId];
+                    title.innerText = `¡Victoria para ${meta.name}! ${meta.icon}`;
                     subtitle.innerText = `1º ${report.ranking[0].name} (${report.ranking[0].total} pts) • 2º ${report.ranking[1].name} (${report.ranking[1].total} pts) • 3º ${report.ranking[2]?.name || ''} • 4º ${report.ranking[3]?.name || ''}`;
                 } else {
                     title.innerText = t('score.draw');
@@ -92,11 +88,6 @@ export class ScoreModalRenderer {
             if (pCaps) pCaps.innerText = report.purpleCaptures.toString();
             if (pTotal) pTotal.innerText = report.playerScores[4].total.toString();
         } else {
-            modalScoreCard?.classList.remove('modal-score-4p');
-            grid?.classList.remove('grid-4p');
-            colP3?.classList.add('hidden');
-            colP4?.classList.add('hidden');
-
             const rematchBtn = document.getElementById('btn-modal-rematch');
 
             if (isRoguelike) {
@@ -107,7 +98,7 @@ export class ScoreModalRenderer {
                     starLeft?.classList.remove('hidden');
                     starRight?.classList.remove('hidden');
 
-                    const enemyDisplay = enemyName || t('score.rival');
+                    const enemyDisplay = translateEnemyName(enemyName || t('score.rival'));
                     const rankDisplay = rankLabel ? ` (${rankLabel})` : '';
                     if (subtitle) {
                         subtitle.innerText = `${t('score.margin_won', { enemy: enemyDisplay + rankDisplay, margin: report.margin })}`;
@@ -145,8 +136,6 @@ export class ScoreModalRenderer {
                             });
                             rewardsContainer.appendChild(card);
                         });
-                    } else {
-                        rewardsSection?.classList.add('hidden');
                     }
                 } else {
                     starLeft?.classList.add('hidden');
@@ -154,7 +143,7 @@ export class ScoreModalRenderer {
                     rewardsSection?.classList.add('hidden');
 
                     if (title) title.innerText = `💀 ${t('score.fallen_in', { title: nodeTitle || 'Battle' })}`;
-                    const enemyDisplay = enemyName || t('score.rival');
+                    const enemyDisplay = translateEnemyName(enemyName || t('score.rival'));
                     const rankDisplay = rankLabel ? ` (${rankLabel})` : '';
                     if (subtitle) {
                         subtitle.innerText = `${t('score.defeated_by', { enemy: enemyDisplay + rankDisplay })}`;
@@ -163,10 +152,6 @@ export class ScoreModalRenderer {
                 }
             } else {
                 modalScoreCard?.classList.remove('modal-victory-unified');
-                starLeft?.classList.add('hidden');
-                starRight?.classList.add('hidden');
-                rewardsSection?.classList.add('hidden');
-
                 if (rematchBtn) rematchBtn.innerText = t('btn.new_game');
 
                 if (title && subtitle) {

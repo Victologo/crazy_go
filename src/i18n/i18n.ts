@@ -62,6 +62,42 @@ export function t(key: string, params?: Record<string, string | number>): string
   return text;
 }
 
+export function translateEnemyName(name: string): string {
+  if (!name) return '';
+  const lang = getLanguage();
+  if (lang === 'en') {
+    if (name.startsWith('Joven ')) {
+      return name.replace(/^Joven\s+/i, 'Young ');
+    }
+    if (name.includes(' el Sabio')) {
+      return name.replace(/\s+el\s+Sabio/i, ' the Sage');
+    }
+    if (name.includes('Gran Dragón Sabio Gris')) {
+      return name.replace('Gran Dragón Sabio Gris', 'Great Grey Sage Dragon');
+    }
+    if (name === 'Centinela Dragón') {
+      return 'Dragon Sentinel';
+    }
+    if (name.toLowerCase() === 'rival' || name === 'el rival') {
+      return 'the Rival';
+    }
+  } else {
+    if (name.startsWith('Young ')) {
+      return name.replace(/^Young\s+/i, 'Joven ');
+    }
+    if (name.includes(' the Sage')) {
+      return name.replace(/\s+the\s+Sage/i, ' el Sabio');
+    }
+    if (name.includes('Great Grey Sage Dragon')) {
+      return name.replace('Great Grey Sage Dragon', 'Gran Dragón Sabio Gris');
+    }
+    if (name === 'Dragon Sentinel') {
+      return 'Centinela Dragón';
+    }
+  }
+  return name;
+}
+
 export function applyTranslationsToDOM(): void {
   // Elements with data-i18n
   const textElements = document.querySelectorAll<HTMLElement>('[data-i18n]');

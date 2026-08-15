@@ -161,7 +161,16 @@ export class AppEventBinder {
                 SandboxController.isBrushActive = false;
                 ModalManager.closeSandboxModal();
                 ScreenManager.showMainMenu();
-            } else if (RoguelikeRunManager.isRunActive) {
+            } else if (GameController.config.gameMode === 'story') {
+                StoryController.isDialogueActive = false;
+                ScreenManager.showMainMenu();
+            } else if (
+                GameController.config.gameMode !== '1v1' && 
+                GameController.config.gameMode !== '1via' && 
+                GameController.config.gameMode !== 'online' &&
+                GameController.config.ruleStyle === 'roguelite' && 
+                RoguelikeRunManager.isRunActive
+            ) {
                 RoguelikeController.resumeMap();
             } else {
                 ScreenManager.showMainMenu();
