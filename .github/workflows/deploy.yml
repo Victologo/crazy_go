@@ -50,7 +50,7 @@ jobs:
         uses: actions/deploy-pages@v4
 
       - name: Deploy to Itch.io with Butler (Optional if BUTLER_API_KEY is set)
-        if: env.BUTLER_API_KEY != ''
+        if: ${{ secrets.BUTLER_API_KEY != '' }}
         uses: josephbmanley/butler-publish-itchio-action@v1.0.3
         env:
           BUTLER_API_KEY: ${{ secrets.BUTLER_API_KEY }}
