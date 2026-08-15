@@ -202,11 +202,13 @@ export class KeyboardController {
             if (rogueSetupModal && !rogueSetupModal.classList.contains('hidden')) {
                 if (key === 'ArrowLeft' || key === 'a' || key === 'A') {
                     e.preventDefault();
+                    if (document.activeElement instanceof HTMLElement) document.activeElement.blur();
                     RoguelikeController.prevHero();
                     return;
                 }
                 if (key === 'ArrowRight' || key === 'd' || key === 'D') {
                     e.preventDefault();
+                    if (document.activeElement instanceof HTMLElement) document.activeElement.blur();
                     RoguelikeController.nextHero();
                     return;
                 }

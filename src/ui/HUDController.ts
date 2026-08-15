@@ -93,7 +93,7 @@ export class HUDController {
                 let roleText = `(P${cp})`;
                 if (currentMode === '1via') {
                     const diffLabel = this.getDifficultyLabel(difficulty);
-                    roleText = cp === humanColor ? `— ${t('hud.turn_human')}` : `— ${t('hud.turn_ai')} (${diffLabel})`;
+                    roleText = cp === humanColor ? `— ${t('hud.turn_human')}` : `— ${t('hud.turn_ai')} ${diffLabel}`;
                 } else if (currentMode === 'online') {
                     roleText = cp === localOnlineColor ? `— ${t('hud.turn_human')}` : `— ${t('hud.online_waiting')}`;
                 }

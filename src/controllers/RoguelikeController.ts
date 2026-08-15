@@ -23,8 +23,13 @@ export class RoguelikeController {
     public static pendingGoldReward: number = 0;
 
     private static heroKeys: HeroId[] = ['normal', 'tengu', 'himiko', 'kitsune', 'ronin', 'alchemist', 'ryujin'];
+    private static lastHeroSwitchTime: number = 0;
 
     public static prevHero() {
+        const now = Date.now();
+        if (now - this.lastHeroSwitchTime < 140) return;
+        this.lastHeroSwitchTime = now;
+
         const idx = this.heroKeys.indexOf(this.tempRogueHero);
         const nextIdx = (idx - 1 + this.heroKeys.length) % this.heroKeys.length;
         this.tempRogueHero = this.heroKeys[nextIdx];
@@ -33,6 +38,10 @@ export class RoguelikeController {
     }
 
     public static nextHero() {
+        const now = Date.now();
+        if (now - this.lastHeroSwitchTime < 140) return;
+        this.lastHeroSwitchTime = now;
+
         const idx = this.heroKeys.indexOf(this.tempRogueHero);
         const nextIdx = (idx + 1) % this.heroKeys.length;
         this.tempRogueHero = this.heroKeys[nextIdx];
