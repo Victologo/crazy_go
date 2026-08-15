@@ -1,7 +1,7 @@
 # Contexto Activo (Active Context) — Crazy Go
 
-> **Última Actualización:** 15 de Agosto de 2026 (Sesión 74)  
-> **Estado General:** ✅ Totalmente Funcional, Compilado en TypeScript/Vite (0 errores), Tajo de Ronin Rediseñado (Único, 50% Más Compacto, Centrado en Casilla y Ejecutado al Final del Turno) y Sincronizado en GitHub.
+> **Última Actualización:** 15 de Agosto de 2026 (Sesión 75)  
+> **Estado General:** ✅ Totalmente Funcional, Compilado en TypeScript/Vite (0 errores), Modo Historia Acto 2 IA Corregida (Sin Bucle de Thinking) + Goban Reescalado (+40% Tamaño de Casillas) y Sincronizado en GitHub.
 
 ---
 
@@ -101,6 +101,10 @@ El juego respeta la división estricta entre **Habilidades Activas** (con objeti
      - Eliminado el Samurai / Estratega del Clan de los encuentros normales. Oponentes restringidos a los 5 Monjes Jóvenes y 5 Sabios de la Niebla (Jefe: Gran Dragón Zen).
      - Incorporadas las traducciones `hud.turn_human`, `hud.turn_ai` y `hud.online_waiting` en `translations.ts`.
      - Corregido el formato del indicador de turno superior eliminando claves crudas y formateando la dificultad a `(25k)` sin duplicación de paréntesis.
+     - **Internacionalización Completa de Combate y Duelos (ES / EN):**
+       - Etiquetas de rol de personaje dinámicas: `hud.role_you_champion` (*YOU (CHAMPION)* / *TÚ (CAMPEÓN)*), `hud.role_you_apprentice` (*YOU (APPRENTICE)* / *TÚ (APRENDIZ)*), `hud.role_dojo_master` (*DOJO MASTER* / *MAESTRO DEL DOJO*), `hud.role_rival` (*RIVAL*).
+       - Nombres de héroes y rivales traducidos dinámicamente (`champion.[id].name`, `hud.player_you`, `hud.player_rival`).
+       - Botón de habilidad de Campeón traducido con estados dinámicos: *Passive Skill* / *Habilidad Pasiva*, *🎯 Click Node* / *🎯 Clic en Casilla*, *Skill Depleted* / *Habilidad Agotada*.
   20. **Control de Versiones y Sincronización en GitHub:**
      - Repositorio Git inicializado en rama `main` con `.gitignore` optimizado.
      - Código fuente y documentación AI Wiki completamente sincronizados con [Victologo/crazy_go](https://github.com/Victologo/crazy_go).
