@@ -83,6 +83,9 @@ El juego respeta la división estricta entre **Habilidades Activas** (con objeti
      - Orquestador de campaña en `StoryController.ts` y listado de misiones en `StoryCampaign.ts`.
      - Nuevo overlay tipo Novela Visual en `StoryDialogueRenderer.ts` y `story.css`.
      - Integración con motor de captura de entidades (`RulesEngine.resolveCaptiveCaptures`).
+  18. **Control de Versiones y Sincronización en GitHub:**
+     - Repositorio Git inicializado en rama `main` con `.gitignore` optimizado.
+     - Código fuente y documentación AI Wiki completamente sincronizados con [Victologo/crazy_go](https://github.com/Victologo/crazy_go).
 - **Roster de Personajes:** Hombre Normal (👤), Tengu (🦅), Himiko (✨), Kitsune (🦊), Ronin (⚡), Alquimista (⚗️), Ryūjin (🐲).
 
 
