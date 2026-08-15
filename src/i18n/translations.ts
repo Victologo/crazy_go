@@ -9,13 +9,13 @@ export const translations: Record<Language, Record<string, string>> = {
     // General UI & Main Menu
     "app.title": "Crazy Go",
     "app.tagline": "Roguelite de Go con topologías asimétricas, 7 campeones místicos, hechizos y reglas canónicas japonesas.",
-    "menu.expedition": "⚔️ Expedición Roguelike",
-    "menu.custom": "📜 Partida Libre / Local",
-    "menu.online": "🌐 Multijugador Online (P2P)",
-    "menu.tutorial": "🥋 Dojo Tutorial (9 Lecciones)",
-    "menu.story": "📖 Modo Historia: Crónicas",
-    "menu.sandbox": "🧪 Laboratorio de Pruebas",
-    "menu.options": "⚙️ Opciones",
+    "menu.expedition": "Expedición Roguelike",
+    "menu.custom": "Partida Libre / Local",
+    "menu.online": "Multijugador Online (P2P)",
+    "menu.tutorial": "Dojo Tutorial (9 Lecciones)",
+    "menu.story": "Modo Historia: Crónicas",
+    "menu.sandbox": "Laboratorio de Pruebas",
+    "menu.options": "Opciones",
 
     // Common Buttons & Labels
     "btn.cancel": "Cancelar",
@@ -329,13 +329,13 @@ export const translations: Record<Language, Record<string, string>> = {
     // General UI & Main Menu
     "app.title": "Crazy Go",
     "app.tagline": "Go Roguelite with asymmetric topologies, 7 mystic champions, spells, and canonical Japanese rules.",
-    "menu.expedition": "⚔️ Roguelike Expedition",
-    "menu.custom": "📜 Custom Match / Local",
-    "menu.online": "🌐 Online Multiplayer (P2P)",
-    "menu.tutorial": "🥋 Dojo Tutorial (9 Lessons)",
-    "menu.story": "📖 Story Mode: Chronicles",
-    "menu.sandbox": "🧪 Testing Lab",
-    "menu.options": "⚙️ Options",
+    "menu.expedition": "Roguelike Expedition",
+    "menu.custom": "Custom Match / Local",
+    "menu.online": "Online Multiplayer (P2P)",
+    "menu.tutorial": "Dojo Tutorial (9 Lessons)",
+    "menu.story": "Story Mode: Chronicles",
+    "menu.sandbox": "Testing Lab",
+    "menu.options": "Options",
 
     // Common Buttons & Labels
     "btn.cancel": "Cancel",

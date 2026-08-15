@@ -204,8 +204,22 @@ export class GameController {
 
         // Las entidades y objetos especiales capturables (rehenes, cofres, pergaminos) se reservan para el Modo Historia
         this.state.captives = [];
-
         this.initTimers();
+
+        // Determinar fondo visual del tablero según el modo o selección
+        let activeBg: string = this.config.background || 'combat';
+        if (TutorialManager.isActive) {
+            activeBg = 'tutorial';
+        } else if (this.config.gameMode === 'story') {
+            activeBg = 'story';
+        } else if (!TutorialManager.isActive && this.config.ruleStyle === 'roguelite' && RoguelikeRunManager.isRunActive) {
+            if (isBoss) {
+                activeBg = 'boss';
+            } else {
+                activeBg = 'combat';
+            }
+        }
+        HUDController.setBoardBackground(activeBg);
 
         this.renderer.isInteractive = this.isLocalPlayerTurn();
 

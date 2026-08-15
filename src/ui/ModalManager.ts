@@ -173,6 +173,13 @@ export class ModalManager {
         document.getElementById('setup-size-13')?.classList.toggle('active', config.size === 13);
         document.getElementById('setup-size-19')?.classList.toggle('active', config.size === 19);
 
+        // Fondos / Escenarios
+        const curBg = config.background || 'combat';
+        document.querySelectorAll('.btn-setup-bg').forEach(btn => {
+            const bgVal = btn.getAttribute('data-bg');
+            btn.classList.toggle('active', bgVal === curBg);
+        });
+
         // Configuración de Piedras Especiales / Poliminós
         const special = config.specialStones || {
             enabled: false,
@@ -297,6 +304,7 @@ export class ModalManager {
         const quoteEl = document.getElementById(`${prefix}-hero-showcase-quote`);
         const activeBox = document.querySelector(`.${prefix}-hero-active-box`) as HTMLElement | null;
         const passiveBox = document.querySelector(`.${prefix}-hero-passive-box`) as HTMLElement | null;
+        const activeTag = document.getElementById(`${prefix}-hero-active-tag`);
         const activeName = document.getElementById(`${prefix}-hero-active-name`);
         const activeDesc = document.getElementById(`${prefix}-hero-active-desc`);
         const passiveTag = document.getElementById(`${prefix}-hero-passive-tag`);
@@ -317,30 +325,31 @@ export class ModalManager {
             if (hero.skillType === 'active') {
                 if (activeBox) {
                     activeBox.style.display = 'flex';
+                    const tagKey = `champion.${effectiveHeroId}.active_tag`;
+                    if (activeTag) activeTag.innerText = t(tagKey) || '💥 HABILIDAD ACTIVA';
                     if (activeName) {
-                        activeName.innerText = effectiveHeroId === 'kitsune'
-                            ? `${hero.activeName || 'Habilidad Activa'} (2-4 usos según tablero)`
-                            : `${hero.activeName || 'Habilidad Activa'} (${hero.activeCharges || 1} ${hero.activeCharges === 1 ? 'uso' : 'usos'})`;
+                        activeName.innerText = hero.activeName || t(`champion.${effectiveHeroId}.active_name`);
                     }
-                    if (activeDesc) activeDesc.innerText = hero.activeDesc || '';
+                    if (activeDesc) activeDesc.innerText = hero.activeDesc || t(`champion.${effectiveHeroId}.active_desc`);
                 }
                 if (passiveBox) passiveBox.style.display = 'none';
             } else if (hero.skillType === 'passive') {
                 if (activeBox) activeBox.style.display = 'none';
                 if (passiveBox) {
                     passiveBox.style.display = 'flex';
-                    if (passiveTag) passiveTag.innerText = '✨ HABILIDAD PASIVA';
-                    if (passiveName) passiveName.innerText = hero.passiveName || 'Habilidad Pasiva';
-                    if (passiveDesc) passiveDesc.innerText = hero.passiveDesc || '';
+                    const tagKey = `champion.${effectiveHeroId}.passive_tag`;
+                    if (passiveTag) passiveTag.innerText = t(tagKey) || '✨ HABILIDAD PASIVA';
+                    if (passiveName) passiveName.innerText = hero.passiveName || t(`champion.${effectiveHeroId}.passive_name`);
+                    if (passiveDesc) passiveDesc.innerText = hero.passiveDesc || t(`champion.${effectiveHeroId}.passive_desc`);
                 }
             } else {
                 // Hombre Normal (Sin Habilidades / Go Clásico Puro)
                 if (activeBox) activeBox.style.display = 'none';
                 if (passiveBox) {
                     passiveBox.style.display = 'flex';
-                    if (passiveTag) passiveTag.innerText = '📜 REGLAS PURAS';
-                    if (passiveName) passiveName.innerText = 'Sin Habilidades ni Poderes';
-                    if (passiveDesc) passiveDesc.innerText = 'El desafío definitivo del Go clásico. Juega sin habilidades activas ni pasivas, dependiendo al 100% de tu maestría.';
+                    if (passiveTag) passiveTag.innerText = t('champion.normal.passive_tag') || '📜 REGLAS PURAS';
+                    if (passiveName) passiveName.innerText = hero.passiveName || t('champion.normal.passive_name');
+                    if (passiveDesc) passiveDesc.innerText = hero.passiveDesc || t('champion.normal.passive_desc');
                 }
             }
         }

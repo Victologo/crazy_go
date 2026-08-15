@@ -325,6 +325,18 @@ export class AppEventBinder {
             });
         });
 
+        // Escenarios / Fondos de Combate
+        document.querySelectorAll('.btn-setup-bg').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const bg = btn.getAttribute('data-bg') as any;
+                if (bg) {
+                    tempConfig.background = bg;
+                    refreshUI();
+                    SoundFX.playPlaceStone();
+                }
+            });
+        });
+
         // --- PASO 4: CAMPEÓN MÍSTICO ---
         const heroes: HeroId[] = ['normal', 'tengu', 'himiko', 'kitsune', 'ronin', 'alchemist', 'ryujin'];
 
@@ -892,6 +904,7 @@ export class AppEventBinder {
         document.getElementById('opt-lang-es')?.addEventListener('click', () => {
             setLanguage('es');
             ModalManager.updateOptionsModalUI();
+            ModalManager.updateRoguelikeSetupModalUI(RoguelikeController.tempRogueDifficulty, RoguelikeController.tempRogueHero);
             if (GameController.state) GameController.updateInGameUI();
             SoundFX.playPlaceStone();
         });
@@ -899,6 +912,7 @@ export class AppEventBinder {
         document.getElementById('opt-lang-en')?.addEventListener('click', () => {
             setLanguage('en');
             ModalManager.updateOptionsModalUI();
+            ModalManager.updateRoguelikeSetupModalUI(RoguelikeController.tempRogueDifficulty, RoguelikeController.tempRogueHero);
             if (GameController.state) GameController.updateInGameUI();
             SoundFX.playPlaceStone();
         });

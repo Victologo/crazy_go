@@ -25,31 +25,31 @@
           <div class="menu-actions">
             <button id="btn-menu-roguelike" class="btn btn-hero">
               <span class="btn-icon">⚔️</span>
-              <span class="btn-text" data-i18n="menu.expedition">⚔️ Roguelike Expedition</span>
+              <span class="btn-text" data-i18n="menu.expedition">Roguelike Expedition</span>
             </button>
             <button id="btn-menu-free" class="btn btn-menu-classic">
               <span class="btn-icon">📜</span>
-              <span class="btn-text" data-i18n="menu.custom">📜 Custom Match / Local</span>
+              <span class="btn-text" data-i18n="menu.custom">Custom Match / Local</span>
             </button>
             <button id="btn-menu-online" class="btn btn-menu-online">
               <span class="btn-icon">🌐</span>
-              <span class="btn-text" data-i18n="menu.online">🌐 Online Multiplayer</span>
+              <span class="btn-text" data-i18n="menu.online">Online Multiplayer</span>
             </button>
             <button id="btn-menu-story" class="btn btn-menu-story" title="Goban Chronicles & Tactical Rescue Missions">
               <span class="btn-icon">📖</span>
-              <span class="btn-text" data-i18n="menu.story">📖 Story Mode</span>
+              <span class="btn-text" data-i18n="menu.story">Story Mode</span>
             </button>
             <button id="btn-menu-dojo" class="btn btn-menu-dojo" title="Learn to play, master rules, and special skills">
               <span class="btn-icon">🥋</span>
-              <span class="btn-text" data-i18n="menu.tutorial">🥋 Tutorial Dojo</span>
+              <span class="btn-text" data-i18n="menu.tutorial">Tutorial Dojo</span>
             </button>
             <button id="btn-menu-sandbox" class="btn btn-menu-sandbox" title="Test Lab, Board Editor & Situation Troubleshooter">
               <span class="btn-icon">🧪</span>
-              <span class="btn-text" data-i18n="menu.sandbox">🧪 Testing Lab</span>
+              <span class="btn-text" data-i18n="menu.sandbox">Testing Lab</span>
             </button>
             <button id="btn-menu-options" class="btn btn-menu-secondary">
               <span class="btn-icon">⚙️</span>
-              <span class="btn-text" data-i18n="menu.options">⚙️ Options</span>
+              <span class="btn-text" data-i18n="menu.options">Options</span>
             </button>
           </div>
         </div>
@@ -937,6 +937,41 @@
                 <button id="setup-shape-triangle" class="btn btn-choice">🔺 Triangular</button>
                 <button id="setup-shape-hex" class="btn btn-choice">⬡ Hexagonal</button>
                 <button id="setup-shape-procedural" class="btn btn-choice">🎲 Procedural (Infinite)</button>
+              </div>
+            </div>
+
+            <!-- Scenery / Background Selection -->
+            <div class="wizard-subgroup" style="margin-top: 1rem;">
+              <label class="setup-label">🌄 Scenery & Environment (Background)</label>
+              <div class="setup-grid grid-4">
+                <button id="setup-bg-combat" class="btn btn-choice btn-setup-bg active" data-bg="combat">
+                  <span>⚔️ Traditional Dojo</span>
+                  <small style="display:block;font-size:0.7rem;opacity:0.75;">Classic Arena</small>
+                </button>
+                <button id="setup-bg-meadow" class="btn btn-choice btn-setup-bg" data-bg="meadow">
+                  <span>🌿 Emerald Meadow</span>
+                  <small style="display:block;font-size:0.7rem;opacity:0.75;">Bamboo & Grassland</small>
+                </button>
+                <button id="setup-bg-sunset" class="btn btn-choice btn-setup-bg" data-bg="sunset">
+                  <span>🌅 Mountain Sunset</span>
+                  <small style="display:block;font-size:0.7rem;opacity:0.75;">Peak & Pagoda</small>
+                </button>
+                <button id="setup-bg-night" class="btn btn-choice btn-setup-bg" data-bg="night">
+                  <span>🌙 Moonlit Lake</span>
+                  <small style="display:block;font-size:0.7rem;opacity:0.75;">Torii & Wisteria</small>
+                </button>
+                <button id="setup-bg-story" class="btn btn-choice btn-setup-bg" data-bg="story">
+                  <span>🌌 Astral Void</span>
+                  <small style="display:block;font-size:0.7rem;opacity:0.75;">Floating Tatami</small>
+                </button>
+                <button id="setup-bg-tutorial" class="btn btn-choice btn-setup-bg" data-bg="tutorial">
+                  <span>🌸 Zen Garden</span>
+                  <small style="display:block;font-size:0.7rem;opacity:0.75;">Shoji & Sakura</small>
+                </button>
+                <button id="setup-bg-boss" class="btn btn-choice btn-setup-bg" data-bg="boss">
+                  <span>🌋 Dragon Lair</span>
+                  <small style="display:block;font-size:0.7rem;opacity:0.75;">Volcano & Lightning</small>
+                </button>
               </div>
             </div>
           </div>
