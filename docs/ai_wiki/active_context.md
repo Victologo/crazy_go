@@ -1,7 +1,7 @@
 # Contexto Activo (Active Context) — Crazy Go
 
-> **Última Actualización:** 15 de Agosto de 2026 (Sesión 67)  
-> **Estado General:** ✅ Totalmente Funcional, Compilado en TypeScript/Vite (0 errores), Menú Limpio (Sin Emojis Duplicados), Localización de Campeones Completa y Sincronizado en GitHub.
+> **Última Actualización:** 15 de Agosto de 2026 (Sesión 68)  
+> **Estado General:** ✅ Totalmente Funcional, Compilado en TypeScript/Vite (0 errores), Pasiva de Ronin Corregida con SFX/VFX de Katana y Sincronizado en GitHub.
 
 ---
 
