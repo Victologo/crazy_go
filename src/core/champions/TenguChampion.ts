@@ -6,7 +6,7 @@ import { TenguVFX } from '../../graphics/vfx/TenguVFX';
 export const TenguActiveSkill: ChampionActiveSkill = {
     name: 'Meteor Strike',
     icon: '☄️',
-    description: 'Select an area: unleashes falling meteors (7 on 9x9, 11 on 13x13, 17 on 19x19) destroying unprotected stones.',
+    description: 'Select an area: unleashes falling meteors (6 on 9x9, 13 on 13x13, 27 on 19x19) across 25% of the board destroying unprotected stones.',
     targetingMode: 'meteor_5x5'
 };
 
@@ -36,20 +36,19 @@ export class TenguChampion {
     }
 
     /**
-     * Número de meteoros por impacto con +2 disparos adicionales:
-     * - Tableros pequeños (<= 100 nodos ej: 9x9): 7 meteoros (+2)
-     * - Tableros medianos (101..220 nodos ej: 13x13): 11 meteoros (+2)
-     * - Tableros grandes (> 220 nodos ej: 19x19): 17 meteoros (+2)
+     * Fórmula Matemática Universal para cualquier dimensión de tablero:
+     * - Base de calibración: exactamente 6 meteoros en 9x9 (81 casillas) -> Densidad = 6 / 81 (~7.407% del tablero).
+     * - 5x5 (25 nodos): 3 meteoros
+     * - 7x7 (49 nodos): 4 meteoros
+     * - 9x9 (81 nodos): 6 meteoros
+     * - 11x11 (121 nodos): 9 meteoros
+     * - 13x13 (169 nodos): 13 meteoros
+     * - 15x15 (225 nodos): 17 meteoros
+     * - 19x19 (361 nodos): 27 meteoros
      */
     public static getMeteorCount(board: GraphBoard): number {
         const totalNodes = board.nodes.size;
-        if (totalNodes > 220) {
-            return 17; // 19x19 (+2)
-        } else if (totalNodes > 100) {
-            return 11; // 13x13 (+2)
-        } else {
-            return 7;  // 9x9 (+2)
-        }
+        return Math.max(3, Math.round(totalNodes * (6 / 81)));
     }
 
     public static executeSkill(
