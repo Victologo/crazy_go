@@ -9,11 +9,13 @@ import { RoguelikeRunManager } from './core/RoguelikeRunManager';
 import { AppEventBinder } from './events/AppEventBinder';
 import { KeyboardController } from './events/KeyboardController';
 import { initI18n } from './i18n/i18n';
+import { DevModeManager } from './core/DevModeManager';
 
 class CrazyGoApp {
     public static init() {
-        // 0. Inicializar Idioma / Localización
+        // 0. Inicializar Idioma / Localización y Modo Desarrollador
         initI18n();
+        DevModeManager.init();
 
         // 1. Inicializar Tema y Red
         ThemeManager.init(() => {

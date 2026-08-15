@@ -23,6 +23,7 @@ import { SoundFX } from '../audio/SoundFX';
 import { HUDController } from '../ui/HUDController';
 import { ModalManager } from '../ui/ModalManager';
 import { VFXManager } from '../graphics/VFXManager';
+import { DevModeManager } from '../core/DevModeManager';
 import { RulesEngine } from '../core/RulesEngine';
 import { RoguelikeController } from './RoguelikeController';
 import { TutorialManager } from '../tutorial/TutorialManager';
@@ -136,9 +137,10 @@ export class GameController {
             ChampionManager.resetForMatch(selectedHero, this.board);
         }
 
-        // Configurar Campeón del rival IA en dificultad Dan/Maestro o en partidas Roguelite difíciles
+        // Configurar Campeón del rival IA en dificultad Dan/Maestro, en partidas Roguelite o si se especificó enemyHeroId (ej: Modo Historia)
+        const hasExplicitEnemyHero = !TutorialManager.isActive && !!this.config.enemyHeroId && this.config.enemyHeroId !== 'normal';
         const isMasterOrDan = this.config.difficulty === 'dan' || (RoguelikeRunManager.isRunActive && RoguelikeRunManager.runDifficulty === 'extreme');
-        if (!TutorialManager.isActive && this.config.gameMode === '1via' && isMasterOrDan && !isBoss) {
+        if (!TutorialManager.isActive && (hasExplicitEnemyHero || (this.config.gameMode === '1via' && isMasterOrDan && !isBoss))) {
             const availableAIHeroes: HeroId[] = ['tengu', 'himiko', 'kitsune', 'ronin', 'ryujin'];
             this.aiHeroId = this.config.enemyHeroId || availableAIHeroes[Math.floor(Math.random() * availableAIHeroes.length)];
             this.aiPassiveAvailable = true;
@@ -711,8 +713,8 @@ export class GameController {
     }
 
     public static handleUndo() {
-        if (this.config.gameMode === 'online') {
-            HUDController.showAlert("No se permite rebobinar en partidas multijugador online.");
+        if (!DevModeManager.isUndoRedoAllowed(this.config.gameMode)) {
+            HUDController.showAlert("⏪ Deshacer no está permitido en este modo (Usa el pergamino 'Rebobinar' ⏳ o activa el Modo Desarrollador en Opciones).");
             SoundFX.playIllegal();
             return;
         }
@@ -741,8 +743,8 @@ export class GameController {
     }
 
     public static handleRedo() {
-        if (this.config.gameMode === 'online') {
-            HUDController.showAlert("No se permite rehacer en partidas multijugador online.");
+        if (!DevModeManager.isUndoRedoAllowed(this.config.gameMode)) {
+            HUDController.showAlert("⏩ Rehacer no está permitido en este modo.");
             SoundFX.playIllegal();
             return;
         }

@@ -484,8 +484,46 @@ export class GoAI {
         const enemyAtaris = this.getChainsWithLiberties(board, opponentId, 1);
         const myAtaris = this.getChainsWithLiberties(board, aiPlayerId, 1);
 
-        for (const [nodeId, node] of board.nodes.entries()) {
-            if (node.stone !== null || node.terrain === 'DESTROYED' || node.terrain === 'OBSTACLE') continue;
+        // Nodos relevantes: libertades de ataris o vecinos a distancia <= 2 de piedras existentes
+        const candidateNodeIds = new Set<string>();
+        for (const chain of enemyAtaris) {
+            for (const id of chain) {
+                for (const lib of board.getLiberties(id)) candidateNodeIds.add(lib);
+            }
+        }
+        for (const chain of myAtaris) {
+            for (const id of chain) {
+                for (const lib of board.getLiberties(id)) candidateNodeIds.add(lib);
+            }
+        }
+
+        // Si no hay ataris urgentes, evaluar vecinos directos de piedras
+        if (candidateNodeIds.size === 0) {
+            for (const [_id, node] of board.nodes.entries()) {
+                if (node.stone !== null) {
+                    for (const nId of node.neighbors) {
+                        const n = board.nodes.get(nId);
+                        if (n && n.stone === null && n.terrain !== 'DESTROYED' && n.terrain !== 'OBSTACLE') {
+                            candidateNodeIds.add(nId);
+                        }
+                    }
+                }
+            }
+        }
+
+        // Fallback si el tablero está vacío
+        if (candidateNodeIds.size === 0) {
+            for (const [id, node] of board.nodes.entries()) {
+                if (node.stone === null && node.terrain !== 'DESTROYED' && node.terrain !== 'OBSTACLE') {
+                    candidateNodeIds.add(id);
+                    if (candidateNodeIds.size >= 12) break;
+                }
+            }
+        }
+
+        for (const nodeId of candidateNodeIds) {
+            const node = board.nodes.get(nodeId);
+            if (!node || node.stone !== null || node.terrain === 'DESTROYED' || node.terrain === 'OBSTACLE') continue;
 
             const simState = this.cloneState(state);
             const simBoard = this.cloneBoard(board);

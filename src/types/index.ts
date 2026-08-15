@@ -94,6 +94,7 @@ export interface GameSetupConfig {
     komi: number;
     shape: BoardShape;
     size: BoardSize;
+    background?: BoardBackground;
     heroId?: HeroId | null;
     enemyHeroId?: HeroId | null;
     specialStones?: SpecialStonesConfig;
@@ -101,6 +102,8 @@ export interface GameSetupConfig {
     isCoopRogue?: boolean;
     coopSubTurn?: 1 | 2; // 1 = J1 Host, 2 = J2 Guest
 }
+
+export type BoardBackground = 'combat' | 'story' | 'tutorial' | 'boss' | 'meadow' | 'sunset' | 'night';
 
 // 3. Sistema de Héroes y Hechizos Roguelite
 export type HeroId = 'tengu' | 'himiko' | 'kitsune' | 'ronin' | 'alchemist' | 'ryujin' | 'normal';

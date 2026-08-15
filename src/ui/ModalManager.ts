@@ -13,6 +13,7 @@ import { RoguelikeRunManager } from '../core/RoguelikeRunManager';
 import { ScoreModalRenderer } from './modals/ScoreModalRenderer';
 import { RogueModalRenderer } from './modals/RogueModalRenderer';
 import { NetworkManager } from '../network/NetworkManager';
+import { DevModeManager } from '../core/DevModeManager';
 import { getLanguage, t } from '../i18n/i18n';
 
 export class ModalManager {
@@ -532,6 +533,14 @@ export class ModalManager {
             bgmBtn.innerText = isBGM ? t('options.enabled') : t('options.disabled');
             bgmBtn.classList.toggle('active', isBGM);
             bgmBtn.classList.toggle('inactive', !isBGM);
+        }
+
+        const devBtn = document.getElementById('opt-dev-toggle');
+        const isDev = DevModeManager.isDevMode();
+        if (devBtn) {
+            devBtn.innerText = isDev ? t('options.enabled') : t('options.disabled');
+            devBtn.classList.toggle('active', isDev);
+            devBtn.classList.toggle('inactive', !isDev);
         }
     }
 

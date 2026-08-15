@@ -1,14 +1,14 @@
 # Contexto Activo (Active Context) — Crazy Go
 
-> **Última Actualización:** 15 de Agosto de 2026 (Sesión 65)  
-> **Estado General:** ✅ Totalmente Funcional, Compilado en TypeScript/Vite (0 errores), Localización Bilingüe (ES/EN) y Probado.
+> **Última Actualización:** 15 de Agosto de 2026 (Sesión 66)  
+> **Estado General:** ✅ Totalmente Funcional, Compilado en TypeScript/Vite (0 errores), Modo Desarrollador (Dev Mode) Separado, IA Optimizada y Empaquetado Listo.
 
 ---
 
 ## 1. 📌 Visión y Estado Global del Proyecto
-Crazy Go es un roguelite estratégico basado en **Go Canónico** con topologías procedurales asimétricas, 7 Campeones Místicos balanceados, entidades capturables en el Goban, temporizadores clásicos de Go, fichas poliminó tácticas, hechizos consumibles, multijugador online P2P WebRTC (Duelo Competitivo y Roguelike Cooperativo) y **Sistema Integral de Idiomas (Español / English)** en tiempo real.
+Crazy Go es un roguelite estratégico basado en **Go Canónico** con topologías procedurales asimétricas, 7 Campeones Místicos balanceados, entidades capturables en el Goban, temporizadores clásicos de Go, fichas poliminó tácticas, hechizos consumibles, multijugador online P2P WebRTC (Duelo Competitivo y Roguelike Cooperativo), **Modo Desarrollador vs Modo Jugador Normal** y **Sistema Integral de Idiomas (Español / English)** en tiempo real.
 
-* **Fase Actual:** Fase 20 — Internacionalización y Localización Reactiva (i18n ES/EN).
+* **Fase Actual:** Fase 21 — Modo Desarrollador, Optimización de IA y Empaquetado itch.io.
 * **Plataforma:** Web (Vite + TS) y Desktop Nativo Windows (`CrazyGo.exe`).
 
 ---

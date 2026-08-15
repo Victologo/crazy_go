@@ -8,6 +8,7 @@ import { BossManager } from '../core/BossManager';
 import { GameState } from '../core/GameState';
 import { TutorialManager } from '../tutorial/TutorialManager';
 import { NetworkManager } from '../network/NetworkManager';
+import { DevModeManager } from '../core/DevModeManager';
 import { t } from '../i18n/i18n';
 
 export class HUDController {
@@ -41,9 +42,22 @@ export class HUDController {
 
         const undoBtn = document.getElementById('btn-game-undo') as HTMLButtonElement | null;
         const redoBtn = document.getElementById('btn-game-redo') as HTMLButtonElement | null;
+        const sandboxBtn = document.getElementById('btn-game-sandbox') as HTMLButtonElement | null;
 
-        if (undoBtn) undoBtn.disabled = !state.canUndo() || currentMode === 'online';
-        if (redoBtn) redoBtn.disabled = !state.canRedo() || currentMode === 'online';
+        const isUndoAllowed = DevModeManager.isUndoRedoAllowed(currentMode);
+        const isSandboxAllowed = DevModeManager.isSandboxAllowed(currentMode);
+
+        if (undoBtn) {
+            undoBtn.classList.toggle('hidden', !isUndoAllowed);
+            undoBtn.disabled = !state.canUndo();
+        }
+        if (redoBtn) {
+            redoBtn.classList.toggle('hidden', !isUndoAllowed);
+            redoBtn.disabled = !state.canRedo();
+        }
+        if (sandboxBtn) {
+            sandboxBtn.classList.toggle('hidden', !isSandboxAllowed);
+        }
 
         if (turnSpan) turnSpan.innerText = state.getTurnLabel();
 
@@ -831,6 +845,17 @@ export class HUDController {
                 if (eIcon) eIcon.innerText = '🦊';
                 if (eName) eName.innerText = 'Jugador 2';
                 if (eRank) eRank.innerText = 'Blancas ⚪';
+            }
+        }
+    }
+
+    public static setBoardBackground(bg?: string) {
+        const viewport = document.getElementById('board-viewport');
+        if (viewport) {
+            if (bg) {
+                viewport.setAttribute('data-bg', bg);
+            } else {
+                viewport.removeAttribute('data-bg');
             }
         }
     }

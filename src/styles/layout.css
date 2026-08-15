@@ -263,19 +263,54 @@ body[data-theme="light"] .btn-topbar:hover {
   border-radius: var(--radius-full);
 }
 
-/* Viewport Tablero y Fondo de Combate con Iluminación Realzada */
+/* Viewport Tablero y Fondos Temáticos Dinámicos */
 #board-viewport {
   flex: 1;
   display: flex;
   align-items: center;
   justify-content: center;
   position: relative;
-  background: radial-gradient(circle at center, rgb(12 16 26 / 51%) 0%, rgb(6 9 15 / 0%) 100%), 
+  background: radial-gradient(circle at center, rgb(12 16 26 / 45%) 0%, rgb(6 9 15 / 0%) 100%), 
               url('/bg_combat.jpg') center center / cover no-repeat;
   overflow: hidden;
   padding: 0.35rem 1.5rem;
   gap: 1.5rem;
-  transition: background 0.3s ease;
+  transition: background 0.4s ease;
+}
+
+#board-viewport[data-bg="combat"] {
+  background: radial-gradient(circle at center, rgb(12 16 26 / 45%) 0%, rgb(6 9 15 / 0%) 100%), 
+              url('/bg_combat.jpg') center center / cover no-repeat;
+}
+
+#board-viewport[data-bg="story"] {
+  background: radial-gradient(circle at center, rgb(10 14 26 / 40%) 0%, rgb(5 8 18 / 0%) 100%), 
+              url('/bg_story.jpg') center center / cover no-repeat;
+}
+
+#board-viewport[data-bg="tutorial"] {
+  background: radial-gradient(circle at center, rgb(20 18 14 / 35%) 0%, rgb(10 8 5 / 0%) 100%), 
+              url('/bg_tutorial.jpg') center center / cover no-repeat;
+}
+
+#board-viewport[data-bg="boss"] {
+  background: radial-gradient(circle at center, rgb(25 10 5 / 45%) 0%, rgb(12 4 2 / 0%) 100%), 
+              url('/bg_boss.jpg') center center / cover no-repeat;
+}
+
+#board-viewport[data-bg="meadow"] {
+  background: radial-gradient(circle at center, rgb(15 28 15 / 35%) 0%, rgb(8 16 8 / 0%) 100%), 
+              url('/bg_meadow.jpg') center center / cover no-repeat;
+}
+
+#board-viewport[data-bg="sunset"] {
+  background: radial-gradient(circle at center, rgb(28 16 10 / 40%) 0%, rgb(15 8 4 / 0%) 100%), 
+              url('/bg_sunset.jpg') center center / cover no-repeat;
+}
+
+#board-viewport[data-bg="night"] {
+  background: radial-gradient(circle at center, rgb(10 16 28 / 40%) 0%, rgb(5 8 16 / 0%) 100%), 
+              url('/bg_night.jpg') center center / cover no-repeat;
 }
 
 body[data-theme="light"] #board-viewport {

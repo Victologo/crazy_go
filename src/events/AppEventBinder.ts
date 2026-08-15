@@ -21,6 +21,7 @@ import { SandboxController, type SandboxBrush, type PresetScenario } from '../co
 import { TutorialManager } from '../tutorial/TutorialManager';
 import { KeyboardController } from './KeyboardController';
 import { StoryController } from '../story/StoryController';
+import { DevModeManager } from '../core/DevModeManager';
 import { setLanguage } from '../i18n/i18n';
 
 export class AppEventBinder {
@@ -897,6 +898,14 @@ export class AppEventBinder {
 
         document.getElementById('opt-lang-en')?.addEventListener('click', () => {
             setLanguage('en');
+            ModalManager.updateOptionsModalUI();
+            if (GameController.state) GameController.updateInGameUI();
+            SoundFX.playPlaceStone();
+        });
+
+        // Selector de Modo Desarrollador
+        document.getElementById('opt-dev-toggle')?.addEventListener('click', () => {
+            DevModeManager.toggleDevMode();
             ModalManager.updateOptionsModalUI();
             if (GameController.state) GameController.updateInGameUI();
             SoundFX.playPlaceStone();

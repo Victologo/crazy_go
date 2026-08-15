@@ -34,6 +34,9 @@ export class StoryController {
         GameController.config = {
             ...GameController.config,
             gameMode: 'story',
+            playerCount: 2,
+            humanColor: 1,
+            difficulty: index === 0 ? 'easy' : 'medium',
             size: chapter.boardSize,
             heroId: chapter.heroId,
             enemyHeroId: chapter.enemyHeroId,
@@ -54,8 +57,22 @@ export class StoryController {
 
         GameController.initGame(GameController.config);
 
-        // Place captives
+        // Place initial stones and captives
         if (GameController.state && GameController.board) {
+            for (const s of chapter.initialStones) {
+                const node = GameController.board.nodes.get(`${s.x},${s.y}`);
+                if (node) {
+                    node.stone = {
+                        id: GameController.state.entityManager.createEntity(),
+                        playerId: s.player as any,
+                        isInvisible: false,
+                        isIndestructible: false,
+                        isFrozen: false,
+                        stoneType: 'single'
+                    };
+                }
+            }
+
             GameController.state.captives = chapter.captives.map(c => {
                 const nodeId = `${c.x},${c.y}`;
                 return {
