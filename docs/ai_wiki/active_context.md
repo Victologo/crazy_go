@@ -105,6 +105,8 @@ El juego respeta la división estricta entre **Habilidades Activas** (con objeti
        - Etiquetas de rol de personaje dinámicas: `hud.role_you_champion` (*YOU (CHAMPION)* / *TÚ (CAMPEÓN)*), `hud.role_you_apprentice` (*YOU (APPRENTICE)* / *TÚ (APRENDIZ)*), `hud.role_dojo_master` (*DOJO MASTER* / *MAESTRO DEL DOJO*), `hud.role_rival` (*RIVAL*).
        - Nombres de héroes y rivales traducidos dinámicamente (`champion.[id].name`, `hud.player_you`, `hud.player_rival`).
        - Botón de habilidad de Campeón traducido con estados dinámicos: *Passive Skill* / *Habilidad Pasiva*, *🎯 Click Node* / *🎯 Clic en Casilla*, *Skill Depleted* / *Habilidad Agotada*.
+     - **Refactorización Modular (Clean Architecture):**
+       - Desacoplado el renderizado de cartas de duelistas a [`src/ui/DuelistRenderer.ts`](file:///C:/Users/VICTOR/Desktop/crazy_go/src/ui/DuelistRenderer.ts), reduciendo `HUDController.ts` de 876 a ~500 líneas con responsabilidades cohesivas.
   20. **Control de Versiones y Sincronización en GitHub:**
      - Repositorio Git inicializado en rama `main` con `.gitignore` optimizado.
      - Código fuente y documentación AI Wiki completamente sincronizados con [Victologo/crazy_go](https://github.com/Victologo/crazy_go).
