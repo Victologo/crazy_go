@@ -145,6 +145,7 @@ export const translations: Record<Language, Record<string, string>> = {
     "champion.ronin.passive_tag": "✨ HABILIDAD PASIVA",
     "champion.ronin.passive_name": "🗡️ Filo del Samurai",
     "champion.ronin.passive_desc": "Cada 25 turnos transcurridos, desenvaina su katana mística y destruye automáticamente 1 piedra enemiga aleatoria en el Goban.",
+    "champion.ronin.passive_trigger_msg": "🗡️💨 ¡Filo del Samurai (Turno {turn})! El Ronin desenvainó su katana y rebanó 1 piedra enemiga en [{nodeId}].{extra}",
 
     "champion.alchemist.name": "Alquimista",
     "champion.alchemist.title": "Erudito de la Transmutación Elemental",
@@ -465,6 +466,7 @@ export const translations: Record<Language, Record<string, string>> = {
     "champion.ronin.passive_tag": "✨ PASSIVE SKILL",
     "champion.ronin.passive_name": "🗡️ Samurai's Edge",
     "champion.ronin.passive_desc": "Every 25 turns elapsed, draws his katana and destroys 1 random enemy stone on the Goban.",
+    "champion.ronin.passive_trigger_msg": "🗡️💨 Samurai's Edge (Turn {turn})! The Ronin drew his katana and slashed 1 enemy stone at [{nodeId}].{extra}",
 
     "champion.alchemist.name": "Alchemist",
     "champion.alchemist.title": "Scholar of Elemental Transmutation",

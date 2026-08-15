@@ -1,7 +1,7 @@
 # Contexto Activo (Active Context) — Crazy Go
 
-> **Última Actualización:** 15 de Agosto de 2026 (Sesión 66)  
-> **Estado General:** ✅ Totalmente Funcional, Compilado en TypeScript/Vite (0 errores), Modo Desarrollador (Dev Mode) Separado, IA Optimizada y Empaquetado Listo.
+> **Última Actualización:** 15 de Agosto de 2026 (Sesión 67)  
+> **Estado General:** ✅ Totalmente Funcional, Compilado en TypeScript/Vite (0 errores), Menú Limpio (Sin Emojis Duplicados), Localización de Campeones Completa y Sincronizado en GitHub.
 
 ---
 
@@ -86,7 +86,18 @@ El juego respeta la división estricta entre **Habilidades Activas** (con objeti
      - Detección universal de 0 libertades en `RulesEngine.resolveCaptiveCaptures` para activar el sellado y disparo del evento narrativo.
      - Nuevo overlay tipo Novela Visual en `StoryDialogueRenderer.ts` y `story.css`.
      - Integración con motor de captura de entidades (`RulesEngine.resolveCaptiveCaptures`).
-  18. **Control de Versiones y Sincronización en GitHub:**
+  18. **Sistema de Fondos Temáticos Dinámicos y Escenarios:**
+     - Generadas 7 ilustraciones panorámicas en composición de encuadre lateral (detalles ricos a izquierda y derecha, centro limpio y despejado para el goban y tatami):
+       1. **Modo Historia:** *Vacío Astral y Santuarios Flotantes* (`bg_story.jpg`).
+       2. **Modo Tutorial:** *Dojo Zen con Shoji y Cerezos en Flor* (`bg_tutorial.jpg`).
+       3. **Jefe Roguelike:** *Guarida de Dragones y Relámpagos Volcánicos* (`bg_boss.jpg`).
+       4. **Pradera Esmeralda (Verde Exterior):** *Bambúes y Campos de Flores con Torii* (`bg_meadow.jpg`).
+       5. **Picos al Atardecer:** *Acantilados Dorados y Pagoda* (`bg_sunset.jpg`).
+       6. **Lago Nocturno:** *Bosque Encantado y Fuego Fatuo* (`bg_night.jpg`).
+       7. **Dojo Tradicional:** *Arena Clásica de Madera* (`bg_combat.jpg`).
+     - Selector de Escenarios integrado en el **Paso 3 del Wizard de Partida Local / 1vIA** (`index.html`, `ModalManager.ts`, `AppEventBinder.ts`).
+     - Transición suave entre fondos en `#board-viewport[data-bg]` (`layout.css`).
+  19. **Control de Versiones y Sincronización en GitHub:**
      - Repositorio Git inicializado en rama `main` con `.gitignore` optimizado.
      - Código fuente y documentación AI Wiki completamente sincronizados con [Victologo/crazy_go](https://github.com/Victologo/crazy_go).
 - **Roster de Personajes:** Hombre Normal (👤), Tengu (🦅), Himiko (✨), Kitsune (🦊), Ronin (⚡), Alquimista (⚗️), Ryūjin (🐲).

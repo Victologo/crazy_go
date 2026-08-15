@@ -277,4 +277,61 @@ export class SoundFX {
         osc.start(now);
         osc.stop(now + 0.3);
     }
+
+    /**
+     * Sonido de Katana / Filo del Samurai de Ronin: Corte veloz de viento con resonancia de acero templado
+     */
+    static playKatanaSlash() {
+        if (!this.sfxEnabled || this.masterVolume <= 0) return;
+        const ctx = this.getContext();
+        if (!ctx) return;
+
+        const now = ctx.currentTime;
+
+        // 1. Ráfaga de viento cortante (Ruido filtrado que corta el aire)
+        const bufferSize = Math.floor(ctx.sampleRate * 0.22);
+        const buffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
+        const data = buffer.getChannelData(0);
+        for (let i = 0; i < bufferSize; i++) {
+            data[i] = (Math.random() * 2 - 1) * Math.exp(-i / (bufferSize * 0.3));
+        }
+
+        const noiseSource = ctx.createBufferSource();
+        noiseSource.buffer = buffer;
+
+        const filter = ctx.createBiquadFilter();
+        filter.type = 'bandpass';
+        filter.frequency.setValueAtTime(3200, now);
+        filter.frequency.exponentialRampToValueAtTime(600, now + 0.18);
+        filter.Q.setValueAtTime(3.5, now);
+
+        const noiseGain = ctx.createGain();
+        noiseGain.gain.setValueAtTime(0.45 * this.masterVolume, now);
+        noiseGain.gain.exponentialRampToValueAtTime(0.001, now + 0.2);
+
+        noiseSource.connect(filter);
+        filter.connect(noiseGain);
+        noiseGain.connect(ctx.destination);
+        noiseSource.start(now);
+
+        // 2. Tajo metálico brillante (Acero afilado de katana)
+        const metalOsc = ctx.createOscillator();
+        const metalGain = ctx.createGain();
+        metalOsc.type = 'sawtooth';
+        metalOsc.frequency.setValueAtTime(2400, now);
+        metalOsc.frequency.exponentialRampToValueAtTime(800, now + 0.15);
+
+        metalGain.gain.setValueAtTime(0.3 * this.masterVolume, now);
+        metalGain.gain.exponentialRampToValueAtTime(0.001, now + 0.15);
+
+        metalOsc.connect(metalGain);
+        metalGain.connect(ctx.destination);
+        metalOsc.start(now);
+        metalOsc.stop(now + 0.15);
+
+        // 3. Impacto mineral/quiebre seco
+        setTimeout(() => {
+            this.playCapture();
+        }, 60);
+    }
 }

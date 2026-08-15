@@ -152,6 +152,11 @@
 - [x] **Tarea 138**: Motor de Captura de Entidades (`RulesEngine.ts` interactuando con `StoryController` para disparar eventos narrativos o victorias `capture_specific` al retirar todas las libertades a un objeto en el tablero, con turno continuo de negras en capítulos de entrenamiento).
 - [x] **Tarea 139**: Integración en el Menú Principal (Botón "Modo Historia" lanza directamente el Capítulo 1 en el mapa de islas asimétrico).
 
+## Fase 20: Sistema de Escenarios y Fondos Dinámicos (Completada)
+- [x] **Tarea 140**: Generación de 6 fondos panorámicos con encuadre lateral (detalles a izquierda/derecha y centro despejado para el goban: Dojo Zen, Vacío Astral, Guarida del Dragón, Pradera Esmeralda de Bambúes, Picos al Atardecer, Lago Nocturno).
+- [x] **Tarea 141**: Selector visual de Escenarios en el Wizard de Partida Local / 1vIA (Paso 3 en `index.html`, `ModalManager.ts` y `AppEventBinder.ts`).
+- [x] **Tarea 142**: Inyección dinámica en `#board-viewport[data-bg]` en `GameController.ts`, `TutorialManager.ts`, `StoryController.ts` y `layout.css`.
+
 ## Fase 15: Corrección de Modo Online y Conexión de Invitados (Guest Joining) (Completada)
 - [x] **Tarea 50**: Corrección de conmutación de pestañas en modal online (`ModalManager.switchOnlineTab` con `view-create-room` y `view-join-room`).
 - [x] **Tarea 51**: Corrección de desplazamiento de argumentos en `OnlineController.joinOnlineRoom` con soporte de héroes y callbacks de error / inicio.
