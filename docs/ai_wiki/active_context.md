@@ -97,7 +97,11 @@ El juego respeta la división estricta entre **Habilidades Activas** (con objeti
        7. **Dojo Tradicional:** *Arena Clásica de Madera* (`bg_combat.jpg`).
      - Selector de Escenarios integrado en el **Paso 3 del Wizard de Partida Local / 1vIA** (`index.html`, `ModalManager.ts`, `AppEventBinder.ts`).
      - Transición suave entre fondos en `#board-viewport[data-bg]` (`layout.css`).
-  19. **Control de Versiones y Sincronización en GitHub:**
+  19. **Ajuste de Oponentes Roguelike y Pulido de HUD/i18n:**
+     - Eliminado el Samurai / Estratega del Clan de los encuentros normales. Oponentes restringidos a los 5 Monjes Jóvenes y 5 Sabios de la Niebla (Jefe: Gran Dragón Zen).
+     - Incorporadas las traducciones `hud.turn_human`, `hud.turn_ai` y `hud.online_waiting` en `translations.ts`.
+     - Corregido el formato del indicador de turno superior eliminando claves crudas y formateando la dificultad a `(25k)` sin duplicación de paréntesis.
+  20. **Control de Versiones y Sincronización en GitHub:**
      - Repositorio Git inicializado en rama `main` con `.gitignore` optimizado.
      - Código fuente y documentación AI Wiki completamente sincronizados con [Victologo/crazy_go](https://github.com/Victologo/crazy_go).
 - **Roster de Personajes:** Hombre Normal (👤), Tengu (🦅), Himiko (✨), Kitsune (🦊), Ronin (⚡), Alquimista (⚗️), Ryūjin (🐲).

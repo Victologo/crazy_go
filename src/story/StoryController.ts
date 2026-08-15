@@ -163,11 +163,11 @@ export class StoryController {
 
     private static onChapterComplete() {
         SoundFX.playSpecial();
-        HUDController.showAlert("⭐ ¡Capítulo Completado! ⭐", 3000);
+        HUDController.showAlert("⭐ ¡Capítulo Completado! ⭐", 1800);
         
         setTimeout(() => {
             this.currentChapterIndex++;
             this.startChapter(this.currentChapterIndex);
-        }, 3000);
+        }, 600);
     }
 }

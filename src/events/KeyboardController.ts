@@ -5,6 +5,7 @@ import { ModalManager } from '../ui/ModalManager';
 import { GameController } from '../controllers/GameController';
 import { RoguelikeController } from '../controllers/RoguelikeController';
 import { TutorialManager } from '../tutorial/TutorialManager';
+import { StoryController } from '../story/StoryController';
 import { SoundFX } from '../audio/SoundFX';
 import { BGMGenerator } from '../audio/BGMGenerator';
 
@@ -28,6 +29,15 @@ export class KeyboardController {
 
             const key = e.key;
             const code = e.code;
+
+            // 0. DIÁLOGOS DE MODO HISTORIA (Avance rápido con Espacio, Enter, Flecha Derecha o Escape)
+            if (StoryController.isDialogueActive) {
+                if (key === 'Enter' || key === ' ' || key === 'Escape' || key === 'ArrowRight' || key === 'd' || key === 'D') {
+                    e.preventDefault();
+                    StoryController.advanceDialogue();
+                    return;
+                }
+            }
 
             // =========================================================
             // 0. AVANCE RÁPIDO DE CUADROS EXPLICATIVOS EN TUTORIAL
