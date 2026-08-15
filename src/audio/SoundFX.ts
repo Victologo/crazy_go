@@ -328,10 +328,5 @@ export class SoundFX {
         metalGain.connect(ctx.destination);
         metalOsc.start(now);
         metalOsc.stop(now + 0.15);
-
-        // 3. Impacto mineral/quiebre seco
-        setTimeout(() => {
-            this.playCapture();
-        }, 60);
     }
 }

@@ -257,13 +257,54 @@
 }
 
 @keyframes windSlashAnim {
-  0% { stroke-dasharray: 100; stroke-dashoffset: 100; opacity: 1; }
-  50% { opacity: 1; }
-  100% { stroke-dashoffset: 0; opacity: 0; }
+  0% { 
+    stroke-dasharray: 200; 
+    stroke-dashoffset: 200; 
+    opacity: 0; 
+  }
+  6% { 
+    stroke-dashoffset: 0; 
+    opacity: 1; 
+    filter: drop-shadow(0 0 12px #38bdf8) drop-shadow(0 0 20px #ffffff);
+  }
+  35% { 
+    /* Mantiene 1 segundo fijo con brillo */
+    opacity: 1; 
+    filter: drop-shadow(0 0 8px #0284c7) drop-shadow(0 0 14px #38bdf8);
+  }
+  100% { 
+    /* Se desvanece suavemente a lo largo de los 2s siguientes */
+    opacity: 0; 
+    transform: scale(1.08);
+  }
 }
 
 .vfx-wind-slash-anim .slash-stroke {
-  animation: windSlashAnim 0.5s ease-out forwards;
+  animation: windSlashAnim 3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@keyframes windSlashTargetPulse {
+  0% {
+    transform: scale(0.3);
+    opacity: 0;
+  }
+  10% {
+    transform: scale(1.35);
+    opacity: 0.95;
+    filter: drop-shadow(0 0 12px #38bdf8) drop-shadow(0 0 22px #0284c7);
+  }
+  35% {
+    transform: scale(1.1);
+    opacity: 0.85;
+  }
+  100% {
+    transform: scale(1.5);
+    opacity: 0;
+  }
+}
+
+.vfx-wind-slash-anim .slash-target-mark {
+  animation: windSlashTargetPulse 3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 
 @keyframes teleportPoofAnim {
