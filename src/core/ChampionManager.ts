@@ -114,12 +114,9 @@ export class ChampionManager {
             return;
         }
 
-        // 2. Ronin: Filo del Samurai (Elimina 1 piedra enemiga aleatoria cada 25 turnos)
+        // 2. Ronin: Filo del Samurai (Elimina 1 piedra enemiga aleatoria cada 25 turnos al final del turno)
         if (this.currentHero === 'ronin') {
-            const triggered = RoninChampion.checkPassiveTrigger(board, state, playerId, svgElement, onNotify);
-            if (triggered) {
-                onBoardUpdated();
-            }
+            RoninChampion.checkPassiveTrigger(board, state, playerId, svgElement, onNotify, onBoardUpdated);
         }
 
         // 3. Ryūjin: Furia del Dragón (Calcinar piedras con escalado por tamaño de tablero)
