@@ -83,11 +83,11 @@ export class SVGRenderer {
         }
 
         const stoneRadius = isFinite(minNeighborDistance)
-            ? Math.max(10, Math.min(22, minNeighborDistance * 0.46))
+            ? Math.max(10, Math.min(25, minNeighborDistance * 0.475))
             : 18;
         this.currentStoneRadius = stoneRadius;
 
-        const padding = stoneRadius * 2.2;
+        const padding = stoneRadius * 1.15;
         const width = (maxX - minX) + padding * 2;
         const height = (maxY - minY) + padding * 2;
 

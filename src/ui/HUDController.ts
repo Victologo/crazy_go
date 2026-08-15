@@ -4,7 +4,6 @@ import { ChampionManager } from '../core/ChampionManager';
 import { RogueliteManager, type SpellId } from '../core/RogueliteManager';
 import { RoguelikeRunManager } from '../core/RoguelikeRunManager';
 import { PolyominoManager } from '../core/PolyominoManager';
-import { BossManager } from '../core/BossManager';
 import { GameState } from '../core/GameState';
 import { TutorialManager } from '../tutorial/TutorialManager';
 import { NetworkManager } from '../network/NetworkManager';
@@ -166,17 +165,19 @@ export class HUDController {
                 if (duelSkillIcon) duelSkillIcon.innerText = activeSkill.icon;
                 if (duelSkillText) {
                     if (ChampionManager.currentTargetingMode !== 'none') {
-                        duelSkillText.innerText = '🎯 Clic en Casilla';
+                        duelSkillText.innerText = t('hud.skill_target_click');
                     } else if (ChampionManager.activeChargesLeft > 0) {
-                        duelSkillText.innerText = `${activeSkill.name} (${ChampionManager.activeChargesLeft})`;
+                        duelSkillText.innerText = `${t(`champion.${heroId}.active_name`)} (${ChampionManager.activeChargesLeft})`;
                     } else {
-                        duelSkillText.innerText = 'Habilidad Agotada (0)';
+                        duelSkillText.innerText = t('hud.skill_depleted');
                     }
                 }
             }
         } else {
-            // Héroe de pasiva pura (Himiko / Ryūjin)
-            const passiveTooltip = `${passiveSkill?.name || 'Pasiva'}: ${passiveSkill?.description || ''}`;
+            // Héroe de pasiva pura (Himiko / Ryūjin / Ronin)
+            const passiveName = t(`champion.${heroId}.passive_name`) || passiveSkill?.name || 'Pasiva';
+            const passiveDesc = t(`champion.${heroId}.passive_desc`) || passiveSkill?.description || '';
+            const passiveTooltip = `${passiveName}: ${passiveDesc}`;
 
             if (duelSkillBtn) {
                 duelSkillBtn.disabled = true;
@@ -186,8 +187,8 @@ export class HUDController {
                 if (duelSkillIcon) duelSkillIcon.innerText = passiveSkill?.icon || '✨';
                 if (duelSkillText) {
                     duelSkillText.innerText = ChampionManager.isPassiveSkillAvailable 
-                        ? `${passiveSkill?.name || 'Habilidad'} (Habilidad Pasiva)`
-                        : 'Pasiva Activada ✓';
+                        ? `${passiveName} ${t('hud.skill_passive_suffix', { name: '' }).replace('() ', '').trim()}`
+                        : t('hud.skill_passive_activated');
                 }
             }
         }
@@ -634,27 +635,27 @@ export class HUDController {
 
             if (currentTutorialHero && currentTutorialHero !== 'normal') {
                 const hero = RoguelikeRunManager.HEROES[currentTutorialHero];
-                if (roleTag) roleTag.innerText = 'TÚ (CAMPEÓN)';
+                if (roleTag) roleTag.innerText = t('hud.role_you_champion');
                 if (pImg && hero) {
                     pImg.src = hero.image;
                     pImg.classList.remove('hero-normal-img');
                 }
                 if (pIcon && hero) pIcon.innerText = hero.icon;
-                if (pName && hero) pName.innerText = hero.name;
-                if (pTitle && hero) pTitle.innerText = '⚫ Héroe Místico';
+                if (pName && hero) pName.innerText = t(`champion.${currentTutorialHero}.name`) || hero.name;
+                if (pTitle && hero) pTitle.innerText = '';
             } else {
-                if (roleTag) roleTag.innerText = 'TÚ (APRENDIZ)';
+                if (roleTag) roleTag.innerText = t('hud.role_you_apprentice');
                 if (pImg) {
                     pImg.src = '/heroes/normal.png';
                     pImg.classList.add('hero-normal-img');
                 }
                 if (pIcon) pIcon.innerText = '🥋';
-                if (pName) pName.innerText = 'Aprendiz de Go';
+                if (pName) pName.innerText = t('champion.normal.name');
                 if (pTitle) pTitle.innerText = '';
             }
 
             const enemyRoleTag = enemyCard.querySelector('.duel-role-tag') as HTMLElement | null;
-            if (enemyRoleTag) enemyRoleTag.innerText = 'MAESTRO DEL DOJO';
+            if (enemyRoleTag) enemyRoleTag.innerText = t('hud.role_dojo_master');
 
             const eImg = document.getElementById('duel-enemy-img') as HTMLImageElement | null;
             const eIcon = document.getElementById('duel-enemy-icon-badge');
@@ -664,7 +665,7 @@ export class HUDController {
             if (eImg) eImg.src = '/enemies/sage_1.png';
             if (eIcon) eIcon.innerText = '📜';
             if (eName) eName.innerText = 'Sensei Hiroshi';
-            if (eRank) eRank.innerText = '9 Dan • Maestro de Go';
+            if (eRank) eRank.innerText = '9 Dan • Dojo Master';
 
             this.updateStageBadge(false);
             return;
@@ -676,7 +677,10 @@ export class HUDController {
         enemyCard.classList.remove('hidden');
 
         const roleTag = playerCard.querySelector('.duel-role-tag') as HTMLElement | null;
-        if (roleTag) roleTag.innerText = 'TÚ (CAMPEÓN)';
+        if (roleTag) roleTag.innerText = t('hud.role_you_champion');
+
+        const enemyRoleTag = enemyCard.querySelector('.duel-role-tag') as HTMLElement | null;
+        if (enemyRoleTag) enemyRoleTag.innerText = t('hud.role_rival');
 
         const activeHeroId = heroId || (isRoguelike ? 'normal' : null);
         playerCard.setAttribute('data-hero', activeHeroId || 'none');
@@ -693,7 +697,7 @@ export class HUDController {
 
             if (pImg && hero) pImg.src = hero.image;
             if (pIcon && hero) pIcon.innerText = hero.icon;
-            if (pName && hero) pName.innerText = hero.name;
+            if (pName && hero) pName.innerText = t(`champion.${targetHero}.name`) || hero.name;
             if (pTitle) pTitle.innerText = '';
 
             const eImg = document.getElementById('duel-enemy-img') as HTMLImageElement | null;
@@ -702,12 +706,12 @@ export class HUDController {
             const eRank = document.getElementById('duel-enemy-rank');
 
             const bConfig = node?.battleConfig;
-            if (eImg) eImg.src = bConfig?.enemyImage || '/enemies/monk.png';
+            if (eImg) eImg.src = bConfig?.enemyImage || '/enemies/monk_1.png';
             if (eIcon) eIcon.innerText = bConfig?.enemyIcon || '🧘';
-            if (eName) eName.innerText = bConfig?.enemyName || 'Monje Novato';
+            if (eName) eName.innerText = bConfig?.enemyName || 'Monk';
             if (eRank) {
                 eRank.innerText = node?.type === 'boss'
-                    ? `👑 Dragón Ancestral • Aliento Calcinante (${BossManager.bossChargesLeft} cargas)`
+                    ? `👑 ${t('champion.boss.name')} • ${t('champion.boss.active_name')}`
                     : `${bConfig?.rankLabel || '30 Kyu'} • ${bConfig?.shape || 'square'}`;
             }
         } else if (gameMode === '1via') {
@@ -723,7 +727,7 @@ export class HUDController {
                     pImg.classList.toggle('hero-normal-img', heroId === 'normal');
                 }
                 if (pIcon && hero) pIcon.innerText = hero.icon;
-                if (pName && hero) pName.innerText = hero.name;
+                if (pName && hero) pName.innerText = t(`champion.${heroId}.name`) || hero.name;
                 if (pTitle) pTitle.innerText = '';
             } else {
                 if (pImg) {
@@ -731,7 +735,7 @@ export class HUDController {
                     pImg.classList.remove('hero-normal-img');
                 }
                 if (pIcon) pIcon.innerText = '⚫';
-                if (pName) pName.innerText = 'Jugador (Tú)';
+                if (pName) pName.innerText = `${t('hud.player_you')}`;
                 if (pTitle) pTitle.innerText = '';
             }
 
@@ -741,19 +745,19 @@ export class HUDController {
             const eRank = document.getElementById('duel-enemy-rank');
 
             const randomMonks = [
-                { name: 'Joven Ren', image: '/enemies/monk_1.png', icon: '🧘', rank: '30 Kyu • Principiante' },
-                { name: 'Joven Hiro', image: '/enemies/monk_2.png', icon: '🧘', rank: '28 Kyu • Principiante' },
-                { name: 'Joven Sora', image: '/enemies/monk_3.png', icon: '🧘', rank: '25 Kyu • Aprendiz' },
-                { name: 'Joven Daiki', image: '/enemies/monk_4.png', icon: '🧘', rank: '22 Kyu • Aprendiz' },
-                { name: 'Joven Kazuki', image: '/enemies/monk_5.png', icon: '🧘', rank: '20 Kyu • Intermedio' }
+                { name: 'Joven Ren', image: '/enemies/monk_1.png', icon: '🧘', rank: '30 Kyu' },
+                { name: 'Joven Hiro', image: '/enemies/monk_2.png', icon: '🧘', rank: '28 Kyu' },
+                { name: 'Joven Sora', image: '/enemies/monk_3.png', icon: '🧘', rank: '25 Kyu' },
+                { name: 'Joven Daiki', image: '/enemies/monk_4.png', icon: '🧘', rank: '22 Kyu' },
+                { name: 'Joven Kazuki', image: '/enemies/monk_5.png', icon: '🧘', rank: '20 Kyu' }
             ];
 
             const randomSages = [
-                { name: 'Kenshin el Sabio', image: '/enemies/sage_1.png', icon: '📜', rank: '16 Kyu • Sabio' },
-                { name: 'Nobunaga el Sabio', image: '/enemies/sage_2.png', icon: '📜', rank: '14 Kyu • Sabio' },
-                { name: 'Masashi el Sabio', image: '/enemies/sage_3.png', icon: '📜', rank: '12 Kyu • Maestro' },
-                { name: 'Tetsuo el Sabio', image: '/enemies/sage_4.png', icon: '📜', rank: '10 Kyu • Maestro' },
-                { name: 'Genzaburo el Sabio', image: '/enemies/sage_5.png', icon: '📜', rank: '8 Kyu • Maestro' }
+                { name: 'Kenshin el Sabio', image: '/enemies/sage_1.png', icon: '📜', rank: '16 Kyu' },
+                { name: 'Nobunaga el Sabio', image: '/enemies/sage_2.png', icon: '📜', rank: '14 Kyu' },
+                { name: 'Masashi el Sabio', image: '/enemies/sage_3.png', icon: '📜', rank: '12 Kyu' },
+                { name: 'Tetsuo el Sabio', image: '/enemies/sage_4.png', icon: '📜', rank: '10 Kyu' },
+                { name: 'Genzaburo el Sabio', image: '/enemies/sage_5.png', icon: '📜', rank: '8 Kyu' }
             ];
 
             const chosenSage = randomSages[Math.floor(Math.random() * randomSages.length)];
@@ -777,8 +781,8 @@ export class HUDController {
             } else if (difficulty === 'dan') {
                 aiImage = '/enemies/boss.png';
                 aiIcon = '👑';
-                aiName = '🐉 Gran Maestro Zen';
-                aiRank = '2 Dan • Sabio Supremo';
+                aiName = `🐉 ${t('champion.boss.name')}`;
+                aiRank = '2 Dan Pro';
             }
 
             if (eImg) eImg.src = aiImage;
@@ -811,16 +815,16 @@ export class HUDController {
                     pImg.classList.toggle('hero-normal-img', myHeroKey === 'normal');
                 }
                 if (pIcon && myHero) pIcon.innerText = myHero.icon;
-                if (pName && myHero) pName.innerText = `${myHero.name} (Tú)`;
-                if (pTitle) pTitle.innerText = myColor === 1 ? 'Negras ⚫' : 'Blancas ⚪';
+                if (pName && myHero) pName.innerText = `${t(`champion.${myHeroKey}.name`) || myHero.name} (${t('hud.player_you')})`;
+                if (pTitle) pTitle.innerText = myColor === 1 ? t('hud.turn_black') : t('hud.turn_white');
 
                 if (eImg && oppHero) {
                     eImg.src = oppHero.image;
                     eImg.classList.toggle('hero-normal-img', oppHeroKey === 'normal');
                 }
                 if (eIcon && oppHero) eIcon.innerText = oppHero.icon;
-                if (eName && oppHero) eName.innerText = `${oppHero.name} (Rival)`;
-                if (eRank) eRank.innerText = oppColor === 1 ? 'Negras ⚫' : 'Blancas ⚪';
+                if (eName && oppHero) eName.innerText = `${t(`champion.${oppHeroKey}.name`) || oppHero.name} (${t('hud.player_rival')})`;
+                if (eRank) eRank.innerText = oppColor === 1 ? t('hud.turn_black') : t('hud.turn_white');
             } else {
                 if (heroId) {
                     const hero = RoguelikeRunManager.HEROES[heroId];
@@ -829,7 +833,7 @@ export class HUDController {
                         pImg.classList.toggle('hero-normal-img', heroId === 'normal');
                     }
                     if (pIcon && hero) pIcon.innerText = hero.icon;
-                    if (pName && hero) pName.innerText = hero.name;
+                    if (pName && hero) pName.innerText = t(`champion.${heroId}.name`) || hero.name;
                     if (pTitle) pTitle.innerText = '';
                 } else {
                     if (pImg) {
@@ -837,14 +841,14 @@ export class HUDController {
                         pImg.classList.add('hero-normal-img');
                     }
                     if (pIcon) pIcon.innerText = '👤';
-                    if (pName) pName.innerText = 'Jugador 1';
+                    if (pName) pName.innerText = t('hud.player_num', { num: 1 });
                     if (pTitle) pTitle.innerText = '';
                 }
 
                 if (eImg) eImg.src = '/heroes/kitsune.png';
                 if (eIcon) eIcon.innerText = '🦊';
-                if (eName) eName.innerText = 'Jugador 2';
-                if (eRank) eRank.innerText = 'Blancas ⚪';
+                if (eName) eName.innerText = t('hud.player_num', { num: 2 });
+                if (eRank) eRank.innerText = t('hud.player_white');
             }
         }
     }

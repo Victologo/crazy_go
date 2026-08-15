@@ -87,7 +87,8 @@ export class GoAI {
         const candidateMoves: EvaluatedCandidate[] = [];
 
         for (const [nodeId, node] of board.nodes.entries()) {
-            if (node.stone !== null || node.terrain === 'DESTROYED' || node.terrain === 'OBSTACLE') {
+            const isCaptiveNode = state.captives?.some(c => c.nodeId === nodeId && !c.isCaptured);
+            if (node.stone !== null || node.terrain === 'DESTROYED' || node.terrain === 'OBSTACLE' || isCaptiveNode) {
                 continue;
             }
 
@@ -971,6 +972,8 @@ export class GoAI {
         clone.isGameOver = state.isGameOver;
         clone.boardHistory = [...state.boardHistory];
         clone.lastMoveNodeId = state.lastMoveNodeId;
+        clone.playerTurnCounts = { ...state.playerTurnCounts };
+        clone.captives = state.captives ? state.captives.map(c => ({ ...c })) : [];
         return clone;
     }
 

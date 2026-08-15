@@ -16,7 +16,7 @@
     0 0 35px rgba(245, 158, 11, 0.18),
     inset 0 2px 6px rgba(255, 255, 255, 0.4),
     inset 0 -4px 12px rgba(80, 40, 10, 0.7);
-  padding: 0.85rem;
+  padding: 0.35rem;
   margin-bottom: 0.35rem;
   transition: all 0.3s ease;
 }

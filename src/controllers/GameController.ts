@@ -686,6 +686,14 @@ export class GameController {
             } else {
                 // La IA ejecuta la jugada
                 this.renderer.handleNodeClick(aiChoice.nodeId, false);
+
+                // Fallback de seguridad: Si por alguna razón la jugada no avanzó el turno, pasar turno
+                if (this.state.currentPlayer === activePlayer) {
+                    this.state.passTurn();
+                    this.renderer.render();
+                    this.updateInGameUI();
+                }
+
                 if (!this.state.isGameOver && this.state.currentPlayer !== this.config.humanColor) {
                     this.checkAITurn();
                 } else {
