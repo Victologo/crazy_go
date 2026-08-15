@@ -1,0 +1,375 @@
+/* Relojes y Temporizadores Digitales */
+.hud-timer-pill {
+  border-color: rgba(245, 158, 11, 0.5);
+  background: rgba(15, 23, 42, 0.85);
+  font-family: var(--font-mono);
+  color: #fbbf24;
+  letter-spacing: 0.05em;
+  transition: all 0.25s ease;
+}
+
+.hud-timer-pill.timer-warning {
+  border-color: #ef4444;
+  background: rgba(239, 68, 68, 0.2);
+  color: #f87171;
+  animation: pulseTimerWarning 0.8s infinite alternate ease-in-out;
+}
+
+.duel-timer-badge {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  background: rgba(15, 23, 42, 0.85);
+  border: 1.5px solid rgba(245, 158, 11, 0.4);
+  border-radius: var(--radius-full);
+  padding: 0.25rem 0.65rem;
+  font-family: var(--font-mono);
+  font-size: 0.85rem;
+  font-weight: 800;
+  color: #fbbf24;
+  margin-top: 0.4rem;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+  transition: all 0.2s ease;
+}
+
+.duel-timer-badge.timer-active {
+  border-color: #38bdf8;
+  color: #38bdf8;
+  box-shadow: 0 0 15px rgba(56, 189, 248, 0.5);
+}
+
+.duel-timer-badge.timer-warning {
+  border-color: #ef4444 !important;
+  color: #f87171 !important;
+  background: rgba(239, 68, 68, 0.25) !important;
+  box-shadow: 0 0 18px rgba(239, 68, 68, 0.8) !important;
+  animation: pulseTimerWarning 0.8s infinite alternate ease-in-out;
+}
+
+@keyframes pulseTimerWarning {
+  0% { transform: scale(1); }
+  100% { transform: scale(1.08); filter: brightness(1.25); }
+}
+
+/* Entidades y Objetos Capturables en el Goban */
+.captive-entity-group {
+  cursor: pointer;
+  transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.captive-entity-group:hover {
+  transform: scale(1.15);
+}
+
+.captive-entity-ring {
+  animation: pulseCaptiveRing 2.2s infinite ease-in-out;
+}
+
+@keyframes pulseCaptiveRing {
+  0%, 100% { r: 18px; stroke-opacity: 0.4; stroke-width: 2px; }
+  50% { r: 24px; stroke-opacity: 0.9; stroke-width: 3px; }
+}
+
+/* Badges de Votación Cooperativa Roguelike */
+.coop-vote-indicator {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.72rem;
+  font-weight: 800;
+  font-family: var(--font-mono);
+  margin-top: 0.3rem;
+}
+
+.coop-badge-j1 {
+  background: #3b82f6;
+  color: #ffffff;
+  padding: 0.15rem 0.45rem;
+  border-radius: var(--radius-full);
+  box-shadow: 0 2px 6px rgba(59, 130, 246, 0.5);
+}
+
+.coop-badge-j2 {
+  background: #10b981;
+  color: #ffffff;
+  padding: 0.15rem 0.45rem;
+  border-radius: var(--radius-full);
+  box-shadow: 0 2px 6px rgba(16, 185, 129, 0.5);
+}
+
+.coop-badge-agreed {
+  background: #fbbf24;
+  color: #000000;
+  padding: 0.2rem 0.6rem;
+  border-radius: var(--radius-full);
+  font-weight: 900;
+  box-shadow: 0 0 12px rgba(251, 191, 36, 0.8);
+  animation: pulseAgreed 1s infinite alternate ease-in-out;
+}
+
+@keyframes pulseAgreed {
+  0% { transform: scale(1); }
+  100% { transform: scale(1.06); }
+}
+
+.modal-subtitle {
+  font-size: 0.95rem;
+  color: var(--accent-gold);
+  margin-top: 0.35rem;
+  font-weight: 600;
+}
+
+.score-breakdown-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+  margin: 1.25rem 0 0.75rem;
+}
+
+.score-breakdown-grid.grid-4p {
+  grid-template-columns: repeat(4, 1fr);
+}
+
+@media (max-width: 640px) {
+  .score-breakdown-grid.grid-4p {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+.breakdown-col {
+  background: var(--bg-card-sub);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  padding: 1rem;
+  text-align: left;
+}
+
+.black-col { border-top: 3px solid #334155; }
+.white-col { border-top: 3px solid #cbd5e1; }
+.green-col { border-top: 3px solid #10b981; }
+.purple-col { border-top: 3px solid #8b5cf6; }
+
+.breakdown-col h3 {
+  font-size: 0.95rem;
+  margin-bottom: 0.75rem;
+}
+
+.score-row {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+  margin-bottom: 0.4rem;
+}
+
+.score-row.total-row {
+  border-top: 1px solid var(--border-subtle);
+  padding-top: 0.5rem;
+  margin-top: 0.5rem;
+  font-size: 1rem;
+  color: var(--text-primary);
+  font-weight: 700;
+}
+
+/* Toast Notificaciones */
+.ui-toast {
+  position: absolute;
+  bottom: 5.6rem;
+  left: 50%;
+  transform: translateX(-50%);
+  background: var(--bg-card);
+  color: var(--text-primary);
+  padding: 0.75rem 1.5rem;
+  border-radius: var(--radius-full);
+  border: 1.5px solid rgba(245, 158, 11, 0.6);
+  box-shadow: 0 10px 30px rgba(0,0,0,0.55), 0 0 15px rgba(245, 158, 11, 0.3);
+  font-size: 0.9rem;
+  font-weight: 600;
+  z-index: 100;
+  backdrop-filter: blur(12px);
+  pointer-events: none;
+  animation: toastFadeIn 0.25s ease-out;
+}
+
+@keyframes toastFadeIn {
+  from { opacity: 0; transform: translate(-50%, 15px); }
+  to { opacity: 1; transform: translate(-50%, 0); }
+}
+
+
+/* ==========================================================================
+   5. BARRA DE HECHIZOS ROGUELITE (SPELLBAR DOCK)
+   ========================================================================== */
+.spellbar {
+  position: absolute;
+  bottom: 1.25rem;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 60;
+  display: flex;
+  justify-content: center;
+  pointer-events: auto;
+}
+
+.spellbar-inner {
+  display: flex;
+  align-items: center;
+  gap: 0.85rem;
+  background: var(--bg-card);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-xl);
+  padding: 0.5rem 1rem;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4), var(--shadow-glow-gold);
+  backdrop-filter: blur(12px);
+}
+
+.champion-dock {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.champ-avatar {
+  font-size: 1.4rem;
+  line-height: 1;
+  background: var(--bg-card-sub);
+  border: 1px solid var(--accent-gold);
+  border-radius: var(--radius-full);
+  padding: 0.25rem 0.4rem;
+  box-shadow: 0 0 10px rgba(245, 158, 11, 0.3);
+}
+
+.btn-champ-active {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  background: linear-gradient(135deg, rgba(239, 68, 68, 0.2) 0%, rgba(245, 158, 11, 0.25) 100%);
+  border: 1px solid rgba(245, 158, 11, 0.6);
+  border-radius: var(--radius-md);
+  padding: 0.4rem 0.8rem;
+  color: var(--accent-gold);
+  font-weight: 700;
+  font-size: 0.82rem;
+  cursor: pointer;
+  box-shadow: 0 0 12px rgba(245, 158, 11, 0.25);
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.btn-champ-active:hover:not(:disabled) {
+  transform: translateY(-2px) scale(1.04);
+  border-color: var(--accent-amber);
+  background: linear-gradient(135deg, rgba(239, 68, 68, 0.35) 0%, rgba(245, 158, 11, 0.4) 100%);
+  box-shadow: 0 4px 18px rgba(245, 158, 11, 0.45);
+}
+
+.btn-champ-active.targeting {
+  animation: pulseTargeting 1s infinite alternate;
+  border-color: #ef4444;
+  background: rgba(239, 68, 68, 0.3);
+  color: #ffffff;
+}
+
+@keyframes pulseTargeting {
+  0% { transform: scale(1); box-shadow: 0 0 8px #ef4444; }
+  100% { transform: scale(1.08); box-shadow: 0 0 20px #ef4444; }
+}
+
+.btn-champ-active:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+  filter: grayscale(0.9);
+  border-color: var(--border-subtle);
+}
+
+.champ-status-badge {
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  font-weight: 800;
+  background: var(--accent-gold);
+  color: #000000;
+  padding: 0.1rem 0.4rem;
+  border-radius: var(--radius-full);
+}
+
+.spellbar-divider {
+  width: 1px;
+  height: 28px;
+  background: var(--border-subtle);
+}
+
+.spellbar-label {
+  font-size: 0.7rem;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  color: var(--accent-gold);
+}
+
+.spellbar-cards {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.btn-spell-card {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  background: var(--bg-card-sub);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  padding: 0.4rem 0.75rem;
+  color: var(--text-primary);
+  font-family: var(--font-main);
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+}
+
+.btn-spell-card:hover:not(:disabled) {
+  transform: translateY(-3px) scale(1.05);
+  border-color: var(--accent-cyan);
+  box-shadow: 0 6px 15px rgba(6, 182, 212, 0.3);
+}
+
+.btn-spell-card:disabled, .btn-spell-card.depleted {
+  opacity: 0.55;
+  cursor: not-allowed;
+  background: rgba(15, 23, 42, 0.7);
+  border-color: rgba(255, 255, 255, 0.12);
+}
+
+.spell-icon {
+  font-size: 1.1rem;
+}
+
+.spell-badge {
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  font-weight: 800;
+  background: var(--accent-cyan);
+  color: #0c0f17;
+  padding: 0.12rem 0.45rem;
+  border-radius: var(--radius-full);
+  display: inline-block;
+  min-width: 18px;
+  text-align: center;
+}
+
+.spell-badge.badge-depleted {
+  background: rgba(239, 68, 68, 0.25);
+  color: #f87171;
+  border: 1px solid rgba(239, 68, 68, 0.5);
+}
+
+/* Animación de Halo para Piedra Sagrada */
+@keyframes sacredPulse {
+  0% { stroke-opacity: 0.6; stroke-width: 2.2px; }
+  50% { stroke-opacity: 1; stroke-width: 3.6px; }
+  100% { stroke-opacity: 0.6; stroke-width: 2.2px; }
+}
+
+.vfx-sacred-aura {
+  animation: sacredPulse 2s infinite ease-in-out;
+}

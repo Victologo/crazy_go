@@ -1,0 +1,210 @@
+/* Modal Online (Panorámico) */
+.modal-online {
+  max-width: 1040px;
+  width: min(96vw, 1040px);
+  max-height: 92vh;
+}
+
+.room-code-banner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: linear-gradient(135deg, rgba(6, 182, 212, 0.12) 0%, rgba(59, 130, 246, 0.15) 100%);
+  border: 1px solid rgba(56, 189, 248, 0.35);
+  border-radius: var(--radius-lg);
+  padding: 1rem 1.4rem;
+  margin-bottom: 1.25rem;
+}
+
+.code-info {
+  display: flex;
+  flex-direction: column;
+}
+
+.code-label {
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  color: var(--accent-cyan);
+}
+
+.code-value {
+  font-family: var(--font-mono);
+  font-size: 1.8rem;
+  font-weight: 800;
+  color: var(--text-primary);
+  letter-spacing: 0.05em;
+}
+
+.btn-copy {
+  background: #0284c7;
+  color: #ffffff;
+  font-size: 0.85rem;
+  padding: 0.6rem 1rem;
+  border-radius: var(--radius-md);
+}
+
+.btn-copy:hover {
+  background: #0369a1;
+}
+
+.waiting-box {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1.25rem;
+  background: rgba(15, 23, 42, 0.6);
+  border: 1px dashed rgba(245, 158, 11, 0.35);
+  border-radius: var(--radius-lg);
+  padding: 1.25rem 1.5rem;
+  margin-top: 1rem;
+  font-size: 0.9rem;
+  color: var(--text-secondary);
+}
+
+.lobby-status-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.75rem;
+  width: 100%;
+}
+
+.online-slots-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+  gap: 0.65rem;
+  width: 100%;
+  margin-top: 0.35rem;
+}
+
+.online-slot-card {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  background: rgba(30, 41, 59, 0.65);
+  border: 1.5px solid rgba(255, 255, 255, 0.1);
+  border-radius: var(--radius-md);
+  padding: 0.6rem 0.85rem;
+  font-size: 0.82rem;
+  transition: all 0.25s ease;
+}
+
+.online-slot-card.connected {
+  border-color: #10b981;
+  background: rgba(16, 185, 129, 0.12);
+}
+
+.online-slot-card.is-you {
+  border-color: #f59e0b;
+  box-shadow: 0 0 12px rgba(245, 158, 11, 0.25);
+}
+
+.online-slot-card.waiting {
+  opacity: 0.6;
+  border-style: dashed;
+}
+
+.slot-icon-stone {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.5);
+}
+
+.slot-stone-1 { background: radial-gradient(circle at 35% 35%, #555, #111); border: 1px solid #777; }
+.slot-stone-2 { background: radial-gradient(circle at 35% 35%, #fff, #ddd); border: 1px solid #aaa; }
+.slot-stone-3 { background: radial-gradient(circle at 35% 35%, #34d399, #059669); border: 1px solid #10b981; }
+.slot-stone-4 { background: radial-gradient(circle at 35% 35%, #c084fc, #7c3aed); border: 1px solid #a855f7; }
+
+.slot-info {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  text-align: left;
+  overflow: hidden;
+  gap: 0.15rem;
+}
+
+.slot-name {
+  font-weight: 700;
+  color: var(--text-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 140px;
+}
+
+.slot-hero-tag {
+  font-size: 0.74rem;
+  color: var(--accent-gold);
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 140px;
+}
+
+.slot-badge {
+  font-size: 0.68rem;
+  font-family: var(--font-mono);
+  color: var(--accent-gold);
+}
+
+.spinner {
+  width: 22px;
+  height: 22px;
+  border: 2.5px solid rgba(56, 189, 248, 0.2);
+  border-top-color: var(--accent-cyan);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+  flex-shrink: 0;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+.join-box {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  padding: 1rem 0;
+}
+
+.join-input-group {
+  display: flex;
+  gap: 0.75rem;
+}
+
+.join-input-group input {
+  flex: 1;
+  background: rgba(30, 41, 59, 0.6);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: var(--radius-md);
+  padding: 0.75rem 1rem;
+  color: var(--text-primary);
+  font-family: var(--font-mono);
+  font-size: 1.1rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  outline: none;
+}
+
+.join-input-group input:focus {
+  border-color: var(--accent-cyan);
+  box-shadow: 0 0 10px rgba(6, 182, 212, 0.2);
+}
+
+body[data-theme="light"] .join-input-group input {
+  background: #ffffff;
+  border-color: #cbd5e1;
+  color: #0f172a;
+}
+
+.join-help {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+}

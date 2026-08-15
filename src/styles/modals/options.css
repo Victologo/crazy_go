@@ -1,0 +1,336 @@
+/* ==========================================================================
+   WIZARD DE CONFIGURACIÓN DINÁMICO (PASO A PASO)
+   ========================================================================== */
+.wizard-modal-card {
+  max-width: 840px;
+  width: min(94vw, 840px);
+  min-height: 540px;
+}
+
+.wizard-modal-header {
+  padding: 1.4rem 2rem 0.75rem 2rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.wizard-header-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.wizard-step-pill {
+  font-size: 0.75rem;
+  font-weight: 700;
+  background: rgba(245, 158, 11, 0.15);
+  color: var(--accent-gold);
+  border: 1px solid rgba(245, 158, 11, 0.3);
+  border-radius: 999px;
+  padding: 0.25rem 0.85rem;
+}
+
+/* Stepper de Progreso */
+.wizard-stepper {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 1rem;
+  width: 100%;
+}
+
+.wizard-step-node {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  color: var(--text-muted);
+  font-family: var(--font-main);
+  font-size: 0.8rem;
+  font-weight: 600;
+  padding: 0.3rem 0.55rem;
+  border-radius: var(--radius-md);
+  transition: all 0.25s ease;
+}
+
+.wizard-step-node:hover {
+  color: var(--text-primary);
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.wizard-step-node .step-num {
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1.5px solid rgba(255, 255, 255, 0.2);
+  font-weight: 800;
+  font-size: 0.78rem;
+  transition: all 0.25s ease;
+}
+
+.wizard-step-node.active {
+  color: #ffffff;
+}
+
+.wizard-step-node.active .step-num {
+  background: var(--accent-gold);
+  color: #0f172a;
+  border-color: var(--accent-gold);
+  box-shadow: 0 0 12px rgba(245, 158, 11, 0.6);
+  transform: scale(1.1);
+}
+
+.wizard-step-node.completed {
+  color: var(--accent-gold);
+}
+
+.wizard-step-node.completed .step-num {
+  background: rgba(245, 158, 11, 0.2);
+  border-color: var(--accent-gold);
+  color: var(--accent-gold);
+}
+
+.wizard-line {
+  flex: 1;
+  height: 2px;
+  background: rgba(255, 255, 255, 0.1);
+  margin: 0 0.4rem;
+}
+
+body[data-theme="light"] .wizard-line {
+  background: rgba(0, 0, 0, 0.1);
+}
+
+.wizard-body-container {
+  padding: 1.5rem 2rem;
+  min-height: 360px;
+}
+
+.wizard-step-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+  animation: wizardFadeIn 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes wizardFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.wizard-step-hero {
+  margin-bottom: 0.5rem;
+}
+
+.wizard-step-title {
+  font-size: 1.2rem;
+  font-weight: 800;
+  color: var(--text-primary);
+  margin: 0;
+}
+
+.wizard-step-subtitle {
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+  margin: 0.25rem 0 0 0;
+}
+
+/* Tarjetas Grandes Clicables del Wizard */
+.wizard-big-grid {
+  gap: 1rem;
+}
+
+.btn-choice-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  gap: 0.65rem;
+  padding: 1.8rem 1.4rem;
+  background: rgba(30, 41, 59, 0.55);
+  border: 2px solid rgba(255, 255, 255, 0.1);
+  border-radius: var(--radius-lg);
+  cursor: pointer;
+  transition: all 0.22s cubic-bezier(0.4, 0, 0.2, 1);
+  min-height: 150px;
+}
+
+.choice-card-icon {
+  font-size: 2.5rem;
+  line-height: 1;
+  filter: drop-shadow(0 4px 8px rgba(0,0,0,0.4));
+}
+
+.choice-card-title {
+  font-size: 1.08rem;
+  font-weight: 800;
+  color: var(--text-primary);
+}
+
+.choice-card-desc {
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+  opacity: 0.85;
+  max-width: 280px;
+  line-height: 1.35;
+}
+
+.btn-choice-card:hover {
+  transform: translateY(-3px);
+  border-color: var(--accent-gold);
+  background: rgba(245, 158, 11, 0.08);
+  box-shadow: 0 10px 25px -5px rgba(0,0,0,0.5);
+}
+
+.btn-choice-card.active {
+  border-color: var(--accent-gold);
+  background: linear-gradient(145deg, rgba(245, 158, 11, 0.16) 0%, rgba(217, 119, 6, 0.24) 100%);
+  box-shadow: 0 0 20px rgba(245, 158, 11, 0.35);
+  transform: translateY(-2px);
+}
+
+body[data-theme="light"] .btn-choice-card {
+  background: #fdfaf5;
+  border-color: #e2d7c5;
+}
+
+body[data-theme="light"] .btn-choice-card:hover {
+  background: #fbf2e3;
+  border-color: var(--accent-gold);
+}
+
+body[data-theme="light"] .btn-choice-card.active {
+  background: #faecd5;
+  border-color: var(--accent-gold);
+}
+
+/* Tarjeta de Resumen Visual */
+.wizard-summary-card {
+  display: flex;
+  align-items: center;
+  gap: 1.25rem;
+  background: linear-gradient(135deg, rgba(245, 158, 11, 0.12) 0%, rgba(15, 23, 42, 0.8) 100%);
+  border: 1.5px solid rgba(245, 158, 11, 0.35);
+  border-radius: var(--radius-lg);
+  padding: 1rem 1.4rem;
+  margin-bottom: 0.5rem;
+}
+
+body[data-theme="light"] .wizard-summary-card {
+  background: linear-gradient(135deg, rgba(245, 158, 11, 0.15) 0%, #f7f1e6 100%);
+  border-color: rgba(217, 119, 6, 0.4);
+}
+
+.summary-hero-avatar-box img {
+  width: 54px;
+  height: 54px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid var(--accent-gold);
+  box-shadow: 0 0 12px rgba(245, 158, 11, 0.3);
+}
+
+.summary-details strong {
+  font-size: 1.05rem;
+  font-weight: 800;
+  color: var(--text-primary);
+  display: block;
+}
+
+.summary-details span {
+  font-size: 0.84rem;
+  color: var(--accent-gold);
+  margin-top: 0.2rem;
+  display: block;
+}
+
+body[data-theme="light"] .summary-details span {
+  color: #b45309;
+}
+
+.wizard-modal-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1.1rem 2rem 1.4rem 2rem;
+}
+
+.wizard-footer-right {
+  display: flex;
+  gap: 0.75rem;
+}
+
+.btn-wizard-cta {
+  font-weight: 800;
+  padding: 0.75rem 2rem;
+  animation: pulse 2s infinite;
+}
+
+/* ==========================================================================
+   ATAJOS DE TECLADO EN MODAL DE OPCIONES
+   ========================================================================== */
+.options-shortcuts-section {
+  margin-top: 1.5rem;
+  padding-top: 1.25rem;
+  border-top: 1px solid var(--border-subtle);
+}
+
+.shortcuts-title {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin-bottom: 0.85rem;
+  letter-spacing: 0.02em;
+}
+
+.shortcuts-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 0.6rem;
+}
+
+.shortcut-item {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+  background: var(--bg-card-sub);
+  padding: 0.5rem 0.75rem;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border-subtle);
+}
+
+.key-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 24px;
+  padding: 0.2rem 0.5rem;
+  background: var(--bg-card);
+  border: 1px solid var(--border-focus);
+  color: var(--text-primary);
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  font-weight: 700;
+  border-radius: 4px;
+  box-shadow: 0 2px 0 rgba(0, 0, 0, 0.35);
+}
+
+body[data-theme="light"] .key-badge {
+  background: #f1f5f9;
+  border-color: #cbd5e1;
+  color: #1e293b;
+  box-shadow: 0 2px 0 rgba(0, 0, 0, 0.15);
+}

@@ -1,0 +1,284 @@
+/* ==========================================================================
+   2. PANTALLA DE JUEGO & TOPBAR HUD
+   ========================================================================== */
+#game-screen {
+  flex-direction: column;
+  background-color: var(--bg-main);
+}
+
+#game-topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.6rem 1.2rem;
+  background: var(--bg-card);
+  border-bottom: 1px solid var(--border-subtle);
+  z-index: 50;
+  box-shadow: var(--shadow-md);
+  height: 60px;
+  transition: background-color 0.3s ease, border-color 0.3s ease;
+}
+
+.topbar-group {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+}
+
+.topbar-left {
+  flex: 1;
+  justify-content: flex-start;
+}
+
+.topbar-center {
+  flex: 2;
+  justify-content: center;
+  gap: 0.85rem;
+}
+
+.topbar-right {
+  flex: 1;
+  justify-content: flex-end;
+}
+
+.btn-topbar {
+  background: var(--bg-card-sub);
+  color: var(--text-secondary);
+  border: 1px solid var(--border-subtle);
+  padding: 0.45rem 0.85rem;
+  font-size: 0.85rem;
+  border-radius: var(--radius-md);
+}
+
+.btn-topbar:hover {
+  background: #242f49;
+  color: var(--text-primary);
+  border-color: var(--border-focus);
+}
+
+body[data-theme="light"] .btn-topbar:hover {
+  background: #ebe0cf;
+}
+
+.online-status-pill {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--accent-emerald);
+  background: rgba(16, 185, 129, 0.12);
+  border: 1px solid rgba(16, 185, 129, 0.3);
+  padding: 0.35rem 0.65rem;
+  border-radius: var(--radius-full);
+}
+
+.status-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--accent-emerald);
+  box-shadow: 0 0 6px var(--accent-emerald);
+  animation: pulseDot 2s infinite;
+}
+
+@keyframes pulseDot {
+  0% { opacity: 0.5; }
+  50% { opacity: 1; }
+  100% { opacity: 0.5; }
+}
+
+.hud-pill {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: var(--bg-card-sub);
+  border: 1px solid var(--border-subtle);
+  padding: 0.35rem 0.85rem;
+  border-radius: var(--radius-full);
+  font-size: 0.85rem;
+  transition: background-color 0.3s ease;
+}
+
+.hud-label {
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  color: var(--text-muted);
+}
+
+.hud-value {
+  font-family: var(--font-mono);
+  font-size: 0.95rem;
+  color: var(--accent-gold);
+}
+
+.hud-player-pill {
+  border-color: rgba(245, 158, 11, 0.3);
+  background: var(--bg-card-sub);
+}
+
+.hud-player-text {
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.stone-indicator {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  display: inline-block;
+}
+
+.stone-indicator.black-turn {
+  background: radial-gradient(circle at 35% 35%, #4a5568, #1a202c 70%, #000000 100%);
+  box-shadow: 0 0 4px rgba(0, 0, 0, 0.4);
+}
+
+.stone-indicator.white-turn {
+  background: radial-gradient(circle at 35% 35%, #ffffff, #e2e8f0 70%, #94a3b8 100%);
+  box-shadow: 0 0 6px rgba(0, 0, 0, 0.25);
+}
+
+.stone-indicator.green-turn {
+  background: radial-gradient(circle at 35% 35%, #a7f3d0, #10b981 70%, #047857 100%);
+  box-shadow: 0 0 6px rgba(16, 185, 129, 0.45);
+  border: 1px solid #059669;
+}
+
+.stone-indicator.purple-turn {
+  background: radial-gradient(circle at 35% 35%, #ddd6fe, #8b5cf6 70%, #4c1d95 100%);
+  box-shadow: 0 0 6px rgba(139, 92, 246, 0.45);
+  border: 1px solid #7c3aed;
+}
+
+.ai-badge {
+  font-size: 0.7rem;
+  background: rgba(59, 130, 246, 0.2);
+  color: var(--accent-blue);
+  border: 1px solid rgba(59, 130, 246, 0.4);
+  padding: 0.15rem 0.45rem;
+  border-radius: var(--radius-sm);
+  font-weight: 600;
+  animation: pulse 1.5s infinite;
+}
+
+@keyframes pulse {
+  0% { opacity: 0.6; }
+  50% { opacity: 1; }
+  100% { opacity: 0.6; }
+}
+
+.hud-captures-pill {
+  font-family: var(--font-mono);
+  font-size: 0.85rem;
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.cap-item {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.cap-item small {
+  color: var(--text-muted);
+  font-size: 0.75rem;
+}
+
+.cap-sep {
+  color: var(--text-muted);
+  font-size: 0.75rem;
+  margin: 0 0.15rem;
+}
+
+.mini-stone {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  display: inline-block;
+}
+
+.black-mini {
+  background: #1e293b;
+  border: 1px solid #475569;
+}
+
+.white-mini {
+  background: #f8fafc;
+  border: 1px solid #cbd5e1;
+}
+
+.green-mini {
+  background: #10b981;
+  border: 1px solid #059669;
+  box-shadow: 0 0 4px rgba(16, 185, 129, 0.4);
+}
+
+.purple-mini {
+  background: #8b5cf6;
+  border: 1px solid #7c3aed;
+  box-shadow: 0 0 4px rgba(139, 92, 246, 0.4);
+}
+
+.btn-action-pass {
+  background: rgba(59, 130, 246, 0.15);
+  color: var(--accent-blue);
+  border: 1px solid rgba(59, 130, 246, 0.35);
+  padding: 0.45rem 0.9rem;
+  font-size: 0.85rem;
+}
+
+.btn-action-pass:hover {
+  background: rgba(59, 130, 246, 0.25);
+  border-color: var(--accent-blue);
+}
+
+.btn-action-score {
+  background: rgba(245, 158, 11, 0.15);
+  color: var(--accent-gold);
+  border: 1px solid rgba(245, 158, 11, 0.35);
+  padding: 0.45rem 0.9rem;
+  font-size: 0.85rem;
+}
+
+.btn-action-score:hover {
+  background: rgba(245, 158, 11, 0.25);
+  border-color: var(--accent-gold);
+}
+
+.rogue-stage-pill {
+  max-width: 220px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: #f59e0b;
+  background: rgba(245, 158, 11, 0.14);
+  border: 1px solid rgba(245, 158, 11, 0.35);
+  padding: 0.35rem 0.75rem;
+  border-radius: var(--radius-full);
+}
+
+/* Viewport Tablero y Fondo de Combate con Iluminación Realzada */
+#board-viewport {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  background: radial-gradient(circle at center, rgb(12 16 26 / 51%) 0%, rgb(6 9 15 / 0%) 100%), 
+              url('/bg_combat.jpg') center center / cover no-repeat;
+  overflow: hidden;
+  padding: 0.35rem 1.5rem;
+  gap: 1.5rem;
+  transition: background 0.3s ease;
+}
+
+body[data-theme="light"] #board-viewport {
+  background: radial-gradient(circle at center, rgba(248, 245, 238, 0.35) 0%, rgba(220, 210, 195, 0.05) 100%), 
+              url('/bg_combat.jpg') center center / cover no-repeat;
+}

@@ -1,0 +1,133 @@
+/* Tablero de Madera Kaya Tradicional con Relieve y Textura */
+#board-container {
+  width: 100%;
+  height: 100%;
+  max-width: min(calc(100vh - 180px), clamp(320px, 44vw, 610px));
+  max-height: min(calc(100vh - 180px), clamp(320px, 44vw, 610px));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  background: url('/wood_kaya.jpg') center center / cover no-repeat;
+  border: 6px solid #cca162;
+  border-radius: 16px;
+  box-shadow: 
+    0 20px 50px -10px rgba(0, 0, 0, 0.85),
+    0 0 35px rgba(245, 158, 11, 0.18),
+    inset 0 2px 6px rgba(255, 255, 255, 0.4),
+    inset 0 -4px 12px rgba(80, 40, 10, 0.7);
+  padding: 0.85rem;
+  margin-bottom: 0.35rem;
+  transition: all 0.3s ease;
+}
+
+body[data-theme="light"] #board-container {
+  border-color: #b88646;
+  box-shadow: 
+    0 20px 45px -8px rgba(70, 45, 20, 0.45),
+    inset 0 2px 5px rgba(255, 255, 255, 0.6),
+    inset 0 -3px 10px rgba(100, 60, 20, 0.5);
+}
+
+/* Florituras y Cantoneras Ornamentales en las 4 Esquinas del Tablero */
+.board-corner {
+  position: absolute;
+  width: 38px;
+  height: 38px;
+  pointer-events: none;
+  z-index: 5;
+}
+
+.board-corner::before,
+.board-corner::after {
+  content: '';
+  position: absolute;
+  background: linear-gradient(135deg, #fcd34d 0%, #d97706 60%, #78350f 100%);
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.6);
+}
+
+/* Esquina Superior Izquierda */
+.corner-tl {
+  top: 6px;
+  left: 6px;
+}
+.corner-tl::before {
+  top: 0;
+  left: 0;
+  width: 26px;
+  height: 4px;
+  border-radius: 2px 0 0 2px;
+}
+.corner-tl::after {
+  top: 0;
+  left: 0;
+  width: 4px;
+  height: 26px;
+  border-radius: 2px 0 0 2px;
+}
+
+/* Esquina Superior Derecha */
+.corner-tr {
+  top: 6px;
+  right: 6px;
+}
+.corner-tr::before {
+  top: 0;
+  right: 0;
+  width: 26px;
+  height: 4px;
+  border-radius: 0 2px 2px 0;
+}
+.corner-tr::after {
+  top: 0;
+  right: 0;
+  width: 4px;
+  height: 26px;
+  border-radius: 0 2px 2px 0;
+}
+
+/* Esquina Inferior Izquierda */
+.corner-bl {
+  bottom: 6px;
+  left: 6px;
+}
+.corner-bl::before {
+  bottom: 0;
+  left: 0;
+  width: 26px;
+  height: 4px;
+  border-radius: 2px 0 0 2px;
+}
+.corner-bl::after {
+  bottom: 0;
+  left: 0;
+  width: 4px;
+  height: 26px;
+  border-radius: 0 0 2px 2px;
+}
+
+/* Esquina Inferior Derecha */
+.corner-br {
+  bottom: 6px;
+  right: 6px;
+}
+.corner-br::before {
+  bottom: 0;
+  right: 0;
+  width: 26px;
+  height: 4px;
+  border-radius: 0 2px 2px 0;
+}
+.corner-br::after {
+  bottom: 0;
+  right: 0;
+  width: 4px;
+  height: 26px;
+  border-radius: 0 0 2px 2px;
+}
+
+#game-svg {
+  width: 100%;
+  height: 100%;
+  display: block;
+}

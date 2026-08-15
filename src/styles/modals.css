@@ -1,0 +1,5 @@
+@import './modals/base.css';
+@import './modals/online.css';
+@import './modals/setup.css';
+@import './modals/options.css';
+@import './modals/score.css';

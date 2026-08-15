@@ -1,0 +1,283 @@
+/* ==================== HERO SHOWCASE CAROUSEL (ROGUELIKE) ==================== */
+
+/* ==================== HERO SHOWCASE CAROUSEL (ROGUELIKE PANORÁMICO) ==================== */
+
+.modal-rogue-panoramic {
+  max-width: 1040px;
+  width: min(96vw, 1040px);
+  max-height: 94vh;
+  background: linear-gradient(170deg, rgba(15, 20, 32, 0.96) 0%, rgba(9, 12, 20, 0.98) 100%);
+  border: 1px solid rgba(245, 158, 11, 0.16);
+  box-shadow: 0 35px 80px -15px rgba(0, 0, 0, 0.85), 0 0 30px rgba(245, 158, 11, 0.05);
+  border-radius: 20px;
+}
+
+.rogue-header-panoramic {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1.1rem 2rem 0.3rem;
+  border-bottom: none;
+}
+
+.rogue-body-panoramic {
+  padding: 0.5rem 2rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  overflow-y: auto;
+}
+
+.rogue-diff-grid .btn-choice {
+  padding: 0.75rem 0.6rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.diff-sub {
+  font-size: 0.78rem;
+  opacity: 0.82;
+  font-weight: 500;
+}
+
+.rogue-hero-panoramic-box {
+  display: flex;
+  align-items: center;
+  gap: 1.2rem;
+  width: 100%;
+}
+
+.btn-hero-nav {
+  background: rgba(30, 41, 59, 0.65);
+  border: 1.5px solid rgba(245, 158, 11, 0.3);
+  border-radius: var(--radius-full);
+  color: var(--accent-gold);
+  width: 46px;
+  height: 46px;
+  font-size: 1.2rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  flex-shrink: 0;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.4);
+}
+
+.btn-hero-nav:hover {
+  transform: scale(1.12);
+  border-color: var(--accent-gold);
+  background: rgba(245, 158, 11, 0.25);
+  box-shadow: 0 0 18px rgba(245, 158, 11, 0.45);
+}
+
+.hero-showcase-card {
+  flex: 1;
+  display: flex;
+  gap: 2rem;
+  background: transparent;
+  border: none;
+  border-radius: 0;
+  padding: 0.2rem 0.4rem;
+  box-shadow: none;
+  align-items: center;
+  transition: all 0.3s ease;
+}
+
+.hero-portrait-wrapper {
+  position: relative;
+  width: 205px;
+  height: 205px;
+  min-width: 205px;
+  border-radius: 18px;
+  overflow: hidden;
+  border: 2px solid rgba(245, 158, 11, 0.65);
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.7), 0 0 25px rgba(245, 158, 11, 0.2);
+  flex-shrink: 0;
+  background: #0b0f19;
+}
+
+.hero-showcase-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  transition: transform 0.4s ease;
+}
+
+.hero-showcase-card:hover .hero-showcase-img {
+  transform: scale(1.05);
+}
+
+.hero-details {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+}
+
+.hero-header-row {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+}
+
+.hero-titles-col {
+  display: flex;
+  align-items: baseline;
+  gap: 0.85rem;
+  flex-wrap: wrap;
+}
+
+.hero-title {
+  font-size: 1.6rem;
+  font-weight: 800;
+  color: #f8fafc;
+  letter-spacing: -0.01em;
+  margin: 0;
+}
+
+.hero-subtitle {
+  font-size: 0.94rem;
+  font-weight: 700;
+  color: var(--accent-gold);
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+}
+
+.hero-quote {
+  font-size: 0.90rem;
+  font-style: italic;
+  color: #94a3b8;
+  line-height: 1.4;
+  margin: 0;
+  padding-left: 0.75rem;
+  border-left: 2.5px solid rgba(245, 158, 11, 0.45);
+}
+
+.hero-skills-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 0.65rem;
+}
+
+.hero-skill-box {
+  border-radius: 12px;
+  padding: 0.8rem 1.1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.active-skill-box {
+  border: 1.5px solid rgba(239, 68, 68, 0.45);
+  background: linear-gradient(135deg, rgba(239, 68, 68, 0.12) 0%, rgba(15, 23, 42, 0.8) 100%);
+}
+
+.passive-skill-box {
+  border: 1.5px solid rgba(6, 182, 212, 0.45);
+  background: linear-gradient(135deg, rgba(6, 182, 212, 0.12) 0%, rgba(15, 23, 42, 0.8) 100%);
+}
+
+.skill-box-header {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  flex-wrap: wrap;
+}
+
+.skill-type-tag {
+  font-size: 0.74rem;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  padding: 0.2rem 0.55rem;
+  border-radius: 4px;
+}
+
+.active-tag {
+  color: #fca5a5;
+  background: rgba(239, 68, 68, 0.25);
+}
+
+.passive-tag {
+  color: #7dd3fc;
+  background: rgba(6, 182, 212, 0.25);
+}
+
+.skill-name {
+  font-size: 0.98rem;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.skill-desc {
+  font-size: 0.88rem;
+  color: var(--text-secondary);
+  line-height: 1.4;
+  margin: 0;
+}
+
+/* Tira de miniaturas de campeones (Primer Plano) */
+.hero-thumb-strip {
+  display: flex;
+  gap: 0.85rem;
+  justify-content: center;
+  margin-top: 0.25rem;
+  flex-wrap: wrap;
+}
+
+.hero-thumb-btn {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  background: rgba(30, 41, 59, 0.6);
+  border: 1.5px solid var(--border-subtle);
+  border-radius: 14px;
+  padding: 0.35rem 0.9rem 0.35rem 0.45rem;
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  color: var(--text-secondary);
+  font-family: var(--font-main);
+  font-size: 0.90rem;
+  font-weight: 700;
+}
+
+.hero-thumb-btn img {
+  width: 38px;
+  height: 38px;
+  border-radius: 10px;
+  object-fit: cover;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+}
+
+.hero-thumb-btn:hover {
+  border-color: var(--accent-gold);
+  color: var(--text-primary);
+  transform: translateY(-2px);
+  background: rgba(245, 158, 11, 0.1);
+}
+
+.hero-thumb-btn.active {
+  border-color: var(--accent-gold);
+  background: linear-gradient(135deg, rgba(245, 158, 11, 0.22) 0%, rgba(217, 119, 6, 0.32) 100%);
+  color: #ffffff;
+  box-shadow: 0 0 16px rgba(245, 158, 11, 0.4);
+  transform: translateY(-2px);
+}
+
+.rogue-footer-panoramic {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.8rem 2rem 1.3rem;
+  border-top: none;
+}
+
+.btn-rogue-cta {
+  padding: 0.8rem 2rem;
+  font-size: 1.05rem;
+  font-weight: 800;
+  border-radius: 14px;
+}

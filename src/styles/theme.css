@@ -1,0 +1,120 @@
+/* MODO CLARO (Madera Kaya Tradicional & Tatami Zen) */
+body[data-theme="light"] {
+  --bg-main: #f4ede3;
+  --bg-menu-radial: radial-gradient(circle at center, #fbf8f2 0%, #ebe0cf 75%);
+  --bg-viewport-radial: radial-gradient(circle at center, #fcf9f4 0%, #eae0d0 80%);
+  --bg-board-box: #e4c48a; /* Madera Kaya cálida */
+  --bg-card: #ffffff;
+  --bg-card-sub: #f8f4ec;
+  --bg-glass: rgba(255, 255, 255, 0.94);
+  --bg-modal-backdrop: rgba(25, 20, 14, 0.65);
+
+  --border-subtle: #d8cbba;
+  --border-focus: #2563eb;
+  --border-accent: #d97706;
+
+  --accent-gold: #b45309;
+  --accent-amber: #92400e;
+  --accent-blue: #1d4ed8;
+  --accent-cyan: #0369a1;
+  --accent-emerald: #047857;
+  --accent-rose: #be123c;
+
+  --text-primary: #0f172a;
+  --text-secondary: #334155;
+  --text-muted: #64748b;
+  --text-title-gradient: linear-gradient(180deg, #0f172a 40%, #334155 100%);
+
+  --grid-line-color: #29180c; /* Líneas en nogal oscuro */
+  --hoshi-color: #4a2c16;
+
+  --shadow-sm: 0 2px 5px rgba(60,40,20,0.08);
+  --shadow-md: 0 4px 14px rgba(60,40,20,0.12);
+  --shadow-lg: 0 10px 30px -5px rgba(60,40,20,0.22);
+  --shadow-glow-gold: 0 0 25px rgba(217, 119, 6, 0.2);
+  --shadow-glow-cyan: 0 0 25px rgba(8, 145, 178, 0.2);
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  user-select: none;
+}
+
+body {
+  font-family: var(--font-main);
+  background-color: var(--bg-main);
+  color: var(--text-primary);
+  height: 100vh;
+  width: 100vw;
+  overflow: hidden;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+#app {
+  width: 100vw;
+  height: 100vh;
+  position: relative;
+  overflow: hidden;
+}
+
+.screen {
+  width: 100%;
+  height: 100%;
+  position: absolute;
+  top: 0;
+  left: 0;
+  display: flex;
+  transition: opacity 0.3s ease, transform 0.3s ease;
+}
+
+.hidden {
+  display: none !important;
+}
+
+/* ==========================================================================
+   BOTÓN CONMUTADOR DE TEMA (MODO CLARO / OSCURO)
+   ========================================================================== */
+.btn-theme-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--bg-card-sub);
+  border: 1px solid var(--border-subtle);
+  color: var(--text-primary);
+  cursor: pointer;
+  border-radius: var(--radius-full);
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: var(--shadow-sm);
+}
+
+.btn-theme-toggle:hover {
+  background: #242f49;
+  border-color: var(--border-focus);
+  transform: scale(1.08) rotate(12deg);
+}
+
+body[data-theme="light"] .btn-theme-toggle:hover {
+  background: #ebe0cf;
+}
+
+.btn-theme-floating {
+  position: absolute;
+  top: 1.5rem;
+  right: 1.5rem;
+  width: 44px;
+  height: 44px;
+  font-size: 1.25rem;
+  z-index: 100;
+}
+
+.btn-theme-topbar {
+  width: 36px;
+  height: 36px;
+  font-size: 1.05rem;
+  padding: 0;
+}
