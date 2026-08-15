@@ -16,10 +16,10 @@ import { BossActiveSkill } from './champions/BossChampion';
 export type { TargetingMode, ChampionActiveSkill, ChampionPassiveSkill };
 
 export const RoninPassiveSkill: ChampionPassiveSkill = {
-    name: 'Filo del Samurai',
+    name: "Samurai's Edge",
     icon: '⚡',
-    description: 'Cada 25 turnos transcurridos, corta el flujo vital y elimina aleatoriamente 1 piedra enemiga del Goban.',
-    conditionDesc: 'Cada 25 turnos transcurridos'
+    description: 'Every 25 turns elapsed, slashes the vital flow and eradicates 1 random enemy stone from the Goban.',
+    conditionDesc: 'Every 25 turns elapsed'
 };
 
 export class ChampionManager {

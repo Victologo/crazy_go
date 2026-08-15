@@ -1,8 +1,6 @@
-// TerritoryScorer.ts
-// Algoritmo de flood-fill sobre grafos para puntuación de territorio y reglas canónicas de Go (2 y 4 Jugadores)
-
 import { GraphBoard, type PlayerId } from './GraphBoard';
 import { GameState } from './GameState';
+import { t } from '../i18n/i18n';
 
 export interface PlayerScore {
     playerId: PlayerId;
@@ -37,15 +35,17 @@ export interface ScoreReport {
 }
 
 export class TerritoryScorer {
-    public static readonly PLAYER_META: Record<PlayerId, { name: string; color: string; icon: string; key: 'black' | 'white' | 'green' | 'purple' }> = {
-        1: { name: 'Negras', color: '#1a1a1a', icon: '⚫', key: 'black' },
-        2: { name: 'Blancas', color: '#ffffff', icon: '⚪', key: 'white' },
-        3: { name: 'Esmeralda', color: '#10b981', icon: '🟢', key: 'green' },
-        4: { name: 'Amatista', color: '#8b5cf6', icon: '🟣', key: 'purple' }
-    };
+    public static get PLAYER_META(): Record<PlayerId, { name: string; color: string; icon: string; key: 'black' | 'white' | 'green' | 'purple' }> {
+        return {
+            1: { name: t('hud.player_black'), color: '#1a1a1a', icon: '⚫', key: 'black' },
+            2: { name: t('hud.player_white'), color: '#ffffff', icon: '⚪', key: 'white' },
+            3: { name: t('hud.player_green'), color: '#10b981', icon: '🟢', key: 'green' },
+            4: { name: t('hud.player_purple'), color: '#8b5cf6', icon: '🟣', key: 'purple' }
+        };
+    }
 
     /**
-     * Calcula la puntuación completa de la partida utilizando reglas de territorio de Go
+     * Calculates the complete match score using Japanese Go territory rules
      */
     static calculateScore(board: GraphBoard, state: GameState): ScoreReport {
         const visited = new Set<string>();
@@ -53,13 +53,13 @@ export class TerritoryScorer {
         
         const territoryCounts: Record<PlayerId, number> = { 1: 0, 2: 0, 3: 0, 4: 0 };
 
-        // 1. Identificar regiones vacías mediante búsqueda en anchura (BFS)
+        // 1. Identify empty territory regions with BFS
         for (const [nodeId, node] of board.nodes.entries()) {
             if (node.stone !== null || node.terrain === 'DESTROYED' || node.terrain === 'OBSTACLE' || visited.has(nodeId)) {
                 continue;
             }
 
-            // Iniciar componente conexa vacía
+            // Start empty connected component
             const region: string[] = [];
             const queue: string[] = [nodeId];
             visited.add(nodeId);
@@ -86,7 +86,7 @@ export class TerritoryScorer {
                 }
             }
 
-            // 2. Determinar posesión del territorio: si un jugador domina los bordes (>= 74%)
+            // 2. Determine territory ownership (>= 74% border dominance)
             let maxBorders = 0;
             let owner: PlayerId | null = null;
             
@@ -98,23 +98,20 @@ export class TerritoryScorer {
                 }
             }
 
-            // Consideramos territorio consolidado si domina al menos el 74% de los bordes
-            // Esto ignora piedras muertas invasoras que aportan pocos bordes
             if (owner !== null && (totalBorders === 0 || maxBorders >= totalBorders * 0.74)) {
                 territoryCounts[owner] += region.length;
                 for (const id of region) {
                     territoryMap.set(id, owner);
                 }
             }
-            // Si maxBorders / totalBorders < 0.74, es "Dame" / neutral (0 puntos)
         }
 
         const activePlayerIds: PlayerId[] = state.playerCount === 4 ? [1, 2, 3, 4] : [1, 2];
         const playerScores: Record<PlayerId, PlayerScore> = {
-            1: { playerId: 1, name: 'Negras', color: '#1a1a1a', icon: '⚫', territory: territoryCounts[1], captures: state.blackCaptures, komi: 0, total: territoryCounts[1] + state.blackCaptures },
-            2: { playerId: 2, name: 'Blancas', color: '#ffffff', icon: '⚪', territory: territoryCounts[2], captures: state.whiteCaptures, komi: state.komi, total: territoryCounts[2] + state.whiteCaptures + state.komi },
-            3: { playerId: 3, name: 'Esmeralda', color: '#10b981', icon: '🟢', territory: territoryCounts[3], captures: state.greenCaptures, komi: 0, total: territoryCounts[3] + state.greenCaptures },
-            4: { playerId: 4, name: 'Amatista', color: '#8b5cf6', icon: '🟣', territory: territoryCounts[4], captures: state.purpleCaptures, komi: 0, total: territoryCounts[4] + state.purpleCaptures }
+            1: { playerId: 1, name: 'Black', color: '#1a1a1a', icon: '⚫', territory: territoryCounts[1], captures: state.blackCaptures, komi: 0, total: territoryCounts[1] + state.blackCaptures },
+            2: { playerId: 2, name: 'White', color: '#ffffff', icon: '⚪', territory: territoryCounts[2], captures: state.whiteCaptures, komi: state.komi, total: territoryCounts[2] + state.whiteCaptures + state.komi },
+            3: { playerId: 3, name: 'Emerald', color: '#10b981', icon: '🟢', territory: territoryCounts[3], captures: state.greenCaptures, komi: 0, total: territoryCounts[3] + state.greenCaptures },
+            4: { playerId: 4, name: 'Amethyst', color: '#8b5cf6', icon: '🟣', territory: territoryCounts[4], captures: state.purpleCaptures, komi: 0, total: territoryCounts[4] + state.purpleCaptures }
         };
 
         const ranking = activePlayerIds

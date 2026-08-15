@@ -6,6 +6,7 @@ import { PolyominoManager } from '../core/PolyominoManager';
 import { ChampionManager } from '../core/ChampionManager';
 import { RogueliteManager } from '../core/RogueliteManager';
 import type { PlayerId } from '../types';
+import { t } from '../i18n/i18n';
 
 export class TutorialManager {
     public static isActive: boolean = false;
@@ -164,7 +165,7 @@ export class TutorialManager {
         const isDialogOnly = step.expectedAction.type === 'dialog_only';
         const buttonHtml = isDialogOnly
             ? `<div class="tutorial-btn-container">
-                <button id="btn-tutorial-continue-step" class="btn btn-primary btn-sm tutorial-continue-btn">Entendido ➔</button>
+                <button id="btn-tutorial-continue-step" class="btn btn-primary btn-sm tutorial-continue-btn">${t('btn.understood')}</button>
                </div>`
             : '';
 
@@ -254,7 +255,7 @@ export class TutorialManager {
 
         const modal = document.getElementById('modal-tutorial-complete');
         if (!modal || !this.currentChapter) {
-            HUDController.showAlert("🎉 ¡Capítulo Completado!", 3000);
+            HUDController.showAlert("🎉 Chapter Completed!", 3000);
             return;
         }
 
@@ -269,15 +270,15 @@ export class TutorialManager {
         const nextTitle = document.getElementById('tutorial-next-title');
         const nextBtn = document.getElementById('btn-tutorial-next');
 
-        if (titleEl) titleEl.innerText = `¡Lección ${this.currentChapter.chapterNumber} Completada!`;
-        if (subtitleEl) subtitleEl.innerText = `Has asimilado con éxito: "${this.currentChapter.title}".`;
+        if (titleEl) titleEl.innerText = `Lesson ${this.currentChapter.chapterNumber} Completed!`;
+        if (subtitleEl) subtitleEl.innerText = `You have successfully mastered: "${this.currentChapter.title}".`;
 
         if (nextChapter) {
             if (nextPreview) nextPreview.style.display = 'block';
             if (nextTitle) nextTitle.innerText = `${nextChapter.chapterNumber}. ${nextChapter.title}`;
             if (nextBtn) {
                 nextBtn.style.display = 'inline-flex';
-                nextBtn.innerText = `▶ Siguiente Lección (${nextChapter.chapterNumber})`;
+                nextBtn.innerText = `▶ Next Lesson (${nextChapter.chapterNumber})`;
                 nextBtn.onclick = () => {
                     modal.classList.add('hidden');
                     this.initTutorial(nextChapter.id);
@@ -287,7 +288,7 @@ export class TutorialManager {
             if (nextPreview) nextPreview.style.display = 'none';
             if (nextBtn) {
                 nextBtn.style.display = 'inline-flex';
-                nextBtn.innerText = `🎓 Finalizar Dojo`;
+                nextBtn.innerText = `🎓 Finish Dojo`;
                 nextBtn.onclick = () => {
                     modal.classList.add('hidden');
                     this.stopTutorial();
@@ -297,7 +298,7 @@ export class TutorialManager {
         }
 
         modal.classList.remove('hidden');
-        HUDController.showAlert("🎉 ¡Capítulo Completado con Éxito!");
+        HUDController.showAlert("🎉 Chapter Completed Successfully!");
     }
 
     // Retorna true si la jugada está permitida por el tutorial, false si debe ser bloqueada
@@ -311,19 +312,19 @@ export class TutorialManager {
             if (nodeId === expected.nodeId) {
                 return true;
             } else {
-                HUDController.showAlert("🥋 Sensei: ¡Ese no es el lugar! Coloca la piedra en la casilla indicada con el halo dorado.", 2500);
+                HUDController.showAlert("🥋 Sensei: That is not the spot! Place your stone on the golden highlighted node.", 2500);
                 return false;
             }
         }
 
         if (expected.type === 'use_polyomino') {
             if (expected.polyType && PolyominoManager.activePolyomino !== expected.polyType) {
-                const polyName = expected.polyType === 'domino' ? 'Duplicidad 🀄' : expected.polyType === 'sprouting' ? 'Germinante 🌿' : 'Monolito 🧱';
-                HUDController.showAlert(`🥋 Sensei: Selecciona primero la ficha ${polyName} en el menú inferior.`, 2800);
+                const polyName = expected.polyType === 'domino' ? 'Duplicity Stone 🀄' : expected.polyType === 'sprouting' ? 'Sprouting Stone 🌿' : 'Monolith Stone 🧱';
+                HUDController.showAlert(`🥋 Sensei: Select the ${polyName} piece from the bottom dock first.`, 2800);
                 return false;
             }
             if (expected.nodeId && nodeId !== expected.nodeId) {
-                HUDController.showAlert("🥋 Sensei: Coloca la ficha especial en la casilla indicada con el halo dorado.", 2500);
+                HUDController.showAlert("🥋 Sensei: Place the special piece on the golden highlighted intersection.", 2500);
                 return false;
             }
             return true;
@@ -331,11 +332,11 @@ export class TutorialManager {
 
         if (expected.type === 'use_spell') {
             if (expected.spellId && RogueliteManager.selectedSpell !== expected.spellId) {
-                HUDController.showAlert("🥋 Sensei: Selecciona primero el hechizo en el menú inferior.", 2800);
+                HUDController.showAlert("🥋 Sensei: Select the spell from the bottom dock first.", 2800);
                 return false;
             }
             if (expected.nodeId && nodeId !== expected.nodeId) {
-                HUDController.showAlert("🥋 Sensei: Lanza el hechizo en la casilla indicada con el halo.", 2500);
+                HUDController.showAlert("🥋 Sensei: Cast the spell on the golden highlighted intersection.", 2500);
                 return false;
             }
             return true;
@@ -343,7 +344,6 @@ export class TutorialManager {
 
         if (expected.type === 'use_skill') {
             if (ChampionManager.currentTargetingMode === 'none') {
-                HUDController.showAlert("🥋 Sensei: Activa primero la Lluvia Meteórica de Tengu con la tecla C o el botón del héroe a la izquierda.", 3000);
                 return false;
             }
             if (expected.nodeId && nodeId !== expected.nodeId) {

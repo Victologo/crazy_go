@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="es">
+<html lang="en">
   <head>
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/vite.svg" />
@@ -9,10 +9,10 @@
   <body>
     <div id="app">
       
-      <!-- ================= PANTALLA 1: MENÚ PRINCIPAL ================= -->
+      <!-- ================= SCREEN 1: MAIN MENU ================= -->
       <section id="main-menu-screen" class="screen">
-        <!-- Botón de Tema (Arriba a la Derecha) -->
-        <button id="btn-menu-theme" class="btn-theme-toggle btn-theme-floating" title="Cambiar Modo Claro / Oscuro">
+        <!-- Theme Toggle (Top Right) -->
+        <button id="btn-menu-theme" class="btn-theme-toggle btn-theme-floating" title="Toggle Light / Dark Mode">
           <span class="theme-icon">☀️</span>
         </button>
 
@@ -25,52 +25,52 @@
           <div class="menu-actions">
             <button id="btn-menu-roguelike" class="btn btn-hero">
               <span class="btn-icon">⚔️</span>
-              <span class="btn-text">Modo Roguelike</span>
+              <span class="btn-text" data-i18n="menu.expedition">⚔️ Roguelike Expedition</span>
             </button>
             <button id="btn-menu-free" class="btn btn-menu-classic">
               <span class="btn-icon">📜</span>
-              <span class="btn-text">Modo Local</span>
+              <span class="btn-text" data-i18n="menu.custom">📜 Custom Match / Local</span>
             </button>
             <button id="btn-menu-online" class="btn btn-menu-online">
               <span class="btn-icon">🌐</span>
-              <span class="btn-text">Modo Online</span>
+              <span class="btn-text" data-i18n="menu.online">🌐 Online Multiplayer</span>
             </button>
-            <button id="btn-menu-story" class="btn btn-menu-story" title="Crónicas del Goban y Misiones Tácticas de Rescate">
+            <button id="btn-menu-story" class="btn btn-menu-story" title="Goban Chronicles & Tactical Rescue Missions">
               <span class="btn-icon">📖</span>
-              <span class="btn-text">Modo Historia</span>
+              <span class="btn-text" data-i18n="menu.story">📖 Story Mode</span>
             </button>
-            <button id="btn-menu-dojo" class="btn btn-menu-dojo" title="Aprende a jugar, domina las reglas y las habilidades">
+            <button id="btn-menu-dojo" class="btn btn-menu-dojo" title="Learn to play, master rules, and special skills">
               <span class="btn-icon">🥋</span>
-              <span class="btn-text">Tutorial</span>
+              <span class="btn-text" data-i18n="menu.tutorial">🥋 Tutorial Dojo</span>
             </button>
-            <button id="btn-menu-sandbox" class="btn btn-menu-sandbox" title="Laboratorio de Pruebas, Editor de Tableros y Depurador de Situaciones">
+            <button id="btn-menu-sandbox" class="btn btn-menu-sandbox" title="Test Lab, Board Editor & Situation Troubleshooter">
               <span class="btn-icon">🧪</span>
-              <span class="btn-text">Sandbox</span>
+              <span class="btn-text" data-i18n="menu.sandbox">🧪 Testing Lab</span>
             </button>
             <button id="btn-menu-options" class="btn btn-menu-secondary">
               <span class="btn-icon">⚙️</span>
-              <span class="btn-text">Opciones</span>
+              <span class="btn-text" data-i18n="menu.options">⚙️ Options</span>
             </button>
           </div>
         </div>
       </section>
 
-      <!-- ================= PANTALLA 2: PANTALLA DE JUEGO ================= -->
+      <!-- ================= SCREEN 2: GAME SCREEN ================= -->
       <section id="game-screen" class="screen hidden">
-        <!-- Barra Superior Minimalista (HUD In-Game) -->
+        <!-- Minimalist In-Game Topbar HUD -->
         <header id="game-topbar">
-          <!-- Grupo Izquierdo: Navegación, Reset y Rebobinar/Rehacer -->
+          <!-- Left Group: Navigation, Reset and Undo/Redo -->
           <div class="topbar-group topbar-left">
-            <button id="btn-game-back" class="btn btn-topbar" title="Volver al Menú Principal">
-              <span>🏠 Menú</span>
+            <button id="btn-game-back" class="btn btn-topbar" title="Return to Main Menu">
+              <span>🏠 Menu</span>
             </button>
-            <button id="btn-game-undo" class="btn btn-topbar btn-undo" title="Deshacer última jugada (Rebobinar)">
-              <span>⏪ Deshacer</span>
+            <button id="btn-game-undo" class="btn btn-topbar btn-undo" title="Undo last move (Rewind)">
+              <span>⏪ Undo</span>
             </button>
-            <button id="btn-game-redo" class="btn btn-topbar btn-redo" title="Rehacer jugada deshecha">
-              <span>⏩ Rehacer</span>
+            <button id="btn-game-redo" class="btn btn-topbar btn-redo" title="Redo undone move">
+              <span>⏩ Redo</span>
             </button>
-            <button id="btn-game-reset" class="btn btn-topbar" title="Reiniciar Partida">
+            <button id="btn-game-reset" class="btn btn-topbar" title="Restart Match">
               <span>🔄</span>
             </button>
             <div id="ui-online-status" class="online-status-pill hidden">
@@ -78,15 +78,15 @@
               <span id="ui-online-status-text">P2P Online</span>
             </div>
             <div id="ui-rogue-stage-badge" class="hud-pill rogue-stage-pill hidden">
-              <span id="ui-rogue-stage-text">⚔️ Ronda 1/6 (30k)</span>
+              <span id="ui-rogue-stage-text">⚔️ Round 1/6 (30k)</span>
             </div>
           </div>
 
-          <!-- Grupo Central: Estado del Juego, Turno y Capturas -->
+          <!-- Center Group: Game State, Turn and Captures -->
           <div class="topbar-group topbar-center">
-            <!-- Turno y Jugador -->
+            <!-- Turn and Player -->
             <div class="hud-pill" id="ui-turn-badge">
-              <span>TURNO</span>
+              <span>TURN</span>
               <strong id="ui-turn">1a</strong>
             </div>
             <div class="hud-pill hud-timer-pill hidden" id="ui-timer-pill">
@@ -96,11 +96,11 @@
 
             <div class="hud-pill hud-player-pill">
               <div id="ui-player-indicator" class="stone-indicator black-turn"></div>
-              <span id="ui-player-name" class="hud-player-text">Negras ⚫</span>
-              <div id="ui-ai-badge" class="ai-badge hidden">🤖 Pensando...</div>
+              <span id="ui-player-name" class="hud-player-text">Black ⚫</span>
+              <div id="ui-ai-badge" class="ai-badge hidden">🤖 Thinking...</div>
             </div>
 
-            <!-- Contador de Prisioneros / Capturas (Soporta 2 y 4 Jugadores) -->
+            <!-- Capture Counter (Supports 2 and 4 Players) -->
             <div id="ui-captures-container" class="hud-pill hud-captures-pill">
               <div class="cap-item" id="cap-item-p1">
                 <span class="mini-stone black-mini"></span>
@@ -122,33 +122,33 @@
             </div>
           </div>
 
-          <!-- Grupo Derecho: Acciones Tácticas y Conmutador de Tema -->
+          <!-- Right Group: Tactical Actions and Theme Switcher -->
           <div class="topbar-group topbar-right">
-            <button id="btn-game-sandbox" class="btn btn-topbar btn-sandbox-topbar" title="Laboratorio & Troubleshooter (Modificar cualquier tablero o situación)">
-              <span>🧪 Pruebas</span>
+            <button id="btn-game-sandbox" class="btn btn-topbar btn-sandbox-topbar" title="Test Lab & Troubleshooter (Modify any board or situation)">
+              <span>🧪 Sandbox</span>
             </button>
-            <button id="btn-pass" class="btn btn-action-pass" title="Ceder turno al oponente">
-              <span>⏭️ Pasar Turno</span>
+            <button id="btn-pass" class="btn btn-action-pass" title="Pass turn to opponent">
+              <span>⏭️ Pass Turn</span>
             </button>
-            <button id="btn-game-theme" class="btn-theme-toggle btn-theme-topbar" title="Cambiar Modo Claro / Oscuro">
+            <button id="btn-game-theme" class="btn-theme-toggle btn-theme-topbar" title="Toggle Light / Dark Mode">
               <span class="theme-icon">☀️</span>
             </button>
           </div>
         </header>
 
-        <!-- Viewport Centrado del Tablero con Duelistas a los Lados -->
+        <!-- Centered Board Viewport with Duelists on Sides -->
         <main id="board-viewport">
-          <!-- Duelista Izquierdo: Jugador / Campeón Elegido -->
+          <!-- Left Duelist: Player / Chosen Champion -->
           <div id="duel-player-card" class="duel-character-standee duel-standee-player">
             <div class="duel-standee-figure">
-              <img id="duel-player-img" src="/heroes/ronin.png" alt="Campeón" />
+              <img id="duel-player-img" src="/heroes/ronin.png" alt="Champion" />
               <div class="duel-standee-ground-shadow"></div>
             </div>
             <div class="duel-standee-plate">
               <div class="duel-plate-header">
                 <span id="duel-player-icon-badge" class="duel-plate-icon">⚡</span>
                 <div class="duel-plate-title-group">
-                  <span class="duel-role-tag">TÚ (CAMPEÓN)</span>
+                  <span class="duel-role-tag">YOU (CHAMPION)</span>
                   <strong id="duel-player-name">Ronin</strong>
                 </div>
               </div>
@@ -156,10 +156,10 @@
                 <span class="timer-icon">⏱️</span>
                 <span id="duel-player-timer-digits" class="timer-digits">00:30</span>
               </div>
-              <!-- Botón de Habilidad Activa Única del Campeón -->
-              <button id="btn-duel-champion-skill" class="btn-card-skill" title="Ejecutar Habilidad Activa Única (Tecla C)">
+              <!-- Champion's Unique Active Skill Button -->
+              <button id="btn-duel-champion-skill" class="btn-card-skill" title="Execute Unique Active Skill (C Key)">
                 <span id="duel-skill-icon">🌪️</span>
-                <span id="duel-skill-text">Inversión Cromática</span>
+                <span id="duel-skill-text">Chromatic Inversion</span>
               </button>
             </div>
           </div>
@@ -172,7 +172,7 @@
             <svg id="game-svg" xmlns="http://www.w3.org/2000/svg"></svg>
           </div>
 
-          <!-- Duelista Derecho: Rival / Enemigo Único (1v1) -->
+          <!-- Right Duelist: Rival / Unique Enemy (1v1) -->
           <div id="duel-enemy-card" class="duel-character-standee duel-standee-enemy">
             <div class="duel-standee-figure">
               <img id="duel-enemy-img" src="/enemies/monk.png" alt="Rival" />
@@ -183,10 +183,10 @@
                 <span id="duel-enemy-icon-badge" class="duel-plate-icon">🧘</span>
                 <div class="duel-plate-title-group">
                   <span class="duel-role-tag enemy-tag">RIVAL</span>
-                  <strong id="duel-enemy-name">Monje Novato</strong>
+                  <strong id="duel-enemy-name">Novice Monk</strong>
                 </div>
               </div>
-              <small id="duel-enemy-rank" class="duel-plate-sub">30 Kyu • IA Fácil</small>
+              <small id="duel-enemy-rank" class="duel-plate-sub">30 Kyu • Easy AI</small>
               <div id="duel-enemy-timer" class="duel-timer-badge hidden">
                 <span class="timer-icon">⏱️</span>
                 <span id="duel-enemy-timer-digits" class="timer-digits">00:30</span>
@@ -194,43 +194,43 @@
             </div>
           </div>
 
-          <!-- Duelistas Múltiples de la Derecha (4 Jugadores: 1v3 IA o 4P Local) -->
+          <!-- Right Multiple Duelists (4 Players: 1v3 AI or 4P Local) -->
           <div id="duel-multi-enemies-card" class="duel-multi-standees hidden">
-            <!-- Renderizado dinámico de los 3 contrincantes -->
+            <!-- Dynamic rendering of 3 opponents -->
           </div>
         </main>
 
-        <!-- Barra Inferior de Hechizos y Poliminós -->
+        <!-- Spell and Polyomino Bottom Bar -->
         <footer id="game-spellbar" class="spellbar hidden">
           <div class="spellbar-inner">
             <div id="magic-spells-section" style="display: flex; align-items: center; gap: 0.75rem;">
-              <span class="spellbar-label">HECHIZOS:</span>
+              <span class="spellbar-label">SPELLS:</span>
               <div id="spellbar-cards" class="spellbar-cards">
-                <!-- Tarjetas de hechizos renderizadas dinámicamente según inventario -->
+                <!-- Spell cards dynamically rendered per inventory -->
               </div>
             </div>
 
             <div class="spellbar-divider"></div>
 
-            <!-- Sección de Fichas Poliminó Tácticas -->
+            <!-- Tactical Polyomino Tiles Section -->
             <div id="polyomino-dock-section" class="polyomino-dock">
-              <span class="spellbar-label">POLIMINÓS:</span>
+              <span class="spellbar-label">POLYOMINOES:</span>
               <div class="polyomino-cards">
-                <button id="poly-btn-sprouting" class="btn-poly-card" title="🌿 Germinante (1x1): Brota una piedra aliada cada 2 turnos personales (Tecla 6)">
+                <button id="poly-btn-sprouting" class="btn-poly-card" title="🌿 Sprouting (1x1): Sprouts an allied stone every 2 personal turns (6 Key)">
                   <span class="poly-icon">🌿</span>
-                  <span class="poly-name">Germinante</span>
+                  <span class="poly-name">Sprouting</span>
                   <span class="poly-size">1x1</span>
                   <span class="spell-badge" id="poly-uses-sprouting">2</span>
                 </button>
-                <button id="poly-btn-domino" class="btn-poly-card" title="🀄 Duplicidad (2x1): Bloque de 2 piedras conectadas. Pulsa [R] para rotar 90º (Tecla 6 o X)">
+                <button id="poly-btn-domino" class="btn-poly-card" title="🀄 Duplicity (2x1): 2-stone connected block. Press [R] to rotate 90º (Key 6 or X)">
                   <span class="poly-icon">🀄</span>
-                  <span class="poly-name">Duplicidad</span>
+                  <span class="poly-name">Duplicity</span>
                   <span class="poly-size" id="poly-domino-size-label">2x1</span>
                   <span class="spell-badge" id="poly-uses-domino">2</span>
                 </button>
-                <button id="poly-btn-monolith" class="btn-poly-card" title="🧱 Monolito (2x2): Bloque titán de 4 piedras unidas (Tecla 8)">
+                <button id="poly-btn-monolith" class="btn-poly-card" title="🧱 Monolith (2x2): Titan 4-stone connected block (8 Key)">
                   <span class="poly-icon">🧱</span>
-                  <span class="poly-name">Monolito</span>
+                  <span class="poly-name">Monolith</span>
                   <span class="poly-size">2x2</span>
                   <span class="spell-badge" id="poly-uses-monolith">1</span>
                 </button>
@@ -239,58 +239,58 @@
           </div>
         </footer>
 
-        <!-- Overlay Cinematográfico de Inicio de Partida Roguelike (Texto libre sin contenedor, máscara 70% negra con blur y transición de desvanecimiento) -->
+        <!-- Cinematic Roguelike Match Start Announcement -->
         <div id="rogue-komi-announcement-overlay" class="rogue-komi-overlay hidden">
           <div class="rogue-komi-content">
-            <span class="rogue-komi-role-badge">⚫ JUEGAS CON NEGRAS • PRIMER TURNO</span>
-            <h1 class="rogue-komi-main-title">KOMI DE BLANCAS</h1>
+            <span class="rogue-komi-role-badge">⚫ PLAYING AS BLACK • FIRST TURN</span>
+            <h1 class="rogue-komi-main-title">WHITE'S KOMI</h1>
             <div class="rogue-komi-score-display">
               <span class="rogue-komi-stone-icon">⚪</span>
-              <span id="rogue-komi-display-value" class="rogue-komi-score-text">+2.5 PUNTOS</span>
+              <span id="rogue-komi-display-value" class="rogue-komi-score-text">+2.5 POINTS</span>
             </div>
-            <p class="rogue-komi-explanation">Compensación canónica de territorio para el rival por jugar en segundo turno.</p>
-            <span class="rogue-komi-tap-hint">Haz clic o coloca tu piedra para comenzar</span>
+            <p class="rogue-komi-explanation">Canonical territory compensation for playing second.</p>
+            <span class="rogue-komi-tap-hint">Click or place stone to begin</span>
           </div>
         </div>
 
-        <!-- Notificación Toast Flotante -->
+        <!-- Floating Toast Notification -->
         <div id="ui-alert" class="ui-toast hidden"></div>
 
-        <!-- Botón Flotante para Reabrir Resultados al Inspeccionar Tablero -->
-        <button id="floating-inspect-btn" class="floating-inspect-btn hidden" title="Volver a los Resultados de la Partida">
-          <span>📊 Volver a Resultados de Victoria</span>
+        <!-- Floating Button to Reopen Results after Board Inspection -->
+        <button id="floating-inspect-btn" class="floating-inspect-btn hidden" title="Return to Match Results">
+          <span>📊 Back to Victory Results</span>
         </button>
       </section>
 
-      <!-- ================= PANTALLA 3: MAPA PROCEDURAL ROGUELIKE ================= -->
+      <!-- ================= SCREEN 3: PROCEDURAL ROGUELIKE MAP ================= -->
       <section id="roguelike-map-screen" class="screen hidden">
         <header id="rogue-map-topbar">
           <div class="map-topbar-left">
-            <button id="btn-abandon-run" class="btn btn-topbar" title="Abandonar la Expedición actual">
-              <span>🏠 Menú</span>
+            <button id="btn-abandon-run" class="btn btn-topbar" title="Abandon current expedition">
+              <span>🏠 Menu</span>
             </button>
             <div class="hud-pill rogue-hero-pill">
               <span id="map-hero-avatar" class="map-hero-avatar">🧙‍♂️</span>
               <span id="map-hero-name" class="map-hero-name">Tengu</span>
             </div>
             <div id="map-diff-badge" class="hud-pill rogue-diff-pill">
-              <span id="map-diff-text">🟢 Fácil</span>
+              <span id="map-diff-text">🟢 Easy</span>
             </div>
           </div>
 
           <div class="map-topbar-center">
-            <h2 class="map-screen-title">🗺️ Mapa de la Expedición</h2>
-            <span class="map-screen-subtitle">Selecciona un nodo disponible para avanzar</span>
+            <h2 class="map-screen-title">🗺️ Expedition Map</h2>
+            <span class="map-screen-subtitle">Select an available node to advance</span>
           </div>
 
           <div class="map-topbar-right">
-            <button id="btn-map-theme" class="btn-theme-toggle btn-theme-topbar" title="Cambiar Modo Claro / Oscuro">
+            <button id="btn-map-theme" class="btn-theme-toggle btn-theme-topbar" title="Toggle Light / Dark Mode">
               <span class="theme-icon">☀️</span>
             </button>
           </div>
         </header>
 
-        <!-- Viewport Desplazable del Mapa Pergamino -->
+        <!-- Scrollable Parchment Map Viewport -->
         <main id="roguelike-map-viewport">
           <div id="roguelike-map-canvas-container" class="rogue-map-container"></div>
         </main>
@@ -302,136 +302,136 @@
     <div id="dojo-modal" class="modal-backdrop hidden">
       <div class="modal-card modal-dojo">
         <div class="modal-header">
-          <h2>🥋 Dojo (Tutorial y Guías)</h2>
-          <p class="modal-desc">Aprende las reglas de Go y las mecánicas de Crazy Go</p>
+          <h2>🥋 Dojo (Tutorial & Guides)</h2>
+          <p class="modal-desc">Learn Go rules and Crazy Go mechanics</p>
         </div>
         <div class="modal-body-scroll">
           <div class="setup-grid grid-1" id="dojo-chapter-list">
-            <!-- Capítulos generados dinámicamente aquí -->
+            <!-- Chapters generated dynamically here -->
           </div>
         </div>
         <div class="modal-footer">
-          <button class="btn btn-secondary" id="btn-cancel-dojo">Cerrar</button>
+          <button class="btn btn-secondary" id="btn-cancel-dojo">Close</button>
         </div>
       </div>
     </div>
 
-    <!-- ================= MODAL: LECCIÓN DE TUTORIAL COMPLETADA ================= -->
+    <!-- ================= MODAL: TUTORIAL LESSON COMPLETED ================= -->
     <div id="modal-tutorial-complete" class="modal-backdrop hidden">
       <div class="modal-card modal-tutorial-complete-card">
         <div class="modal-header tutorial-complete-header">
           <div class="tutorial-complete-badge">🎉</div>
-          <h2 id="tutorial-complete-title">¡Lección Completada!</h2>
-          <p id="tutorial-complete-subtitle" class="modal-desc">Has asimilado los conceptos esenciales de esta lección.</p>
+          <h2 id="tutorial-complete-title">Lesson Completed!</h2>
+          <p id="tutorial-complete-subtitle" class="modal-desc">You have assimilated the core concepts of this lesson.</p>
         </div>
         <div class="tutorial-complete-body">
           <div id="tutorial-next-preview" class="tutorial-next-preview">
-            <span class="next-label">Próxima Lección:</span>
-            <strong id="tutorial-next-title">2. La Captura y el Atari</strong>
+            <span class="next-label">Next Lesson:</span>
+            <strong id="tutorial-next-title">2. Capturing & Atari</strong>
           </div>
         </div>
         <div class="modal-footer tutorial-complete-footer">
-          <button id="btn-tutorial-replay" class="btn btn-secondary">🔁 Repetir</button>
-          <button id="btn-tutorial-list" class="btn btn-secondary">📜 Lista de Lecciones</button>
-          <button id="btn-tutorial-next" class="btn btn-primary btn-cta">▶ Siguiente Lección</button>
+          <button id="btn-tutorial-replay" class="btn btn-secondary">🔁 Replay</button>
+          <button id="btn-tutorial-list" class="btn btn-secondary">📜 Lesson List</button>
+          <button id="btn-tutorial-next" class="btn btn-primary btn-cta">▶ Next Lesson</button>
         </div>
       </div>
     </div>
 
-    <!-- ================= MODAL: MULTIJUGADOR ONLINE (P2P 2 Y 4 JUGADORES) ================= -->
+    <!-- ================= MODAL: ONLINE MULTIPLAYER (P2P 2 & 4 PLAYERS) ================= -->
     <div id="online-modal" class="modal-backdrop hidden">
       <div class="modal-card modal-online">
         <div class="modal-header">
-          <h2>🌐 Multijugador Online (P2P WebRTC)</h2>
-          <p class="modal-desc">Juega partidas de 2 o 4 jugadores en tiempo real compartiendo un código o enlace directo</p>
+          <h2>🌐 Online Multiplayer (P2P WebRTC)</h2>
+          <p class="modal-desc">Play 2 or 4 player real-time matches by sharing a code or direct link</p>
         </div>
 
         <div class="modal-tabs">
-          <button id="tab-btn-create-room" class="btn-tab active">Crear Sala (Host)</button>
-          <button id="tab-btn-join-room" class="btn-tab">Unirse a Sala (Guest)</button>
+          <button id="tab-btn-create-room" class="btn-tab active">Create Room (Host)</button>
+          <button id="tab-btn-join-room" class="btn-tab">Join Room (Guest)</button>
         </div>
 
         <div class="modal-body-scroll">
-          <!-- VISTA 1: CREAR SALA (HOST) -->
+          <!-- VIEW 1: CREATE ROOM (HOST) -->
           <div id="view-create-room" class="tab-content">
-            <!-- Código de Sala Generado y Copiar Enlace -->
+            <!-- Room Code & Link Sharing -->
             <div class="room-code-banner">
               <div class="code-info">
-                <span class="code-label">CÓDIGO DE SALA</span>
+                <span class="code-label">ROOM CODE</span>
                 <strong id="display-room-code" class="code-value">GO-....</strong>
               </div>
-              <button id="btn-copy-room-link" class="btn btn-copy" title="Copiar enlace para compartir">
-                <span>📋 Copiar Enlace</span>
+              <button id="btn-copy-room-link" class="btn btn-copy" title="Copy shareable link">
+                <span>📋 Copy Link</span>
               </button>
             </div>
 
             <div class="host-settings">
-              <!-- 0. Modalidad de Juego Online -->
+              <!-- 0. Online Game Mode -->
               <div class="setup-section">
-                <label class="setup-label">Modalidad de Juego en Red</label>
+                <label class="setup-label">Online Game Mode</label>
                 <div class="setup-grid grid-2">
                   <button id="online-mode-standard" class="btn btn-choice active" data-online-mode="standard">
                     <span class="choice-icon">⚔️</span>
-                    <span class="choice-title">Duelo Clásico (1v1 / 4P)</span>
-                    <small style="display:block;font-size:0.75rem;opacity:0.8;">Partida de Go canónico competitivo</small>
+                    <span class="choice-title">Classic Duel (1v1 / 4P)</span>
+                    <small style="display:block;font-size:0.75rem;opacity:0.8;">Competitive canonical Go match</small>
                   </button>
                   <button id="online-mode-coop" class="btn btn-choice" data-online-mode="coop_rogue">
                     <span class="choice-icon">🤝</span>
-                    <span class="choice-title">Roguelike Cooperativo (2P)</span>
-                    <small style="display:block;font-size:0.75rem;opacity:0.8;">Jugad juntos turnos alternos contra la IA</small>
+                    <span class="choice-title">Co-op Roguelike (2P)</span>
+                    <small style="display:block;font-size:0.75rem;opacity:0.8;">Play alternate turns together vs AI</small>
                   </button>
                 </div>
               </div>
 
-              <!-- 0b. Cantidad de Jugadores (2P vs 4P) -->
+              <!-- 0b. Player Count -->
               <div class="setup-section" id="online-players-count-section">
-                <label class="setup-label">Cantidad de Jugadores en Red</label>
+                <label class="setup-label">Player Count</label>
                 <div class="setup-grid grid-2">
                   <button id="online-players-2" class="btn btn-choice active" data-players="2">
                     <span class="choice-icon">👥</span>
-                    <span class="choice-title">2 Jugadores (Duelo 1v1)</span>
-                    <small style="display:block;font-size:0.75rem;opacity:0.8;">⚫ Negras vs ⚪ Blancas</small>
+                    <span class="choice-title">2 Players (1v1 Duel)</span>
+                    <small style="display:block;font-size:0.75rem;opacity:0.8;">⚫ Black vs ⚪ White</small>
                   </button>
                   <button id="online-players-4" class="btn btn-choice" data-players="4">
                     <span class="choice-icon">👥👥</span>
-                    <span class="choice-title">4 Jugadores (Go Cuádruple FFA)</span>
-                    <small style="display:block;font-size:0.75rem;opacity:0.8;">⚫ Negras • ⚪ Blancas • 🟢 Esmeralda • 🟣 Amatista</small>
+                    <span class="choice-title">4 Players (4P FFA Go)</span>
+                    <small style="display:block;font-size:0.75rem;opacity:0.8;">⚫ Black • ⚪ White • 🟢 Emerald • 🟣 Amethyst</small>
                   </button>
                 </div>
               </div>
 
-              <!-- 1. Color del Anfitrión -->
+              <!-- 1. Host Color -->
               <div class="setup-section" id="online-host-color-section">
-                <label class="setup-label">Tu Color (Anfitrión)</label>
+                <label class="setup-label">Your Color (Host)</label>
                 <div class="setup-grid grid-2">
                   <button id="online-color-black" class="btn btn-choice active">
                     <span class="mini-stone black-mini"></span>
-                    <span>Negras ⚫ (Abres partida)</span>
+                    <span>Black ⚫ (First turn)</span>
                   </button>
                   <button id="online-color-white" class="btn btn-choice">
                     <span class="mini-stone white-mini"></span>
-                    <span>Blancas ⚪ (Tu amigo abre)</span>
+                    <span>White ⚪ (Guest starts)</span>
                   </button>
                 </div>
               </div>
 
-              <!-- 2. Forma del Tablero -->
+              <!-- 2. Board Shape -->
               <div class="setup-section">
-                <label class="setup-label">Forma del Tablero</label>
+                <label class="setup-label">Board Shape</label>
                 <div class="setup-grid grid-4">
-                  <button id="online-shape-square" class="btn btn-choice active">⏹️ Cuadrado</button>
-                  <button id="online-shape-eroded" class="btn btn-choice">🪨 Erosionado</button>
-                  <button id="online-shape-islands" class="btn btn-choice">🕳️ Islas / Abismos</button>
-                  <button id="online-shape-cross" class="btn btn-choice">➕ Cruz / Diamante</button>
+                  <button id="online-shape-square" class="btn btn-choice active">⏹️ Square</button>
+                  <button id="online-shape-eroded" class="btn btn-choice">🪨 Eroded</button>
+                  <button id="online-shape-islands" class="btn btn-choice">🕳️ Islands / Abysses</button>
+                  <button id="online-shape-cross" class="btn btn-choice">➕ Cross / Diamond</button>
                   <button id="online-shape-triangle" class="btn btn-choice">🔺 Triangular</button>
                   <button id="online-shape-hex" class="btn btn-choice">⬡ Hexagonal</button>
-                  <button id="online-shape-procedural" class="btn btn-choice">🎲 Procedural (Infinito)</button>
+                  <button id="online-shape-procedural" class="btn btn-choice">🎲 Procedural (Infinite)</button>
                 </div>
               </div>
 
-              <!-- 3. Tamaño -->
+              <!-- 3. Board Size -->
               <div class="setup-section">
-                <label class="setup-label">Tamaño</label>
+                <label class="setup-label">Board Size</label>
                 <div class="setup-grid grid-3">
                   <button id="online-size-9" class="btn btn-choice active">9x9</button>
                   <button id="online-size-13" class="btn btn-choice">13x13</button>
@@ -442,17 +442,17 @@
               <!-- 4. Komi -->
               <div class="setup-section">
                 <div class="setup-label-row">
-                  <label class="setup-label">Komi (Puntos de ventaja para Blancas)</label>
+                  <label class="setup-label">Komi (Advantage points for White)</label>
                   <strong id="online-komi-display" class="highlight-text">6.5 pts</strong>
                 </div>
                 <div class="setup-grid grid-4 komi-presets-grid">
                   <button class="btn btn-choice btn-online-komi" data-komi="0.5">0.5</button>
                   <button class="btn btn-choice btn-online-komi" data-komi="5.5">5.5</button>
-                  <button class="btn btn-choice btn-online-komi active" data-komi="6.5">6.5 (Por defecto)</button>
+                  <button class="btn btn-choice btn-online-komi active" data-komi="6.5">6.5 (Default)</button>
                   <button class="btn btn-choice btn-online-komi" data-komi="7.5">7.5</button>
                 </div>
                 <div class="komi-custom-wrapper">
-                  <span class="komi-custom-label">O valor libre personalizado:</span>
+                  <span class="komi-custom-label">Or custom free value:</span>
                   <div class="komi-input-box">
                     <input type="number" id="online-komi-input" step="0.5" min="0" max="100" value="6.5" class="komi-num-field" />
                     <span class="komi-unit">pts</span>
@@ -460,53 +460,52 @@
                 </div>
               </div>
 
-              <!-- 5. Elección de Campeón del Anfitrión -->
+              <!-- 5. Host Champion Selection -->
               <div class="setup-section">
-                <label class="setup-label">Tu Campeón Místico (Anfitrión)</label>
+                <label class="setup-label">Your Mystic Champion (Host)</label>
 
                 <div class="rogue-hero-panoramic-box setup-hero-panoramic-box">
-                  <button id="btn-online-host-hero-prev" class="btn-hero-nav" title="Campeón Anterior">◀</button>
+                  <button id="btn-online-host-hero-prev" class="btn-hero-nav" title="Previous Champion">◀</button>
 
                   <div class="hero-showcase-card" id="online-host-hero-showcase-card">
                     <div class="hero-portrait-wrapper">
-                      <img id="online-host-hero-showcase-img" src="/heroes/classic_face.jpg" alt="Sin Campeón" class="hero-showcase-img" />
+                      <img id="online-host-hero-showcase-img" src="/heroes/normal_face.jpg" alt="Normal Apprentice" class="hero-showcase-img" />
                     </div>
 
                     <div class="hero-details">
                       <div class="hero-header-row">
                         <div class="hero-titles-col">
-                          <h3 id="online-host-hero-showcase-name" class="hero-title">Sin Campeón</h3>
-                          <span id="online-host-hero-showcase-subtitle" class="hero-subtitle">Maestro del Go Clásico</span>
+                          <h3 id="online-host-hero-showcase-name" class="hero-title">Normal Apprentice</h3>
+                          <span id="online-host-hero-showcase-subtitle" class="hero-subtitle">Master of Canonical Go</span>
                         </div>
-                        <p id="online-host-hero-showcase-quote" class="hero-quote">«En la simplicidad de la piedra negra y blanca reside la armonía infinita del universo.»</p>
                       </div>
 
                       <div class="hero-skills-grid">
                         <div class="hero-skill-box active-skill-box online-host-hero-active-box" style="display: none;">
                           <div class="skill-box-header">
-                            <span class="skill-type-tag active-tag">💥 HABILIDAD ACTIVA</span>
-                            <strong id="online-host-hero-active-name" class="skill-name">Habilidad Activa</strong>
+                            <span class="skill-type-tag active-tag">💥 ACTIVE SKILL</span>
+                            <strong id="online-host-hero-active-name" class="skill-name">Active Skill</strong>
                           </div>
-                          <p id="online-host-hero-active-desc" class="skill-desc">Descripción de la habilidad activa.</p>
+                          <p id="online-host-hero-active-desc" class="skill-desc">Description of active skill.</p>
                         </div>
 
                         <div class="hero-skill-box passive-skill-box online-host-hero-passive-box">
                           <div class="skill-box-header">
-                            <span class="skill-type-tag passive-tag" id="online-host-hero-passive-tag">📜 REGLAS PURAS</span>
-                            <strong id="online-host-hero-passive-name" class="skill-name">Reglas Canónicas Japonesas</strong>
+                            <span class="skill-type-tag passive-tag" id="online-host-hero-passive-tag">📜 PURE RULES</span>
+                            <strong id="online-host-hero-passive-name" class="skill-name">Japanese Canonical Rules</strong>
                           </div>
-                          <p id="online-host-hero-passive-desc" class="skill-desc">Sin habilidades místicas ni hechizos. Solo estrategia pura, libertades, Ko y territorio.</p>
+                          <p id="online-host-hero-passive-desc" class="skill-desc">Pure Go strategy: liberties, unconditional life, Ko and territory without gimmicks.</p>
                         </div>
                       </div>
                     </div>
                   </div>
 
-                  <button id="btn-online-host-hero-next" class="btn-hero-nav" title="Siguiente Campeón">▶</button>
+                  <button id="btn-online-host-hero-next" class="btn-hero-nav" title="Next Champion">▶</button>
                 </div>
 
                 <div class="hero-thumb-strip" id="online-host-hero-thumb-strip">
                   <button class="hero-thumb-btn active" data-hero="normal">
-                    <img src="/heroes/normal_face.jpg" alt="Hombre Normal" />
+                    <img src="/heroes/normal_face.jpg" alt="Normal" />
                     <span>Normal</span>
                   </button>
                   <button class="hero-thumb-btn" data-hero="tengu">
@@ -526,8 +525,8 @@
                     <span>Ronin</span>
                   </button>
                   <button class="hero-thumb-btn" data-hero="alchemist">
-                    <img src="/heroes/alchemist_face.jpg" alt="Alquimista" />
-                    <span>Alquimista</span>
+                    <img src="/heroes/alchemist_face.jpg" alt="Alchemist" />
+                    <span>Alchemist</span>
                   </button>
                   <button class="hero-thumb-btn" data-hero="ryujin">
                     <img src="/heroes/ryujin_face.jpg" alt="Ryūjin" />
@@ -537,79 +536,79 @@
               </div>
             </div>
 
-            <!-- Estado de Espera y Lobby de Jugadores -->
+            <!-- Waiting Status & Lobby -->
             <div id="host-waiting-status" class="waiting-box">
               <div class="spinner"></div>
               <div class="lobby-status-content">
-                <span id="online-lobby-status-text">Esperando a que tu amigo se una a la sala... (1/2)</span>
+                <span id="online-lobby-status-text">Waiting for peer to join room... (1/2)</span>
                 <div id="online-lobby-slots-grid" class="online-slots-grid"></div>
               </div>
             </div>
 
             <div id="host-action-bar" class="host-action-bar hidden" style="margin-top: 1rem; text-align: center;">
               <button id="btn-online-force-start" class="btn btn-modal-primary" style="padding: 0.75rem 2rem; font-size: 1rem;">
-                <span>▶️ Comenzar Partida Inmediatamente</span>
+                <span>▶️ Start Match Immediately</span>
               </button>
             </div>
           </div>
 
-          <!-- VISTA 2: UNIRSE A SALA (GUEST) -->
+          <!-- VIEW 2: JOIN ROOM (GUEST) -->
           <div id="view-join-room" class="tab-content hidden">
             <div class="join-box">
-              <label class="setup-label">Introduce el Código de la Sala</label>
+              <label class="setup-label">Enter Room Code</label>
               <div class="join-input-group">
-                <input type="text" id="input-join-room-code" placeholder="Ej: GO-4821 o pega el enlace de invitación" maxlength="150" autocomplete="off" spellcheck="false" />
+                <input type="text" id="input-join-room-code" placeholder="E.g. GO-4821 or paste invite URL" maxlength="150" autocomplete="off" spellcheck="false" />
                 <button id="btn-submit-join-room" class="btn btn-modal-primary">
-                  <span>Conectar 🚀</span>
+                  <span>Connect 🚀</span>
                 </button>
               </div>
-              <p class="join-help">Pídele el código o el enlace directo al creador de la sala.</p>
+              <p class="join-help">Ask the room creator for the room code or direct invitation URL.</p>
 
-              <!-- Elección de Campeón del Invitado -->
+              <!-- Guest Champion Selection -->
               <div class="setup-section" style="margin-top: 1rem;">
-                <label class="setup-label">Tu Campeón Místico (Invitado)</label>
+                <label class="setup-label">Your Mystic Champion (Guest)</label>
 
                 <div class="rogue-hero-panoramic-box setup-hero-panoramic-box">
-                  <button id="btn-online-guest-hero-prev" class="btn-hero-nav" title="Campeón Anterior">◀</button>
+                  <button id="btn-online-guest-hero-prev" class="btn-hero-nav" title="Previous Champion">◀</button>
 
                   <div class="hero-showcase-card" id="online-guest-hero-showcase-card">
                     <div class="hero-portrait-wrapper">
-                      <img id="online-guest-hero-showcase-img" src="/heroes/classic_face.jpg" alt="Sin Campeón" class="hero-showcase-img" />
+                      <img id="online-guest-hero-showcase-img" src="/heroes/normal_face.jpg" alt="Normal Apprentice" class="hero-showcase-img" />
                     </div>
 
                     <div class="hero-details">
                       <div class="hero-header-row">
                         <div class="hero-titles-col">
-                          <h3 id="online-guest-hero-showcase-name" class="hero-title">Sin Campeón</h3>
+                          <h3 id="online-guest-hero-showcase-name" class="hero-title">Normal Apprentice</h3>
                         </div>
                       </div>
 
                       <div class="hero-skills-grid">
                         <div class="hero-skill-box active-skill-box online-guest-hero-active-box" style="display: none;">
                           <div class="skill-box-header">
-                            <span class="skill-type-tag active-tag">💥 HABILIDAD ACTIVA</span>
-                            <strong id="online-guest-hero-active-name" class="skill-name">Habilidad Activa</strong>
+                            <span class="skill-type-tag active-tag">💥 ACTIVE SKILL</span>
+                            <strong id="online-guest-hero-active-name" class="skill-name">Active Skill</strong>
                           </div>
-                          <p id="online-guest-hero-active-desc" class="skill-desc">Descripción de la habilidad activa.</p>
+                          <p id="online-guest-hero-active-desc" class="skill-desc">Description of active skill.</p>
                         </div>
 
                         <div class="hero-skill-box passive-skill-box online-guest-hero-passive-box">
                           <div class="skill-box-header">
-                            <span class="skill-type-tag passive-tag" id="online-guest-hero-passive-tag">📜 REGLAS PURAS</span>
-                            <strong id="online-guest-hero-passive-name" class="skill-name">Reglas Canónicas Japonesas</strong>
+                            <span class="skill-type-tag passive-tag" id="online-guest-hero-passive-tag">📜 PURE RULES</span>
+                            <strong id="online-guest-hero-passive-name" class="skill-name">Japanese Canonical Rules</strong>
                           </div>
-                          <p id="online-guest-hero-passive-desc" class="skill-desc">Sin habilidades místicas ni hechizos. Solo estrategia pura, libertades, Ko y territorio.</p>
+                          <p id="online-guest-hero-passive-desc" class="skill-desc">Pure Go strategy: liberties, unconditional life, Ko and territory without gimmicks.</p>
                         </div>
                       </div>
                     </div>
                   </div>
 
-                  <button id="btn-online-guest-hero-next" class="btn-hero-nav" title="Siguiente Campeón">▶</button>
+                  <button id="btn-online-guest-hero-next" class="btn-hero-nav" title="Next Champion">▶</button>
                 </div>
 
                 <div class="hero-thumb-strip" id="online-guest-hero-thumb-strip">
                   <button class="hero-thumb-btn active" data-hero="normal">
-                    <img src="/heroes/normal_face.jpg" alt="Hombre Normal" />
+                    <img src="/heroes/normal_face.jpg" alt="Normal" />
                     <span>Normal</span>
                   </button>
                   <button class="hero-thumb-btn" data-hero="tengu">
@@ -629,8 +628,8 @@
                     <span>Ronin</span>
                   </button>
                   <button class="hero-thumb-btn" data-hero="alchemist">
-                    <img src="/heroes/alchemist_face.jpg" alt="Alquimista" />
-                    <span>Alquimista</span>
+                    <img src="/heroes/alchemist_face.jpg" alt="Alchemist" />
+                    <span>Alchemist</span>
                   </button>
                   <button class="hero-thumb-btn" data-hero="ryujin">
                     <img src="/heroes/ryujin_face.jpg" alt="Ryūjin" />
@@ -639,11 +638,11 @@
                 </div>
               </div>
 
-              <!-- Estado de Conexión del Invitado -->
+              <!-- Connection Status -->
               <div id="join-status-box" class="waiting-box hidden">
                 <div class="spinner"></div>
                 <div class="lobby-status-content">
-                  <span id="join-status-text">Conectando con la sala P2P...</span>
+                  <span id="join-status-text">Connecting to P2P room...</span>
                   <div id="join-lobby-slots-grid" class="online-slots-grid"></div>
                 </div>
               </div>
@@ -652,63 +651,61 @@
         </div>
 
         <div class="modal-footer" style="display: flex; justify-content: space-between; align-items: center;">
-          <button id="btn-online-cancel" class="btn btn-modal-secondary">Cancelar</button>
+          <button id="btn-online-cancel" class="btn btn-modal-secondary">Cancel</button>
           <button id="btn-online-modal-start" class="btn btn-modal-primary hidden" style="font-weight: 700; padding: 0.75rem 2rem; animation: pulse 2s infinite;">
-            <span>⚔️ ¡Comenzar Partida!</span>
+            <span>⚔️ Start Match!</span>
           </button>
         </div>
       </div>
     </div>
 
-    <!-- ================= MODAL: EXPEDICIÓN ROGUELIKE (PANORÁMICO EXPANSIVO) ================= -->
+    <!-- ================= MODAL: ROGUELIKE EXPEDITION ================= -->
     <div id="roguelike-setup-modal" class="modal-backdrop hidden">
       <div class="modal-card modal-rogue-panoramic">
         <div class="modal-header rogue-header-panoramic">
           <div>
-            <h2>⚔️ Expedición Roguelike</h2>
-            <p class="modal-desc">Elige la dificultad del viaje y a tu Campeón Místico para comenzar la aventura</p>
+            <h2>⚔️ Roguelike Expedition</h2>
+            <p class="modal-desc">Select your journey difficulty and Mystic Champion to begin</p>
           </div>
         </div>
 
         <div class="modal-body-scroll rogue-body-panoramic">
-          <!-- Dificultad de la Expedición -->
+          <!-- Expedition Difficulty -->
           <div class="setup-section rogue-diff-section">
-            <label class="setup-label">Dificultad de la Expedición</label>
+            <label class="setup-label">Expedition Difficulty</label>
             <div class="setup-grid grid-4 rogue-diff-grid">
               <button id="rogue-diff-easy" class="btn btn-choice active" data-diff="easy">
                 <span class="choice-icon">🟢</span>
-                <span class="choice-title">Fácil</span>
-                <small class="diff-sub">Principiante</small>
+                <span class="choice-title">Easy</span>
+                <small class="diff-sub">Beginner</small>
               </button>
               <button id="rogue-diff-normal" class="btn btn-choice" data-diff="normal">
                 <span class="choice-icon">🟡</span>
                 <span class="choice-title">Normal</span>
-                <small class="diff-sub">Guerrero</small>
+                <small class="diff-sub">Warrior</small>
               </button>
               <button id="rogue-diff-hard" class="btn btn-choice" data-diff="hard">
                 <span class="choice-icon">🔴</span>
-                <span class="choice-title">Difícil</span>
-                <small class="diff-sub">Maestro</small>
+                <span class="choice-title">Hard</span>
+                <small class="diff-sub">Master</small>
               </button>
               <button id="rogue-diff-extreme" class="btn btn-choice btn-dan" data-diff="extreme">
                 <span class="choice-icon">🟣</span>
-                <span class="choice-title">Gran Maestro</span>
-                <small class="diff-sub">Dan Supremo</small>
+                <span class="choice-title">Grandmaster</span>
+                <small class="diff-sub">Supreme Dan</small>
               </button>
             </div>
           </div>
 
-          <!-- Showcase Panorámico de Campeón en Primer Plano -->
+          <!-- Champion Showcase Card -->
           <div class="rogue-hero-panoramic-box">
-            <button id="btn-hero-prev" class="btn-hero-nav" title="Campeón Anterior">◀</button>
+            <button id="btn-hero-prev" class="btn-hero-nav" title="Previous Champion">◀</button>
 
             <div class="hero-showcase-card" id="rogue-hero-showcase-card">
-              <!-- Retrato en Primer Plano (Close-Up Face) -->
               <div class="hero-portrait-wrapper">
-                <img id="rogue-hero-showcase-img" src="/heroes/tengu_face.jpg" alt="Campeón" class="hero-showcase-img" />
+                <img id="rogue-hero-showcase-img" src="/heroes/tengu_face.jpg" alt="Champion" class="hero-showcase-img" />
               </div>
 
-              <!-- Información y Habilidades -->
               <div class="hero-details">
                 <div class="hero-header-row">
                   <div class="hero-titles-col">
@@ -719,30 +716,30 @@
                 <div class="hero-skills-grid">
                   <div class="hero-skill-box active-skill-box rogue-hero-active-box">
                     <div class="skill-box-header">
-                      <span class="skill-type-tag active-tag">💥 HABILIDAD ACTIVA</span>
-                      <strong id="rogue-hero-active-name" class="skill-name">☄️ Lluvia Meteórica (1 uso)</strong>
+                      <span class="skill-type-tag active-tag">💥 ACTIVE SKILL</span>
+                      <strong id="rogue-hero-active-name" class="skill-name">☄️ Meteor Strike (1 use)</strong>
                     </div>
-                    <p id="rogue-hero-active-desc" class="skill-desc">Elige una zona: desata meteoros (5 en 9x9, 9 en 13x13, 15 en 19x19) que destruyen piedras alcanzadas.</p>
+                    <p id="rogue-hero-active-desc" class="skill-desc">Select an area: unleashes falling meteors destroying unprotected stones.</p>
                   </div>
 
                   <div class="hero-skill-box passive-skill-box rogue-hero-passive-box" style="display: none;">
                     <div class="skill-box-header">
-                      <span class="skill-type-tag passive-tag" id="rogue-hero-passive-tag">✨ HABILIDAD PASIVA</span>
-                      <strong id="rogue-hero-passive-name" class="skill-name">🌧️ Lluvia Pétrea Celestial</strong>
+                      <span class="skill-type-tag passive-tag" id="rogue-hero-passive-tag">✨ PASSIVE SKILL</span>
+                      <strong id="rogue-hero-passive-name" class="skill-name">🌧️ Celestial Stone Rain</strong>
                     </div>
-                    <p id="rogue-hero-passive-desc" class="skill-desc">Al finalizar tu 15º turno personal, se activa esta pasiva y caen del cielo piedras aliadas en casillas aleatorias (4 en 9x9, 6 en 13x13, 9 en 19x19).</p>
+                    <p id="rogue-hero-passive-desc" class="skill-desc">At the end of personal turn 15, allied stones rain down onto empty intersections.</p>
                   </div>
                 </div>
               </div>
             </div>
 
-            <button id="btn-hero-next" class="btn-hero-nav" title="Siguiente Campeón">▶</button>
+            <button id="btn-hero-next" class="btn-hero-nav" title="Next Champion">▶</button>
           </div>
 
-          <!-- Selector de Miniaturas en Primer Plano -->
+          <!-- Thumbnail Strip -->
           <div class="hero-thumb-strip" id="rogue-hero-thumb-strip">
             <button class="hero-thumb-btn active" data-hero="normal">
-              <img src="/heroes/normal_face.jpg" alt="Hombre Normal" />
+              <img src="/heroes/normal_face.jpg" alt="Normal" />
               <span>Normal</span>
             </button>
             <button class="hero-thumb-btn" data-hero="tengu">
@@ -762,8 +759,8 @@
               <span>Ronin</span>
             </button>
             <button class="hero-thumb-btn" data-hero="alchemist">
-              <img src="/heroes/alchemist_face.jpg" alt="Alquimista" />
-              <span>Alquimista</span>
+              <img src="/heroes/alchemist_face.jpg" alt="Alchemist" />
+              <span>Alchemist</span>
             </button>
             <button class="hero-thumb-btn" data-hero="ryujin">
               <img src="/heroes/ryujin_face.jpg" alt="Ryūjin" />
@@ -773,231 +770,225 @@
         </div>
 
         <div class="modal-footer rogue-footer-panoramic">
-          <button id="btn-rogue-cancel" class="btn btn-modal-secondary">Volver</button>
+          <button id="btn-rogue-cancel" class="btn btn-modal-secondary">Back</button>
           <button id="btn-rogue-start" class="btn btn-hero btn-rogue-cta">
-            <span>▶️ Comenzar Expedición</span>
+            <span>▶️ Begin Expedition</span>
           </button>
         </div>
       </div>
     </div>
 
-    <!-- ================= MODAL: ELECCIÓN DE EXPEDICIÓN (CONTINUAR O NUEVA RUN) ================= -->
+    <!-- ================= MODAL: ACTIVE ROGUELIKE CHOICE ================= -->
     <div id="modal-rogue-choice" class="modal-backdrop hidden">
       <div class="modal-card modal-choice-dialog">
         <div class="modal-header">
-          <h2>⚔️ Expedición Roguelike en Curso</h2>
-          <p class="modal-desc">Tienes una partida guardada en la senda espiritual del Goban.</p>
+          <h2>⚔️ Active Roguelike Expedition</h2>
+          <p class="modal-desc">You have a saved journey recorded along the spiritual Goban path.</p>
         </div>
 
         <div class="modal-body-scroll">
-          <!-- Resumen de la Run Guardada -->
           <div class="saved-run-card" id="saved-run-info-box">
-            <img id="saved-run-hero-img" src="/heroes/tengu_face.jpg" alt="Campeón" />
+            <img id="saved-run-hero-img" src="/heroes/tengu_face.jpg" alt="Champion" />
             <div class="saved-run-details">
               <strong id="saved-run-hero-name">Tengu</strong>
               <div class="saved-run-meta">
-                <span id="saved-run-diff" class="pill-badge">Dificultad Normal</span>
+                <span id="saved-run-diff" class="pill-badge">Normal Difficulty</span>
               </div>
-              <small id="saved-run-progress">📍 Posición lista para continuar</small>
+              <small id="saved-run-progress">📍 Expedition ready to resume</small>
             </div>
           </div>
 
           <div class="choice-actions-container">
-            <!-- Opción 1: Continuar Run -->
             <button id="btn-rogue-resume-active" class="btn btn-choice-large btn-resume-run">
               <div class="choice-large-icon">▶️</div>
               <div class="choice-large-text">
-                <strong>Continuar Expedición</strong>
-                <span>Reanudar la partida exactamente donde la dejaste</span>
+                <strong>Continue Expedition</strong>
+                <span>Resume match exactly where you left off</span>
               </div>
             </button>
 
-            <!-- Opción 2: Iniciar Nueva Run -->
             <button id="btn-rogue-start-fresh" class="btn btn-choice-large btn-fresh-run">
               <div class="choice-large-icon">🔄</div>
               <div class="choice-large-text">
-                <strong>Iniciar Nueva Expedición</strong>
-                <span>Descartar la partida actual y elegir un nuevo héroe</span>
+                <strong>Start New Expedition</strong>
+                <span>Discard current run and choose a fresh champion</span>
               </div>
             </button>
           </div>
         </div>
 
         <div class="modal-footer">
-          <button id="btn-rogue-choice-cancel" class="btn btn-modal-secondary">Volver al Menú</button>
+          <button id="btn-rogue-choice-cancel" class="btn btn-modal-secondary">Return to Menu</button>
         </div>
       </div>
     </div>
 
-    <!-- ================= MODAL: CONFIGURACIÓN DE MODO LIBRE (WIZARD PASO A PASO) ================= -->
+    <!-- ================= MODAL: LOCAL MATCH SETUP WIZARD ================= -->
     <div id="new-game-modal" class="modal-backdrop hidden">
       <div class="modal-card modal-setup wizard-modal-card">
         <div class="modal-header wizard-modal-header">
           <div class="wizard-header-top">
-            <h2 id="setup-modal-title">📜 Configuración de Partida</h2>
-            <span id="wizard-step-counter" class="wizard-step-pill">Paso 1 de 5</span>
+            <h2 id="setup-modal-title">📜 Match Setup</h2>
+            <span id="wizard-step-counter" class="wizard-step-pill">Step 1 of 5</span>
           </div>
           
-          <!-- Stepper de Progreso -->
+          <!-- Stepper -->
           <div class="wizard-stepper" id="wizard-stepper">
-            <button class="wizard-step-node active" data-step="1" title="1. Jugadores">
+            <button class="wizard-step-node active" data-step="1" title="1. Players">
               <span class="step-num">1</span>
-              <span class="step-label">Jugadores</span>
+              <span class="step-label">Players</span>
             </button>
             <div class="wizard-line"></div>
-            <button class="wizard-step-node" data-step="2" title="2. Modo">
+            <button class="wizard-step-node" data-step="2" title="2. Mode">
               <span class="step-num">2</span>
-              <span class="step-label">Modo</span>
+              <span class="step-label">Mode</span>
             </button>
             <div class="wizard-line"></div>
-            <button class="wizard-step-node" data-step="3" title="3. Tablero">
+            <button class="wizard-step-node" data-step="3" title="3. Board">
               <span class="step-num">3</span>
-              <span class="step-label">Tablero</span>
+              <span class="step-label">Board</span>
             </button>
             <div class="wizard-line"></div>
-            <button class="wizard-step-node" data-step="4" title="4. Campeón">
+            <button class="wizard-step-node" data-step="4" title="4. Champion">
               <span class="step-num">4</span>
-              <span class="step-label">Campeón</span>
+              <span class="step-label">Champion</span>
             </button>
             <div class="wizard-line"></div>
-            <button class="wizard-step-node" data-step="5" title="5. Ajustes">
+            <button class="wizard-step-node" data-step="5" title="5. Settings">
               <span class="step-num">5</span>
-              <span class="step-label">Ajustes</span>
+              <span class="step-label">Settings</span>
             </button>
           </div>
         </div>
 
         <div class="modal-body-scroll wizard-body-container">
-          <!-- PASO 1: CANTIDAD DE JUGADORES -->
+          <!-- STEP 1: PLAYERS COUNT -->
           <div id="wizard-step-1" class="wizard-step-panel active">
             <div class="wizard-step-hero">
-              <h3 class="wizard-step-title">👥 ¿Cuántos jugadores participarán?</h3>
-              <p class="wizard-step-subtitle">Elige entre un duelo directo o una batalla campal de 4 bandos</p>
+              <h3 class="wizard-step-title">👥 How many players?</h3>
+              <p class="wizard-step-subtitle">Choose between a head-to-head duel or a 4-player free-for-all</p>
             </div>
             <div class="setup-grid grid-2 wizard-big-grid">
               <button id="setup-players-2" class="btn btn-choice-card active" data-players="2">
                 <span class="choice-card-icon">👥</span>
-                <strong class="choice-card-title">2 Jugadores (Duelo 1v1)</strong>
-                <span class="choice-card-desc">Duelo tradicional: ⚫ Negras vs ⚪ Blancas</span>
+                <strong class="choice-card-title">2 Players (1v1 Duel)</strong>
+                <span class="choice-card-desc">Traditional duel: ⚫ Black vs ⚪ White</span>
               </button>
               <button id="setup-players-4" class="btn btn-choice-card" data-players="4">
                 <span class="choice-card-icon">👥👥</span>
-                <strong class="choice-card-title">4 Jugadores (Go Cuádruple FFA)</strong>
-                <span class="choice-card-desc">Todos contra todos: ⚫ Negras • ⚪ Blancas • 🟢 Esmeralda • 🟣 Amatista</span>
+                <strong class="choice-card-title">4 Players (4P FFA Go)</strong>
+                <span class="choice-card-desc">Free for all: ⚫ Black • ⚪ White • 🟢 Emerald • 🟣 Amethyst</span>
               </button>
             </div>
           </div>
 
-          <!-- PASO 2: MODO DE JUEGO (HUMANO VS IA / LOCAL) -->
+          <!-- STEP 2: GAME MODE -->
           <div id="wizard-step-2" class="wizard-step-panel hidden">
             <div class="wizard-step-hero">
-              <h3 class="wizard-step-title">🎮 ¿Cómo quieres jugar?</h3>
-              <p class="wizard-step-subtitle">Elige a tus rivales en la partida</p>
+              <h3 class="wizard-step-title">🎮 Choose Opponent Type</h3>
+              <p class="wizard-step-subtitle">Select your opponents for this match</p>
             </div>
             <div class="setup-grid grid-2 wizard-big-grid">
               <button id="setup-mode-1via" class="btn btn-choice-card active">
                 <span class="choice-card-icon">🤖</span>
-                <strong class="choice-card-title" id="label-mode-ai">Humano vs IAs</strong>
-                <span class="choice-card-desc">Compite en solitario contra el motor inteligente de Go</span>
+                <strong class="choice-card-title" id="label-mode-ai">Human vs AI</strong>
+                <span class="choice-card-desc">Compete solo against the intelligent KataGo engine</span>
               </button>
               <button id="setup-mode-1v1" class="btn btn-choice-card">
                 <span class="choice-card-icon">🎮</span>
-                <strong class="choice-card-title" id="label-mode-local">Modo Local (Pasa y Juega)</strong>
-                <span class="choice-card-desc">Varios jugadores por turnos en el mismo teclado o pantalla</span>
+                <strong class="choice-card-title" id="label-mode-local">Local Mode (Pass & Play)</strong>
+                <span class="choice-card-desc">Multiple players taking turns on the same screen</span>
               </button>
             </div>
           </div>
 
-          <!-- PASO 3: TABLERO (TAMAÑO Y FORMA) -->
+          <!-- STEP 3: BOARD SIZE AND TOPOLOGY -->
           <div id="wizard-step-3" class="wizard-step-panel hidden">
             <div class="wizard-step-hero">
-              <h3 class="wizard-step-title">📐 Elige el Tablero y su Topología</h3>
-              <p class="wizard-step-subtitle">Configura las dimensiones y la geometría del campo de juego</p>
+              <h3 class="wizard-step-title">📐 Select Board & Topology</h3>
+              <p class="wizard-step-subtitle">Configure dimensions and geometry of the playing field</p>
             </div>
 
             <div class="wizard-subgroup">
-              <label class="setup-label">Tamaño de la Cuadrícula</label>
+              <label class="setup-label">Grid Size</label>
               <div class="setup-grid grid-3">
                 <button id="setup-size-9" class="btn btn-choice active">
                   <strong>9x9</strong>
-                  <small style="display:block;font-size:0.75rem;opacity:0.8;">Rápido y táctico</small>
+                  <small style="display:block;font-size:0.75rem;opacity:0.8;">Fast & Tactical</small>
                 </button>
                 <button id="setup-size-13" class="btn btn-choice">
                   <strong>13x13</strong>
-                  <small style="display:block;font-size:0.75rem;opacity:0.8;">Medio y equilibrado</small>
+                  <small style="display:block;font-size:0.75rem;opacity:0.8;">Balanced</small>
                 </button>
                 <button id="setup-size-19" class="btn btn-choice">
                   <strong>19x19</strong>
-                  <small style="display:block;font-size:0.75rem;opacity:0.8;">Oficial Profesional</small>
+                  <small style="display:block;font-size:0.75rem;opacity:0.8;">Official Pro</small>
                 </button>
               </div>
             </div>
 
             <div class="wizard-subgroup" style="margin-top: 1rem;">
-              <label class="setup-label">Forma del Tablero</label>
+              <label class="setup-label">Board Shape</label>
               <div class="setup-grid grid-4">
-                <button id="setup-shape-square" class="btn btn-choice active">⏹️ Cuadrado</button>
-                <button id="setup-shape-eroded" class="btn btn-choice">🪨 Erosionado</button>
-                <button id="setup-shape-islands" class="btn btn-choice">🕳️ Islas / Abismos</button>
-                <button id="setup-shape-cross" class="btn btn-choice">➕ Cruz / Diamante</button>
+                <button id="setup-shape-square" class="btn btn-choice active">⏹️ Square</button>
+                <button id="setup-shape-eroded" class="btn btn-choice">🪨 Eroded</button>
+                <button id="setup-shape-islands" class="btn btn-choice">🕳️ Islands / Abysses</button>
+                <button id="setup-shape-cross" class="btn btn-choice">➕ Cross / Diamond</button>
                 <button id="setup-shape-triangle" class="btn btn-choice">🔺 Triangular</button>
                 <button id="setup-shape-hex" class="btn btn-choice">⬡ Hexagonal</button>
-                <button id="setup-shape-procedural" class="btn btn-choice">🎲 Procedural (Infinito)</button>
+                <button id="setup-shape-procedural" class="btn btn-choice">🎲 Procedural (Infinite)</button>
               </div>
             </div>
           </div>
 
-          <!-- PASO 4: CAMPEÓN MÍSTICO O REGLAS CLÁSICAS -->
+          <!-- STEP 4: CHAMPION SELECTION -->
           <div id="wizard-step-4" class="wizard-step-panel hidden">
             <div class="wizard-step-hero">
-              <h3 class="wizard-step-title">🧙‍♂️ Elige tu Campeón Místico o Reglas Puras</h3>
-              <p class="wizard-step-subtitle">Disfruta de poderes legendarios o compite bajo el Go japonés canónico clásico</p>
+              <h3 class="wizard-step-title">🧙‍♂️ Choose Mystic Champion or Pure Go</h3>
+              <p class="wizard-step-subtitle">Wield legendary powers or play pure canonical Japanese Go</p>
             </div>
 
             <div class="rogue-hero-panoramic-box setup-hero-panoramic-box">
-              <button id="btn-setup-hero-prev" class="btn-hero-nav" title="Campeón Anterior">◀</button>
+              <button id="btn-setup-hero-prev" class="btn-hero-nav" title="Previous Champion">◀</button>
 
               <div class="hero-showcase-card" id="setup-hero-showcase-card">
-                <!-- Retrato en Primer Plano (Close-Up Face) -->
                 <div class="hero-portrait-wrapper">
-                  <img id="setup-hero-showcase-img" src="/heroes/classic_face.jpg" alt="Sin Campeón" class="hero-showcase-img" />
+                  <img id="setup-hero-showcase-img" src="/heroes/normal_face.jpg" alt="Normal Apprentice" class="hero-showcase-img" />
                 </div>
 
-                <!-- Información y Habilidades -->
                 <div class="hero-details">
                   <div class="hero-header-row">
                     <div class="hero-titles-col">
-                      <h3 id="setup-hero-showcase-name" class="hero-title">Sin Campeón</h3>
+                      <h3 id="setup-hero-showcase-name" class="hero-title">Normal Apprentice</h3>
                     </div>
                   </div>
 
                   <div class="hero-skills-grid">
                     <div class="hero-skill-box active-skill-box setup-hero-active-box" style="display: none;">
                       <div class="skill-box-header">
-                        <span class="skill-type-tag active-tag">💥 HABILIDAD ACTIVA</span>
-                        <strong id="setup-hero-active-name" class="skill-name">Habilidad Activa</strong>
+                        <span class="skill-type-tag active-tag">💥 ACTIVE SKILL</span>
+                        <strong id="setup-hero-active-name" class="skill-name">Active Skill</strong>
                       </div>
-                      <p id="setup-hero-active-desc" class="skill-desc">Descripción de la habilidad activa.</p>
+                      <p id="setup-hero-active-desc" class="skill-desc">Description of active skill.</p>
                     </div>
 
                     <div class="hero-skill-box passive-skill-box setup-hero-passive-box">
                       <div class="skill-box-header">
-                        <span class="skill-type-tag passive-tag" id="setup-hero-passive-tag">📜 REGLAS PURAS</span>
-                        <strong id="setup-hero-passive-name" class="skill-name">Reglas Canónicas Japonesas</strong>
+                        <span class="skill-type-tag passive-tag" id="setup-hero-passive-tag">📜 PURE RULES</span>
+                        <strong id="setup-hero-passive-name" class="skill-name">Japanese Canonical Rules</strong>
                       </div>
-                      <p id="setup-hero-passive-desc" class="skill-desc">Sin habilidades místicas ni hechizos. Solo estrategia pura, libertades, Ko y territorio.</p>
+                      <p id="setup-hero-passive-desc" class="skill-desc">Pure Go strategy: liberties, unconditional life, Ko and territory without gimmicks.</p>
                     </div>
                   </div>
                 </div>
               </div>
 
-              <button id="btn-setup-hero-next" class="btn-hero-nav" title="Siguiente Campeón">▶</button>
+              <button id="btn-setup-hero-next" class="btn-hero-nav" title="Next Champion">▶</button>
             </div>
 
-            <!-- Selector de Miniaturas en Primer Plano -->
             <div class="hero-thumb-strip" id="setup-hero-thumb-strip">
               <button class="hero-thumb-btn active" data-hero="normal">
-                <img src="/heroes/normal_face.jpg" alt="Hombre Normal" />
+                <img src="/heroes/normal_face.jpg" alt="Normal" />
                 <span>Normal</span>
               </button>
               <button class="hero-thumb-btn" data-hero="tengu">
@@ -1017,8 +1008,8 @@
                 <span>Ronin</span>
               </button>
               <button class="hero-thumb-btn" data-hero="alchemist">
-                <img src="/heroes/alchemist_face.jpg" alt="Alquimista" />
-                <span>Alquimista</span>
+                <img src="/heroes/alchemist_face.jpg" alt="Alchemist" />
+                <span>Alchemist</span>
               </button>
               <button class="hero-thumb-btn" data-hero="ryujin">
                 <img src="/heroes/ryujin_face.jpg" alt="Ryūjin" />
@@ -1027,75 +1018,74 @@
             </div>
           </div>
 
-          <!-- PASO 5: AJUSTES FINALES Y RESUMEN -->
+          <!-- STEP 5: FINAL ADJUSTMENTS AND SUMMARY -->
           <div id="wizard-step-5" class="wizard-step-panel hidden">
             <div class="wizard-step-hero">
-              <h3 class="wizard-step-title">⚔️ Ajustes Finales y Resumen</h3>
-              <p class="wizard-step-subtitle">Verifica los parámetros y prepárate para jugar</p>
+              <h3 class="wizard-step-title">⚔️ Final Adjustments & Summary</h3>
+              <p class="wizard-step-subtitle">Review parameters and prepare to enter the Goban</p>
             </div>
 
-            <!-- Tarjeta de Resumen Visual -->
+            <!-- Summary Card -->
             <div class="wizard-summary-card">
               <div class="summary-hero-avatar-box">
-                <img id="wizard-summary-hero-img" src="/heroes/classic_face.jpg" alt="Campeón" />
+                <img id="wizard-summary-hero-img" src="/heroes/normal_face.jpg" alt="Champion" />
               </div>
               <div class="summary-details">
-                <strong id="wizard-summary-title">Duelo 1v1 • Humano vs IA</strong>
-                <span id="wizard-summary-desc">Tablero 19x19 Cuadrado • Sin Campeón • Dificultad Medio • Komi 6.5</span>
+                <strong id="wizard-summary-title">1v1 Duel • Human vs AI</strong>
+                <span id="wizard-summary-desc">19x19 Square Board • Normal Apprentice • Medium AI • Komi 6.5</span>
               </div>
             </div>
 
-            <!-- Opciones de IA si aplica -->
+            <!-- AI Options -->
             <div id="setup-ai-options" class="setup-section setup-subbox">
-              <label class="setup-label">Tu Bando (Color de Piedra)</label>
+              <label class="setup-label">Your Side (Stone Color)</label>
               <div class="setup-grid grid-2">
                 <button id="setup-color-black" class="btn btn-choice active">
                   <span class="mini-stone black-mini"></span>
-                  <span>Negras ⚫ (Abres partida)</span>
+                  <span>Black ⚫ (First turn)</span>
                 </button>
                 <button id="setup-color-white" class="btn btn-choice">
                   <span class="mini-stone white-mini"></span>
-                  <span>Blancas ⚪ (La IA abre)</span>
+                  <span>White ⚪ (AI plays first)</span>
                 </button>
               </div>
 
-              <label class="setup-label" style="margin-top: 0.75rem;">Dificultad de la IA (Motor KataGo Calibrado)</label>
+              <label class="setup-label" style="margin-top: 0.75rem;">AI Difficulty (Calibrated KataGo Engine)</label>
               <div class="setup-grid grid-4">
-                <button id="setup-diff-easy" class="btn btn-choice" title="Nivel Principiante (25-28 Kyu)">
-                  <span>🟢 Fácil</span>
+                <button id="setup-diff-easy" class="btn btn-choice" title="Beginner (25-28 Kyu)">
+                  <span>🟢 Easy</span>
                   <small style="display:block;font-size:0.7rem;opacity:0.75;">25 Kyu</small>
                 </button>
-                <button id="setup-diff-medium" class="btn btn-choice active" title="Nivel Intermedio (16 Kyu)">
-                  <span>🟡 Medio</span>
+                <button id="setup-diff-medium" class="btn btn-choice active" title="Intermediate (16 Kyu)">
+                  <span>🟡 Medium</span>
                   <small style="display:block;font-size:0.7rem;opacity:0.75;">16 Kyu</small>
                 </button>
-                <button id="setup-diff-hard" class="btn btn-choice" title="Nivel Avanzado (4 Kyu)">
-                  <span>🔴 Difícil</span>
+                <button id="setup-diff-hard" class="btn btn-choice" title="Advanced (4 Kyu)">
+                  <span>🔴 Hard</span>
                   <small style="display:block;font-size:0.7rem;opacity:0.75;">4 Kyu</small>
                 </button>
-                <button id="setup-diff-dan" class="btn btn-choice btn-dan" title="Nivel Maestro KataGo (2 Dan)">
-                  <span>🟣 Extremo</span>
+                <button id="setup-diff-dan" class="btn btn-choice btn-dan" title="Master (2 Dan)">
+                  <span>🟣 Extreme</span>
                   <small style="display:block;font-size:0.7rem;opacity:0.75;">2 Dan</small>
                 </button>
               </div>
             </div>
 
-            <!-- 3. Piedras Especiales y Poliminós Tácticos -->
+            <!-- Special Polyomino Stones -->
             <div class="setup-section special-stones-setup-box" style="margin-top: 0.75rem;">
               <div class="setup-label-row">
-                <label class="setup-label">🌿 Piedras Especiales / Poliminós</label>
+                <label class="setup-label">🌿 Special Polyomino Stones</label>
                 <button type="button" id="btn-toggle-special-stones" class="btn btn-switch" data-enabled="false">
-                  <span id="label-toggle-special">Desactivado ❌</span>
+                  <span id="label-toggle-special">Disabled ❌</span>
                 </button>
               </div>
 
               <div id="special-stones-controls" class="special-stones-controls hidden">
-                <!-- Fichas para el Jugador -->
                 <div class="poly-config-group">
-                  <span class="poly-config-heading">Tus Fichas Especiales:</span>
+                  <span class="poly-config-heading">Your Special Stones:</span>
                   <div class="poly-counters-grid">
                     <div class="poly-counter-item">
-                      <span class="poly-counter-label">🌿 Germinante (1x1)</span>
+                      <span class="poly-counter-label">🌿 Sprouting (1x1)</span>
                       <div class="counter-input-group">
                         <button type="button" class="btn btn-counter-adj" data-target="playerSprouting" data-delta="-1">-</button>
                         <span id="display-poly-player-sprouting" class="counter-val">2</span>
@@ -1103,7 +1093,7 @@
                       </div>
                     </div>
                     <div class="poly-counter-item">
-                      <span class="poly-counter-label">🀄 Dominó (2x1)</span>
+                      <span class="poly-counter-label">🀄 Duplicity (2x1)</span>
                       <div class="counter-input-group">
                         <button type="button" class="btn btn-counter-adj" data-target="playerDomino" data-delta="-1">-</button>
                         <span id="display-poly-player-domino" class="counter-val">2</span>
@@ -1111,7 +1101,7 @@
                       </div>
                     </div>
                     <div class="poly-counter-item">
-                      <span class="poly-counter-label">🧱 Monolito (2x2)</span>
+                      <span class="poly-counter-label">🧱 Monolith (2x2)</span>
                       <div class="counter-input-group">
                         <button type="button" class="btn btn-counter-adj" data-target="playerMonolith" data-delta="-1">-</button>
                         <span id="display-poly-player-monolith" class="counter-val">1</span>
@@ -1121,17 +1111,16 @@
                   </div>
                 </div>
 
-                <!-- Fichas para la IA (si se juega en modo Humano vs IA) -->
                 <div id="special-stones-ai-box" class="poly-config-group" style="margin-top: 0.75rem;">
                   <div class="setup-label-row" style="margin-bottom: 0.35rem;">
-                    <span class="poly-config-heading">¿La IA también tiene Fichas Especiales?</span>
+                    <span class="poly-config-heading">Enable special stones for AI?</span>
                     <button type="button" id="btn-toggle-ai-special" class="btn btn-switch" data-enabled="false">
-                      <span id="label-toggle-ai-special">IA: Desactivado ❌</span>
+                      <span id="label-toggle-ai-special">AI: Disabled ❌</span>
                     </button>
                   </div>
                   <div id="ai-poly-counters" class="poly-counters-grid hidden">
                     <div class="poly-counter-item">
-                      <span class="poly-counter-label">🌿 Germinante IA</span>
+                      <span class="poly-counter-label">🌿 AI Sprouting</span>
                       <div class="counter-input-group">
                         <button type="button" class="btn btn-counter-adj" data-target="aiSprouting" data-delta="-1">-</button>
                         <span id="display-poly-ai-sprouting" class="counter-val">2</span>
@@ -1139,7 +1128,7 @@
                       </div>
                     </div>
                     <div class="poly-counter-item">
-                      <span class="poly-counter-label">🀄 Dominó IA</span>
+                      <span class="poly-counter-label">🀄 AI Duplicity</span>
                       <div class="counter-input-group">
                         <button type="button" class="btn btn-counter-adj" data-target="aiDomino" data-delta="-1">-</button>
                         <span id="display-poly-ai-domino" class="counter-val">2</span>
@@ -1147,7 +1136,7 @@
                       </div>
                     </div>
                     <div class="poly-counter-item">
-                      <span class="poly-counter-label">🧱 Monolito IA</span>
+                      <span class="poly-counter-label">🧱 AI Monolith</span>
                       <div class="counter-input-group">
                         <button type="button" class="btn btn-counter-adj" data-target="aiMonolith" data-delta="-1">-</button>
                         <span id="display-poly-ai-monolith" class="counter-val">1</span>
@@ -1159,20 +1148,20 @@
               </div>
             </div>
 
-            <!-- 4. Komi -->
+            <!-- Komi -->
             <div class="setup-section" style="margin-top: 0.75rem;">
               <div class="setup-label-row">
-                <label class="setup-label">Komi (Puntos de ventaja para Blancas)</label>
+                <label class="setup-label">Komi (Advantage points for White)</label>
                 <strong id="setup-komi-display" class="highlight-text">6.5 pts</strong>
               </div>
               <div class="setup-grid grid-4 komi-presets-grid">
                 <button class="btn btn-choice btn-setup-komi" data-komi="0.5">0.5</button>
                 <button class="btn btn-choice btn-setup-komi" data-komi="5.5">5.5</button>
-                <button class="btn btn-choice btn-setup-komi active" data-komi="6.5">6.5 (Por defecto)</button>
+                <button class="btn btn-choice btn-setup-komi active" data-komi="6.5">6.5 (Default)</button>
                 <button class="btn btn-choice btn-setup-komi" data-komi="7.5">7.5</button>
               </div>
               <div class="komi-custom-wrapper">
-                <span class="komi-custom-label">O valor libre personalizado:</span>
+                <span class="komi-custom-label">Or custom free value:</span>
                 <div class="komi-input-box">
                   <input type="number" id="setup-komi-input" step="0.5" min="0" max="100" value="6.5" class="komi-num-field" />
                   <span class="komi-unit">pts</span>
@@ -1180,35 +1169,34 @@
               </div>
             </div>
 
-            <!-- 5. Control de Tiempo / Reloj de Go -->
+            <!-- Time Controls -->
             <div class="setup-section timer-setup-box" style="margin-top: 0.75rem;">
               <div class="setup-label-row">
-                <label class="setup-label">⏱️ Control de Tiempo (Reloj de Go)</label>
+                <label class="setup-label">⏱️ Time Control (Go Clock)</label>
                 <button type="button" id="btn-toggle-timer" class="btn btn-switch" data-enabled="false">
-                  <span id="label-toggle-timer">Sin Límite ❌</span>
+                  <span id="label-toggle-timer">No Limit ❌</span>
                 </button>
               </div>
 
               <div id="timer-controls" class="timer-controls hidden">
-                <label class="setup-label" style="font-size: 0.8rem; margin-top: 0.35rem;">Modalidad de Reloj:</label>
+                <label class="setup-label" style="font-size: 0.8rem; margin-top: 0.35rem;">Clock Mode:</label>
                 <div class="setup-grid grid-3">
                   <button type="button" class="btn btn-choice btn-timer-mode active" data-mode="per_move">
-                    <span>⚡ Por Jugada</span>
-                    <small style="display:block;font-size:0.7rem;opacity:0.8;">Tiempo fijo por turno</small>
+                    <span>⚡ Per Move</span>
+                    <small style="display:block;font-size:0.7rem;opacity:0.8;">Fixed time per turn</small>
                   </button>
                   <button type="button" class="btn btn-choice btn-timer-mode" data-mode="absolute">
-                    <span>⏳ Súbito / Absoluto</span>
-                    <small style="display:block;font-size:0.7rem;opacity:0.8;">Bolsa total de tiempo</small>
+                    <span>⏳ Absolute</span>
+                    <small style="display:block;font-size:0.7rem;opacity:0.8;">Total bank time</small>
                   </button>
                   <button type="button" class="btn btn-choice btn-timer-mode" data-mode="fischer">
                     <span>⏱️ Fischer</span>
-                    <small style="display:block;font-size:0.7rem;opacity:0.8;">Base + Incremento</small>
+                    <small style="display:block;font-size:0.7rem;opacity:0.8;">Base + Increment</small>
                   </button>
                 </div>
 
-                <!-- Presets por Jugada -->
                 <div id="timer-options-per-move" class="timer-sub-options" style="margin-top: 0.5rem;">
-                  <label class="setup-label" style="font-size: 0.78rem;">Segundos por Jugada:</label>
+                  <label class="setup-label" style="font-size: 0.78rem;">Seconds per Move:</label>
                   <div class="setup-grid grid-5">
                     <button type="button" class="btn btn-choice btn-timer-val" data-val="10">10s</button>
                     <button type="button" class="btn btn-choice btn-timer-val" data-val="15">15s</button>
@@ -1218,9 +1206,8 @@
                   </div>
                 </div>
 
-                <!-- Presets Absoluto -->
                 <div id="timer-options-absolute" class="timer-sub-options hidden" style="margin-top: 0.5rem;">
-                  <label class="setup-label" style="font-size: 0.78rem;">Tiempo Principal:</label>
+                  <label class="setup-label" style="font-size: 0.78rem;">Main Bank Time:</label>
                   <div class="setup-grid grid-5">
                     <button type="button" class="btn btn-choice btn-timer-val" data-val="60">1 min</button>
                     <button type="button" class="btn btn-choice btn-timer-val" data-val="180">3 min</button>
@@ -1230,9 +1217,8 @@
                   </div>
                 </div>
 
-                <!-- Presets Fischer -->
                 <div id="timer-options-fischer" class="timer-sub-options hidden" style="margin-top: 0.5rem;">
-                  <label class="setup-label" style="font-size: 0.78rem;">Tiempo Base + Incremento:</label>
+                  <label class="setup-label" style="font-size: 0.78rem;">Base Time + Increment:</label>
                   <div class="setup-grid grid-3">
                     <button type="button" class="btn btn-choice btn-timer-val active" data-val="180" data-inc="5">3m + 5s</button>
                     <button type="button" class="btn btn-choice btn-timer-val" data-val="300" data-inc="5">5m + 5s</button>
@@ -1245,36 +1231,47 @@
         </div>
 
         <div class="modal-footer wizard-modal-footer">
-          <button id="btn-wizard-prev" class="btn btn-modal-secondary">Cancelar</button>
+          <button id="btn-wizard-prev" class="btn btn-modal-secondary">Cancel</button>
           <div class="wizard-footer-right">
             <button id="btn-wizard-next" class="btn btn-modal-primary">
-              <span>Siguiente ➔</span>
+              <span>Next ➔</span>
             </button>
             <button id="btn-setup-start" class="btn btn-hero btn-wizard-cta hidden">
-              <span>⚔️ ¡Comenzar Partida!</span>
+              <span>⚔️ Start Match!</span>
             </button>
           </div>
         </div>
       </div>
     </div>
 
-    <!-- ================= MODAL: OPCIONES DEL SISTEMA ================= -->
+    <!-- ================= MODAL: SYSTEM OPTIONS ================= -->
     <div id="options-modal" class="modal-backdrop hidden">
       <div class="modal-card modal-options">
         <div class="modal-header modal-header-with-close" style="display: flex; justify-content: space-between; align-items: flex-start;">
           <div>
-            <h2>⚙️ Opciones</h2>
-            <p class="modal-desc">Ajustes de sonido, música y preferencias</p>
+            <h2 data-i18n="options.title">⚙️ Options</h2>
+            <p class="modal-desc" data-i18n="options.desc">Language, sound, music, and gameplay preferences</p>
           </div>
-          <button id="btn-options-header-close" class="btn-modal-close-icon" title="Cerrar opciones">✖</button>
+          <button id="btn-options-header-close" class="btn-modal-close-icon" title="Close options">✖</button>
         </div>
 
         <div class="modal-body">
-          <!-- Volumen Maestro -->
+          <!-- Idioma / Language Selector -->
           <div class="option-row">
             <div class="option-info">
-              <strong>Volumen Maestro</strong>
-              <span>Controla el nivel general de audio</span>
+              <strong data-i18n="options.language">Idioma / Language</strong>
+              <span data-i18n="options.language_desc">Select UI and dialogue language</span>
+            </div>
+            <div class="setup-grid grid-2" style="gap: 0.5rem;">
+              <button id="opt-lang-es" class="btn btn-choice" data-lang="es">🇪🇸 Español</button>
+              <button id="opt-lang-en" class="btn btn-choice" data-lang="en">🇬🇧 English</button>
+            </div>
+          </div>
+
+          <div class="option-row">
+            <div class="option-info">
+              <strong data-i18n="options.master_vol">Master Volume</strong>
+              <span data-i18n="options.master_vol_desc">Controls overall audio volume</span>
             </div>
             <div class="volume-control">
               <input type="range" id="opt-vol-slider" min="0" max="100" value="80" class="slider" />
@@ -1282,51 +1279,52 @@
             </div>
           </div>
 
-          <!-- Efectos de Sonido (SFX) -->
           <div class="option-row">
             <div class="option-info">
-              <strong>Efectos de Sonido (SFX)</strong>
-              <span>Sonido procedural de colocación y captura de piedras</span>
+              <strong data-i18n="options.sfx">Sound Effects (SFX)</strong>
+              <span data-i18n="options.sfx_desc">Procedural stone placement and capture sounds</span>
             </div>
-            <button id="opt-sfx-toggle" class="btn btn-toggle active">Activado</button>
+            <button id="opt-sfx-toggle" class="btn btn-toggle active">Enabled</button>
           </div>
 
-          <!-- Música de Fondo (BGM) -->
           <div class="option-row">
             <div class="option-info">
-              <strong>Música de Fondo (BGM)</strong>
-              <span>Música ambiental zen para concentración</span>
+              <strong data-i18n="options.bgm">Background Music (BGM)</strong>
+              <span data-i18n="options.bgm_desc">Ambient zen focus music</span>
             </div>
-            <button id="opt-bgm-toggle" class="btn btn-toggle active">Activado</button>
+            <button id="opt-bgm-toggle" class="btn btn-toggle active">Enabled</button>
           </div>
 
-          <!-- Atajos de Teclado -->
           <div class="options-shortcuts-section">
-            <h3 class="shortcuts-title">⌨️ Atajos de Teclado</h3>
+            <h3 class="shortcuts-title" data-i18n="options.shortcuts_title">⌨️ Keyboard Shortcuts</h3>
             <div class="shortcuts-grid">
               <div class="shortcut-item">
-                <kbd class="key-badge">Espacio</kbd>
-                <span>Pasar Turno</span>
+                <kbd class="key-badge">Space</kbd>
+                <span data-i18n="options.shortcut_pass">Pass Turn</span>
               </div>
               <div class="shortcut-item">
                 <kbd class="key-badge">U</kbd>
-                <span>Deshacer (Rebobinar)</span>
+                <span data-i18n="options.shortcut_undo">Undo (Time Rewind)</span>
               </div>
               <div class="shortcut-item">
                 <kbd class="key-badge">R</kbd>
-                <span>Rotar Dominó 2x1 [⇄/⇅] / Rehacer</span>
+                <span data-i18n="options.shortcut_rotate">Rotate Duplicity 2x1 [⇄/⇅] / Redo</span>
               </div>
               <div class="shortcut-item">
                 <kbd class="key-badge">1 - 4</kbd>
-                <span>Hechizos (1: Rebob., 2: Met., 3: Escudo, 4: Inversión)</span>
+                <span data-i18n="options.shortcut_spells">Spells (1: Rewind, 2: Meteor, 3: Shield, 4: Convert)</span>
               </div>
               <div class="shortcut-item">
-                <kbd class="key-badge">6 - 8</kbd>
-                <span>Poliminós (6: Germinante 🌿, 7: Dominó 🀄, 8: Monolito 🧱)</span>
+                <kbd class="key-badge">5 - 7</kbd>
+                <span data-i18n="options.shortcut_poly">Polyominoes (5/Z: Sprouting 🌿, 6/X: Duplicity 🀄, 7/V: Monolith 🧱)</span>
+              </div>
+              <div class="shortcut-item">
+                <kbd class="key-badge">C</kbd>
+                <span data-i18n="options.shortcut_champion">Champion Active Skill</span>
               </div>
               <div class="shortcut-item">
                 <kbd class="key-badge">M / Esc</kbd>
-                <span>Opciones / Cerrar Ventanas</span>
+                <span data-i18n="options.shortcut_options">Options / Close Dialogs</span>
               </div>
             </div>
           </div>
@@ -1334,103 +1332,97 @@
       </div>
     </div>
 
-    <!-- ================= MODAL: PUNTUACIÓN FINAL Y VICTORIA UNIFICADA ================= -->
+    <!-- ================= MODAL: FINAL SCORING & VICTORY ================= -->
     <div id="score-modal" class="modal-backdrop hidden">
       <div class="modal-card modal-score modal-victory-unified" id="modal-score-card">
-        <!-- Arte Artístico del Campeón en Grande con Transparencia en el Fondo -->
-        <img id="modal-victory-hero-art" src="/heroes/tengu.png" alt="Campeón" class="modal-victory-hero-bg hidden" />
+        <img id="modal-victory-hero-art" src="/heroes/tengu.png" alt="Champion" class="modal-victory-hero-bg hidden" />
 
         <div class="modal-score-content">
           <div class="victory-gold-title-row" id="modal-victory-title-row">
             <span class="victory-star left-star hidden" id="modal-star-left">⭐</span>
-            <h2 id="modal-winner-title">¡Victoria para Negras! ⚫</h2>
+            <h2 id="modal-winner-title">Victory for Black! ⚫</h2>
             <span class="victory-star right-star hidden" id="modal-star-right">⭐</span>
           </div>
-          <p id="modal-margin-subtitle" class="modal-subtitle">Diferencia: +5.5 puntos</p>
+          <p id="modal-margin-subtitle" class="modal-subtitle">Margin: +5.5 points</p>
 
           <div id="modal-score-breakdown-grid" class="score-breakdown-grid">
-            <!-- Columna Negras -->
             <div class="breakdown-col black-col" id="modal-col-p1">
-              <h3>⚫ Negras</h3>
-              <div class="score-row"><span>Territorio:</span><strong id="modal-b-terr">0</strong></div>
-              <div class="score-row"><span>Prisioneros:</span><strong id="modal-b-caps">0</strong></div>
+              <h3>⚫ Black</h3>
+              <div class="score-row"><span>Territory:</span><strong id="modal-b-terr">0</strong></div>
+              <div class="score-row"><span>Prisoners:</span><strong id="modal-b-caps">0</strong></div>
               <div class="score-row total-row"><span>Total:</span><strong id="modal-b-total">0</strong></div>
             </div>
 
-            <!-- Columna Blancas -->
             <div class="breakdown-col white-col" id="modal-col-p2">
-              <h3>⚪ Blancas</h3>
-              <div class="score-row"><span>Territorio:</span><strong id="modal-w-terr">0</strong></div>
-              <div class="score-row"><span>Prisioneros:</span><strong id="modal-w-caps">0</strong></div>
+              <h3>⚪ White</h3>
+              <div class="score-row"><span>Territory:</span><strong id="modal-w-terr">0</strong></div>
+              <div class="score-row"><span>Prisoners:</span><strong id="modal-w-caps">0</strong></div>
               <div class="score-row"><span>Komi:</span><strong id="modal-w-komi">+2.5</strong></div>
               <div class="score-row total-row"><span>Total:</span><strong id="modal-w-total">2.5</strong></div>
             </div>
 
-            <!-- Columna Esmeralda (P3) -->
             <div class="breakdown-col green-col hidden" id="modal-col-p3">
-              <h3>🟢 Esmeralda</h3>
-              <div class="score-row"><span>Territorio:</span><strong id="modal-g-terr">0</strong></div>
-              <div class="score-row"><span>Prisioneros:</span><strong id="modal-g-caps">0</strong></div>
+              <h3>🟢 Emerald</h3>
+              <div class="score-row"><span>Territory:</span><strong id="modal-g-terr">0</strong></div>
+              <div class="score-row"><span>Prisoners:</span><strong id="modal-g-caps">0</strong></div>
               <div class="score-row total-row"><span>Total:</span><strong id="modal-g-total">0</strong></div>
             </div>
 
-            <!-- Columna Amatista (P4) -->
             <div class="breakdown-col purple-col hidden" id="modal-col-p4">
-              <h3>🟣 Amatista</h3>
-              <div class="score-row"><span>Territorio:</span><strong id="modal-p-terr">0</strong></div>
-              <div class="score-row"><span>Prisioneros:</span><strong id="modal-p-caps">0</strong></div>
+              <h3>🟣 Amethyst</h3>
+              <div class="score-row"><span>Territory:</span><strong id="modal-p-terr">0</strong></div>
+              <div class="score-row"><span>Prisoners:</span><strong id="modal-p-caps">0</strong></div>
               <div class="score-row total-row"><span>Total:</span><strong id="modal-p-total">0</strong></div>
             </div>
           </div>
 
-          <!-- SECCIÓN DE RECOMPENSAS ROGUELIKE INTEGRADA EN EL MISMO MENÚ -->
+          <!-- ROGUELIKE REWARDS SECTION -->
           <div id="modal-rogue-rewards-section" class="modal-rogue-rewards-section hidden">
             <label class="setup-label" style="text-align: left; display: block; margin-bottom: 0.5rem;">
-              🎁 Elige 1 Recompensa para tu Mazo (Selección Única):
+              🎁 Choose 1 Reward for your Deck:
             </label>
             <div class="reward-cards-grid" id="modal-reward-cards-container">
-              <!-- Inyectado dinámicamente -->
+              <!-- Dynamically injected -->
             </div>
           </div>
 
           <div class="modal-footer">
-            <button id="btn-modal-inspect" class="btn btn-modal-secondary">👁️ Inspeccionar Tablero</button>
-            <button id="btn-modal-rematch" class="btn btn-modal-primary">Nueva Partida 🔄</button>
+            <button id="btn-modal-inspect" class="btn btn-modal-secondary">👁️ Inspect Board</button>
+            <button id="btn-modal-rematch" class="btn btn-modal-primary">New Match 🔄</button>
           </div>
         </div>
       </div>
     </div>
 
-    <!-- ================= MODAL: EVENTO DE SANTUARIO / DESCANSO / TIENDA ================= -->
+    <!-- ================= MODAL: SHRINE / REST / SHOP EVENT ================= -->
     <div id="rogue-event-modal" class="modal-backdrop hidden">
       <div class="modal-card modal-event">
         <div class="modal-header">
-          <h2 id="event-modal-title">⛩️ Santuario Sagrado</h2>
-          <p id="event-modal-subtitle" class="modal-desc">Un lugar de paz en tu senda de Go</p>
+          <h2 id="event-modal-title">⛩️ Sacred Shrine</h2>
+          <p id="event-modal-subtitle" class="modal-desc">A place of tranquility along your Go journey</p>
         </div>
 
         <div class="modal-body-scroll" id="event-body-content">
-          <!-- Inyectado dinámicamente según sea Santuario, Descanso o Tienda -->
+          <!-- Injected dynamically -->
         </div>
 
         <div class="modal-footer">
-          <button id="btn-event-leave" class="btn btn-modal-secondary">Continuar Ruta ➔</button>
+          <button id="btn-event-leave" class="btn btn-modal-secondary">Continue Path ➔</button>
         </div>
       </div>
     </div>
 
-    <!-- ================= MODAL: MAZO DE PERGAMINOS Y ESTADO ROGUELIKE ================= -->
+    <!-- ================= MODAL: EXPEDITION DECK & STATS ================= -->
     <div id="rogue-deck-modal" class="modal-backdrop hidden">
       <div class="modal-card modal-deck">
         <div class="modal-header">
-          <h2>📜 Mazo y Reliquias de la Expedición</h2>
-          <p class="modal-desc">Inspecciona los pergaminos, habilidades y bendiciones activas en tu viaje.</p>
+          <h2>📜 Expedition Deck & Relics</h2>
+          <p class="modal-desc">Inspect spells, skills, and blessings active in your expedition.</p>
         </div>
 
         <div class="modal-body-scroll">
-          <!-- Tarjeta del Campeón -->
           <div class="deck-hero-banner">
-            <img id="deck-hero-img" src="/heroes/tengu.jpg" alt="Campeón" />
+            <img id="deck-hero-img" src="/heroes/tengu.png" alt="Champion" />
             <div class="deck-hero-info">
               <div class="deck-hero-header">
                 <span id="deck-hero-icon" class="deck-hero-icon">🦅</span>
@@ -1439,279 +1431,271 @@
                 </div>
               </div>
               <div class="deck-skill-entry">
-                <span class="skill-tag active-tag">Activa</span>
-                <strong id="deck-hero-active-name">Lluvia Meteórica</strong>
+                <span class="skill-tag active-tag">Active</span>
+                <strong id="deck-hero-active-name">Meteor Strike</strong>
                 <p id="deck-hero-active-desc"></p>
               </div>
               <div class="deck-skill-entry">
-                <span class="skill-tag passive-tag">Pasiva</span>
-                <strong id="deck-hero-passive-name">Lluvia Pétrea</strong>
+                <span class="skill-tag passive-tag">Passive</span>
+                <strong id="deck-hero-passive-name">Stone Rain</strong>
                 <p id="deck-hero-passive-desc"></p>
               </div>
             </div>
           </div>
 
-          <!-- Reliquias y Bonificaciones -->
           <div class="deck-stats-row">
             <div class="deck-stat-pill">
-              <span>💎 Komi Permanente:</span>
+              <span>💎 Permanent Komi:</span>
               <strong id="deck-stat-komi">+0.0</strong>
             </div>
           </div>
 
-          <!-- Mazo de Hechizos -->
-          <label class="setup-label">Pergaminos Mágicos en tu Mazo:</label>
+          <label class="setup-label">Magic Spell Scrolls in Deck:</label>
           <div class="deck-spells-grid" id="deck-spells-container">
-            <!-- Inyectado dinámicamente -->
+            <!-- Dynamically injected -->
           </div>
         </div>
 
         <div class="modal-footer">
-          <button id="btn-deck-close" class="btn btn-modal-primary">Volver al Mapa 🗺️</button>
+          <button id="btn-deck-close" class="btn btn-modal-primary">Return to Map 🗺️</button>
         </div>
       </div>
     </div>
 
-    <!-- ================= MODAL: LABORATORIO DE PRUEBAS & TROUBLESHOOTER ================= -->
+    <!-- ================= MODAL: TESTING LAB & TROUBLESHOOTER ================= -->
     <div id="modal-sandbox" class="modal-backdrop hidden">
       <div class="modal-card modal-sandbox-panel">
         <div class="modal-header sandbox-header">
           <div class="sandbox-title-group">
-            <h2>🧪 Laboratorio de Pruebas & Troubleshooter</h2>
-            <p class="modal-desc">Editor de tableros en vivo, simulador de situaciones, tests de reglas y depuración</p>
+            <h2>🧪 Testing Lab & Troubleshooter</h2>
+            <p class="modal-desc">Live board editor, situation simulator, canonical rule tests & debugging</p>
           </div>
           <button id="btn-toggle-sandbox-brush" class="btn-sandbox-brush-toggle active">
-            🖌️ Pincel Libre Activado
+            🖌️ Free Brush Enabled
           </button>
         </div>
 
-        <!-- Pestañas de Herramientas -->
         <div class="sandbox-tabs-nav">
-          <button class="sandbox-tab-btn active" data-tab="tab-sandbox-brushes">🖌️ Pinceles</button>
-          <button class="sandbox-tab-btn" data-tab="tab-sandbox-topology">🗺️ Topología & Tamaño</button>
-          <button class="sandbox-tab-btn" data-tab="tab-sandbox-presets">🎯 Escenarios Predefinidos</button>
-          <button class="sandbox-tab-btn" data-tab="tab-sandbox-cheats">⚡ Hechizos & Campeones</button>
+          <button class="sandbox-tab-btn active" data-tab="tab-sandbox-brushes">🖌️ Brushes</button>
+          <button class="sandbox-tab-btn" data-tab="tab-sandbox-topology">🗺️ Topology & Size</button>
+          <button class="sandbox-tab-btn" data-tab="tab-sandbox-presets">🎯 Preset Scenarios</button>
+          <button class="sandbox-tab-btn" data-tab="tab-sandbox-cheats">⚡ Spells & Champions</button>
         </div>
 
         <div class="modal-body-scroll sandbox-body">
-          <!-- PESTAÑA 1: PINCELES DE COLOCACIÓN DIRECTA -->
           <div id="tab-sandbox-brushes" class="sandbox-tab-pane active">
             <div class="sandbox-section">
-              <label class="setup-label">Pinceles de Piedras (Colocación directa al hacer clic)</label>
+              <label class="setup-label">Stone Brushes (Direct click placement)</label>
               <div class="sandbox-brush-grid">
-                <button class="btn-sandbox-brush active" data-brush="stone_black" title="Colocar Piedra Negra">
+                <button class="btn-sandbox-brush active" data-brush="stone_black" title="Place Black Stone">
                   <span class="mini-stone black-mini"></span>
-                  <span>⚫ Negras P1</span>
+                  <span>⚫ Black P1</span>
                 </button>
-                <button class="btn-sandbox-brush" data-brush="stone_white" title="Colocar Piedra Blanca">
+                <button class="btn-sandbox-brush" data-brush="stone_white" title="Place White Stone">
                   <span class="mini-stone white-mini"></span>
-                  <span>⚪ Blancas P2</span>
+                  <span>⚪ White P2</span>
                 </button>
-                <button class="btn-sandbox-brush" data-brush="stone_green" title="Colocar Piedra Esmeralda">
+                <button class="btn-sandbox-brush" data-brush="stone_green" title="Place Emerald Stone">
                   <span class="mini-stone green-mini"></span>
-                  <span>🟢 Esmeralda P3</span>
+                  <span>🟢 Emerald P3</span>
                 </button>
-                <button class="btn-sandbox-brush" data-brush="stone_purple" title="Colocar Piedra Amatista">
+                <button class="btn-sandbox-brush" data-brush="stone_purple" title="Place Amethyst Stone">
                   <span class="mini-stone purple-mini"></span>
-                  <span>🟣 Amatista P4</span>
+                  <span>🟣 Amethyst P4</span>
                 </button>
-                <button class="btn-sandbox-brush" data-brush="stone_sacred" title="Colocar Piedra Sagrada Inmune a Capturas">
+                <button class="btn-sandbox-brush" data-brush="stone_sacred" title="Place Sacred Indestructible Stone">
                   <span class="brush-icon">🛡️</span>
-                  <span>Piedra Sagrada</span>
+                  <span>Sacred Stone</span>
                 </button>
               </div>
             </div>
 
             <div class="sandbox-section">
-              <label class="setup-label">Fichas Poliminó de Prueba</label>
+              <label class="setup-label">Polyomino Stones</label>
               <div class="sandbox-brush-grid">
-                <button class="btn-sandbox-brush" data-brush="poly_sprouting" title="Colocar Piedra Germinante (Brota cada 2 turnos)">
+                <button class="btn-sandbox-brush" data-brush="poly_sprouting" title="Place Sprouting Stone (Sprouts every 2 turns)">
                   <span class="brush-icon">🌿</span>
-                  <span>Germinante 1x1</span>
+                  <span>Sprouting 1x1</span>
                 </button>
-                <button class="btn-sandbox-brush" data-brush="poly_domino" title="Colocar Dominó 2x1">
+                <button class="btn-sandbox-brush" data-brush="poly_domino" title="Place Duplicity Stone 2x1">
                   <span class="brush-icon">🀄</span>
-                  <span>Dominó 2x1</span>
+                  <span>Duplicity 2x1</span>
                 </button>
-                <button class="btn-sandbox-brush" data-brush="poly_monolith" title="Colocar Monolito 2x2">
+                <button class="btn-sandbox-brush" data-brush="poly_monolith" title="Place Monolith 2x2">
                   <span class="brush-icon">🧱</span>
-                  <span>Monolito 2x2</span>
+                  <span>Monolith 2x2</span>
                 </button>
               </div>
             </div>
 
             <div class="sandbox-section">
-              <label class="setup-label">Terrenos Especiales & Herramientas</label>
+              <label class="setup-label">Special Terrains & Tools</label>
               <div class="sandbox-brush-grid">
-                <button class="btn-sandbox-brush" data-brush="terrain_portal" title="Convertir nodo en Portal Espacial">
+                <button class="btn-sandbox-brush" data-brush="terrain_portal" title="Convert node to Spatial Portal">
                   <span class="brush-icon">🌌</span>
                   <span>Portal</span>
                 </button>
-                <button class="btn-sandbox-brush" data-brush="terrain_vortex" title="Convertir nodo en Vórtice Dimensional">
+                <button class="btn-sandbox-brush" data-brush="terrain_vortex" title="Convert node to Dimensional Vortex">
                   <span class="brush-icon">🌀</span>
-                  <span>Vórtice</span>
+                  <span>Vortex</span>
                 </button>
-                <button class="btn-sandbox-brush" data-brush="terrain_sanctuary" title="Convertir nodo en Santuario">
+                <button class="btn-sandbox-brush" data-brush="terrain_sanctuary" title="Convert node to Sanctuary">
                   <span class="brush-icon">⛩️</span>
-                  <span>Santuario</span>
+                  <span>Sanctuary</span>
                 </button>
-                <button class="btn-sandbox-brush" data-brush="terrain_destroyed" title="Destruir intersección (Hoyo)">
+                <button class="btn-sandbox-brush" data-brush="terrain_destroyed" title="Destroy intersection (Void Hole)">
                   <span class="brush-icon">🪨</span>
-                  <span>Destruido</span>
+                  <span>Destroyed</span>
                 </button>
-                <button class="btn-sandbox-brush" data-brush="terrain_normal" title="Restaurar intersección a Normal">
+                <button class="btn-sandbox-brush" data-brush="terrain_normal" title="Restore intersection to Normal">
                   <span class="brush-icon">⏹️</span>
                   <span>Normal</span>
                 </button>
-                <button class="btn-sandbox-brush btn-eraser-brush" data-brush="eraser" title="Borrar piedra y restaurar casilla">
+                <button class="btn-sandbox-brush btn-eraser-brush" data-brush="eraser" title="Erase stone & reset node">
                   <span class="brush-icon">🧹</span>
-                  <span>Borrador</span>
+                  <span>Eraser</span>
                 </button>
               </div>
             </div>
 
             <div class="sandbox-actions-row">
               <button id="btn-sandbox-clear-board" class="btn btn-choice btn-sandbox-action">
-                <span>🧹 Limpiar Todo el Tablero</span>
+                <span>🧹 Clear Entire Board</span>
               </button>
             </div>
           </div>
 
-          <!-- PESTAÑA 2: TOPOLOGÍA & TAMAÑO EN CALIENTE -->
           <div id="tab-sandbox-topology" class="sandbox-tab-pane">
             <div class="sandbox-section">
-              <label class="setup-label">Forma del Tablero en Vivo</label>
+              <label class="setup-label">Live Board Shape</label>
               <div class="setup-grid grid-4">
-                <button class="btn btn-choice btn-sandbox-shape active" data-shape="square">⏹️ Cuadrado</button>
-                <button class="btn btn-choice btn-sandbox-shape" data-shape="eroded">🪨 Erosionado</button>
-                <button class="btn btn-choice btn-sandbox-shape" data-shape="islands">🕳️ Islas / Abismos</button>
-                <button class="btn btn-choice btn-sandbox-shape" data-shape="cross">➕ Cruz / Diamante</button>
+                <button class="btn btn-choice btn-sandbox-shape active" data-shape="square">⏹️ Square</button>
+                <button class="btn btn-choice btn-sandbox-shape" data-shape="eroded">🪨 Eroded</button>
+                <button class="btn btn-choice btn-sandbox-shape" data-shape="islands">🕳️ Islands / Abysses</button>
+                <button class="btn btn-choice btn-sandbox-shape" data-shape="cross">➕ Cross / Diamond</button>
                 <button class="btn btn-choice btn-sandbox-shape" data-shape="triangle">🔺 Triangular</button>
                 <button class="btn btn-choice btn-sandbox-shape" data-shape="hex">⬡ Hexagonal</button>
-                <button class="btn btn-choice btn-sandbox-shape" data-shape="procedural">🎲 Procedural (Infinito)</button>
+                <button class="btn btn-choice btn-sandbox-shape" data-shape="procedural">🎲 Procedural (Infinite)</button>
               </div>
             </div>
 
             <div class="sandbox-section">
-              <label class="setup-label">Tamaño de la Cuadrícula</label>
+              <label class="setup-label">Grid Size</label>
               <div class="setup-grid grid-3">
-                <button class="btn btn-choice btn-sandbox-size active" data-size="9">9x9 (Rápido)</button>
-                <button class="btn btn-choice btn-sandbox-size" data-size="13">13x13 (Medio)</button>
-                <button class="btn btn-choice btn-sandbox-size" data-size="19">19x19 (Oficial)</button>
+                <button class="btn btn-choice btn-sandbox-size active" data-size="9">9x9 (Fast)</button>
+                <button class="btn btn-choice btn-sandbox-size" data-size="13">13x13 (Medium)</button>
+                <button class="btn btn-choice btn-sandbox-size" data-size="19">19x19 (Official)</button>
               </div>
             </div>
 
             <button id="btn-sandbox-apply-topology" class="btn btn-modal-primary" style="margin-top:0.5rem;">
-              <span>🔄 Re-generar Tablero</span>
+              <span>🔄 Re-generate Board</span>
             </button>
           </div>
 
-          <!-- PESTAÑA 3: ESCENARIOS PREDEFINIDOS (TESTS DE REGLAS) -->
           <div id="tab-sandbox-presets" class="sandbox-tab-pane">
-            <p class="sandbox-help-text">Carga situaciones preparadas para comprobar y depurar las reglas canónicas y efectos mágicos:</p>
+            <p class="sandbox-help-text">Load prepared situations to test and debug canonical rules and effects:</p>
             <div class="sandbox-presets-list">
               <button class="sandbox-preset-card" data-preset="ko_test">
                 <div class="preset-icon">🔄</div>
                 <div class="preset-info">
-                  <strong>Test de Regla de Ko</strong>
-                  <span>Configura un Ko simple. Juega en (4,4) para capturar y comprueba que la recaptura inmediata está bloqueada.</span>
+                  <strong>Ko Rule Test</strong>
+                  <span>Sets up simple Ko. Play at (4,4) to capture and verify immediate recapture is blocked.</span>
                 </div>
               </button>
 
               <button class="sandbox-preset-card" data-preset="atari_chain">
                 <div class="preset-icon">💥</div>
                 <div class="preset-info">
-                  <strong>Test de Atari Múltiple</strong>
-                  <span>Cadena de 4 piedras en Atari rodeada dejando 1 sola libertad libre para probar capturas en cadena.</span>
+                  <strong>Multiple Atari Test</strong>
+                  <span>Chain of 4 stones in Atari with 1 open liberty to test cascading captures.</span>
                 </div>
               </button>
 
               <button class="sandbox-preset-card" data-preset="sacred_test">
                 <div class="preset-icon">🛡️</div>
                 <div class="preset-info">
-                  <strong>Test de Piedra Sagrada</strong>
-                  <span>Piedra Sagrada dorada con 0 libertades que no puede ser capturada por el oponente.</span>
+                  <strong>Sacred Stone Test</strong>
+                  <span>Golden Sacred Stone with 0 liberties that cannot be captured by the opponent.</span>
                 </div>
               </button>
 
               <button class="sandbox-preset-card" data-preset="two_eyes_alive">
                 <div class="preset-icon">🏰</div>
                 <div class="preset-info">
-                  <strong>Test de 2 Ojos Vivos & Territorio</strong>
-                  <span>Grupo vivo incondicional para probar el conteo de puntuación japonesa.</span>
+                  <strong>Two Living Eyes & Territory Test</strong>
+                  <span>Unconditionally alive group to test Japanese scoring flood-fill algorithm.</span>
                 </div>
               </button>
 
               <button class="sandbox-preset-card" data-preset="islands_sprout">
                 <div class="preset-icon">🌿</div>
                 <div class="preset-info">
-                  <strong>Test de Islas & Germinante</strong>
-                  <span>Tablero con abismos interiores y una Piedra Germinante brotando en puentes estrechos.</span>
+                  <strong>Islands & Sprouting Test</strong>
+                  <span>Board with interior abysses and a Sprouting Stone budding across narrow bridges.</span>
                 </div>
               </button>
             </div>
           </div>
 
-          <!-- PESTAÑA 4: HECHIZOS, CAMPEONES & TURNO -->
           <div id="tab-sandbox-cheats" class="sandbox-tab-pane">
             <div class="sandbox-section">
-              <label class="setup-label">Cambiar Campeón Activo en Vivo</label>
+              <label class="setup-label">Live Champion Swap</label>
               <div class="sandbox-brush-grid">
-                <button class="btn btn-choice btn-sandbox-hero active" data-hero="normal">👤 Hombre Normal</button>
+                <button class="btn btn-choice btn-sandbox-hero active" data-hero="normal">👤 Normal Apprentice</button>
                 <button class="btn btn-choice btn-sandbox-hero" data-hero="tengu">🦅 Tengu</button>
                 <button class="btn btn-choice btn-sandbox-hero" data-hero="himiko">🌧️ Himiko</button>
                 <button class="btn btn-choice btn-sandbox-hero" data-hero="kitsune">🦊 Kitsune</button>
                 <button class="btn btn-choice btn-sandbox-hero" data-hero="ronin">⚡ Ronin</button>
                 <button class="btn btn-choice btn-sandbox-hero" data-hero="ryujin">🐲 Ryūjin</button>
-                <button class="btn btn-choice btn-sandbox-hero" data-hero="grey_dragon_boss">🐉 Dragón Sabio Gris</button>
-                <button class="btn btn-choice btn-sandbox-hero" data-hero="classic">🥋 Maestro Clásico</button>
+                <button class="btn btn-choice btn-sandbox-hero" data-hero="grey_dragon_boss">🐉 Grey Wise Dragon</button>
               </div>
             </div>
 
             <div class="sandbox-section">
-              <label class="setup-label">⚡ Ejecutar Habilidades a Voluntad (Infinitos Usos)</label>
+              <label class="setup-label">⚡ Trigger Skills at Will (Infinite Uses)</label>
               <div class="sandbox-actions-grid" style="display:grid; grid-template-columns: repeat(2, 1fr); gap: 0.65rem;">
                 <button id="btn-sandbox-trigger-active" class="btn btn-hero" style="font-size:0.9rem; padding:0.75rem 0.6rem;">
-                  <span>⚔️ Activar Habilidad Activa</span>
+                  <span>⚔️ Trigger Active Skill</span>
                 </button>
                 <button id="btn-sandbox-trigger-passive" class="btn btn-choice" style="font-size:0.9rem; padding:0.75rem 0.6rem; background:rgba(139,92,246,0.15); border-color:rgba(139,92,246,0.4); color:#c4b5fd; font-weight:700;">
-                  <span>✨ Forzar Disparo Pasiva</span>
+                  <span>✨ Force Trigger Passive</span>
                 </button>
               </div>
             </div>
 
             <div class="sandbox-section">
-              <label class="setup-label">🔥 Habilidades Especiales Instantáneas</label>
+              <label class="setup-label">🔥 Instant Champion Spells</label>
               <div class="sandbox-brush-grid">
                 <button id="btn-sandbox-force-stone-rain" class="btn btn-choice" style="font-size:0.82rem; padding:0.6rem;">
-                  <span>🌧️ Lluvia Pétrea Himiko</span>
+                  <span>🌧️ Himiko Celestial Stone Rain</span>
                 </button>
                 <button id="btn-sandbox-force-dragon-burn" class="btn btn-choice" style="font-size:0.82rem; padding:0.6rem;">
-                  <span>🐉 Calcinar Esquina (Dragón 25%)</span>
+                  <span>🐉 Dragon Corner Incineration (25%)</span>
                 </button>
                 <button id="btn-sandbox-force-shield" class="btn btn-choice" style="font-size:0.82rem; padding:0.6rem;">
-                  <span>🛡️ Escudo Divino Sagrado</span>
+                  <span>🛡️ Divine Sacred Shield</span>
                 </button>
                 <button id="btn-sandbox-force-convert" class="btn btn-choice" style="font-size:0.82rem; padding:0.6rem;">
-                  <span>🌪️ Inversión Cromática Ronin</span>
+                  <span>🌪️ Chromatic Inversion Transmutation</span>
                 </button>
               </div>
             </div>
 
             <div class="sandbox-section">
-              <label class="setup-label">Recursos y Cargas</label>
+              <label class="setup-label">Resources & Charges</label>
               <button id="btn-sandbox-infinite-spells" class="btn btn-hero" style="width:100%; font-size:0.9rem;">
-                <span>⚡ Otorgar 99 Cargas a Todos los Hechizos, Poliminós y Campeón</span>
+                <span>⚡ Grant 99 Charges to All Spells, Polyominoes & Champion</span>
               </button>
             </div>
 
             <div class="sandbox-section">
-              <label class="setup-label">Forzar Turno a Jugador</label>
+              <label class="setup-label">Force Turn to Player</label>
               <div class="setup-grid grid-4">
-                <button class="btn btn-choice btn-sandbox-turn" data-turn="1">⚫ Jugador 1</button>
-                <button class="btn btn-choice btn-sandbox-turn" data-turn="2">⚪ Jugador 2</button>
-                <button class="btn btn-choice btn-sandbox-turn" data-turn="3">🟢 Jugador 3</button>
-                <button class="btn btn-choice btn-sandbox-turn" data-turn="4">🟣 Jugador 4</button>
+                <button class="btn btn-choice btn-sandbox-turn" data-turn="1">⚫ Player 1</button>
+                <button class="btn btn-choice btn-sandbox-turn" data-turn="2">⚪ Player 2</button>
+                <button class="btn btn-choice btn-sandbox-turn" data-turn="3">🟢 Player 3</button>
+                <button class="btn btn-choice btn-sandbox-turn" data-turn="4">🟣 Player 4</button>
               </div>
             </div>
           </div>
@@ -1719,72 +1703,72 @@
 
         <div class="modal-footer">
           <button id="btn-sandbox-close" class="btn btn-modal-primary">
-            <span>✅ Cerrar Panel y Volver al Tablero</span>
+            <span>✅ Close Panel & Return to Board</span>
           </button>
         </div>
       </div>
     </div>
 
-    <!-- ================= MODAL: MODO HISTORIA (ROADMAP & CONCEPTOS) ================= -->
+    <!-- ================= MODAL: STORY MODE ================= -->
     <div id="modal-story-mode" class="modal-backdrop hidden">
       <div class="modal-content modal-story-dialog">
         <div class="modal-header">
           <div class="story-modal-title-group">
-            <span class="story-badge-dev">🚧 EN DESARROLLO • PRÓXIMAMENTE</span>
-            <h2 class="modal-title">📖 Modo Historia: Las Crónicas del Goban</h2>
+            <span class="story-badge-dev">🚧 CHAPTER SELECT</span>
+            <h2 class="modal-title">📖 Story Mode: The Goban Chronicles</h2>
           </div>
-          <button id="btn-story-modal-close-icon" class="btn-modal-close-icon" title="Cerrar">✕</button>
+          <button id="btn-story-modal-close-icon" class="btn-modal-close-icon" title="Close">✕</button>
         </div>
         <div class="modal-body story-modal-body">
           <div class="story-concept-card">
-            <h3 class="story-section-title">🎯 Misiones Tácticas & Objetivos Especiales</h3>
-            <p class="story-section-desc">En lugar de solo ganar por territorio, cada capítulo de la historia te encomendará misiones legendarias en el campo de batalla:</p>
+            <h3 class="story-section-title">🎯 Tactical Missions & Special Objectives</h3>
+            <p class="story-section-desc">Instead of standard territory scoring, each story chapter entrusts you with tactical battlefield missions:</p>
             <div class="story-features-grid">
               <div class="story-feature-item">
                 <span class="story-feature-icon">🧙</span>
                 <div class="story-feature-text">
-                  <strong>Rescate de Rehenes</strong>
-                  <span>Rodea las libertades cardinales de los Monjes Sabios cautivos antes de que el clan rival los consume.</span>
+                  <strong>Hostage Rescue</strong>
+                  <span>Enclose the cardinal liberties of captive Wise Monks before rival clans consume them.</span>
                 </div>
               </div>
               <div class="story-feature-item">
                 <span class="story-feature-icon">🎁</span>
                 <div class="story-feature-text">
-                  <strong>Cofres del Santuario</strong>
-                  <span>Abre cofres dorados cercando su perímetro para desbloquear reliquias y fichas exclusivas del clan.</span>
+                  <strong>Shrine Chests</strong>
+                  <span>Unlock golden chests by securing their surrounding perimeter to obtain relics.</span>
                 </div>
               </div>
               <div class="story-feature-item">
                 <span class="story-feature-icon">📜</span>
                 <div class="story-feature-text">
-                  <strong>Pergaminos Sagrados</strong>
-                  <span>Recupera las escrituras arcanas en arenas asimétricas hostiles bajo límites estrictos de turnos.</span>
+                  <strong>Sacred Scrolls</strong>
+                  <span>Recover arcane scriptures in asymmetric arenas within strict turn limits.</span>
                 </div>
               </div>
               <div class="story-feature-item">
                 <span class="story-feature-icon">✨</span>
                 <div class="story-feature-text">
-                  <strong>Espíritus Guardianes</strong>
-                  <span>Purifica los altares ancestrales conectando tus cadenas de piedras vivas con dos ojos inmóviles.</span>
+                  <strong>Guardian Spirits</strong>
+                  <span>Purify ancestral altars by connecting living stone formations with two eyes.</span>
                 </div>
               </div>
             </div>
           </div>
 
           <div class="story-campaigns-preview">
-            <h3 class="story-section-title">⛩️ Campañas de los Campeones</h3>
+            <h3 class="story-section-title">⛩️ Champion Campaigns</h3>
             <div class="story-chapters-list">
-              <div class="story-chapter-chip">🦅 Cap. I: El Vuelo del Tengu (Viento y Meteoros)</div>
-              <div class="story-chapter-chip">✨ Cap. II: La Luz Sagrada de Himiko</div>
-              <div class="story-chapter-chip">⚡ Cap. III: La Venganza del Ronin Exiliado</div>
-              <div class="story-chapter-chip">⚗️ Cap. IV: La Gran Obra del Alquimista</div>
-              <div class="story-chapter-chip">🐉 Cap. V: El Despertar de Ryūjin</div>
+              <div class="story-chapter-chip">🦅 Chap. I: The Flight of the Tengu (Wind & Meteors)</div>
+              <div class="story-chapter-chip">✨ Chap. II: Himiko's Sacred Light</div>
+              <div class="story-chapter-chip">⚡ Chap. III: Vengeance of the Exiled Ronin</div>
+              <div class="story-chapter-chip">⚗️ Chap. IV: The Alchemist's Magnum Opus</div>
+              <div class="story-chapter-chip">🐉 Chap. V: Awakening of Ryūjin</div>
             </div>
           </div>
         </div>
         <div class="modal-footer">
           <button id="btn-story-modal-close" class="btn btn-modal-primary">
-            <span>⚔️ ¡Entendido! Volver al Menú</span>
+            <span>⚔️ Understood! Return to Menu</span>
           </button>
         </div>
       </div>

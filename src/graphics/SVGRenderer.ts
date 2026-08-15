@@ -10,6 +10,7 @@ import { HUDController } from '../ui/HUDController';
 import { SVGDefs } from './SVGDefs';
 import { SVGGhostPreview } from './SVGGhostPreview';
 import { TutorialManager } from '../tutorial/TutorialManager';
+import { StoryController } from '../story/StoryController';
 
 export class SVGRenderer {
     private svgElement: SVGSVGElement;
@@ -662,7 +663,7 @@ export class SVGRenderer {
             }
 
             this.state.advanceTurn(this.board);
-            if (TutorialManager.isActive) {
+            if (TutorialManager.isActive || (StoryController && StoryController.isCurrentChapterSolo())) {
                 this.state.currentPlayer = 1;
                 this.isInteractive = true;
             }

@@ -5,9 +5,9 @@ import type { BoardSize } from '../../types';
 import { SoundFX } from '../../audio/SoundFX';
 
 export const KitsuneActiveSkill: ChampionActiveSkill = {
-    name: 'Escudo Divino',
+    name: 'Divine Shield',
     icon: '🛡️',
-    description: 'Selecciona una piedra aliada: se convierte en Piedra Sagrada con Aura Dorada indestructible e inmune a capturas y poderes durante 2 turnos (2 cargas en 9x9, 3 en 13x13, 4 en 19x19).',
+    description: 'Select an allied stone: it becomes a Sacred Stone with a Golden Aura, indestructible and immune to capture and skills for 2 turns (2 charges on 9x9, 3 on 13x13, 4 on 19x19).',
     targetingMode: 'shield_target'
 };
 
@@ -28,11 +28,11 @@ export class KitsuneChampion {
         }
 
         if (totalNodes > 220) {
-            return 4; // 19x19 -> 4 escudos divinos
+            return 4; // 19x19 -> 4 divine shields
         } else if (totalNodes > 100) {
-            return 3; // 13x13 -> 3 escudos divinos
+            return 3; // 13x13 -> 3 divine shields
         } else {
-            return 2; // 9x9 -> 2 escudos divinos
+            return 2; // 9x9 -> 2 divine shields
         }
     }
 
@@ -50,13 +50,13 @@ export class KitsuneChampion {
 
         if (!centerNode.stone || centerNode.stone.playerId !== playerId) {
             SoundFX.playIllegal();
-            onError('Debes seleccionar una piedra propia para bendecirla con el Escudo Divino.');
+            onError('You must select your own stone to bless with the Divine Shield.');
             return false;
         }
 
         if (centerNode.stone.isIndestructible) {
             SoundFX.playIllegal();
-            onError('Esta piedra ya está consagrada con un Escudo Divino y su Aura Dorada está activa.');
+            onError('This stone is already consecrated with a Divine Shield and its Golden Aura is active.');
             return false;
         }
 
@@ -64,8 +64,8 @@ export class KitsuneChampion {
         centerNode.stone.shieldTurnsLeft = 2;
 
         const remaining = Math.max(0, activeChargesLeft - 1);
-        const remainingText = remaining > 0 ? `(Queda ${remaining} carga)` : `(Cargas agotadas)`;
-        onSuccess(`🛡️✨ ¡Piedra Sagrada consagrada con Aura Dorada! Es indestructible e inmune a capturas y poderes durante 2 turnos. ${remainingText}`);
+        const remainingText = remaining > 0 ? `(${remaining} charge left)` : `(Charges depleted)`;
+        onSuccess(`🛡️✨ Sacred Stone consecrated with Golden Aura! It is indestructible and immune to capture for 2 turns. ${remainingText}`);
         onComplete();
         return true;
     }

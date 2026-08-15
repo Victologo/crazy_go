@@ -19,15 +19,15 @@ export class RogueliteManager {
     public static isRogueliteMode: boolean = false;
     public static nextStoneEffect: 'none' | 'shield' = 'none';
 
-    // Baraja de cartas disponibles para el jugador (4 hechizos místicos)
+    // Deck of available player spell scrolls
     public static playerSpells: Map<SpellId, SpellCard> = new Map([
         [
             'rewind',
             {
                 id: 'rewind',
-                name: 'Rebobinar',
+                name: 'Time Rewind',
                 icon: '⏳',
-                description: 'Deshace el último turno completo y restaura el tablero.',
+                description: 'Undoes the previous full turn and restores the board state.',
                 usesLeft: 2,
                 color: '#38bdf8'
             }
@@ -36,9 +36,9 @@ export class RogueliteManager {
             'meteor',
             {
                 id: 'meteor',
-                name: 'Meteorito',
+                name: 'Meteor Strike',
                 icon: '☄️',
-                description: 'Destruye una piedra enemiga al azar en el tablero.',
+                description: 'Destroys a random vulnerable enemy stone on the board.',
                 usesLeft: 0,
                 color: '#f43f5e'
             }
@@ -47,9 +47,9 @@ export class RogueliteManager {
             'shield',
             {
                 id: 'shield',
-                name: 'Piedra Sagrada',
+                name: 'Sacred Stone',
                 icon: '🛡️',
-                description: 'Tu siguiente piedra será indestructible e inmune a captura.',
+                description: 'Your next placed stone will be indestructible and immune to capture.',
                 usesLeft: 0,
                 color: '#fbbf24'
             }
@@ -58,9 +58,9 @@ export class RogueliteManager {
             'convert',
             {
                 id: 'convert',
-                name: 'Inversión Yin-Yang',
+                name: 'Yin-Yang Inversion',
                 icon: '☯️',
-                description: 'Transmuta una piedra enemiga en una piedra propia de tu color.',
+                description: 'Transmutes an enemy stone into an allied stone of your color.',
                 usesLeft: 0,
                 color: '#a855f7'
             }
@@ -100,7 +100,7 @@ export class RogueliteManager {
     }
 
     /**
-     * Ejecuta o activa un hechizo
+     * Executes or triggers a spell
      */
     public static castSpell(
         spellId: SpellId, 
@@ -112,7 +112,7 @@ export class RogueliteManager {
     ): boolean {
         const card = this.playerSpells.get(spellId);
         if (!card || card.usesLeft <= 0) {
-            onError('No te quedan usos de este hechizo.');
+            onError('No charges left for this spell scroll.');
             SoundFX.playIllegal();
             return false;
         }
@@ -120,11 +120,11 @@ export class RogueliteManager {
         switch (spellId) {
             case 'rewind': {
                 if (!state.canUndo()) {
-                    onError('No hay suficientes jugadas registradas para rebobinar.');
+                    onError('Not enough recorded turns to rewind.');
                     SoundFX.playIllegal();
                     return false;
                 }
-                // Deshacer de forma fiel con snapshots
+                // Undo snapshot
                 if (state.historyStack.length >= 2) {
                     state.undo(board);
                     state.undo(board);
@@ -134,12 +134,12 @@ export class RogueliteManager {
 
                 card.usesLeft--;
                 SoundFX.playUndo();
-                onSuccess('⏳ ¡Tiempo Rebobinado! Se ha restaurado la posición anterior fielmente.');
+                onSuccess('⏳ Time Rewound! The previous board position has been faithfully restored.');
                 return true;
             }
 
             case 'meteor': {
-                // Encontrar piedras enemigas no protegidas
+                // Find vulnerable enemy stones
                 const enemyPlayerId: PlayerId = playerId === 1 ? 2 : 1;
                 const enemyNodes: string[] = [];
 
@@ -150,12 +150,12 @@ export class RogueliteManager {
                 }
 
                 if (enemyNodes.length === 0) {
-                    onError('No hay piedras enemigas vulnerables para destruir con el meteorito.');
+                    onError('No vulnerable enemy stones found on the board.');
                     SoundFX.playIllegal();
                     return false;
                 }
 
-                // Destruir 1 piedra enemiga al azar
+                // Destroy 1 random enemy stone
                 const targetNodeId = enemyNodes[Math.floor(Math.random() * enemyNodes.length)];
                 const targetNode = board.nodes.get(targetNodeId);
                 if (targetNode) {
@@ -164,7 +164,7 @@ export class RogueliteManager {
                 card.usesLeft--;
 
                 SoundFX.playCapture();
-                onSuccess(`☄️ ¡Impacto Meteórico! Se destruyó una piedra enemiga.`);
+                onSuccess(`☄️ Meteor Impact! An enemy stone was obliterated.`);
                 return true;
             }
 
@@ -172,7 +172,7 @@ export class RogueliteManager {
                 this.nextStoneEffect = 'shield';
                 card.usesLeft--;
                 SoundFX.playPlaceStone();
-                onSuccess('🛡️ ¡Escudo Sagrado activado! Tu próxima piedra será indestructible durante 3 turnos.');
+                onSuccess('🛡️ Sacred Shield activated! Your next stone will be indestructible for 3 turns.');
                 return true;
             }
 
@@ -187,7 +187,7 @@ export class RogueliteManager {
                 }
 
                 if (candidateNodes.length === 0) {
-                    onError('No hay piedras enemigas vulnerables en el tablero para transmutar.');
+                    onError('No vulnerable enemy stones found to transmute.');
                     SoundFX.playIllegal();
                     return false;
                 }
@@ -206,8 +206,8 @@ export class RogueliteManager {
 
                 card.usesLeft--;
                 SoundFX.playPlaceStone();
-                const captureMsg = capturedCount > 0 ? ` ¡Y has capturado ${capturedCount} piedra(s) enemiga(s) que se quedaron sin libertades!` : '';
-                onSuccess(`☯️ ¡Inversión Yin-Yang! Una piedra enemiga ha sido transmutada a tu bando.${captureMsg}`);
+                const captureMsg = capturedCount > 0 ? ` And you captured ${capturedCount} enemy stone(s) stripped of liberties!` : '';
+                onSuccess(`☯️ Yin-Yang Inversion! An enemy stone was converted to your side.${captureMsg}`);
                 return true;
             }
         }

@@ -2,8 +2,8 @@
 import type { ChampionActiveSkill } from './types';
 
 export const BossActiveSkill: ChampionActiveSkill = {
-    name: 'Aliento Calcinante del Dragón',
+    name: 'Dragon’s Calcinating Breath',
     icon: '🐉',
-    description: 'Calcina una esquina equivalente al 25% del tablero destruyendo todas las piedras y colocando una piedra aliada en el centro del vacío.',
+    description: 'Incinerates a board corner equivalent to 25% of the board, destroying all stones and placing an allied stone in the center of the void.',
     targetingMode: 'none'
 };

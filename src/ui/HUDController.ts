@@ -8,6 +8,7 @@ import { BossManager } from '../core/BossManager';
 import { GameState } from '../core/GameState';
 import { TutorialManager } from '../tutorial/TutorialManager';
 import { NetworkManager } from '../network/NetworkManager';
+import { t } from '../i18n/i18n';
 
 export class HUDController {
     private static alertTimeout: number | null = null;
@@ -52,11 +53,11 @@ export class HUDController {
                 onlineBadge.classList.remove('hidden');
                 if (isLocalTurn) {
                     onlineBadge.style.borderColor = '#10b981';
-                    onlineBadgeText.innerText = '🟢 ¡Tu turno de mover!';
+                    onlineBadgeText.innerText = `🟢 ${t('hud.turn_human')}`;
                     onlineBadgeText.style.color = '#34d399';
                 } else {
                     onlineBadge.style.borderColor = '#f59e0b';
-                    onlineBadgeText.innerText = '⏳ Esperando al rival...';
+                    onlineBadgeText.innerText = `⏳ ${t('hud.online_waiting')}`;
                     onlineBadgeText.style.color = '#fbbf24';
                 }
             } else {
@@ -67,7 +68,7 @@ export class HUDController {
         // Indicador de turno y nombre
         if (playerIndicator && playerName) {
             if (state.isGameOver) {
-                playerName.innerText = "¡Partida Finalizada!";
+                playerName.innerText = t('hud.game_over');
                 playerIndicator.className = "stone-indicator";
             } else {
                 const cp = state.currentPlayer;
@@ -75,12 +76,12 @@ export class HUDController {
                 const turnClass = cp === 1 ? 'black-turn' : cp === 2 ? 'white-turn' : cp === 3 ? 'green-turn' : 'purple-turn';
                 playerIndicator.className = `stone-indicator ${turnClass}`;
 
-                let roleText = `(J${cp})`;
+                let roleText = `(P${cp})`;
                 if (currentMode === '1via') {
                     const diffLabel = this.getDifficultyLabel(difficulty);
-                    roleText = cp === humanColor ? "— ¡Tu Turno! 🎯" : `— Turno de la IA 🤖 (${diffLabel})`;
+                    roleText = cp === humanColor ? `— ${t('hud.turn_human')}` : `— ${t('hud.turn_ai')} (${diffLabel})`;
                 } else if (currentMode === 'online') {
-                    roleText = cp === localOnlineColor ? "— ¡Es tu turno! 🎯 (Te toca mover)" : "— Esperando al rival... ⏳";
+                    roleText = cp === localOnlineColor ? `— ${t('hud.turn_human')}` : `— ${t('hud.online_waiting')}`;
                 }
                 playerName.innerText = `${meta.name} ${meta.icon} ${roleText}`;
             }

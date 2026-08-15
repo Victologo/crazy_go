@@ -21,6 +21,7 @@ import { SandboxController, type SandboxBrush, type PresetScenario } from '../co
 import { TutorialManager } from '../tutorial/TutorialManager';
 import { KeyboardController } from './KeyboardController';
 import { StoryController } from '../story/StoryController';
+import { setLanguage } from '../i18n/i18n';
 
 export class AppEventBinder {
     public static init() {
@@ -884,6 +885,21 @@ export class AppEventBinder {
         document.getElementById('opt-bgm-toggle')?.addEventListener('click', () => {
             SoundFX.toggleBGM();
             ModalManager.updateOptionsModalUI();
+        });
+
+        // Selector de Idioma (Español / Inglés)
+        document.getElementById('opt-lang-es')?.addEventListener('click', () => {
+            setLanguage('es');
+            ModalManager.updateOptionsModalUI();
+            if (GameController.state) GameController.updateInGameUI();
+            SoundFX.playPlaceStone();
+        });
+
+        document.getElementById('opt-lang-en')?.addEventListener('click', () => {
+            setLanguage('en');
+            ModalManager.updateOptionsModalUI();
+            if (GameController.state) GameController.updateInGameUI();
+            SoundFX.playPlaceStone();
         });
 
         document.getElementById('btn-options-header-close')?.addEventListener('click', () => {

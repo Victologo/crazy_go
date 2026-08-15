@@ -1,14 +1,14 @@
 # Contexto Activo (Active Context) — Crazy Go
 
-> **Última Actualización:** 15 de Agosto de 2026 (Sesión 64)  
-> **Estado General:** ✅ Totalmente Funcional, Compilado en TypeScript/Vite (0 errores) y Probado.
+> **Última Actualización:** 15 de Agosto de 2026 (Sesión 65)  
+> **Estado General:** ✅ Totalmente Funcional, Compilado en TypeScript/Vite (0 errores), Localización Bilingüe (ES/EN) y Probado.
 
 ---
 
 ## 1. 📌 Visión y Estado Global del Proyecto
-Crazy Go es un roguelite estratégico basado en **Go Canónico** con topologías procedurales asimétricas, 6 Campeones Místicos balanceados, entidades capturables en el Goban, temporizadores clásicos de Go, fichas poliminó tácticas, hechizos consumibles y multijugador online P2P WebRTC (Duelo Competitivo y Roguelike Cooperativo).
+Crazy Go es un roguelite estratégico basado en **Go Canónico** con topologías procedurales asimétricas, 7 Campeones Místicos balanceados, entidades capturables en el Goban, temporizadores clásicos de Go, fichas poliminó tácticas, hechizos consumibles, multijugador online P2P WebRTC (Duelo Competitivo y Roguelike Cooperativo) y **Sistema Integral de Idiomas (Español / English)** en tiempo real.
 
-* **Fase Actual:** Fase 19 — Modo Historia: Crónicas del Goban (Campañas narrativas visuales).
+* **Fase Actual:** Fase 20 — Internacionalización y Localización Reactiva (i18n ES/EN).
 * **Plataforma:** Web (Vite + TS) y Desktop Nativo Windows (`CrazyGo.exe`).
 
 ---
@@ -34,7 +34,7 @@ El juego respeta la división estricta entre **Habilidades Activas** (con objeti
   2. **Objetos y Rehenes Capturables en el Goban:** Generación de entidades neutrales (Cofres 🎁, Monjes Cautivos 🧙, Pergaminos Sagrados 📜, Espíritus Guardián ✨) que se capturan al retirarles todas sus libertades cardinales con piedras.
   3. **Reestructuración de Campeones (Alquimista y Ronin):**
      - **Ronin:** Nueva pasiva *Filo del Samurai* que corta 1 piedra enemiga cada 25 turnos.
-     - **Alquimista (⚗️):** Nuevo campeón con arte original anime (primer plano `alchemist_face.jpg` y cuerpo entero translúcido `alchemist.png` con canal alfa puro). Ejecuta la habilidad activa *Inversión Cromática* (transmuta 1 piedra en 9x9, 2 en 13x13 y 3 en 19x19) con VFX alquímico y paso de turno automático al finalizar. Disponible en Roguelike, Local, Sandbox y Online.
+     - **Alquimista (⚗️):** Nuevo campeón con arte original anime remasterizado (primer plano `alchemist_face.jpg` y cuerpo entero vertical estilizado `alchemist.png` con canal alfa puro y proporciones canónicas). Ejecuta la habilidad activa *Inversión Cromática* (transmuta 1 piedra en 9x9, 2 en 13x13 y 3 en 19x19) con VFX alquímico y paso de turno automático al finalizar. Disponible en Roguelike, Local, Sandbox y Online.
   4. **Modo Roguelike Cooperativo Online (2P Co-op P2P WebRTC):** Ambos jugadores comparten la expedición y el bando Negras ⚫ alternando turnos secuencialmente contra la IA.
   5. **Unificación de Victoria Roguelike y Tienda Gratuita:** Pantalla de victoria con arte translúcido grande, botón flotante de retorno e inventario sin Magatamas (4 opciones, elegir 2).
   6. **Unificación del Héroe Canónico:** Eliminada la opción redundante "Clásico / Sin Campeón" del selector local, unificando todo el juego canónico bajo **Hombre Normal** (👤).
@@ -79,8 +79,11 @@ El juego respeta la división estricta entre **Habilidades Activas** (con objeti
        8. **Duplicidad 2x1 (🀄)**: Puente unificador en `3,6` para conectar `1 [ ] [ ] 1 1` con rotación `[R]`.
        9. **Monolito 2x2 (🧱)**: Despliegue del bloque colosal de 4 piedras en `6,1`.
        10. Conclusión y maestría del arsenal místico.
-  17. **Modo Historia: Crónicas del Goban (Novela Visual):**
+  17. **Modo Historia: Crónicas del Goban (Novela Visual y 5x5 Solo):**
      - Orquestador de campaña en `StoryController.ts` y listado de misiones en `StoryCampaign.ts`.
+     - Soporte para tableros 5x5 con espaciado de 56px y punto hoshi central en `BoardGenerators.ts`.
+     - Bloqueo estricto de intersecciones con entidades en `RulesEngine.tryPlaceStone` y `SVGGhostPreview` (no se puede colocar una piedra directamente encima de una reliquia/espíritu no capturado).
+     - Detección universal de 0 libertades en `RulesEngine.resolveCaptiveCaptures` para activar el sellado y disparo del evento narrativo.
      - Nuevo overlay tipo Novela Visual en `StoryDialogueRenderer.ts` y `story.css`.
      - Integración con motor de captura de entidades (`RulesEngine.resolveCaptiveCaptures`).
   18. **Control de Versiones y Sincronización en GitHub:**

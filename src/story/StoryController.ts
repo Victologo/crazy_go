@@ -16,6 +16,12 @@ export class StoryController {
         this.startChapter(this.currentChapterIndex);
     }
 
+    public static isCurrentChapterSolo(): boolean {
+        if (GameController.config.gameMode !== 'story') return false;
+        const chapter = STORY_CAMPAIGN[this.currentChapterIndex];
+        return !chapter || chapter.enemyHeroId === null;
+    }
+
     public static startChapter(index: number) {
         if (index >= STORY_CAMPAIGN.length) {
             HUDController.showAlert("🎉 ¡Campaña Completada!", 5000);

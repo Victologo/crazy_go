@@ -16,9 +16,9 @@ export class PolyominoManager {
             'sprouting',
             {
                 id: 'sprouting',
-                name: 'Piedra Germinante',
+                name: 'Sprouting Stone',
                 icon: '🌿',
-                description: 'Cada 2 turnos personales brota automáticamente una piedra aliada en una casilla adyacente vacía.',
+                description: 'Every 2 personal turns, an allied stone automatically sprouts in an adjacent empty intersection.',
                 sizeLabel: '1x1',
                 usesLeft: 0
             }
@@ -27,9 +27,9 @@ export class PolyominoManager {
             'domino',
             {
                 id: 'domino',
-                name: 'Ficha Duplicidad',
+                name: 'Duplicity Stone',
                 icon: '🀄',
-                description: 'Bloque de 2 piedras interconectadas (2x1). Puedes rotarlo horizontal o verticalmente con [R].',
+                description: 'Interconnected 2-stone block (2x1). Can be rotated horizontally or vertically with [R].',
                 sizeLabel: '2x1',
                 usesLeft: 0,
                 orientation: 'horizontal'
@@ -39,9 +39,9 @@ export class PolyominoManager {
             'monolith',
             {
                 id: 'monolith',
-                name: 'Piedra Monolito',
+                name: 'Monolith Stone',
                 icon: '🧱',
-                description: 'Bloque colosal de 4 piedras unidas (2x2). Ocupa 4 intersecciones adyacentes formando un cuadrado sólido.',
+                description: 'Colossal 4-stone block (2x2). Occupies 4 adjacent intersections forming a solid defensive square.',
                 sizeLabel: '2x2',
                 usesLeft: 0
             }
@@ -240,7 +240,7 @@ export class PolyominoManager {
 
         const card = this.polyominoCards.get(polyType);
         if (!card || card.usesLeft <= 0) {
-            onError(`¡No te quedan más fichas de ${card?.name || 'este tipo'}!`);
+            onError(`No remaining ${card?.name || 'stones of this type'}!`);
             SoundFX.playIllegal();
             return false;
         }
@@ -248,7 +248,7 @@ export class PolyominoManager {
         const targetNodeIds = this.getPolyominoTargetNodes(board, baseNodeId, polyType, this.orientation);
 
         if (!this.isValidPolyominoPlacement(board, targetNodeIds)) {
-            onError(`¡Espacio insuficiente o intersección ocupada para ${card.name}!`);
+            onError(`Insufficient space or occupied intersection for ${card.name}!`);
             SoundFX.playIllegal();
             return false;
         }
@@ -262,10 +262,10 @@ export class PolyominoManager {
         }
 
         if (!result.success) {
-            let msg = 'Movimiento ilegal con ficha poliminó.';
-            if (result.errorReason === 'SUICIDE') msg = '¡Movimiento ilegal: Suicidio de la ficha poliminó!';
-            else if (result.errorReason === 'OCCUPIED') msg = '¡Una de las intersecciones requeridas ya está ocupada!';
-            else if (result.errorReason === 'INVALID_TERRAIN') msg = '¡La ficha se sale de los límites del tablero!';
+            let msg = 'Illegal polyomino stone move.';
+            if (result.errorReason === 'SUICIDE') msg = 'Illegal move: Suicide of the polyomino stone!';
+            else if (result.errorReason === 'OCCUPIED') msg = 'One of the required intersections is already occupied!';
+            else if (result.errorReason === 'INVALID_TERRAIN') msg = 'The piece exceeds the board boundaries!';
             onError(msg);
             SoundFX.playIllegal();
             return false;
@@ -289,10 +289,10 @@ export class PolyominoManager {
 
         if (result.capturedCount > 0) {
             SoundFX.playCapture();
-            onSuccess(`¡${card.name} colocada con éxito! Capturadas ${result.capturedCount} piedras enemigas.`);
+            onSuccess(`${card.name} placed successfully! Captured ${result.capturedCount} enemy stones.`);
         } else {
             SoundFX.playPlaceStone();
-            onSuccess(`¡${card.name} desplegada en el Goban!`);
+            onSuccess(`${card.name} deployed onto the Goban!`);
         }
 
         return true;

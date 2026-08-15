@@ -13,6 +13,7 @@ import { RoguelikeRunManager } from '../core/RoguelikeRunManager';
 import { ScoreModalRenderer } from './modals/ScoreModalRenderer';
 import { RogueModalRenderer } from './modals/RogueModalRenderer';
 import { NetworkManager } from '../network/NetworkManager';
+import { getLanguage, t } from '../i18n/i18n';
 
 export class ModalManager {
     public static closeAllModals() {
@@ -504,6 +505,12 @@ export class ModalManager {
     }
 
     public static updateOptionsModalUI() {
+        const lang = getLanguage();
+        const btnLangEs = document.getElementById('opt-lang-es');
+        const btnLangEn = document.getElementById('opt-lang-en');
+        if (btnLangEs) btnLangEs.classList.toggle('active', lang === 'es');
+        if (btnLangEn) btnLangEn.classList.toggle('active', lang === 'en');
+
         const volSlider = document.getElementById('opt-vol-slider') as HTMLInputElement | null;
         const volText = document.getElementById('opt-vol-text');
         const sfxBtn = document.getElementById('opt-sfx-toggle');
@@ -515,14 +522,14 @@ export class ModalManager {
 
         const isSFX = SoundFX.isSFXEnabled();
         if (sfxBtn) {
-            sfxBtn.innerText = isSFX ? 'Activado' : 'Desactivado';
+            sfxBtn.innerText = isSFX ? t('options.enabled') : t('options.disabled');
             sfxBtn.classList.toggle('active', isSFX);
             sfxBtn.classList.toggle('inactive', !isSFX);
         }
 
         const isBGM = SoundFX.isBGMEnabled();
         if (bgmBtn) {
-            bgmBtn.innerText = isBGM ? 'Activado' : 'Desactivado';
+            bgmBtn.innerText = isBGM ? t('options.enabled') : t('options.disabled');
             bgmBtn.classList.toggle('active', isBGM);
             bgmBtn.classList.toggle('inactive', !isBGM);
         }

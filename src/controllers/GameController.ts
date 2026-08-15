@@ -75,8 +75,8 @@ export class GameController {
             this.config = { ...this.config, ...newConfig };
         }
 
-        // Si es expedición roguelike activa Y estamos explícitamente en modo roguelite (no en online ni libre ni tutorial)
-        if (!TutorialManager.isActive && this.config.gameMode !== 'online' && this.config.ruleStyle === 'roguelite' && RoguelikeRunManager.isRunActive) {
+        // Si es expedición roguelike activa Y estamos explícitamente en modo roguelite (no en online ni libre ni tutorial ni historia)
+        if (!TutorialManager.isActive && this.config.gameMode !== 'online' && this.config.gameMode !== 'story' && this.config.ruleStyle === 'roguelite' && RoguelikeRunManager.isRunActive) {
             this.config.playerCount = 2;
             const node = RoguelikeRunManager.getCurrentNode();
             if (node && node.battleConfig) {
@@ -223,6 +223,10 @@ export class GameController {
             return this.localOnlineColor === currentSub;
         }
         if (this.config.gameMode === '1via') return this.state.currentPlayer === this.config.humanColor;
+        if (this.config.gameMode === 'story') {
+            if (StoryController.isCurrentChapterSolo()) return true;
+            return this.state.currentPlayer === this.config.humanColor;
+        }
         if (this.config.gameMode === 'online') return this.state.currentPlayer === this.localOnlineColor;
         return false;
     }
@@ -359,14 +363,23 @@ export class GameController {
                 } else {
                     this.checkAITurn();
                 }
+            } else if (this.config.gameMode === 'story') {
+                if (StoryController.isCurrentChapterSolo()) {
+                    this.state.currentPlayer = 1;
+                    this.renderer.isInteractive = true;
+                    this.updateInGameUI();
+                } else {
+                    this.checkAITurn();
+                }
             }
         }
     }
 
     public static checkAITurn() {
         if (TutorialManager.isActive) return; // La IA es controlada por el tutorial
+        if (this.config.gameMode === 'story' && StoryController.isCurrentChapterSolo()) return;
 
-        if (this.config.gameMode !== '1via' || this.state.isGameOver) {
+        if ((this.config.gameMode !== '1via' && this.config.gameMode !== 'story') || this.state.isGameOver) {
             this.renderer.isInteractive = this.isLocalPlayerTurn() || ChampionManager.currentTargetingMode !== 'none';
             HUDController.setAIBadge(false);
             return;

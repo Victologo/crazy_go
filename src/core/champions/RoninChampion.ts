@@ -55,8 +55,8 @@ export class RoninChampion {
         const otherPid = (state.playerCount === 2 ? (playerId === 1 ? 2 : 1) : (((playerId % state.playerCount) + 1) as PlayerId));
         RulesEngine.resolveBoardCaptures(board, state, otherPid);
 
-        const extraMsg = extraCaptured > 0 ? ` ¡Y provocó la captura de ${extraCaptured} piedra(s) más!` : '';
-        onTrigger(`⚡ ¡Filo del Samurai (Turno ${state.moveHistory.length})! El Ronin ha calcinado de un tajo 1 piedra enemiga en [${target.id}].${extraMsg}`);
+        const extraMsg = extraCaptured > 0 ? ` And caused the capture of ${extraCaptured} additional stone(s)!` : '';
+        onTrigger(`⚡ Samurai's Edge (Turn ${state.moveHistory.length})! The Ronin slashed and eradicated 1 enemy stone at [${target.id}].${extraMsg}`);
 
         return true;
     }

@@ -33,7 +33,8 @@ export class RulesEngine {
             return { success: false, capturedCount: 0, errorReason: 'INVALID_TERRAIN' };
         }
 
-        if (node.stone !== null || node.terrain === 'DESTROYED' || node.terrain === 'OBSTACLE') {
+        const isCaptiveNode = state.captives?.some(c => c.nodeId === nodeId && !c.isCaptured);
+        if (node.stone !== null || node.terrain === 'DESTROYED' || node.terrain === 'OBSTACLE' || isCaptiveNode) {
             return { success: false, capturedCount: 0, errorReason: 'OCCUPIED' };
         }
 
@@ -371,7 +372,7 @@ export class RulesEngine {
     public static resolveCaptiveCaptures(
         board: GraphBoard, 
         state: GameState, 
-        capturingPlayerId: PlayerId,
+        _capturingPlayerId?: PlayerId,
         onCaptureCallback?: (captive: any) => void
     ): number {
         if (!state.captives || state.captives.length === 0) return 0;
@@ -385,21 +386,21 @@ export class RulesEngine {
 
             // Contar libertades vacías alrededor del nodo donde reside la entidad
             let emptyLiberties = 0;
-            let mySurroundingCount = 0;
+            let surroundingCount = 0;
 
             for (const neighborId of targetNode.neighbors) {
                 const neighbor = board.nodes.get(neighborId);
                 if (neighbor) {
                     if (!neighbor.stone && neighbor.terrain !== 'DESTROYED' && neighbor.terrain !== 'OBSTACLE') {
                         emptyLiberties++;
-                    } else if (neighbor.stone && neighbor.stone.playerId === capturingPlayerId) {
-                        mySurroundingCount++;
+                    } else if (neighbor.stone) {
+                        surroundingCount++;
                     }
                 }
             }
 
             // Si todas sus libertades cardinales están ocupadas (0 libertades restantes)
-            if (emptyLiberties === 0 && mySurroundingCount > 0) {
+            if (emptyLiberties === 0 && surroundingCount > 0) {
                 captive.isCaptured = true;
                 rescuedCount++;
 

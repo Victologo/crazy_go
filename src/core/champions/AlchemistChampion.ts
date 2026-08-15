@@ -8,9 +8,9 @@ import { SoundFX } from '../../audio/SoundFX';
 import { AlchemistVFX } from '../../graphics/vfx/AlchemistVFX';
 
 export const AlchemistActiveSkill: ChampionActiveSkill = {
-    name: 'Inversión Cromática',
+    name: 'Chromatic Inversion',
     icon: '⚗️',
-    description: 'Transmuta el color de piedras en el tablero (1 en 9x9, 2 en 13x13, 3 en 19x19 en el mismo turno). Al finalizar las transmutaciones, pasas tu turno automáticamente.',
+    description: 'Transmutes the color of stones on the board (1 on 9x9, 2 on 13x13, 3 on 19x19 in the same turn). Turn automatically passes upon completion.',
     targetingMode: 'convert_enemy'
 };
 
@@ -31,11 +31,11 @@ export class AlchemistChampion {
         }
 
         if (totalNodes > 220) {
-            return 3; // 19x19 -> 3 inversiones en el mismo turno
+            return 3; // 19x19 -> 3 inversions
         } else if (totalNodes > 100) {
-            return 2; // 13x13 -> 2 inversiones en el mismo turno
+            return 2; // 13x13 -> 2 inversions
         } else {
-            return 1; // 9x9 -> 1 inversión
+            return 1; // 9x9 -> 1 inversion
         }
     }
 
@@ -55,13 +55,13 @@ export class AlchemistChampion {
 
         if (!centerNode.stone) {
             SoundFX.playIllegal();
-            onError('Debes seleccionar una casilla con piedra para invertir su color.');
+            onError('You must select an intersection with a stone to invert its color.');
             return { success: false, newInversionsRemaining: currentInversionsRemaining, isFinished: false };
         }
 
         if (centerNode.stone.isIndestructible) {
             SoundFX.playIllegal();
-            onError('🛡️ ¡Esta piedra está bendecida por el Escudo Sagrado y es inmune a la transmutación!');
+            onError('🛡️ This stone is protected by the Sacred Shield and is immune to transmutation!');
             return { success: false, newInversionsRemaining: currentInversionsRemaining, isFinished: false };
         }
 
@@ -69,14 +69,14 @@ export class AlchemistChampion {
             AlchemistVFX.triggerTransmuteSlash({ x: centerNode.x, y: centerNode.y }, svgElement);
         }
 
-        // Invertir color: si es aliada -> se vuelve enemiga; si es enemiga -> se vuelve aliada
+        // Invert color
         if (centerNode.stone.playerId === playerId) {
             centerNode.stone.playerId = (state.playerCount === 2 ? (playerId === 1 ? 2 : 1) : (((playerId % state.playerCount) + 1) as PlayerId));
         } else {
             centerNode.stone.playerId = playerId;
         }
 
-        // EVALUAR Y EJECUTAR CAPTURAS DE GRUPOS QUE HAYAN QUEDADO CON 0 LIBERTADES
+        // Resolve captures
         const capturedCurrent = RulesEngine.resolveBoardCaptures(board, state, playerId);
         const otherPid = (state.playerCount === 2 ? (playerId === 1 ? 2 : 1) : (((playerId % state.playerCount) + 1) as PlayerId));
         const capturedOther = RulesEngine.resolveBoardCaptures(board, state, otherPid);
@@ -93,14 +93,14 @@ export class AlchemistChampion {
         invRemaining = Math.max(0, invRemaining - 1);
 
         const captureMsg = totalCaptured > 0 
-            ? ` ¡Y se han capturado ${totalCaptured} piedra(s) sin libertades!`
+            ? ` And captured ${totalCaptured} stone(s) with 0 liberties!`
             : '';
 
         if (invRemaining > 0) {
-            onSuccess(`⚗️ ¡Transmutación Alquímica realizada!${captureMsg} Selecciona ${invRemaining} piedra(s) más en este turno.`);
+            onSuccess(`⚗️ Alchemical Transmutation performed!${captureMsg} Select ${invRemaining} more stone(s) this turn.`);
             return { success: true, newInversionsRemaining: invRemaining, isFinished: false };
         } else {
-            onSuccess(`⚗️ ¡Transmutación Alquímica completada!${captureMsg} Pasando turno...`);
+            onSuccess(`⚗️ Alchemical Transmutation completed!${captureMsg} Passing turn...`);
             onComplete();
             return { success: true, newInversionsRemaining: 0, isFinished: true };
         }

@@ -2,6 +2,7 @@
 import type { ScoreReport, PlayerId, HeroId } from '../../types';
 import { TerritoryScorer } from '../../core/TerritoryScorer';
 import { RoguelikeRunManager } from '../../core/RoguelikeRunManager';
+import { t } from '../../i18n/i18n';
 
 export class ScoreModalRenderer {
     public static showFinalScoreModal(
@@ -75,11 +76,11 @@ export class ScoreModalRenderer {
             if (title && subtitle) {
                 if (report.winner !== 'draw' && report.winnerPlayerId) {
                     const winnerMeta = TerritoryScorer.PLAYER_META[report.winnerPlayerId];
-                    title.innerText = `🎉 ¡Victoria para ${winnerMeta.name}! ${winnerMeta.icon}`;
+                    title.innerText = `🎉 ¡${winnerMeta.name}! ${winnerMeta.icon}`;
                     subtitle.innerText = `1º ${report.ranking[0].name} (${report.ranking[0].total} pts) • 2º ${report.ranking[1].name} (${report.ranking[1].total} pts) • 3º ${report.ranking[2]?.name || ''} • 4º ${report.ranking[3]?.name || ''}`;
                 } else {
-                    title.innerText = "¡Empate Cuádruple (Jigo)!";
-                    subtitle.innerText = "Puntuación idéntica en la cima";
+                    title.innerText = t('score.draw');
+                    subtitle.innerText = "Jigo";
                 }
             }
 
@@ -102,17 +103,17 @@ export class ScoreModalRenderer {
                 modalScoreCard?.classList.add('modal-victory-unified');
 
                 if (humanWon) {
-                    if (title) title.innerText = "¡VICTORIA EN EL GOBAN!";
+                    if (title) title.innerText = t('score.victory_goban');
                     starLeft?.classList.remove('hidden');
                     starRight?.classList.remove('hidden');
 
-                    const enemyDisplay = enemyName || 'tu rival';
+                    const enemyDisplay = enemyName || t('score.rival');
                     const rankDisplay = rankLabel ? ` (${rankLabel})` : '';
                     if (subtitle) {
-                        subtitle.innerText = `Has superado a ${enemyDisplay}${rankDisplay} por ${report.margin} pts`;
+                        subtitle.innerText = `${t('score.margin_won', { enemy: enemyDisplay + rankDisplay, margin: report.margin })}`;
                     }
 
-                    if (rematchBtn) rematchBtn.innerText = "Reclamar Recompensa y Volver al Mapa 🗺️";
+                    if (rematchBtn) rematchBtn.innerText = t('btn.claim_and_return');
 
                     // Renderizar Recompensas Integradas en el Menú de Victoria
                     if (rewardsSection && rewardsContainer && rewardOptions && rewardOptions.length > 0) {
@@ -126,7 +127,7 @@ export class ScoreModalRenderer {
                             card.innerHTML = `
                                 <div class="reward-card-badge-row">
                                     <span class="reward-card-icon">${opt.icon}</span>
-                                    <span class="reward-check-pill">${isSelected ? '✓ SELECCIONADO' : 'ELEGIR'}</span>
+                                    <span class="reward-check-pill">${isSelected ? '✓ ' + t('btn.selected') : t('btn.choose')}</span>
                                 </div>
                                 <strong class="card-name">${opt.name}</strong>
                                 <p class="card-desc">${opt.desc}</p>
@@ -136,11 +137,11 @@ export class ScoreModalRenderer {
                                 document.querySelectorAll('#modal-reward-cards-container .reward-card-choice').forEach(c => {
                                     c.classList.remove('active');
                                     const pill = c.querySelector('.reward-check-pill');
-                                    if (pill) pill.textContent = 'ELEGIR';
+                                    if (pill) pill.textContent = t('btn.choose');
                                 });
                                 card.classList.add('active');
                                 const myPill = card.querySelector('.reward-check-pill');
-                                if (myPill) myPill.textContent = '✓ SELECCIONADO';
+                                if (myPill) myPill.textContent = '✓ ' + t('btn.selected');
                             });
                             rewardsContainer.appendChild(card);
                         });
@@ -152,13 +153,13 @@ export class ScoreModalRenderer {
                     starRight?.classList.add('hidden');
                     rewardsSection?.classList.add('hidden');
 
-                    if (title) title.innerText = `💀 Caído en ${nodeTitle || 'la Batalla'}`;
-                    const enemyDisplay = enemyName || 'tu rival';
+                    if (title) title.innerText = `💀 ${t('score.fallen_in', { title: nodeTitle || 'Battle' })}`;
+                    const enemyDisplay = enemyName || t('score.rival');
                     const rankDisplay = rankLabel ? ` (${rankLabel})` : '';
                     if (subtitle) {
-                        subtitle.innerText = `Has sido derrotado por ${enemyDisplay}${rankDisplay}`;
+                        subtitle.innerText = `${t('score.defeated_by', { enemy: enemyDisplay + rankDisplay })}`;
                     }
-                    if (rematchBtn) rematchBtn.innerText = "Fin de la Expedición 🏠";
+                    if (rematchBtn) rematchBtn.innerText = t('btn.end_expedition');
                 }
             } else {
                 modalScoreCard?.classList.remove('modal-victory-unified');
@@ -166,18 +167,18 @@ export class ScoreModalRenderer {
                 starRight?.classList.add('hidden');
                 rewardsSection?.classList.add('hidden');
 
-                if (rematchBtn) rematchBtn.innerText = "Nueva Partida 🔄";
+                if (rematchBtn) rematchBtn.innerText = t('btn.new_game');
 
                 if (title && subtitle) {
                     if (report.winner === 'black') {
-                        title.innerText = "¡Victoria para Negras! ⚫";
-                        subtitle.innerText = `Gana por ${report.margin} puntos`;
+                        title.innerText = t('score.winner_black');
+                        subtitle.innerText = t('score.margin', { margin: report.margin });
                     } else if (report.winner === 'white') {
-                        title.innerText = "¡Victoria para Blancas! ⚪";
-                        subtitle.innerText = `Gana por ${report.margin} puntos (con Komi)`;
+                        title.innerText = t('score.winner_white');
+                        subtitle.innerText = t('score.margin_komi', { margin: report.margin });
                     } else {
-                        title.innerText = "¡Empate (Jigo)!";
-                        subtitle.innerText = "Puntuación idéntica";
+                        title.innerText = t('score.draw');
+                        subtitle.innerText = "Jigo";
                     }
                 }
             }

@@ -4,9 +4,9 @@ import type { GraphBoard, BoardNode } from '../GraphBoard';
 import { TenguVFX } from '../../graphics/vfx/TenguVFX';
 
 export const TenguActiveSkill: ChampionActiveSkill = {
-    name: 'Lluvia Meteórica',
+    name: 'Meteor Strike',
     icon: '☄️',
-    description: 'Selecciona una zona: desata meteoros (5 en 9x9, 9 en 13x13, 15 en 19x19) que destruyen piedras no protegidas.',
+    description: 'Select an area: unleashes falling meteors (5 on 9x9, 9 on 13x13, 15 on 19x19) that destroy unprotected stones.',
     targetingMode: 'meteor_5x5'
 };
 
@@ -17,10 +17,10 @@ export class TenguChampion {
 
         const allNodes = Array.from(board.nodes.values());
         const totalNodesCount = allNodes.length;
-        // Zona del 15% del tablero (mínimo 7 casillas)
+        // 15% board area zone (minimum 7 nodes)
         const zoneSize = Math.max(7, Math.round(totalNodesCount * 0.15));
 
-        // Ordenar por distancia euclidiana al nodo seleccionado
+        // Sort by Euclidean distance to center node
         const sortedByDistance = [...allNodes].sort((a, b) => {
             const distA = Math.hypot(a.x - centerNode.x, a.y - centerNode.y);
             const distB = Math.hypot(b.x - centerNode.x, b.y - centerNode.y);
@@ -37,7 +37,7 @@ export class TenguChampion {
         } else if (totalNodes > 100) {
             return 9;  // 13x13
         } else {
-            return 5;  // 9x9 o tableros reducidos
+            return 5;  // 9x9
         }
     }
 
@@ -56,7 +56,7 @@ export class TenguChampion {
 
         const meteorCount = this.getMeteorCount(board);
 
-        // Generar impactos aleatorios equiprobables en la zona seleccionada
+        // Generate equiprobable random impacts in target zone
         const impactNodes: BoardNode[] = [];
         for (let i = 0; i < meteorCount; i++) {
             const randIndex = Math.floor(Math.random() * zoneNodes.length);
@@ -75,7 +75,7 @@ export class TenguChampion {
         };
 
         const onAllFinished = () => {
-            onSuccess(`☄️ ¡Lluvia Meteórica desatada! ${meteorCount} meteoros impactaron la zona (${destroyedCount} piedra(s) destruidas). Las piedras protegidas resistieron.`);
+            onSuccess(`☄️ Meteor Strike unleashed! ${meteorCount} meteors bombarded the area (${destroyedCount} stone(s) destroyed). Protected stones resisted.`);
             onComplete();
         };
 

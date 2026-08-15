@@ -6,10 +6,10 @@ import { RulesEngine } from '../RulesEngine';
 import { HimikoVFX } from '../../graphics/vfx/HimikoVFX';
 
 export const HimikoPassiveSkill: ChampionPassiveSkill = {
-    name: 'Lluvia Pétrea Celestial',
+    name: 'Celestial Stone Rain',
     icon: '🌧️',
-    description: 'Al finalizar tu 15º turno personal, se activa esta pasiva y caen del cielo piedras aliadas en casillas aleatorias (4 en 9x9, 6 en 13x13, 9 en 19x19).',
-    conditionDesc: 'Al finalizar Turno 15'
+    description: 'At the end of your 15th personal turn, allied stones rain down from heaven onto random empty intersections (4 on 9x9, 6 on 13x13, 9 on 19x19).',
+    conditionDesc: 'At end of Turn 15'
 };
 
 export class HimikoChampion {
@@ -20,7 +20,7 @@ export class HimikoChampion {
         } else if (totalNodes > 100) {
             return 6;  // 13x13
         } else {
-            return 4;  // 9x9 o tableros reducidos
+            return 4;  // 9x9
         }
     }
 
@@ -39,7 +39,7 @@ export class HimikoChampion {
 
         const stoneCount = this.getStoneRainCount(board);
 
-        // Algoritmo Fisher-Yates para distribución 100% uniforme y aleatoria por todo el tablero
+        // Fisher-Yates shuffle
         const shuffled = [...emptyNodes];
         for (let i = shuffled.length - 1; i > 0; i--) {
             const j = Math.floor(Math.random() * (i + 1));
@@ -66,7 +66,7 @@ export class HimikoChampion {
         };
 
         const onAllFinished = () => {
-            onNotify(`🌧️✨ ¡Lluvia Pétrea Celestial de Himiko! Al finalizar el turno personal 15, se ha activado la pasiva y han descendido ${chosen.length} piedras aliadas bendecidas.`);
+            onNotify(`🌧️✨ Himiko’s Celestial Stone Rain! Upon finishing personal turn 15, ${chosen.length} blessed allied stones descended onto the Goban.`);
             onBoardUpdated();
         };
 

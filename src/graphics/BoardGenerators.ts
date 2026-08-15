@@ -211,7 +211,7 @@ export class BoardGenerators {
      * Cuadrícula clásica de Go (9x9, 13x13, 19x19) con puntos Hoshi
      */
     static generateSquareGrid(board: GraphBoard, size: number = 9): void {
-        const spacing = size === 19 ? 28 : size === 13 ? 36 : 46;
+        const spacing = size === 19 ? 28 : size === 13 ? 36 : size === 9 ? 46 : 56;
         
         // Puntos Hoshi
         const starPoints = this.getStarPoints(size);
@@ -446,7 +446,9 @@ export class BoardGenerators {
 
     private static getStarPoints(size: number): Set<string> {
         const starPoints = new Set<string>();
-        if (size === 9) {
+        if (size === 5) {
+            [[2, 2]].forEach(([c, r]) => starPoints.add(`${c},${r}`));
+        } else if (size === 9) {
             [[2, 2], [6, 2], [4, 4], [2, 6], [6, 6]].forEach(([c, r]) => starPoints.add(`${c},${r}`));
         } else if (size === 13) {
             [[3, 3], [9, 3], [6, 6], [3, 9], [9, 9]].forEach(([c, r]) => starPoints.add(`${c},${r}`));

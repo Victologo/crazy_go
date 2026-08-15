@@ -1,5 +1,6 @@
 import { RoguelikeMapGenerator, type RoguelikeMap, type MapNode } from './RoguelikeMapGenerator';
 import { RogueliteManager, type SpellId } from './RogueliteManager';
+import { t } from '../i18n/i18n';
 
 export type RogueliteDifficulty = 'easy' | 'normal' | 'hard' | 'extreme';
 export type HeroId = 'tengu' | 'himiko' | 'kitsune' | 'ronin' | 'alchemist' | 'ryujin' | 'normal';
@@ -41,111 +42,113 @@ export class RoguelikeRunManager {
 
     private static readonly STORAGE_KEY = 'crazy_go_roguelike_run';
 
-    public static readonly HEROES: Record<HeroId, HeroInfo> = {
-        normal: {
-            id: 'normal',
-            name: 'Hombre Normal',
-            icon: '👤',
-            title: '',
-            description: '',
-            image: '/heroes/normal.png',
-            faceImage: '/heroes/normal_face.jpg',
-            quote: '',
-            skillType: 'none',
-            activeName: 'Sin Habilidad Especial',
-            activeDesc: 'Juega únicamente con la pureza canónica del Go clásico. Sin poderes ni ventajas sobrenaturales.',
-            passiveName: 'Sin Habilidad Pasiva',
-            passiveDesc: 'Estrategia pura de Go: libertades, ojos incondicionales, Ko y territorio sin trucos.',
-            startingSpells: { rewind: 2, meteor: 0, shield: 0, convert: 0 }
-        },
-        tengu: {
-            id: 'tengu',
-            name: 'Tengu',
-            icon: '🦅',
-            title: '',
-            description: '',
-            image: '/heroes/tengu.png',
-            faceImage: '/heroes/tengu_face.jpg',
-            quote: '',
-            skillType: 'active',
-            activeName: '☄️ Lluvia Meteórica',
-            activeDesc: 'Elige una zona: desata meteoros (5 en 9x9, 9 en 13x13, 15 en 19x19) que destruyen piedras alcanzadas.',
-            activeCharges: 1,
-            startingSpells: { rewind: 2, meteor: 0, shield: 0, convert: 0 }
-        },
-        himiko: {
-            id: 'himiko',
-            name: 'Himiko',
-            icon: '✨',
-            title: '',
-            description: '',
-            image: '/heroes/himiko.png',
-            faceImage: '/heroes/himiko_face.jpg',
-            quote: '',
-            skillType: 'passive',
-            passiveName: '🌧️ Lluvia Pétrea Celestial',
-            passiveDesc: 'Al finalizar tu 15º turno personal, se activa esta pasiva y caen del cielo piedras aliadas en casillas aleatorias (4 en 9x9, 6 en 13x13, 9 en 19x19).',
-            startingSpells: { rewind: 2, meteor: 0, shield: 0, convert: 0 }
-        },
-        kitsune: {
-            id: 'kitsune',
-            name: 'Kitsune',
-            icon: '🦊',
-            title: '',
-            description: '',
-            image: '/heroes/kitsune.png',
-            faceImage: '/heroes/kitsune_face.jpg',
-            quote: '',
-            skillType: 'active',
-            activeName: '🛡️ Escudo Divino',
-            activeDesc: 'Consagra una piedra aliada con un Aura Sagrada Dorada que la vuelve indestructible e inmune a capturas y habilidades durante 2 turnos (2 cargas en 9x9, 3 en 13x13, 4 en 19x19).',
-            activeCharges: 2,
-            startingSpells: { rewind: 2, meteor: 0, shield: 0, convert: 0 }
-        },
-        ronin: {
-            id: 'ronin',
-            name: 'Ronin',
-            icon: '⚡',
-            title: 'Espadachín Errante',
-            description: 'Guerrero sin amo cuyo filo silencioso siega el territorio enemigo.',
-            image: '/heroes/ronin.png',
-            faceImage: '/heroes/ronin_face.jpg',
-            quote: 'Un corte preciso en el momento exacto desmorona el mundo.',
-            skillType: 'passive',
-            passiveName: '⚡ Filo del Samurai',
-            passiveDesc: 'Cada 25 turnos transcurridos en la partida, desenvaina su katana mística y destruye automáticamente 1 piedra enemiga aleatoria en el Goban.',
-            startingSpells: { rewind: 2, meteor: 0, shield: 0, convert: 0 }
-        },
-        alchemist: {
-            id: 'alchemist',
-            name: 'Alquimista',
-            icon: '⚗️',
-            title: 'Sabio de la Transmutación',
-            description: 'Erudito de las artes herméticas capaz de alterar la materia del tablero.',
-            image: '/heroes/alchemist.png',
-            faceImage: '/heroes/alchemist_face.jpg',
-            quote: 'El Yin y el Yang son dos caras de la misma piedra.',
-            skillType: 'active',
-            activeName: '⚗️ Inversión Cromática',
-            activeDesc: 'Transmuta el color de cualquier piedra en el tablero (1 en 9x9, 2 en 13x13, 3 en 19x19 en el mismo turno). Al finalizar las transmutaciones, pasas tu turno automáticamente.',
-            activeCharges: 1,
-            startingSpells: { rewind: 2, meteor: 0, shield: 0, convert: 0 }
-        },
-        ryujin: {
-            id: 'ryujin',
-            name: 'Ryūjin',
-            icon: '🐲',
-            title: '',
-            description: '',
-            image: '/heroes/ryujin.png',
-            faceImage: '/heroes/ryujin_face.jpg',
-            quote: '',
-            skillType: 'passive',
-            passiveName: '🐉 Furia del Dragón',
-            passiveDesc: 'Al consolidar grupos vivos o expandir ojos (2 en 9x9 con 2 ojos; 3 en 13x13 con 3+ ojos o múltiples grupos; y +1 por cada ojo adicional en 19x19), calcina cualquier piedra aliada o enemiga.',
-            startingSpells: { rewind: 2, meteor: 0, shield: 0, convert: 0 }
-        }
-    };
+    public static get HEROES(): Record<HeroId, HeroInfo> {
+        return {
+            normal: {
+                id: 'normal',
+                name: t('champion.normal.name'),
+                icon: '👤',
+                title: t('champion.normal.title'),
+                description: t('champion.normal.passive_desc'),
+                image: '/heroes/normal.png',
+                faceImage: '/heroes/normal_face.jpg',
+                quote: t('champion.normal.quote'),
+                skillType: 'none',
+                activeName: t('champion.normal.name'),
+                activeDesc: t('champion.normal.passive_desc'),
+                passiveName: t('champion.normal.passive_name'),
+                passiveDesc: t('champion.normal.passive_desc'),
+                startingSpells: { rewind: 2, meteor: 0, shield: 0, convert: 0 }
+            },
+            tengu: {
+                id: 'tengu',
+                name: t('champion.tengu.name'),
+                icon: '🦅',
+                title: t('champion.tengu.title'),
+                description: t('champion.tengu.quote'),
+                image: '/heroes/tengu.png',
+                faceImage: '/heroes/tengu_face.jpg',
+                quote: t('champion.tengu.quote'),
+                skillType: 'active',
+                activeName: t('champion.tengu.active_name'),
+                activeDesc: t('champion.tengu.active_desc'),
+                activeCharges: 1,
+                startingSpells: { rewind: 2, meteor: 0, shield: 0, convert: 0 }
+            },
+            himiko: {
+                id: 'himiko',
+                name: t('champion.himiko.name'),
+                icon: '✨',
+                title: t('champion.himiko.title'),
+                description: t('champion.himiko.quote'),
+                image: '/heroes/himiko.png',
+                faceImage: '/heroes/himiko_face.jpg',
+                quote: t('champion.himiko.quote'),
+                skillType: 'passive',
+                passiveName: t('champion.himiko.passive_name'),
+                passiveDesc: t('champion.himiko.passive_desc'),
+                startingSpells: { rewind: 2, meteor: 0, shield: 0, convert: 0 }
+            },
+            kitsune: {
+                id: 'kitsune',
+                name: t('champion.kitsune.name'),
+                icon: '🦊',
+                title: t('champion.kitsune.title'),
+                description: t('champion.kitsune.quote'),
+                image: '/heroes/kitsune.png',
+                faceImage: '/heroes/kitsune_face.jpg',
+                quote: t('champion.kitsune.quote'),
+                skillType: 'active',
+                activeName: t('champion.kitsune.active_name'),
+                activeDesc: t('champion.kitsune.active_desc'),
+                activeCharges: 2,
+                startingSpells: { rewind: 2, meteor: 0, shield: 0, convert: 0 }
+            },
+            ronin: {
+                id: 'ronin',
+                name: t('champion.ronin.name'),
+                icon: '⚡',
+                title: t('champion.ronin.title'),
+                description: t('champion.ronin.quote'),
+                image: '/heroes/ronin.png',
+                faceImage: '/heroes/ronin_face.jpg',
+                quote: t('champion.ronin.quote'),
+                skillType: 'passive',
+                passiveName: t('champion.ronin.passive_name'),
+                passiveDesc: t('champion.ronin.passive_desc'),
+                startingSpells: { rewind: 2, meteor: 0, shield: 0, convert: 0 }
+            },
+            alchemist: {
+                id: 'alchemist',
+                name: t('champion.alchemist.name'),
+                icon: '⚗️',
+                title: t('champion.alchemist.title'),
+                description: t('champion.alchemist.quote'),
+                image: '/heroes/alchemist.png',
+                faceImage: '/heroes/alchemist_face.jpg',
+                quote: t('champion.alchemist.quote'),
+                skillType: 'active',
+                activeName: t('champion.alchemist.active_name'),
+                activeDesc: t('champion.alchemist.active_desc'),
+                activeCharges: 1,
+                startingSpells: { rewind: 2, meteor: 0, shield: 0, convert: 0 }
+            },
+            ryujin: {
+                id: 'ryujin',
+                name: t('champion.ryujin.name'),
+                icon: '🐲',
+                title: t('champion.ryujin.title'),
+                description: t('champion.ryujin.quote'),
+                image: '/heroes/ryujin.png',
+                faceImage: '/heroes/ryujin_face.jpg',
+                quote: t('champion.ryujin.quote'),
+                skillType: 'passive',
+                passiveName: t('champion.ryujin.passive_name'),
+                passiveDesc: t('champion.ryujin.passive_desc'),
+                startingSpells: { rewind: 2, meteor: 0, shield: 0, convert: 0 }
+            }
+        };
+    }
 
     public static addPolyomino(type: 'sprouting' | 'domino' | 'monolith', amount: number = 1) {
         this.polyominoes[type] = (this.polyominoes[type] || 0) + amount;

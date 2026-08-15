@@ -39,16 +39,17 @@ export class StoryDialogueRenderer {
         if (!container) return;
 
         const isLeft = line.position === 'left';
+        const hasImage = line.speakerImage && line.speakerImage.length > 0;
         
         container.innerHTML = `
             <div class="story-dialogue-box ${line.position}">
-                ${isLeft ? `<img src="${line.speakerImage}" class="story-portrait left-portrait" />` : ''}
+                ${(isLeft && hasImage) ? `<img src="${line.speakerImage}" class="story-portrait left-portrait" />` : ''}
                 <div class="story-text-content">
                     <div class="story-speaker-name">${line.speakerName}</div>
                     <div class="story-text-body">${line.text}</div>
                     <div class="story-continue-hint">Haz clic para continuar...</div>
                 </div>
-                ${!isLeft ? `<img src="${line.speakerImage}" class="story-portrait right-portrait" />` : ''}
+                ${(!isLeft && hasImage) ? `<img src="${line.speakerImage}" class="story-portrait right-portrait" />` : ''}
             </div>
         `;
     }

@@ -147,9 +147,9 @@
 
 
 ## Fase 19: Modo Historia y Campañas de Rescate (Completada)
-- [x] **Tarea 136**: Arquitectura del Modo Historia (`StoryController.ts`, `StoryCampaign.ts` con sistema de Capítulos, Escenarios asimétricos y personajes con diálogos).
+- [x] **Tarea 136**: Arquitectura del Modo Historia (`StoryController.ts`, `StoryCampaign.ts` con sistema de Capítulos, Escenarios asimétricos, soporte 5x5, modo puzle en solitario `isCurrentChapterSolo` y personajes con diálogos).
 - [x] **Tarea 137**: Interfaz de Diálogo tipo Novela Visual (`StoryDialogueRenderer.ts`, `story.css` con `fade-in`, retratos laterales en primer plano y marco de texto inmersivo).
-- [x] **Tarea 138**: Motor de Captura de Entidades (`RulesEngine.ts` interactuando con `StoryController` para disparar eventos narrativos o victorias `capture_specific` al retirar todas las libertades a un objeto en el tablero).
+- [x] **Tarea 138**: Motor de Captura de Entidades (`RulesEngine.ts` interactuando con `StoryController` para disparar eventos narrativos o victorias `capture_specific` al retirar todas las libertades a un objeto en el tablero, con turno continuo de negras en capítulos de entrenamiento).
 - [x] **Tarea 139**: Integración en el Menú Principal (Botón "Modo Historia" lanza directamente el Capítulo 1 en el mapa de islas asimétrico).
 
 ## Fase 15: Corrección de Modo Online y Conexión de Invitados (Guest Joining) (Completada)
@@ -198,3 +198,11 @@
 - [x] **Tarea 143**: Protección Anti-Spam y Bloqueo de Saltos en Bocadillos del Dojo (`TutorialManager.ts`, `KeyboardController.ts`: Implementación de flag anti-rebote `isAdvancing` y desactivación instantánea del botón 'Entendido ➔' tras el primer clic o pulsación de tecla, impidiendo que clicks rápidos salten pasos interactivos donde el jugador debe colocar piedras o usar habilidades).
 - [x] **Tarea 144**: Rediseño Integral de la Lección 8 con Progresión de Hechizos y Poliminós (Ficha Duplicidad) (`TutorialSteps.ts`, `TutorialManager.ts`, `PolyominoManager.ts`, `GameController.ts`, `index.html`: Renombrado universal de Dominó a **Duplicidad 2x1**; e implementación en el Dojo de situaciones progresivas guiadas para desatar Meteorito ☄️, Rebobinar ⏳ tras error táctico, plantar Germinante 1x1 🌿, tender el puente de Duplicidad 2x1 🀄 y fortificar con Monolito 2x2 🧱).
 - [x] **Tarea 145**: Inicialización y Sincronización Completa con Repositorio GitHub (`.gitignore`, `git`: Inicialización del repositorio Git, exclusión de binarios pesados en `.gitignore`, configuración de rama principal `main` y subida completa del código a `https://github.com/Victologo/crazy_go`).
+
+## Fase 20: Sistema Integral de Internacionalización (i18n Español / Inglés) (Completada)
+- [x] **Tarea 146**: Motor Reactivo de Localización (`src/i18n/translations.ts`, `src/i18n/i18n.ts`: Diccionarios exhaustivos en Español e Inglés para menús, modales, campeones, hechizos, poliminós, tutoriales, modo historia, multijugador online y HUD con persistencia en `localStorage`).
+- [x] **Tarea 147**: Selector de Idioma en el Menú de Opciones (`index.html`, `ModalManager.ts`, `AppEventBinder.ts`: Selector visual `🇪🇸 Español` / `🇬🇧 English` en `#options-modal` con actualización en vivo del DOM y HUD sin recargar la página).
+- [x] **Tarea 148**: Localización Dinámica de Campeones y Entidades (`RoguelikeRunManager.ts`, `TerritoryScorer.ts`: Nombres, títulos, citas y descripciones de habilidades activas/pasivas traducidas reactivamente).
+- [x] **Tarea 149**: Tutorial Dojo y Modo Historia Bilingüe (`TutorialSteps.ts`, `TutorialManager.ts`, `StoryCampaign.ts`: Traducción completa en inglés y español para todos los 9 capítulos pedagógicos del Sensei y campañas narrativas).
+- [x] **Tarea 150**: Empaquetado y Compilación TypeScript (`npm run build`: 0 errores de compilación, generación de bundles finales y actualización de `.zip` descargables para Itch.io y Web).
+
