@@ -2,6 +2,33 @@
 
 Este registro cronológico documenta los avances diarios en el desarrollo del juego. (Orden: Más reciente arriba).
 
+## 15 de Agosto de 2026 - Día 2 (Sesión 93): Rediseño de Lección 8 (Ficha Duplicidad), Protección Anti-Spam y Control de Versiones con GitHub
+
+**Resumen del hito y mejoras:**
+1. **Rediseño Integral de la Lección 8 del Dojo (`TutorialSteps.ts`, `TutorialManager.ts`):**
+   - Progresión guiada paso a paso obligatoria para todos los poderes: Meteorito ☄️ sobre invasor blanco en 4,4; Error simulado en 7,2 y Rebobinado temporal ⏳; Germinante viva 🌿 en 2,2; Puente de Duplicidad 2x1 🀄 en 3,6; y Fortaleza del Monolito 2x2 🧱 en 6,1.
+2. **Renombrado Oficial de Ficha Duplicidad (`PolyominoManager.ts`, `index.html`, `RoguelikeController.ts`):**
+   - La ficha Dominó 2x1 pasa a denominarse **Duplicidad 2x1 (🀄)** en UI, tooltips, dock, inventarios y recompensas.
+3. **Protección Anti-Spam y Bloqueo de Saltos en Tutorial (`TutorialManager.ts`, `KeyboardController.ts`):**
+   - Implementado control de estado `isAdvancing` y desactivación instantánea del botón "Entendido ➔" (`disabled = true`) para evitar saltar jugadas obligatorias por clics rápidos o pulsaciones repetidas.
+4. **Control de Versiones y Repositorio Oficial en GitHub (`.gitignore`, `README.md`, `git`):**
+   - Repositorio Git inicializado en rama `main`, sincronizado y subido con éxito al repositorio remoto [Victologo/crazy_go](https://github.com/Victologo/crazy_go).
+   - Generación de `README.md` completo con arquitectura, atajos, características y guía de instalación.
+
+---
+
+## 15 de Agosto de 2026 - Día 2 (Sesión 92): Modularización de Arquitectura CSS, Desacoplamiento de Teclado y Modo Historia
+
+**Resumen del hito y mejoras:**
+1. **Desglose Modular de Estilos CSS (`src/styles/`):**
+   - División de `style.css` (de 5,391 líneas) en 13 submódulos temáticos limpios sin superar 500 líneas por archivo.
+2. **Aislamiento del Controlador de Teclado (`KeyboardController.ts`):**
+   - Extracción de toda la lógica de teclado universal para desacoplar `AppEventBinder.ts`.
+3. **Purificación de Roguelike y Creación de Modo Historia (`GameController.ts`, `StoryCampaign.ts`, `StoryController.ts`):**
+   - Eliminadas entidades neutrales de batallas roguelike y creado el botón de 3 columnas para el Modo Historia (Novela Visual).
+
+---
+
 ## 15 de Agosto de 2026 - Día 2 (Sesión 91): Desvanecimiento Gradual de 1.5s para el Komi e Integración en 1 vs 1 Local
 
 **Resumen del hito y mejoras:**
