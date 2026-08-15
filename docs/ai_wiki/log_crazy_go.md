@@ -2,6 +2,114 @@
 
 Este registro cronológico documenta los avances diarios en el desarrollo del juego. (Orden: Más reciente arriba).
 
+## 15 de Agosto de 2026 - Día 2 (Sesión 95): Expansión Cinemática del Modo Historia, Recalibración Universal de Tengu, Limpieza de Topbar y Pase Canónico de IA
+
+**Resumen del hito y mejoras:**
+1. **Corrección de Navegación Home y Salida Limpia del Modo Historia (`AppEventBinder.ts`, `ScreenManager.ts`):**
+   - Corregido el conflicto donde pulsar "🏠 Menú" desde el Modo Historia o partidas locales regresaba indebidamente a una expedición roguelike previa.
+   - Desacoplada la validación de combate activo para asegurar siempre un retorno limpio al Menú Principal (`ScreenManager.showMainMenu()`).
+
+2. **Expansión Narrativa y Cinemática del Modo Historia (`StoryController.ts`, `StoryCampaign.ts`, `StoryDialogueRenderer.ts`, `SVGRenderer.ts`, `RulesEngine.ts`, `GoAI.ts`):**
+   - **Animación Cinemática de Ruptura y Colapso (Shatter VFX):** Al capturar el Pergamino Sagrado en el Capítulo 2 y concluir los diálogos con el Monje, todas las fichas del tablero se fracturan y desintegran con onda de choque sónica y sacudida de pantalla (`SVGRenderer.triggerBoardShatterAnimation`).
+   - **Modal de Despertar de Qi y Selección de Poder:** Modal interactivo para escoger un poder místico entre las bendiciones de todos los campeones (Tengu, Alquimista, Kitsune, Ryūjin, Ronin).
+   - **Capítulo 3 (Batalla del Vacío Asimétrico 13x13):** Enfrentamiento contra el Maestro del Vacío en tablero asimétrico erosionado de 13x13 con IA activa y uso de la habilidad escogida.
+   - **Capítulo 4 (Disputa de los Tres Relicarios y Objetos Multi-Casilla 2x1):** Tablero $13\times13$ con 3 reliquias disputables en tiempo real, incluyendo el *Monolito de Qi Ancestral 2x1* (que ocupa 2 casillas contiguas `6,6` y `6,7`), el *Orbe de Fuego* y el *Tótem Sagrado*.
+   - **Disputa Competitiva de Reliquias por la IA:** `RulesEngine.resolveCaptiveCaptures` y `GoAI.ts` adaptados para que la IA (Blancas) también pueda rodear, disputar y absorber reliquias si retira su última libertad antes que el jugador.
+
+3. **Limpieza de Barra Superior y Traducción Completa de Rivales al Inglés (`index.html`, `i18n.ts`, `translations.ts`, `HUDController.ts`, `DuelistRenderer.ts`, `ScoreModalRenderer.ts`, `RoguelikeMapRenderer.ts`, `RoguelikeController.ts`):**
+   - Eliminada la píldora `#ui-rogue-stage-badge` (`⚔️ Joven Sora (30 Kyu)`) de la barra superior para mantener una vista minimalista durante el combate.
+   - Implementado el motor dinámico de traducción `translateEnemyName` para traducir nombres procedurales y títulos de combate dinámicamente ("Young Sora", "Kenshin the Sage", "Dragon Sentinel", "Great Grey Sage Dragon", "Rival").
+   - Localización integral en standees de duelistas, modales de puntuación final/victoria, tooltips del mapa roguelike y alertas de inicio de batalla.
+
+4. **Recalibración Matemática y VFX de Tengu en Topologías Irregulares y Hexagonales (`TenguChampion.ts`, `TenguVFX.ts`, `VFXManager.ts`, `GameController.ts`):**
+   - `getMeteorZoneNodes` y `getMeteorCount` filtran rigurosamente nodos destruidos, obstáculos y vacíos, garantizando que el área del 25% y los meteoros caigan exclusivamente en intersecciones reales y jugables del grafo en cualquier geometría (cuadrada, erosionada, islas, hexagonal, triangular o procedural).
+   - La animación de los meteoros, estelas y ondas de choque escala proporcionalmente según el radio de piedra (`stoneRadius`), impactando con precisión milimétrica en el centro de las intersecciones sin desalineaciones.
+
+5. **Bloqueo Canónico de Autodestrucción Territorial y Pase Decisivo de la IA en Endgame (`GoAI.ts`):**
+   - Prohibición estricta de rellenar territorio propio, ojos verdaderos o casillas interiores seguras en todas las dificultades (incluso en nivel Fácil), evitando que la IA pierda puntos o juegue indefinidamente.
+   - Penalización severa a cualquier jugada con delta de territorio negativo (`scoreDelta < 0`) y desactivación de bonificaciones de apertura en fronteras cerradas.
+   - Detección y pase proactivo inmediato cuando el oponente pasa o cuando no quedan jugadas legales que aporten ganancia neta territorial.
+
+6. **Compilación y Verificación (`npm run build`):**
+   - Compilación completa en TypeScript y Vite con 0 errores.
+
+---
+
+## 15 de Agosto de 2026 - Día 2 (Sesión 95): Transiciones Rápidas en Modo Historia, Tajo de Ronin Preciso, Desbloqueo de IA, Reescalado del Goban (+40%) y Fórmula Universal de Meteoros de Tengu
+
+**Resumen del hito y mejoras:**
+1. **Transición Ultra-Rápida y Avance de Diálogos con Teclado en Modo Historia (`StoryController.ts`, `KeyboardController.ts`, `StoryDialogueRenderer.ts`):**
+   - **Transición de 600 ms:** Reducido el retardo artificial de fin de capítulo de 3000 ms a 600 ms para una carga inmediata del siguiente escenario.
+   - **Avance Universal por Teclado:** Se permite avanzar instantáneamente los diálogos de la historia mediante las teclas `Espacio`, `Enter`, `Escape`, `Flecha Derecha`, `D` o haciendo clic directo en cualquier punto de la pantalla.
+
+2. **Rediseño del Tajo de Katana de Ronin (`RoninVFX.ts`, `RoninChampion.ts`, `ChampionManager.ts`):**
+   - **Supresión de Trazado Duplicado:** Se eliminó la línea secundaria en aspas que creaba la ilusión de dos cortes paralelos. Ahora es un único corte limpio de samurai a 45°.
+   - **50% Más Compacto y Centrado Exacto:** Reducido el tamaño diagonal de 220 px a 76 px, ajustándose perfectamente a la intersección y al diámetro de la piedra de Go, con anillo de impacto centrado de radio 17 px.
+   - **Ejecución al Final del Turno (220 ms):** El jugador asienta su piedra primero con su sonido de colocación limpio y, tras 220 ms de retardo, el Ronin desenvaina y ejecuta el corte sobre la piedra enemiga sin solapamiento de efectos ni ruidos.
+
+3. **Solución al Bloqueo de IA ("Thinking..." Infinito) en Acto 2 de Historia (`GoAI.ts`, `GameController.ts`):**
+   - **Causa Raíz:** `GoAI.cloneState()` no clonaba la lista de entidades cautivas (`state.captives`), por lo que la IA intentaba jugar sobre la casilla `4,4` ocupada por el Pergamino Sagrado neutral, provocando un error de casilla ocupada y bloqueando la cesión de turno al humano.
+   - **Corrección:** Se actualizó `GoAI.ts` para clonar `captives` y excluir cualquier casilla con rehenes de las jugadas candidatas. Se añadió además un mecanismo de seguridad de pase de turno en `GameController.ts` si una jugada no progresa el turno.
+
+4. **Aprovechamiento y Reescalado del Goban (+40% Tamaño de Casillas) (`SVGRenderer.ts`, `board.css`):**
+   - **Optimización de Padding:** Se redujo el margen exterior del SVG de `2.2` a `1.15` radios de piedra y el padding interno del contenedor de madera a `0.35rem`.
+   - **Expansión Visual:** La cuadrícula, líneas, piedras y rehenes se expandieron más de un **+40%**, ocupando el tablero de madera de esquina a esquina sin márgenes vacíos innecesarios.
+
+5. **Fórmula Matemática Universal de Lluvia Meteórica de Tengu (`TenguChampion.ts`, `translations.ts`):**
+   - **Cálculo Dinámico Universal:** Implementada la fórmula $\text{Meteoros}(N) = \max\left(3, \; \text{round}\left(N \times \frac{6}{81}\right)\right)$ basada en la densidad canónica de 6 meteoros en 9x9 ($\rho \approx 7.41\%$):
+     - **9x9 (81 nodos):** **6 meteoros**
+     - **13x13 (169 nodos):** **13 meteoros**
+     - **19x19 (361 nodos):** **27 meteoros**
+   - **Área de Efecto al 25%:** La dispersión cubre exactamente una cuarta parte del tablero en cualquier topología.
+
+6. **Depuración de Textos y Emojis Duplicados en HUD (`translations.ts`, `HUDController.ts`):**
+   - Eliminados los emojis iniciales y los contadores hardcodeados `(1 use) / (1 uso)` de las cadenas de traducción para evitar duplicaciones como `☄️ ☄️ Meteor Strike (1 use) (1)`.
+   - Sanitización algorítmica en `HUDController.ts` para proyectar limpiamente `☄️ Meteor Strike (1)`.
+
+7. **Validación:** Compilación en TypeScript/Vite (0 errores) y actualización de los paquetes `.zip`.
+
+---
+
+## 15 de Agosto de 2026 - Día 2 (Sesión 94): Topologías Procedurales "Más Locas" con Semilla Fija, Selector de Campeón Rival, Controles en Fila Única y Empaquetado Nativo
+
+**Resumen del hito y mejoras:**
+1. **Fijación y Persistencia del Tablero Procedural (`BoardGenerators.ts`, `ModalManager.ts`, `AppEventBinder.ts`, `OnlineController.ts`, `GameController.ts`, `types/index.ts`):**
+   - **Solución a la mutación involuntaria:** Almacenada la semilla (`seed`) en `tempConfig` y `OnlineController`.
+   - El tablero procedural ya **no cambia automáticamente** cuando el jugador elige un fondo de escenario, cambia de campeón, ajusta el hándicap o navega entre pasos del Wizard.
+   - La regeneración solo se desencadena al pulsar deliberadamente el botón `🎲 Procedural` (o re-roll).
+   - Al iniciar la partida (Local u Online), se juega exactamente sobre el tablero procedural previsualizado.
+
+2. **Generador de Escenarios Procedurales "Más Locos" (8 Arquetipos Asimétricos) (`BoardGenerators.ts`):**
+   - Incorporados 8 estilos topológicos asimétricos, orgánicos e impredecibles:
+     - 🪐 **Anillos Concéntricos y Puertas Celestiales**: Anillos orbitales con puentes radiales tácticos.
+     - 🌌 **Galaxia Espiral Doble**: Dos brazos cósmicos rotatorios con puentes estelares.
+     - ⏳ **Reloj de Arena Cuántico**: Dos regiones unidas por un cuello de botella hiper-estratégico.
+     - 🔱 **Tridente / Ypsilon Sagrada**: Tres alas divergentes a 120° con santuario central.
+     - 💎 **Diamante Fracturado con Geoda Hueca**: Marco poligonal con centro vacío y cruces diagonales.
+     - 🏝️ **Archipiélago de Atolones Flotantes**: Múltiples islas con pasos chokepoint de 1 casilla.
+     - ⚡ **Cañón en Zig-Zag Meándrico**: Hendidura sinuosa con piedras de paso tácticas.
+     - 🌊 **Costa Orgánica Perlin Caótica**: Erosión no euclidiana asimétrica con lagunas y estalagmitas.
+
+3. **Selector de Campeón Rival y Standee Dinámico en Paso 5 (`index.html`, `setup.css`, `ModalManager.ts`, `AppEventBinder.ts`, `GameController.ts`, `DuelistRenderer.ts`, `HUDController.ts`):**
+   - Selector en tiempo real para el rival en el Paso 5: `🎲 Random`, `👤 Sensei` (Go puro sin hechizos), `🦅 Tengu`, `🌸 Himiko`, `🦊 Kitsune`, `⚔️ Ronin`, `🧪 Alchemist` y `🐉 Ryūjin`.
+   - Standee derecho dinámico: muestra la caja misteriosa con `❓` si es aleatorio o la silueta completa del campeón seleccionado con iluminación púrpura.
+   - Enlace de clic directo en el standee para ciclar rápidamente entre rivales.
+   - En combate 1vIA, la IA ejecuta las habilidades del campeón elegido y el HUD proyecta su avatar y rango.
+
+4. **Etiquetas de Combatiente en 1 Sola Fila y +10px Elevadas (`setup.css`):**
+   - Nombre de campeón e insignia `YOU (P1)` / `OPPONENT` unificados en una sola fila horizontal (`flex-direction: row`).
+   - Posición elevada +10px (`margin-top: -10px`) para evitar cualquier recorte o scroll vertical.
+
+5. **Controles en Fila Única para Hándicap, Komi y Poliminós (`index.html`, `setup.css`, `ModalManager.ts`, `AppEventBinder.ts`):**
+   - **Handicap Stones:** Título simplificado con presets rápidos (`0`, `2`, `3`, `4`, `5`, `6`) y campo numérico libre `✍️ [ N ] stones` en una sola fila.
+   - **Komi:** Presets `0.5`, `5.5`, `6.5`, `7.5` y campo `✍️ [ 6.5 ] pts` unificados en 1 sola fila en Local y Online.
+   - **Poliminós Especiales:** Fichas de Jugador e IA organizadas en cuadrículas horizontales de 3 columnas (`🌿 Germinante`, `🀄 Duplicidad`, `🧱 Monolito`).
+
+6. **Compilación, Verificación y Empaquetado Nativo (`CREAR_PAQUETE_EXE.bat`, `CrazyGo_Portable.zip`, `CrazyGo.exe`):**
+   - Compilación en TypeScript/Vite con 0 errores y generación del paquete nativo Windows `CrazyGo_Portable.zip` (76 MB) listo para descomprimir y jugar.
+
+---
+
 ## 15 de Agosto de 2026 - Día 2 (Sesión 93): Rediseño de Lección 8 (Ficha Duplicidad), Protección Anti-Spam y Control de Versiones con GitHub
 
 **Resumen del hito y mejoras:**
@@ -884,6 +992,26 @@ Este registro cronológico documenta los avances diarios en el desarrollo del ju
 3. **Validación:**
    - `npm run build` completado en 450ms con 0 errores TypeScript.
    - `CrazyGo.exe` y `CrazyGo_Portable.zip` generados y actualizados.
+
+---
+
+## 15 de Agosto de 2026 - Día 1 (Sesión 33): Calibración Visual de Tableros, Pasivas de Campeones, Rutas Relativas para Itch.io y Preparación de Lanzamiento
+
+**Resumen del hito:**
+1. **Calibración y Geometría de Tableros en `SVGRenderer.ts`:**
+   - **Compensación Óptica Triangular (+50px Y, +15% Zoom):** Cálculo de centro de masa (centroide vs bounding box) para elevar automáticamente 50px los tableros triangulares y aplicarles un zoom-in del 15% mediante el `viewBox` para eliminar espacios muertos.
+   - **Reducción Global del Tablero (-8%):** Escala base reducida a `scale(0.97)` en `board.css` para evitar colisiones y solapamientos visuales con los standees y cajas de HUD laterales.
+2. **Corrección de Habilidades de Campeones y Limpieza de UI:**
+   - **Pasiva de Ronin (*Filo del Samurai*):** Configurada a activación cada 20 turnos y corrección de doble disparo vinculando el chequeo a `heroOwnerId`.
+   - **Pasiva de Himiko (*Lluvia Pétrea Celestial*):** Integración de `HimikoVFX` con `#vfx-live-container` para garantizar que la capa de animación de cometas sobreviva a los re-renderizados continuos del Goban provocados por la colocación física de cada piedra.
+   - **Limpieza de Emojis en i18n:** Eliminación de prefijos de emojis duplicados en `translations.ts` para evitar visualizaciones repetidas como `[🌧️] 🌧️ Lluvia Pétrea`.
+   - **Ajuste de Standee de Ronin:** Aplicada regla CSS con `scale(1.53)` (+8%) y desplazamiento de -10px a la izquierda.
+3. **Conversión Universal a Rutas Relativas y Despliegue en Itch.io:**
+   - Conversión global de todas las rutas de assets (`/heroes/`, `/enemies/`, `/audio/`, `/img/`) a rutas relativas (`./heroes/`, etc.) en `index.html` y código TypeScript para compatibilidad con iframes y subdirectorios de Itch.io.
+   - Compilación exitosa para navegador y generación de paquetes `crazy_go_itchio_v4.zip` listos para jugar en browser.
+4. **Marketing y Assets Visuales:**
+   - Generación de miniaturas (Cover Images) 2D estilo anime pixel-art de alta resolución centradas en el Goban con título "CRAZY GO" en alto contraste.
+   - Redacción de 3 publicaciones especializadas para `r/roguelites`, `r/baduk` y `r/aigamedev`.
 
 ---
 
