@@ -8,10 +8,32 @@ import { PolyominoManager } from '../core/PolyominoManager';
 import { TutorialManager } from '../tutorial/TutorialManager';
 import { DevModeManager } from '../core/DevModeManager';
 import { DuelistRenderer } from './DuelistRenderer';
-import { t } from '../i18n/i18n';
+import { t, getLanguage } from '../i18n/i18n';
 
 export class HUDController {
     private static alertTimeout: number | null = null;
+    public static isZenMode: boolean = false;
+
+    public static toggleZenMode() {
+        this.isZenMode = !this.isZenMode;
+        if (this.isZenMode) {
+            document.body.classList.add('zen-mode');
+            const isEn = getLanguage() === 'en';
+            this.showAlert(isEn ? "🧘 Zen Mode Activated" : "🧘 Modo Zen Activado", 2000);
+        } else {
+            document.body.classList.remove('zen-mode');
+            const isEn = getLanguage() === 'en';
+            this.showAlert(isEn ? "👁️ Zen Mode Deactivated" : "👁️ Modo Zen Desactivado", 2000);
+        }
+        
+        // Actualizar botón en Modal de Opciones si está abierto
+        const zenBtn = document.getElementById('opt-zen-toggle');
+        if (zenBtn) {
+            zenBtn.classList.toggle('active', this.isZenMode);
+            zenBtn.classList.toggle('inactive', !this.isZenMode);
+            zenBtn.textContent = this.isZenMode ? (getLanguage() === 'en' ? 'Enabled' : 'Activado') : (getLanguage() === 'en' ? 'Disabled' : 'Desactivado');
+        }
+    }
 
     public static updateInGameUI(
         state: GameState,
@@ -92,26 +114,29 @@ export class HUDController {
                 let roleText = `(P${cp})`;
                 if (currentMode === '1via') {
                     const diffLabel = this.getDifficultyLabel(difficulty);
-                    roleText = cp === humanColor ? `— ${t('hud.turn_human')}` : `— ${t('hud.turn_ai')} ${diffLabel}`;
+                    roleText = cp === humanColor ? `(${t('hud.player_you')})` : `(IA • ${diffLabel})`;
                 } else if (currentMode === 'online') {
-                    roleText = cp === localOnlineColor ? `— ${t('hud.turn_human')}` : `— ${t('hud.online_waiting')}`;
+                    roleText = cp === localOnlineColor ? `(${t('hud.player_you')})` : `(${t('hud.online_waiting')})`;
                 }
-                playerName.innerText = `${meta.name} ${meta.icon} ${roleText}`;
+                playerName.innerText = `${meta.name} ${roleText}`;
             }
         }
 
         // Contadores de capturas y Komi
         if (blackCaps) blackCaps.innerText = state.blackCaptures.toString();
         if (whiteCaps) {
-            const komiText = state.komi > 0 ? ` <small id="ui-komi-sub">(+${state.komi})</small>` : '';
+            const p2Komi = state.playerKomis ? (state.playerKomis[2] ?? state.komi) : state.komi;
+            const komiText = p2Komi > 0 ? ` <small id="ui-komi-sub">(+${p2Komi})</small>` : '';
             whiteCaps.innerHTML = `${state.whiteCaptures}${komiText}`;
         }
         if (greenCaps) {
-            const komiText = (state.playerCount === 4 && state.komi > 0) ? ` <small>(+${state.komi})</small>` : '';
+            const p3Komi = state.playerKomis ? (state.playerKomis[3] ?? 0) : 0;
+            const komiText = (state.playerCount === 4 && p3Komi > 0) ? ` <small>(+${p3Komi})</small>` : '';
             greenCaps.innerHTML = `${state.greenCaptures}${komiText}`;
         }
         if (purpleCaps) {
-            const komiText = (state.playerCount === 4 && state.komi > 0) ? ` <small>(+${state.komi})</small>` : '';
+            const p4Komi = state.playerKomis ? (state.playerKomis[4] ?? 0) : 0;
+            const komiText = (state.playerCount === 4 && p4Komi > 0) ? ` <small>(+${p4Komi})</small>` : '';
             purpleCaps.innerHTML = `${state.purpleCaptures}${komiText}`;
         }
 
@@ -127,6 +152,23 @@ export class HUDController {
         this.updateChampionUI(currentRuleStyle, isLocalTurn, state.isGameOver);
         this.updatePolyominoUI(isLocalTurn, state.isGameOver, state.currentPlayer);
         this.updateSpellbarUI(currentRuleStyle, isLocalTurn, state.isGameOver);
+    }
+
+    public static updateWinRate(blackWinRate: number, whiteWinRate: number) {
+        const wrBlackVal = document.getElementById('ui-wr-black-val');
+        const wrWhiteVal = document.getElementById('ui-wr-white-val');
+        const wrBarBlack = document.getElementById('ui-wr-bar-black');
+
+        if (wrBlackVal) wrBlackVal.innerText = `${blackWinRate}%`;
+        if (wrWhiteVal) wrWhiteVal.innerText = `${whiteWinRate}%`;
+        if (wrBarBlack) wrBarBlack.style.width = `${blackWinRate}%`;
+    }
+
+    public static setHintButtonActive(active: boolean) {
+        const btnHint = document.getElementById('btn-master-hint');
+        if (btnHint) {
+            btnHint.classList.toggle('active', active);
+        }
     }
 
     public static updateChampionUI(_currentRuleStyle: RuleStyle, isLocalTurn: boolean, isGameOver: boolean) {
@@ -153,52 +195,73 @@ export class HUDController {
         const passiveSkill = ChampionManager.PASSIVE_SKILLS[heroId];
 
         if (hero.skillType === 'active' && activeSkill) {
+            const isEn = getLanguage() === 'en';
             const skillTooltip = hero.id === 'tengu'
-                ? 'Lluvia Meteórica: Desata meteoros (5 en 9x9, 9 en 13x13, 15 en 19x19) en la zona elegida para destruir piedras.'
+                ? (isEn ? 'Meteor Strike: Unleash meteors (6 on 9x9, 13 on 13x13, 27 on 19x19) in the selected zone to destroy stones.' : 'Lluvia Meteórica: Desata meteoros (6 en 9x9, 13 en 13x13, 27 en 19x19) en la zona elegida para destruir piedras.')
                 : `${activeSkill.name}: ${activeSkill.description}`;
 
             if (duelSkillBtn) {
                 duelSkillBtn.disabled = ChampionManager.activeChargesLeft <= 0 || !isLocalTurn || isGameOver;
                 duelSkillBtn.classList.toggle('targeting', ChampionManager.currentTargetingMode !== 'none');
                 duelSkillBtn.classList.toggle('depleted', ChampionManager.activeChargesLeft <= 0);
+                duelSkillBtn.classList.remove('passive-badge');
                 duelSkillBtn.title = skillTooltip;
-                if (duelSkillIcon) duelSkillIcon.innerText = activeSkill.icon;
+                if (duelSkillIcon) {
+                    duelSkillIcon.style.display = 'inline-block';
+                    duelSkillIcon.innerText = activeSkill.icon;
+                }
                 if (duelSkillText) {
                     if (ChampionManager.currentTargetingMode !== 'none') {
-                        duelSkillText.innerText = t('hud.skill_target_click');
+                        duelSkillText.innerHTML = `<span class="duel-skill-name">${t('hud.skill_target_click')}</span>`;
                     } else if (ChampionManager.activeChargesLeft > 0) {
                         const rawSkillName = t(`champion.${heroId}.active_name`) || activeSkill.name;
-                        // Eliminar emojis y sufijos hardcodeados como (1 use)
                         const cleanSkillName = rawSkillName.replace(/^[^\p{L}\p{N}]+/u, '').replace(/\s*\(\d+\s*(?:uso|usos|use|uses)?\)/gi, '').trim();
-                        duelSkillText.innerText = `${cleanSkillName} (${ChampionManager.activeChargesLeft})`;
+                        const combatFormula = t(`champion.${heroId}.combat_formula`) || t(`champion.${heroId}.active_desc`) || activeSkill.description || '';
+                        duelSkillText.innerHTML = `<span class="duel-skill-name">${cleanSkillName} (${ChampionManager.activeChargesLeft})</span><span class="duel-skill-formula">${combatFormula}</span>`;
                     } else {
-                        duelSkillText.innerText = t('hud.skill_depleted');
+                        duelSkillText.innerHTML = `<span class="duel-skill-name">${t('hud.skill_depleted')}</span>`;
                     }
                 }
             }
         } else {
-            // Héroe de pasiva pura (Himiko / Ryūjin / Ronin)
+            // Héroe de pasiva pura (Himiko / Ryūjin / Ronin / Normal)
             const passiveName = t(`champion.${heroId}.passive_name`) || passiveSkill?.name || 'Pasiva';
-            const passiveDesc = t(`champion.${heroId}.passive_desc`) || passiveSkill?.description || '';
-            const passiveTooltip = `${passiveName}: ${passiveDesc}`;
+            const combatFormula = t(`champion.${heroId}.combat_formula`) || t(`champion.${heroId}.passive_desc`) || passiveSkill?.description || '';
+            const passiveTooltip = `${passiveName}: ${t(`champion.${heroId}.passive_desc`) || passiveSkill?.description || ''}`;
 
             if (duelSkillBtn) {
                 duelSkillBtn.disabled = true;
                 duelSkillBtn.classList.remove('targeting');
                 duelSkillBtn.classList.remove('depleted');
+                duelSkillBtn.classList.add('passive-badge');
                 duelSkillBtn.title = passiveTooltip;
-                if (duelSkillIcon) duelSkillIcon.innerText = passiveSkill?.icon || '✨';
+                if (duelSkillIcon) {
+                    duelSkillIcon.style.display = 'none'; // Elimina el icono gris para aprovechar todo el ancho
+                }
                 if (duelSkillText) {
-                    duelSkillText.innerText = ChampionManager.isPassiveSkillAvailable 
-                        ? `${passiveName} ${t('hud.skill_passive_suffix', { name: '' }).replace('() ', '').trim()}`
-                        : t('hud.skill_passive_activated');
+                    duelSkillText.innerHTML = `<span class="duel-skill-name">${passiveName}</span><span class="duel-skill-formula">${combatFormula}</span>`;
                 }
             }
         }
     }
 
+    public static triggerStandeeSkillFX(_playerId: number, isLocalPlayer: boolean) {
+        // En 1v1 normal, playerId local suele ser 1. Si es IA, es 2.
+        const cardId = isLocalPlayer ? 'duel-player-card' : 'duel-enemy-card';
+        const card = document.getElementById(cardId);
+        if (card) {
+            card.classList.remove('standee-skill-active');
+            // Forzar reflow para reiniciar la animación
+            void card.offsetWidth;
+            card.classList.add('standee-skill-active');
+            setTimeout(() => {
+                card.classList.remove('standee-skill-active');
+            }, 800);
+        }
+    }
+
     public static updateSpellbarUI(
-        currentRuleStyle: RuleStyle, 
+        _currentRuleStyle: RuleStyle, 
         isLocalTurn: boolean, 
         isGameOver: boolean,
         onSpellSelect?: (spellId: SpellId) => void
@@ -207,7 +270,7 @@ export class HUDController {
         const magicSection = document.getElementById('magic-spells-section');
         
         const availableSpells = RogueliteManager.getSpells().filter(s => s.usesLeft > 0);
-        const hasMagic = currentRuleStyle === 'roguelite' && availableSpells.length > 0;
+        const hasMagic = availableSpells.length > 0;
         magicSection?.classList.toggle('hidden', !hasMagic);
 
         if (hasMagic) {
@@ -237,19 +300,23 @@ export class HUDController {
             }
         }
 
-        // Si no hay magia ni poliminós habilitados, ocultar completamente la barra inferior
-        const polyDock = document.getElementById('polyomino-dock-section');
-        const hasPoly = polyDock && !polyDock.classList.contains('hidden');
-
-        if (!hasMagic && !hasPoly) {
-            spellbar?.classList.add('hidden');
-        } else {
-            spellbar?.classList.remove('hidden');
+        // Botón de Pasar Turno: siempre visible en el spellbar, activo solo en turno local
+        const passBtn = document.getElementById('btn-pass') as HTMLButtonElement | null;
+        const passDivider = document.getElementById('spellbar-pass-divider');
+        if (passBtn) {
+            passBtn.disabled = !isLocalTurn || isGameOver;
+            passBtn.classList.toggle('disabled-pass', !isLocalTurn || isGameOver);
         }
+        if (passDivider) {
+            passDivider.classList.toggle('hidden', false);
+        }
+
+        // El spellbar siempre aparece durante el juego (pass button siempre disponible)
+        spellbar?.classList.remove('hidden');
     }
 
     public static updateTimers(
-        playerTimers: Record<PlayerId, { timeRemainingSeconds: number; movesCount: number; isFlagFallen: boolean }>,
+        playerTimers: Record<PlayerId, { timeRemainingSeconds: number; movesCount: number; isFlagFallen: boolean; byoYomiPeriodsLeft?: number; isInByoYomi?: boolean }>,
         activePlayer: PlayerId,
         timerMode?: string
     ) {
@@ -271,32 +338,42 @@ export class HUDController {
         playerTimer?.classList.remove('hidden');
         enemyTimer?.classList.remove('hidden');
 
-        const activeSecs = playerTimers[activePlayer]?.timeRemainingSeconds || 0;
-        const p1Secs = playerTimers[1]?.timeRemainingSeconds || 0;
-        const p2Secs = playerTimers[2]?.timeRemainingSeconds || 0;
+        const activeTimer = playerTimers[activePlayer];
+        const activeSecs = activeTimer?.timeRemainingSeconds || 0;
+        const p1Timer = playerTimers[1];
+        const p2Timer = playerTimers[2];
+        const p1Secs = p1Timer?.timeRemainingSeconds || 0;
+        const p2Secs = p2Timer?.timeRemainingSeconds || 0;
 
-        const formatTime = (seconds: number) => {
+        const formatTime = (seconds: number, timerInfo?: { byoYomiPeriodsLeft?: number; isInByoYomi?: boolean }) => {
             const s = Math.max(0, Math.floor(seconds));
             const mins = Math.floor(s / 60);
             const remSecs = s % 60;
-            return `${mins.toString().padStart(2, '0')}:${remSecs.toString().padStart(2, '0')}`;
+            const timeStr = `${mins.toString().padStart(2, '0')}:${remSecs.toString().padStart(2, '0')}`;
+            if (timerInfo?.isInByoYomi && timerInfo.byoYomiPeriodsLeft !== undefined) {
+                return `${timeStr} (${timerInfo.byoYomiPeriodsLeft}P)`;
+            }
+            return timeStr;
         };
 
         if (topbarText) {
-            topbarText.innerText = formatTime(activeSecs);
-            topbarPill?.classList.toggle('timer-warning', activeSecs <= 10);
+            topbarText.innerText = formatTime(activeSecs, activeTimer);
+            topbarPill?.classList.toggle('timer-urgent', activeSecs <= 5);
+            topbarPill?.classList.toggle('timer-warning', activeSecs > 5 && activeSecs <= 10);
         }
 
         if (playerTimerDigits) {
-            playerTimerDigits.innerText = formatTime(p1Secs);
+            playerTimerDigits.innerText = formatTime(p1Secs, p1Timer);
             playerTimer?.classList.toggle('timer-active', activePlayer === 1);
-            playerTimer?.classList.toggle('timer-warning', activePlayer === 1 && p1Secs <= 10);
+            playerTimer?.classList.toggle('timer-urgent', activePlayer === 1 && p1Secs <= 5);
+            playerTimer?.classList.toggle('timer-warning', activePlayer === 1 && p1Secs > 5 && p1Secs <= 10);
         }
 
         if (enemyTimerDigits) {
-            enemyTimerDigits.innerText = formatTime(p2Secs);
+            enemyTimerDigits.innerText = formatTime(p2Secs, p2Timer);
             enemyTimer?.classList.toggle('timer-active', activePlayer === 2);
-            enemyTimer?.classList.toggle('timer-warning', activePlayer === 2 && p2Secs <= 10);
+            enemyTimer?.classList.toggle('timer-urgent', activePlayer === 2 && p2Secs <= 5);
+            enemyTimer?.classList.toggle('timer-warning', activePlayer === 2 && p2Secs > 5 && p2Secs <= 10);
         }
     }
 
@@ -357,9 +434,12 @@ export class HUDController {
         }
 
         if (btnDomino && dominoCard) {
+            const isEn = getLanguage() === 'en';
             btnDomino.disabled = dominoCard.usesLeft <= 0 || !isLocalTurn || isGameOver;
             btnDomino.classList.toggle('active', PolyominoManager.activePolyomino === 'domino');
-            btnDomino.title = `🀄 Duplicidad (2x1): Bloque de 2 piedras conectadas. Orientación: ${PolyominoManager.orientation === 'horizontal' ? 'Horizontal ⇄' : 'Vertical ⇅'} (Pulsa [R] para rotar 90º)`;
+            btnDomino.title = isEn
+                ? `🀄 Duplicity (2x1): 2 connected stones block. Orientation: ${PolyominoManager.orientation === 'horizontal' ? 'Horizontal ⇄' : 'Vertical ⇅'} (Press [R] to rotate 90º)`
+                : `🀄 Duplicidad (2x1): Bloque de 2 piedras conectadas. Orientación: ${PolyominoManager.orientation === 'horizontal' ? 'Horizontal ⇄' : 'Vertical ⇅'} (Pulsa [R] para rotar 90º)`;
         }
 
         if (btnMonolith && monolithCard) {
@@ -371,18 +451,24 @@ export class HUDController {
     public static setAIBadge(thinking: boolean) {
         const badge = document.getElementById('ui-ai-badge');
         if (badge) {
-            if (thinking) badge.classList.remove('hidden');
-            else badge.classList.add('hidden');
+            if (thinking) {
+                badge.innerText = `🤖 ${t('hud.ai_thinking') || 'Thinking...'}`;
+                badge.classList.remove('hidden');
+            } else {
+                badge.classList.add('hidden');
+            }
         }
     }
 
     public static updateStageBadge(isActive: boolean, title?: string, enemyName?: string, rankLabel?: string) {
         const stageBadge = document.getElementById('ui-rogue-stage-badge');
         const stageText = document.getElementById('ui-rogue-stage-text');
+        const isEn = getLanguage() === 'en';
         if (stageBadge && stageText) {
             if (isActive) {
                 stageBadge.classList.remove('hidden');
-                const label = enemyName ? `${enemyName} (${rankLabel || ''})` : (title || 'Batalla');
+                const defaultTitle = isEn ? 'Battle' : 'Batalla';
+                const label = enemyName ? `${enemyName} (${rankLabel || ''})` : (title || defaultTitle);
                 stageText.innerText = `⚔️ ${label}`;
             } else {
                 stageBadge.classList.add('hidden');
@@ -424,25 +510,75 @@ export class HUDController {
     }
 
     /**
-     * Muestra el anuncio de inicio de partida (Roguelike y 1 vs 1 Local) con máscara 70% negra, blur y tipografía libre
+     * Muestra el anuncio de inicio de partida (Roguelike, 1 vs 1 Local y 4P) con máscara 70% negra, blur y tipografía libre
      * con transición fluida de entrada y desvanecimiento suave de 1.5 segundos hacia el Goban.
      */
     public static showRogueKomiAnnouncement(
-        komiValue: number, 
+        komiParam: number | { komi: number; playerKomis?: Record<number, number>; playerCount?: number }, 
         autoHideMs: number = 2200,
         customBadge?: string
     ) {
         const overlay = document.getElementById('rogue-komi-announcement-overlay');
-        const valEl = document.getElementById('rogue-komi-display-value');
         const badgeEl = overlay?.querySelector('.rogue-komi-role-badge') as HTMLElement | null;
+        const titleEl = overlay?.querySelector('.rogue-komi-main-title') as HTMLElement | null;
+        const displayEl = overlay?.querySelector('.rogue-komi-score-display') as HTMLElement | null;
+        const expEl = overlay?.querySelector('.rogue-komi-explanation') as HTMLElement | null;
+        const isEn = getLanguage() === 'en';
         if (!overlay) return;
 
-        if (valEl) {
-            valEl.innerText = `+${komiValue} PUNTOS`;
-        }
+        const is4P = typeof komiParam === 'object' && komiParam.playerCount === 4;
 
         if (badgeEl) {
-            badgeEl.innerText = customBadge || '⚫ JUEGAS CON NEGRAS • PRIMER TURNO';
+            badgeEl.innerText = customBadge || (isEn ? '⚫ PLAYING AS BLACK • FIRST TURN' : '⚫ JUEGAS CON NEGRAS • PRIMER TURNO');
+        }
+
+        if (is4P) {
+            const pK = (typeof komiParam === 'object' && komiParam.playerKomis) ? komiParam.playerKomis : { 2: 2.5, 3: 4.5, 4: 6.5 };
+            if (titleEl) {
+                titleEl.innerText = isEn ? "TURN COMPENSATION KOMI" : "KOMI DE COMPENSACIÓN";
+            }
+            if (displayEl) {
+                displayEl.innerHTML = `
+                  <div class="rogue-komi-4p-row">
+                    <div class="rogue-komi-4p-item">
+                      <span class="rogue-komi-stone-icon">⚪</span>
+                      <span class="rogue-komi-4p-val">+${pK[2] ?? 2.5}</span>
+                      <small class="rogue-komi-4p-label">${isEn ? 'White (P2)' : 'Blancas (P2)'}</small>
+                    </div>
+                    <div class="rogue-komi-4p-item">
+                      <span class="rogue-komi-stone-icon">🟢</span>
+                      <span class="rogue-komi-4p-val">+${pK[3] ?? 4.5}</span>
+                      <small class="rogue-komi-4p-label">${isEn ? 'Emerald (P3)' : 'Esmeralda (P3)'}</small>
+                    </div>
+                    <div class="rogue-komi-4p-item">
+                      <span class="rogue-komi-stone-icon">🟣</span>
+                      <span class="rogue-komi-4p-val">+${pK[4] ?? 6.5}</span>
+                      <small class="rogue-komi-4p-label">${isEn ? 'Amethyst (P4)' : 'Amatista (P4)'}</small>
+                    </div>
+                  </div>
+                `;
+            }
+            if (expEl) {
+                expEl.innerText = isEn 
+                    ? "Staggered territory compensation according to turn order." 
+                    : "Compensación territorial escalonada según el orden de turno.";
+            }
+        } else {
+            const komiVal = typeof komiParam === 'number' ? komiParam : komiParam.komi;
+            if (titleEl) {
+                titleEl.innerText = isEn ? "WHITE'S KOMI" : "KOMI DE BLANCAS";
+            }
+            if (displayEl) {
+                displayEl.innerHTML = `
+                  <span class="rogue-komi-stone-icon">⚪</span>
+                  <span id="rogue-komi-display-value" class="rogue-komi-score-text">+${komiVal} ${isEn ? 'POINTS' : 'PUNTOS'}</span>
+                `;
+            }
+            if (expEl) {
+                expEl.innerText = isEn 
+                    ? "Canonical territory compensation for playing second." 
+                    : "Compensación canónica de territorio para el segundo jugador.";
+            }
         }
 
         overlay.classList.remove('hidden');
@@ -494,19 +630,25 @@ export class HUDController {
         node?: any,
         gameMode?: string,
         difficulty?: AIDifficulty,
-        state?: GameState
+        state?: GameState,
+        aiHeroId?: HeroId | null,
+        rivalImage?: string,
+        rivalName?: string,
+        rivalIcon?: string,
+        enemyHeroIds?: Record<number, any>
     ) {
-        DuelistRenderer.updateDuelists(isRoguelike, heroId, node, gameMode, difficulty, state);
+        DuelistRenderer.updateDuelists(isRoguelike, heroId, node, gameMode, difficulty, state, aiHeroId, rivalImage, rivalName, rivalIcon, enemyHeroIds);
     }
 
     public static setBoardBackground(bg?: string) {
         const viewport = document.getElementById('board-viewport');
         if (viewport) {
-            if (bg) {
-                viewport.setAttribute('data-bg', bg);
-            } else {
-                viewport.removeAttribute('data-bg');
-            }
+            const activeBg = bg || 'combat';
+            viewport.setAttribute('data-bg', activeBg);
+            viewport.style.backgroundImage = `radial-gradient(circle at center, rgb(12 16 26 / 45%) 0%, rgb(6 9 15 / 0%) 100%), url('./bg_${activeBg}.jpg')`;
+            viewport.style.backgroundSize = 'cover';
+            viewport.style.backgroundPosition = 'center center';
+            viewport.style.backgroundRepeat = 'no-repeat';
         }
     }
 

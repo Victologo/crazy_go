@@ -1,8 +1,10 @@
-// GameState.ts - Estado central de la partida con soporte completo de Historial, Deshacer (Undo) y Rehacer (Redo)
 import { GraphBoard, type PlayerId, type StoneInfo, type TerrainType } from './GraphBoard';
 import { EntityManager } from './ECS';
 import type { ScoreReport } from './TerritoryScorer';
-import type { CaptiveEntity, TimerConfig, PlayerTimerState } from '../types';
+import type { CaptiveEntity, TimerConfig, PlayerTimerState, SpellId, PolyominoType } from '../types';
+import { ChampionManager, type ChampionSnapshot } from './ChampionManager';
+import { RogueliteManager } from './RogueliteManager';
+import { PolyominoManager } from './PolyominoManager';
 
 export type PlayerStatus = 'READY' | 'WAITING_PRE_CARGA' | 'STUNNED_POST_CARGA';
 
@@ -15,6 +17,15 @@ export interface BoardNodeSnapshot {
     id: string;
     stone: StoneInfo | null;
     terrain: TerrainType;
+}
+
+export interface TurnResourceSnapshot {
+    champion?: ChampionSnapshot;
+    spells?: Record<SpellId, number>;
+    polyominos?: {
+        cards: Record<PolyominoType, number>;
+        inventories: Record<number, Record<PolyominoType, number>>;
+    };
 }
 
 export interface GameSnapshot {
@@ -31,6 +42,7 @@ export interface GameSnapshot {
     consecutivePasses: number;
     isGameOver: boolean;
     boardHistory: string[];
+    resources?: TurnResourceSnapshot;
 }
 
 export class GameState {
@@ -47,6 +59,7 @@ export class GameState {
     public greenCaptures: number = 0;
     public purpleCaptures: number = 0;
     public komi: number = 6.5;
+    public playerKomis: Record<PlayerId, number> = { 1: 0, 2: 6.5, 3: 0, 4: 0 };
 
     // Entidades y Objetos Capturables en el Goban (Modo Roguelike / Historia)
     public captives: CaptiveEntity[] = [];
@@ -82,9 +95,21 @@ export class GameState {
 
     public entityManager: EntityManager;
 
-    constructor(komi: number = 6.5, playerCount: 2 | 4 = 2) {
+    constructor(komi: number = 6.5, playerCount: 2 | 4 = 2, playerKomis?: Record<number, number>) {
         this.komi = komi;
         this.playerCount = playerCount;
+        if (playerKomis) {
+            this.playerKomis = {
+                1: playerKomis[1] ?? 0,
+                2: playerKomis[2] ?? (playerCount === 4 ? 2.5 : komi),
+                3: playerKomis[3] ?? (playerCount === 4 ? 4.5 : 0),
+                4: playerKomis[4] ?? (playerCount === 4 ? 6.5 : 0),
+            };
+        } else if (playerCount === 4) {
+            this.playerKomis = { 1: 0, 2: 2.5, 3: 4.5, 4: 6.5 };
+        } else {
+            this.playerKomis = { 1: 0, 2: komi, 3: 0, 4: 0 };
+        }
         this.entityManager = new EntityManager();
         this.playerTurnCounts = { 1: 0, 2: 0, 3: 0, 4: 0 };
         this.captives = [];
@@ -150,7 +175,12 @@ export class GameState {
             lastMoveNodeId: this.lastMoveNodeId,
             consecutivePasses: this.consecutivePasses,
             isGameOver: this.isGameOver,
-            boardHistory: [...this.boardHistory]
+            boardHistory: [...this.boardHistory],
+            resources: {
+                champion: ChampionManager.getSnapshot(),
+                spells: RogueliteManager.getSnapshot(),
+                polyominos: PolyominoManager.getSnapshot()
+            }
         });
 
         // Limpiar pila de rehacer tras un nuevo movimiento
@@ -194,7 +224,12 @@ export class GameState {
             lastMoveNodeId: this.lastMoveNodeId,
             consecutivePasses: this.consecutivePasses,
             isGameOver: this.isGameOver,
-            boardHistory: [...this.boardHistory]
+            boardHistory: [...this.boardHistory],
+            resources: {
+                champion: ChampionManager.getSnapshot(),
+                spells: RogueliteManager.getSnapshot(),
+                polyominos: PolyominoManager.getSnapshot()
+            }
         });
 
         // Restaurar estado anterior
@@ -232,7 +267,12 @@ export class GameState {
             lastMoveNodeId: this.lastMoveNodeId,
             consecutivePasses: this.consecutivePasses,
             isGameOver: this.isGameOver,
-            boardHistory: [...this.boardHistory]
+            boardHistory: [...this.boardHistory],
+            resources: {
+                champion: ChampionManager.getSnapshot(),
+                spells: RogueliteManager.getSnapshot(),
+                polyominos: PolyominoManager.getSnapshot()
+            }
         });
 
         // Restaurar estado rehacer
@@ -264,6 +304,19 @@ export class GameState {
         this.isGameOver = snapshot.isGameOver;
         this.boardHistory = snapshot.boardHistory ? [...snapshot.boardHistory] : [...this.boardHistory];
         this.scoreReport = null;
+
+        // Restaurar recursos de combate y habilidades
+        if (snapshot.resources) {
+            if (snapshot.resources.champion) {
+                ChampionManager.restoreSnapshot(snapshot.resources.champion);
+            }
+            if (snapshot.resources.spells) {
+                RogueliteManager.restoreSnapshot(snapshot.resources.spells);
+            }
+            if (snapshot.resources.polyominos) {
+                PolyominoManager.restoreSnapshot(snapshot.resources.polyominos);
+            }
+        }
     }
 
     passTurn(board?: GraphBoard): boolean {
@@ -281,7 +334,8 @@ export class GameState {
         return true;
     }
 
-    advanceTurn(board?: GraphBoard) {
+    advanceTurn(board?: GraphBoard): string[] {
+        const brokenShields: string[] = [];
         // Reducir duración del escudo divino (3 turnos) para las piedras del jugador actual
         if (board) {
             for (const node of board.nodes.values()) {
@@ -291,6 +345,7 @@ export class GameState {
                         if (node.stone.shieldTurnsLeft <= 0) {
                             node.stone.isIndestructible = false;
                             node.stone.shieldTurnsLeft = undefined;
+                            brokenShields.push(node.id);
                         }
                     }
                 }
@@ -326,12 +381,19 @@ export class GameState {
             this.currentRound++;
         }
         this.currentPlayer = nextPlayer;
-        
+
+        // Resetear flags de "un solo uso por turno" solo cuando le toca al dueño del héroe
+        ChampionManager.onTurnAdvanced(nextPlayer);
+
         // Saltar turno si el siguiente jugador está aturdido/en postcarga (para jugadores 1 y 2)
         if (this.currentPlayer === 1 && this.player1Status !== 'READY') {
-            this.advanceTurn();
+            const extra = this.advanceTurn(board);
+            brokenShields.push(...extra);
         } else if (this.currentPlayer === 2 && this.player2Status !== 'READY') {
-            this.advanceTurn();
+            const extra = this.advanceTurn(board);
+            brokenShields.push(...extra);
         }
+
+        return brokenShields;
     }
 }

@@ -1,5 +1,6 @@
 // events/KeyboardController.ts - Navegación y Selección Universal con Teclado
 import type { HeroId, RogueliteDifficulty } from '../types';
+import { InteractionManager } from '../controllers/InteractionManager';
 import { ScreenManager } from '../ui/ScreenManager';
 import { ModalManager } from '../ui/ModalManager';
 import { GameController } from '../controllers/GameController';
@@ -29,6 +30,62 @@ export class KeyboardController {
 
             const key = e.key;
             const code = e.code;
+
+            // =========================================================
+            // ATAJO PERSONALIZABLE PARA FEEDBACK MODAL
+            // =========================================================
+            const savedFeedbackKey = localStorage.getItem('crazygo_feedback_key') || 'F10';
+            let normalizedKey = key;
+            if (normalizedKey === ' ') normalizedKey = 'Space';
+            else if (normalizedKey.length === 1) normalizedKey = normalizedKey.toUpperCase();
+
+            if (normalizedKey === savedFeedbackKey) {
+                e.preventDefault();
+                ModalManager.openFeedbackModal();
+                SoundFX.playPlaceStone();
+                return;
+            }
+
+            // =========================================================
+            // ATAJOS GLOBALES DE ZOOM (Ctrl + Plus / Ctrl + Minus / Ctrl + 0)
+            // =========================================================
+            if (e.ctrlKey || e.metaKey) {
+                if (key === '+' || key === '=' || code === 'Equal' || code === 'NumpadAdd') {
+                    e.preventDefault();
+                    ModalManager.setZoom(ModalManager.currentZoom + 10, true);
+                    SoundFX.playPlaceStone();
+                    return;
+                }
+                if (key === '-' || key === '_' || code === 'Minus' || code === 'NumpadSubtract') {
+                    e.preventDefault();
+                    ModalManager.setZoom(ModalManager.currentZoom - 10, true);
+                    SoundFX.playPlaceStone();
+                    return;
+                }
+                if (key === '0' || code === 'Digit0' || code === 'Numpad0') {
+                    e.preventDefault();
+                    ModalManager.setZoom(100, true);
+                    SoundFX.playPlaceStone();
+                    return;
+                }
+            }
+
+            // =========================================================
+            // ATAJO PARA MODO ZEN (H)
+            // =========================================================
+            if (!e.ctrlKey && !e.metaKey && !e.shiftKey && !e.altKey && (key === 'h' || key === 'H')) {
+                // Solo si no estamos en un diálogo de historia que requiera escribir o similar
+                if (!StoryController.isDialogueActive || TutorialManager.isActive === false) {
+                    e.preventDefault();
+                    // Importamos HUDController dinámicamente si hay referencia cruzada,
+                    // pero podemos llamarlo usando import estático
+                    import('../ui/HUDController').then(m => {
+                        m.HUDController.toggleZenMode();
+                        SoundFX.playPlaceStone();
+                    });
+                    return;
+                }
+            }
 
             // 0. DIÁLOGOS DE MODO HISTORIA (Avance rápido con Espacio, Enter, Flecha Derecha o Escape)
             if (StoryController.isDialogueActive) {
@@ -390,8 +447,29 @@ export class KeyboardController {
                     }
                 }
 
-                // Paso 5: Ajustes Finales (Color y Dificultad)
+                // Paso 5: Escenario y Entorno de Combate
                 if (currentStep === 5) {
+                    const bgBtns = Array.from(document.querySelectorAll('#setup-bgs-grid .btn-setup-bg')) as HTMLElement[];
+                    if (['1', '2', '3', '4', '5', '6', '7'].includes(key)) {
+                        const idx = parseInt(key, 10) - 1;
+                        if (bgBtns[idx]) {
+                            e.preventDefault();
+                            bgBtns[idx].click();
+                            return;
+                        }
+                    }
+                    if (bgBtns.length > 0 && (key === 'ArrowLeft' || key === 'ArrowRight' || key === 'a' || key === 'd')) {
+                        e.preventDefault();
+                        const curIdx = bgBtns.findIndex(b => b.classList.contains('active'));
+                        const delta = (key === 'ArrowLeft' || key === 'a') ? -1 : 1;
+                        const nextIdx = (curIdx + delta + bgBtns.length) % bgBtns.length;
+                        bgBtns[nextIdx].click();
+                        return;
+                    }
+                }
+
+                // Paso 6: Ajustes Finales (Color y Dificultad)
+                if (currentStep === 6) {
                     if (key === 'ArrowLeft' || key === 'ArrowRight') {
                         e.preventDefault();
                         if (key === 'ArrowLeft') document.getElementById('setup-color-black')?.click();
@@ -411,8 +489,8 @@ export class KeyboardController {
 
                 if (key === 'Enter') {
                     e.preventDefault();
-                    if (currentStep === 5) {
-                        document.getElementById('btn-wizard-start')?.click();
+                    if (currentStep === 6) {
+                        document.getElementById('btn-setup-start')?.click();
                     } else {
                         document.getElementById('btn-wizard-next')?.click();
                     }
@@ -447,32 +525,101 @@ export class KeyboardController {
             }
 
             // =========================================================
-            // 6c. MODAL MULTIJUGADOR ONLINE (Selección de Campeón Host / Guest)
+            // 6c. MODAL MULTIJUGADOR ONLINE (Wizard Host / Join Guest)
             // =========================================================
             const onlineModal = document.getElementById('online-modal');
             if (onlineModal && !onlineModal.classList.contains('hidden')) {
-                const isJoinTab = document.getElementById('view-join-room')?.classList.contains('active');
-                const isHostTab = document.getElementById('view-create-room')?.classList.contains('active');
+                const isJoinTab = document.getElementById('view-join-room')?.classList.contains('active') || !document.getElementById('view-join-room')?.classList.contains('hidden');
+                const isHostTab = document.getElementById('view-create-room')?.classList.contains('active') || !document.getElementById('view-create-room')?.classList.contains('hidden');
+
+                if (key === 'Escape') {
+                    e.preventDefault();
+                    ModalManager.closeOnlineModal();
+                    return;
+                }
 
                 if (isHostTab) {
-                    if (key === 'ArrowLeft' || key === 'a' || key === 'A') {
+                    const onlineStep = ModalManager.currentOnlineWizardStep;
+
+                    if (key === 'Backspace') {
                         e.preventDefault();
-                        document.getElementById('btn-online-host-hero-prev')?.click();
+                        document.getElementById('btn-online-wizard-prev')?.click();
                         return;
                     }
-                    if (key === 'ArrowRight' || key === 'd' || key === 'D') {
-                        e.preventDefault();
-                        document.getElementById('btn-online-host-hero-next')?.click();
-                        return;
-                    }
-                    const hostThumbs = Array.from(document.querySelectorAll('#online-host-hero-thumb-strip .hero-thumb-btn')) as HTMLElement[];
-                    if (['1', '2', '3', '4', '5', '6', '7'].includes(key)) {
-                        const idx = parseInt(key, 10) - 1;
-                        if (hostThumbs[idx]) {
+
+                    if (onlineStep === 1) {
+                        if (key === '1') {
                             e.preventDefault();
-                            hostThumbs[idx].click();
+                            document.getElementById('online-mode-standard')?.click();
                             return;
                         }
+                        if (key === '2') {
+                            e.preventDefault();
+                            document.getElementById('online-mode-coop')?.click();
+                            return;
+                        }
+                    }
+
+                    if (onlineStep === 2) {
+                        if (key === '1') {
+                            e.preventDefault();
+                            document.getElementById('online-size-9')?.click();
+                            return;
+                        }
+                        if (key === '2') {
+                            e.preventDefault();
+                            document.getElementById('online-size-13')?.click();
+                            return;
+                        }
+                        if (key === '3') {
+                            e.preventDefault();
+                            document.getElementById('online-size-19')?.click();
+                            return;
+                        }
+                    }
+
+                    if (onlineStep === 3) {
+                        if (key === 'ArrowLeft' || key === 'a' || key === 'A') {
+                            e.preventDefault();
+                            document.getElementById('btn-online-host-hero-prev')?.click();
+                            return;
+                        }
+                        if (key === 'ArrowRight' || key === 'd' || key === 'D') {
+                            e.preventDefault();
+                            document.getElementById('btn-online-host-hero-next')?.click();
+                            return;
+                        }
+                        const hostThumbs = Array.from(document.querySelectorAll('#online-host-hero-thumb-strip .hero-thumb-btn')) as HTMLElement[];
+                        if (['1', '2', '3', '4', '5', '6', '7'].includes(key)) {
+                            const idx = parseInt(key, 10) - 1;
+                            if (hostThumbs[idx]) {
+                                e.preventDefault();
+                                hostThumbs[idx].click();
+                                return;
+                            }
+                        }
+                    }
+
+                    if (onlineStep === 4) {
+                        const bgBtns = Array.from(document.querySelectorAll('#online-bgs-grid .btn-online-bg')) as HTMLElement[];
+                        if (['1', '2', '3', '4', '5', '6', '7'].includes(key)) {
+                            const idx = parseInt(key, 10) - 1;
+                            if (bgBtns[idx]) {
+                                e.preventDefault();
+                                bgBtns[idx].click();
+                                return;
+                            }
+                        }
+                    }
+
+                    if (key === 'Enter') {
+                        e.preventDefault();
+                        if (onlineStep === 5) {
+                            document.getElementById('btn-online-force-start')?.click();
+                        } else {
+                            document.getElementById('btn-online-wizard-next')?.click();
+                        }
+                        return;
                     }
                 } else if (isJoinTab) {
                     const roomInput = document.getElementById('input-join-room-code');
@@ -497,12 +644,6 @@ export class KeyboardController {
                             }
                         }
                     }
-                }
-
-                if (key === 'Escape') {
-                    e.preventDefault();
-                    document.getElementById('btn-online-cancel')?.click();
-                    return;
                 }
                 return;
             }
@@ -689,26 +830,26 @@ export class KeyboardController {
                 }
 
                 // Fichas Poliminó Tácticas (Z, X, V o teclas numéricas 5, 6, 7)
-                if (key === 'z' || key === 'Z' || key === '5') {
+                if (key === '5' || key === 'z' || key === 'Z') {
                     e.preventDefault();
-                    document.getElementById('poly-btn-sprouting')?.click();
+                    GameController.selectPolyomino('sprouting');
                     return;
                 }
-                if (key === 'x' || key === 'X' || key === '6') {
+                if (key === '6' || key === 'x' || key === 'X') {
                     e.preventDefault();
-                    document.getElementById('poly-btn-domino')?.click();
+                    GameController.selectPolyomino('domino');
                     return;
                 }
-                if (key === 'v' || key === 'V' || key === '7') {
+                if (key === '7' || key === 'v' || key === 'V') {
                     e.preventDefault();
-                    document.getElementById('poly-btn-monolith')?.click();
+                    GameController.selectPolyomino('monolith');
                     return;
                 }
 
                 // Rotar Poliminó (R)
                 if ((key === 'r' || key === 'R') && !e.ctrlKey && !e.metaKey && !e.altKey) {
                     e.preventDefault();
-                    GameController.rotatePolyomino();
+                    InteractionManager.rotatePolyomino();
                     return;
                 }
 
@@ -735,6 +876,13 @@ export class KeyboardController {
                 if ((key === 'y' && e.ctrlKey) || (key === 'z' && e.ctrlKey && e.shiftKey)) {
                     e.preventDefault();
                     GameController.handleRedo();
+                    return;
+                }
+
+                // Sugerencia / Ojo del Maestro y Proyección Astral (H)
+                if (key === 'h' || key === 'H') {
+                    e.preventDefault();
+                    InteractionManager.triggerBestMoveHint();
                     return;
                 }
 

@@ -2,7 +2,7 @@
 import type { ScoreReport, PlayerId, HeroId } from '../../types';
 import { TerritoryScorer } from '../../core/TerritoryScorer';
 import { RoguelikeRunManager } from '../../core/RoguelikeRunManager';
-import { t, translateEnemyName } from '../../i18n/i18n';
+import { t, translateEnemyName, getLanguage } from '../../i18n/i18n';
 
 export class ScoreModalRenderer {
     public static showFinalScoreModal(
@@ -45,10 +45,12 @@ export class ScoreModalRenderer {
 
         const gTerr = document.getElementById('modal-g-terr');
         const gCaps = document.getElementById('modal-g-caps');
+        const gKomi = document.getElementById('modal-g-komi');
         const gTotal = document.getElementById('modal-g-total');
 
         const pTerr = document.getElementById('modal-p-terr');
         const pCaps = document.getElementById('modal-p-caps');
+        const pKomi = document.getElementById('modal-p-komi');
         const pTotal = document.getElementById('modal-p-total');
 
         // Arte del Campeón Escogido en Grande con Transparencia
@@ -56,7 +58,7 @@ export class ScoreModalRenderer {
         const hero = RoguelikeRunManager.HEROES[effectiveHeroId];
         if (heroArt) {
             if (isRoguelike && hero) {
-                heroArt.src = hero.image || hero.faceImage || '/heroes/tengu.png';
+                heroArt.src = hero.image || hero.faceImage || './heroes/tengu.png';
                 heroArt.classList.remove('hidden');
             } else {
                 heroArt.classList.add('hidden');
@@ -70,9 +72,10 @@ export class ScoreModalRenderer {
             colP4?.classList.remove('hidden');
 
             if (title && subtitle) {
+                const isEn = getLanguage() === 'en';
                 if (report.winner !== 'draw' && report.winnerPlayerId) {
                     const meta = TerritoryScorer.PLAYER_META[report.winnerPlayerId];
-                    title.innerText = `¡Victoria para ${meta.name}! ${meta.icon}`;
+                    title.innerText = isEn ? `Victory for ${meta.name}! ${meta.icon}` : `¡Victoria para ${meta.name}! ${meta.icon}`;
                     subtitle.innerText = `1º ${report.ranking[0].name} (${report.ranking[0].total} pts) • 2º ${report.ranking[1].name} (${report.ranking[1].total} pts) • 3º ${report.ranking[2]?.name || ''} • 4º ${report.ranking[3]?.name || ''}`;
                 } else {
                     title.innerText = t('score.draw');
@@ -82,10 +85,12 @@ export class ScoreModalRenderer {
 
             if (gTerr) gTerr.innerText = report.greenTerritory.toString();
             if (gCaps) gCaps.innerText = report.greenCaptures.toString();
+            if (gKomi) gKomi.innerText = `+${report.playerScores[3].komi}`;
             if (gTotal) gTotal.innerText = report.playerScores[3].total.toString();
 
             if (pTerr) pTerr.innerText = report.purpleTerritory.toString();
             if (pCaps) pCaps.innerText = report.purpleCaptures.toString();
+            if (pKomi) pKomi.innerText = `+${report.playerScores[4].komi}`;
             if (pTotal) pTotal.innerText = report.playerScores[4].total.toString();
         } else {
             const rematchBtn = document.getElementById('btn-modal-rematch');

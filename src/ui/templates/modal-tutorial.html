@@ -1,0 +1,39 @@
+    <!-- ================= MODAL: DOJO / TUTORIAL ================= -->
+    <div id="dojo-modal" class="modal-backdrop hidden">
+      <div class="modal-card modal-dojo">
+        <div class="modal-header">
+          <h2>🥋 Dojo (Tutorial & Guides)</h2>
+          <p class="modal-desc">Learn Go rules and Crazy Go mechanics</p>
+        </div>
+        <div class="modal-body-scroll">
+          <div class="setup-grid grid-1" id="dojo-chapter-list">
+            <!-- Chapters generated dynamically here -->
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn-secondary" id="btn-cancel-dojo">Close</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ================= MODAL: TUTORIAL LESSON COMPLETED ================= -->
+    <div id="modal-tutorial-complete" class="modal-backdrop hidden">
+      <div class="modal-card modal-tutorial-complete-card">
+        <div class="modal-header tutorial-complete-header">
+          <div class="tutorial-complete-badge">🎉</div>
+          <h2 id="tutorial-complete-title">Lesson Completed!</h2>
+          <p id="tutorial-complete-subtitle" class="modal-desc">You have assimilated the core concepts of this lesson.</p>
+        </div>
+        <div class="tutorial-complete-body">
+          <div id="tutorial-next-preview" class="tutorial-next-preview">
+            <span class="next-label">Next Lesson:</span>
+            <strong id="tutorial-next-title">2. Capturing & Atari</strong>
+          </div>
+        </div>
+        <div class="modal-footer tutorial-complete-footer">
+          <button id="btn-tutorial-replay" class="btn btn-secondary">🔁 Replay</button>
+          <button id="btn-tutorial-list" class="btn btn-secondary">📜 Lesson List</button>
+          <button id="btn-tutorial-next" class="btn btn-primary btn-cta">▶ Next Lesson</button>
+        </div>
+      </div>
+    </div>

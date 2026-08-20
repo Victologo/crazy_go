@@ -1,5 +1,6 @@
-// core/DevModeManager.ts - Gestor de Modo Desarrollador (Developer Mode) vs Modo Jugador Normal
+// core/DevModeManager.ts - Gestor de Modo Desarrollador (Developer Mode) con Sandbox integrado
 import type { GameMode } from '../types';
+import { RoguelikeRunManager } from './RoguelikeRunManager';
 
 export class DevModeManager {
     private static readonly STORAGE_KEY = 'crazy_go_dev_mode';
@@ -7,6 +8,12 @@ export class DevModeManager {
 
     public static init() {
         try {
+            // Migrar sandbox_mode anterior si existía
+            const legacySandbox = localStorage.getItem('crazy_go_sandbox_mode');
+            if (legacySandbox === 'true') {
+                localStorage.setItem(this.STORAGE_KEY, 'true');
+                localStorage.removeItem('crazy_go_sandbox_mode');
+            }
             this._isDevMode = localStorage.getItem(this.STORAGE_KEY) === 'true';
         } catch {
             this._isDevMode = false;
@@ -14,6 +21,11 @@ export class DevModeManager {
     }
 
     public static isDevMode(): boolean {
+        return this._isDevMode;
+    }
+
+    /** Alias para compatibilidad con código que usaba sandbox mode separado */
+    public static isSandboxMode(): boolean {
         return this._isDevMode;
     }
 
@@ -32,27 +44,35 @@ export class DevModeManager {
         return nextState;
     }
 
+    /** Alias para compatibilidad con código que usaba toggleSandboxMode */
+    public static setSandboxMode(enabled: boolean): void {
+        this.setDevMode(enabled);
+    }
+
+    public static toggleSandboxMode(): boolean {
+        return this.toggleDevMode();
+    }
+
+    // ==================== PERMISOS ====================
+
     /**
-     * Retorna si las acciones de Deshacer (Undo) y Rehacer (Redo) están permitidas.
-     * - Online: NUNCA permitidas.
-     * - Roguelike e Historia: Bloqueadas para usuario normal (solo permitidas si DevMode está activo).
-     * - Local libre (1v1 / 1vIA): Permitidas para análisis y práctica.
+     * Undo/Redo: permitido en partidas locales y siempre si Dev Mode está activo.
      */
     public static isUndoRedoAllowed(gameMode: GameMode): boolean {
         if (gameMode === 'online') return false;
         if (this._isDevMode) return true;
+        if (RoguelikeRunManager.isRunActive || gameMode === 'story') return false;
         return gameMode === '1v1' || gameMode === '1via';
     }
 
     /**
-     * Retorna si el botón y acceso al Laboratorio Sandbox (Pruebas) en el HUD está permitido.
-     * - Online: NUNCA permitido.
-     * - Roguelike e Historia: Bloqueado para usuario normal (solo permitido si DevMode está activo).
-     * - Local libre: Permitido.
+     * Sandbox Testing Lab: disponible en partidas locales y en CUALQUIER modo si Dev Mode está activo.
+     * Online: bloqueado siempre.
      */
     public static isSandboxAllowed(gameMode: GameMode): boolean {
         if (gameMode === 'online') return false;
         if (this._isDevMode) return true;
+        if (RoguelikeRunManager.isRunActive || gameMode === 'story') return false;
         return gameMode === '1v1' || gameMode === '1via';
     }
 }

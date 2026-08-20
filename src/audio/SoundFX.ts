@@ -221,6 +221,80 @@ export class SoundFX {
     }
 
     /**
+     * Sonido de Pasar Turno ("Bong" resonante de campana zen / gong budista tradicional)
+     */
+    static playPass() {
+        if (!this.sfxEnabled || this.masterVolume <= 0) return;
+        const ctx = this.getContext();
+        if (!ctx) return;
+
+        const now = ctx.currentTime;
+
+        // 1. Golpe transitorio suave de mazo acolchado (Thump inicial)
+        const malletOsc = ctx.createOscillator();
+        const malletGain = ctx.createGain();
+        malletOsc.type = 'sine';
+        malletOsc.frequency.setValueAtTime(95, now);
+        malletOsc.frequency.exponentialRampToValueAtTime(45, now + 0.045);
+
+        malletGain.gain.setValueAtTime(0.4 * this.masterVolume, now);
+        malletGain.gain.exponentialRampToValueAtTime(0.001, now + 0.045);
+
+        malletOsc.connect(malletGain);
+        malletGain.connect(ctx.destination);
+        malletOsc.start(now);
+        malletOsc.stop(now + 0.045);
+
+        // 2. Tono fundamental grave resonante ("Bong" en Sol / 196Hz)
+        const fundOsc = ctx.createOscillator();
+        const fundGain = ctx.createGain();
+        fundOsc.type = 'sine';
+        fundOsc.frequency.setValueAtTime(196, now);
+        fundOsc.frequency.exponentialRampToValueAtTime(186, now + 0.85);
+
+        const baseGain = 0.48 * this.masterVolume;
+        fundGain.gain.setValueAtTime(0.001, now);
+        fundGain.gain.linearRampToValueAtTime(baseGain, now + 0.012);
+        fundGain.gain.exponentialRampToValueAtTime(0.0001, now + 0.85);
+
+        fundOsc.connect(fundGain);
+        fundGain.connect(ctx.destination);
+        fundOsc.start(now);
+        fundOsc.stop(now + 0.85);
+
+        // 3. Primer armónico (Quinta / 293.66Hz) con calidez y decaimiento medio
+        const harm1Osc = ctx.createOscillator();
+        const harm1Gain = ctx.createGain();
+        harm1Osc.type = 'sine';
+        harm1Osc.frequency.setValueAtTime(293.66, now);
+        harm1Osc.frequency.exponentialRampToValueAtTime(288, now + 0.6);
+
+        harm1Gain.gain.setValueAtTime(0.001, now);
+        harm1Gain.gain.linearRampToValueAtTime(0.24 * this.masterVolume, now + 0.01);
+        harm1Gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.6);
+
+        harm1Osc.connect(harm1Gain);
+        harm1Gain.connect(ctx.destination);
+        harm1Osc.start(now);
+        harm1Osc.stop(now + 0.6);
+
+        // 4. Segundo armónico metálico sutil (Octava superior / 523.25Hz)
+        const harm2Osc = ctx.createOscillator();
+        const harm2Gain = ctx.createGain();
+        harm2Osc.type = 'triangle';
+        harm2Osc.frequency.setValueAtTime(523.25, now);
+
+        harm2Gain.gain.setValueAtTime(0.001, now);
+        harm2Gain.gain.linearRampToValueAtTime(0.12 * this.masterVolume, now + 0.008);
+        harm2Gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.35);
+
+        harm2Osc.connect(harm2Gain);
+        harm2Gain.connect(ctx.destination);
+        harm2Osc.start(now);
+        harm2Osc.stop(now + 0.35);
+    }
+
+    /**
      * Sonido de error o movimiento ilegal
      */
     static playIllegal() {
@@ -328,5 +402,82 @@ export class SoundFX {
         metalGain.connect(ctx.destination);
         metalOsc.start(now);
         metalOsc.stop(now + 0.15);
+    }
+
+    /**
+     * Sonido de rotación de ficha poliminó / Duplicidad: Giro suave y nítido de madera mineral (Click/Swish)
+     */
+    static playRotate() {
+        if (!this.sfxEnabled || this.masterVolume <= 0) return;
+        const ctx = this.getContext();
+        if (!ctx) return;
+
+        const now = ctx.currentTime;
+
+        // 1. Pequeño golpe de contacto ligero de madera
+        const bufferSize = Math.floor(ctx.sampleRate * 0.04);
+        const buffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
+        const data = buffer.getChannelData(0);
+        for (let i = 0; i < bufferSize; i++) {
+            data[i] = (Math.random() * 2 - 1) * Math.exp(-i / (bufferSize * 0.25));
+        }
+
+        const noise = ctx.createBufferSource();
+        noise.buffer = buffer;
+        const noiseFilter = ctx.createBiquadFilter();
+        noiseFilter.type = 'bandpass';
+        noiseFilter.frequency.setValueAtTime(1400, now);
+        noiseFilter.frequency.exponentialRampToValueAtTime(2800, now + 0.04);
+        noiseFilter.Q.setValueAtTime(4.0, now);
+
+        const noiseGain = ctx.createGain();
+        noiseGain.gain.setValueAtTime(0.28 * this.masterVolume, now);
+        noiseGain.gain.exponentialRampToValueAtTime(0.001, now + 0.05);
+
+        noise.connect(noiseFilter);
+        noiseFilter.connect(noiseGain);
+        noiseGain.connect(ctx.destination);
+        noise.start(now);
+
+        // 2. Tono suave resonante con sweep ascendente de giro
+        const toneOsc = ctx.createOscillator();
+        const toneGain = ctx.createGain();
+        toneOsc.type = 'sine';
+        toneOsc.frequency.setValueAtTime(420, now);
+        toneOsc.frequency.exponentialRampToValueAtTime(740, now + 0.07);
+
+        toneGain.gain.setValueAtTime(0.22 * this.masterVolume, now);
+        toneGain.gain.exponentialRampToValueAtTime(0.001, now + 0.08);
+
+        toneOsc.connect(toneGain);
+        toneGain.connect(ctx.destination);
+        toneOsc.start(now);
+        toneOsc.stop(now + 0.08);
+    }
+
+    /**
+     * Pulso acústico para cuenta atrás del reloj de Go / Byo-yomi (para los últimos 5 segundos).
+     */
+    static playClockTick(isUrgent: boolean = false) {
+        if (!this.sfxEnabled || this.masterVolume <= 0) return;
+        const ctx = this.getContext();
+        if (!ctx) return;
+
+        const now = ctx.currentTime;
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+
+        osc.type = isUrgent ? 'triangle' : 'sine';
+        osc.frequency.setValueAtTime(isUrgent ? 920 : 680, now);
+        osc.frequency.exponentialRampToValueAtTime(isUrgent ? 460 : 340, now + 0.04);
+
+        gain.gain.setValueAtTime((isUrgent ? 0.26 : 0.15) * this.masterVolume, now);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + 0.04);
+
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+
+        osc.start(now);
+        osc.stop(now + 0.045);
     }
 }

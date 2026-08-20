@@ -1,6 +1,7 @@
 // tutorial/TutorialSteps.ts
 import type { BoardSize, HeroId, SpellId, PolyominoType } from '../types';
 import { getLanguage } from '../i18n/i18n';
+import { PolyominoManager } from '../core/PolyominoManager';
 
 export interface TutorialAction {
     type: 'place_stone' | 'pass' | 'use_spell' | 'use_polyomino' | 'use_skill' | 'dialog_only';
@@ -435,16 +436,18 @@ export const TUTORIAL_CHAPTERS_ES: TutorialChapter[] = [
         heroId: 'tengu',
         komi: 0,
         initialStones: [
-            { id: '5,3', player: 2 }, { id: '6,3', player: 2 }, { id: '7,3', player: 2 },
-            { id: '5,4', player: 2 }, { id: '6,4', player: 2 }, { id: '7,4', player: 2 },
-            { id: '5,5', player: 2 }, { id: '6,5', player: 2 }, { id: '7,5', player: 2 },
+            { id: '4,2', player: 2 }, { id: '5,2', player: 2 }, { id: '6,2', player: 2 }, { id: '7,2', player: 2 }, { id: '8,2', player: 2 },
+            { id: '4,3', player: 2 }, { id: '5,3', player: 2 }, { id: '6,3', player: 2 }, { id: '7,3', player: 2 }, { id: '8,3', player: 2 },
+            { id: '4,4', player: 2 }, { id: '5,4', player: 2 }, { id: '6,4', player: 2 }, { id: '7,4', player: 2 }, { id: '8,4', player: 2 },
+            { id: '4,5', player: 2 }, { id: '5,5', player: 2 }, { id: '6,5', player: 2 }, { id: '7,5', player: 2 }, { id: '8,5', player: 2 },
+            { id: '4,6', player: 2 }, { id: '5,6', player: 2 }, { id: '6,6', player: 2 }, { id: '7,6', player: 2 }, { id: '8,6', player: 2 },
             { id: '2,2', player: 1 }, { id: '2,6', player: 1 }
         ],
         steps: [
             {
                 id: 'c7_s1',
                 messageTitle: '1. El Bastión Rival',
-                messageBody: 'El rival ha construido una fortaleza masiva de 9 piedras blancas en la derecha difícil de invadir mediante reglas estándar.',
+                messageBody: 'El rival ha construido una fortaleza masiva de 25 piedras blancas en la derecha difícil de invadir mediante reglas estándar.',
                 expectedAction: { type: 'dialog_only' },
                 annotations: [
                     { nodeId: '6,4', label: '⚔️', color: '#ef4444' }
@@ -543,6 +546,11 @@ export const TUTORIAL_CHAPTERS_ES: TutorialChapter[] = [
                 messageTitle: '8. Ficha Duplicidad 2x1 (🀄)',
                 messageBody: 'Selecciona la <strong>Ficha Duplicidad (tecla 6 o X)</strong>, pulsa [R] para orientación horizontal [⇄] y colócala en (3,6) para conectar tu grupo.',
                 expectedAction: { type: 'use_polyomino', polyType: 'domino', nodeId: '3,6', rotation: 0 },
+                onStart: () => {
+                    PolyominoManager.orientation = 'vertical';
+                    const dominoCard = PolyominoManager.polyominoCards.get('domino');
+                    if (dominoCard) dominoCard.orientation = 'vertical';
+                },
                 annotations: [
                     { nodeId: '3,6', label: '🀄', color: '#38bdf8' },
                     { nodeId: '4,6', label: '🀄', color: '#38bdf8' }
@@ -999,16 +1007,18 @@ export const TUTORIAL_CHAPTERS_EN: TutorialChapter[] = [
         heroId: 'tengu',
         komi: 0,
         initialStones: [
-            { id: '5,3', player: 2 }, { id: '6,3', player: 2 }, { id: '7,3', player: 2 },
-            { id: '5,4', player: 2 }, { id: '6,4', player: 2 }, { id: '7,4', player: 2 },
-            { id: '5,5', player: 2 }, { id: '6,5', player: 2 }, { id: '7,5', player: 2 },
+            { id: '4,2', player: 2 }, { id: '5,2', player: 2 }, { id: '6,2', player: 2 }, { id: '7,2', player: 2 }, { id: '8,2', player: 2 },
+            { id: '4,3', player: 2 }, { id: '5,3', player: 2 }, { id: '6,3', player: 2 }, { id: '7,3', player: 2 }, { id: '8,3', player: 2 },
+            { id: '4,4', player: 2 }, { id: '5,4', player: 2 }, { id: '6,4', player: 2 }, { id: '7,4', player: 2 }, { id: '8,4', player: 2 },
+            { id: '4,5', player: 2 }, { id: '5,5', player: 2 }, { id: '6,5', player: 2 }, { id: '7,5', player: 2 }, { id: '8,5', player: 2 },
+            { id: '4,6', player: 2 }, { id: '5,6', player: 2 }, { id: '6,6', player: 2 }, { id: '7,6', player: 2 }, { id: '8,6', player: 2 },
             { id: '2,2', player: 1 }, { id: '2,6', player: 1 }
         ],
         steps: [
             {
                 id: 'c7_s1',
                 messageTitle: '1. The Rival Bastion',
-                messageBody: 'Your opponent built a massive fortress of 9 white stones on the right side, nearly impossible to breach with basic moves.',
+                messageBody: 'Your opponent built a massive fortress of 25 white stones on the right side, nearly impossible to breach with basic moves.',
                 expectedAction: { type: 'dialog_only' },
                 annotations: [
                     { nodeId: '6,4', label: '⚔️', color: '#ef4444' }
@@ -1107,6 +1117,11 @@ export const TUTORIAL_CHAPTERS_EN: TutorialChapter[] = [
                 messageTitle: '8. Duplicity Stone 2x1 (🀄)',
                 messageBody: 'Select the <strong>Duplicity Stone (Key 6 or X)</strong>, press [R] for horizontal orientation [⇄], and place it at (3,6) to bridge your group.',
                 expectedAction: { type: 'use_polyomino', polyType: 'domino', nodeId: '3,6', rotation: 0 },
+                onStart: () => {
+                    PolyominoManager.orientation = 'vertical';
+                    const dominoCard = PolyominoManager.polyominoCards.get('domino');
+                    if (dominoCard) dominoCard.orientation = 'vertical';
+                },
                 annotations: [
                     { nodeId: '3,6', label: '🀄', color: '#38bdf8' },
                     { nodeId: '4,6', label: '🀄', color: '#38bdf8' }

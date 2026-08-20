@@ -1,7 +1,8 @@
-// champions/TenguChampion.ts - Habilidad Activa: Lluvia Meteórica
 import type { ChampionActiveSkill } from './types';
 import type { GraphBoard, BoardNode } from '../GraphBoard';
+import { RulesEngine } from '../RulesEngine';
 import { TenguVFX } from '../../graphics/vfx/TenguVFX';
+import { getLanguage } from '../../i18n/i18n';
 
 export const TenguActiveSkill: ChampionActiveSkill = {
     name: 'Meteor Strike',
@@ -71,11 +72,15 @@ export class TenguChampion {
 
         const meteorCount = this.getMeteorCount(board);
 
-        // Generar impactos seleccionando exclusivamente de entre los nodos válidos de la zona
+        // Generar impactos seleccionando exclusivamente nodos ÚNICOS de la zona
         const impactNodes: BoardNode[] = [];
-        for (let i = 0; i < meteorCount; i++) {
-            const randIndex = Math.floor(Math.random() * zoneNodes.length);
-            impactNodes.push(zoneNodes[randIndex]);
+        const availableNodes = [...zoneNodes];
+        const actualMeteorCount = Math.min(meteorCount, availableNodes.length);
+        
+        for (let i = 0; i < actualMeteorCount; i++) {
+            const randIndex = Math.floor(Math.random() * availableNodes.length);
+            impactNodes.push(availableNodes[randIndex]);
+            availableNodes.splice(randIndex, 1); // Remover para evitar duplicados
         }
 
         const impactCoords = impactNodes.map(n => ({ x: n.x, y: n.y }));
@@ -84,13 +89,16 @@ export class TenguChampion {
         const onImpactNode = (idx: number) => {
             const node = impactNodes[idx];
             if (node && node.stone && !node.stone.isIndestructible) {
-                node.stone = null;
-                destroyedCount++;
+                const removed = RulesEngine.destroyStoneAndPolyGroup(board, null, node.id);
+                destroyedCount += removed.length;
             }
         };
 
         const onAllFinished = () => {
-            onSuccess(`☄️ ¡Lluvia Meteórica desatada! ${meteorCount} meteoros bombardearon la zona (${destroyedCount} piedra(s) destruida(s)).`);
+            const isEn = getLanguage() === 'en';
+            onSuccess(isEn
+                ? `☄️ Meteor Strike unleashed! ${meteorCount} meteors bombarded the area (${destroyedCount} stone(s) destroyed).`
+                : `☄️ ¡Lluvia Meteórica desatada! ${meteorCount} meteoros bombardearon la zona (${destroyedCount} piedra(s) destruida(s)).`);
             onComplete();
         };
 

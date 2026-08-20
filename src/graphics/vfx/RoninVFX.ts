@@ -33,6 +33,29 @@ export class RoninVFX {
         targetRing.setAttribute('class', 'slash-target-mark');
         group.appendChild(targetRing);
 
+        // Retícula de cruz en la intersección exacta
+        const crossH = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+        crossH.setAttribute('x1', (coord.x - 20).toString());
+        crossH.setAttribute('y1', coord.y.toString());
+        crossH.setAttribute('x2', (coord.x + 20).toString());
+        crossH.setAttribute('y2', coord.y.toString());
+        crossH.setAttribute('stroke', '#38bdf8');
+        crossH.setAttribute('stroke-width', '1.6');
+        crossH.setAttribute('stroke-linecap', 'round');
+        crossH.setAttribute('class', 'slash-target-mark');
+        group.appendChild(crossH);
+
+        const crossV = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+        crossV.setAttribute('x1', coord.x.toString());
+        crossV.setAttribute('y1', (coord.y - 20).toString());
+        crossV.setAttribute('x2', coord.x.toString());
+        crossV.setAttribute('y2', (coord.y + 20).toString());
+        crossV.setAttribute('stroke', '#38bdf8');
+        crossV.setAttribute('stroke-width', '1.6');
+        crossV.setAttribute('stroke-linecap', 'round');
+        crossV.setAttribute('class', 'slash-target-mark');
+        group.appendChild(crossV);
+
         // 2. Destello exterior de energía cortante cyan (38px de semieje diagonal)
         const outerPath = document.createElementNS('http://www.w3.org/2000/svg', 'path');
         const dOuter = `M ${coord.x - 38} ${coord.y - 38} Q ${coord.x + 6} ${coord.y - 4} ${coord.x + 38} ${coord.y + 38}`;

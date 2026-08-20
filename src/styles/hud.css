@@ -46,9 +46,23 @@
   animation: pulseTimerWarning 0.8s infinite alternate ease-in-out;
 }
 
+.hud-timer-pill.timer-urgent,
+.duel-timer-badge.timer-urgent {
+  border-color: #ff0055 !important;
+  color: #ffffff !important;
+  background: rgba(255, 0, 85, 0.45) !important;
+  box-shadow: 0 0 22px rgba(255, 0, 85, 0.95) !important;
+  animation: pulseTimerUrgent 0.45s infinite alternate ease-in-out;
+}
+
 @keyframes pulseTimerWarning {
   0% { transform: scale(1); }
   100% { transform: scale(1.08); filter: brightness(1.25); }
+}
+
+@keyframes pulseTimerUrgent {
+  0% { transform: scale(1); filter: brightness(1); }
+  100% { transform: scale(1.12); filter: brightness(1.4); }
 }
 
 /* Entidades y Objetos Capturables en el Goban */
@@ -137,10 +151,9 @@
 }
 
 .breakdown-col {
-  background: var(--bg-card-sub);
-  border: 1px solid var(--border-subtle);
-  border-radius: var(--radius-md);
-  padding: 1rem;
+  background: transparent;
+  border: none;
+  padding: 1rem 0.5rem;
   text-align: left;
 }
 
@@ -373,3 +386,82 @@
 .vfx-sacred-aura {
   animation: sacredPulse 2s infinite ease-in-out;
 }
+
+/* ==========================================================================
+   Barra de Win Rate % en Tiempo Real y Botón Ojo del Maestro
+   ========================================================================== */
+.hud-winrate-container {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  background: rgba(15, 23, 42, 0.85);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: var(--radius-full);
+  padding: 0.2rem 0.55rem;
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  font-weight: 700;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+  transition: all 0.3s ease;
+}
+
+.winrate-label {
+  display: inline-block;
+  min-width: 28px;
+  text-align: center;
+}
+
+.winrate-black {
+  color: #94a3b8;
+}
+
+.winrate-white {
+  color: #f8fafc;
+}
+
+.winrate-bar-track {
+  width: 60px;
+  height: 7px;
+  background: #f8fafc;
+  border-radius: var(--radius-full);
+  overflow: hidden;
+  position: relative;
+  box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.5);
+  border: 1px solid rgba(0, 0, 0, 0.6);
+}
+
+.winrate-bar-fill-black {
+  height: 100%;
+  background: #0f172a;
+  transition: width 0.45s cubic-bezier(0.4, 0, 0.2, 1);
+  border-right: 1px solid #38bdf8;
+}
+
+.btn-hint-topbar {
+  background: linear-gradient(135deg, rgba(245, 158, 11, 0.2), rgba(217, 119, 6, 0.35)) !important;
+  border-color: rgba(245, 158, 11, 0.6) !important;
+  color: #fbbf24 !important;
+  font-weight: 700;
+  transition: all 0.2s ease;
+}
+
+.btn-hint-topbar:hover:not(:disabled) {
+  background: linear-gradient(135deg, rgba(245, 158, 11, 0.4), rgba(217, 119, 6, 0.6)) !important;
+  border-color: #fbbf24 !important;
+  box-shadow: 0 0 12px rgba(251, 191, 36, 0.4) !important;
+  transform: translateY(-1px);
+}
+
+.btn-hint-topbar.active {
+  background: #fbbf24 !important;
+  color: #0f172a !important;
+  box-shadow: 0 0 16px rgba(251, 191, 36, 0.7) !important;
+}
+
+/* ==================== ZEN MODE ==================== */
+.zen-mode .duel-standee-player, .zen-mode .duel-standee-enemy, .zen-mode #game-topbar, .zen-mode #game-spellbar, .zen-mode .ai-thinking-badge, .zen-mode .komi-announcement, .zen-mode .vfx-ripple, .zen-mode .vfx-capture-dissolve { display: none !important; opacity: 0 !important; pointer-events: none !important; }
+.zen-mode #game-svg-container { background: #000 !important; box-shadow: none !important; border: none !important; border-radius: 0 !important; width: 100vw !important; height: 100vh !important; max-width: none !important; margin: 0 !important; }
+.zen-mode #board-wrapper { background: #000 !important; }
+.zen-mode #game-svg { transform: scale(1.05); }
+.zen-mode body { background: #000 !important; }
+

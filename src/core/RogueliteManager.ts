@@ -92,6 +92,26 @@ export class RogueliteManager {
         this.selectedSpell = spellId;
     }
 
+    public static getSnapshot(): Record<SpellId, number> {
+        const snap: Record<string, number> = {};
+        for (const [id, card] of this.playerSpells.entries()) {
+            snap[id] = card.usesLeft;
+        }
+        return snap as Record<SpellId, number>;
+    }
+
+    public static restoreSnapshot(snapshot: Record<SpellId, number>) {
+        if (!snapshot) return;
+        this.nextStoneEffect = 'none';
+        this.selectedSpell = null;
+        for (const [id, count] of Object.entries(snapshot)) {
+            const card = this.playerSpells.get(id as SpellId);
+            if (card) {
+                card.usesLeft = count;
+            }
+        }
+    }
+
     public static addSpell(spellId: SpellId, amount: number = 1) {
         const card = this.playerSpells.get(spellId);
         if (card) {
@@ -107,8 +127,9 @@ export class RogueliteManager {
         board: GraphBoard, 
         state: GameState, 
         playerId: PlayerId,
-        onSuccess: (msg: string) => void,
-        onError: (msg: string) => void
+        onSuccess: (msg: string, removedStones?: Array<{ x: number; y: number; playerId: PlayerId }>) => void,
+        onError: (msg: string) => void,
+        onVisuals?: (effectType: string, payload: any, onVisualsComplete: () => void) => void
     ): boolean {
         const card = this.playerSpells.get(spellId);
         if (!card || card.usesLeft <= 0) {
@@ -124,47 +145,94 @@ export class RogueliteManager {
                     SoundFX.playIllegal();
                     return false;
                 }
-                // Undo snapshot
-                if (state.historyStack.length >= 2) {
-                    state.undo(board);
-                    state.undo(board);
-                } else {
-                    state.undo(board);
+
+                // Guardar coordenadas de piedras antes de deshacer
+                const stonesBefore = new Map<string, { x: number; y: number; playerId: PlayerId }>();
+                for (const [id, node] of board.nodes.entries()) {
+                    if (node.stone) {
+                        stonesBefore.set(id, { x: node.x, y: node.y, playerId: node.stone.playerId });
+                    }
+                }
+
+                // Deshacer el turno
+                const steps = (state.historyStack.length >= 2 && state.playerCount === 2) ? 2 : 1;
+                for (let s = 0; s < steps; s++) {
+                    if (state.canUndo()) state.undo(board);
                 }
 
                 card.usesLeft--;
                 SoundFX.playUndo();
-                onSuccess('⏳ Time Rewound! The previous board position has been faithfully restored.');
+
+                // Identificar piedras que desaparecieron
+                const removedStones: Array<{ x: number; y: number; playerId: PlayerId }> = [];
+                for (const [id, data] of stonesBefore.entries()) {
+                    const nodeAfter = board.nodes.get(id);
+                    if (!nodeAfter || !nodeAfter.stone) {
+                        removedStones.push(data);
+                    }
+                }
+
+                onSuccess('⏳ Time Rewound! The previous board position has been faithfully restored.', removedStones);
                 return true;
             }
 
             case 'meteor': {
-                // Find vulnerable enemy stones
+                // Find vulnerable stones
                 const enemyPlayerId: PlayerId = playerId === 1 ? 2 : 1;
                 const enemyNodes: string[] = [];
+                const alliedNodes: string[] = [];
 
                 for (const [nodeId, node] of board.nodes.entries()) {
-                    if (node.stone && node.stone.playerId === enemyPlayerId && !node.stone.isIndestructible) {
-                        enemyNodes.push(nodeId);
+                    if (node.stone && !node.stone.isIndestructible) {
+                        if (node.stone.playerId === enemyPlayerId) {
+                            enemyNodes.push(nodeId);
+                        } else if (node.stone.playerId === playerId) {
+                            alliedNodes.push(nodeId);
+                        }
                     }
                 }
 
-                if (enemyNodes.length === 0) {
-                    onError('No vulnerable enemy stones found on the board.');
+                // 80% enemy, 20% allied
+                const isAlly = Math.random() < 0.2;
+                let targetNodes = isAlly ? alliedNodes : enemyNodes;
+
+                // Fallback if no targets of the chosen type
+                if (targetNodes.length === 0) {
+                    targetNodes = isAlly ? enemyNodes : alliedNodes;
+                }
+
+                if (targetNodes.length === 0) {
+                    onError('No vulnerable stones found on the board.');
                     SoundFX.playIllegal();
                     return false;
                 }
 
-                // Destroy 1 random enemy stone
-                const targetNodeId = enemyNodes[Math.floor(Math.random() * enemyNodes.length)];
+                // Destroy 1 random stone
+                const targetNodeId = targetNodes[Math.floor(Math.random() * targetNodes.length)];
                 const targetNode = board.nodes.get(targetNodeId);
-                if (targetNode) {
-                    targetNode.stone = null;
-                }
+                const isFinalAlly = targetNode?.stone?.playerId === playerId;
+                
                 card.usesLeft--;
+                
+                const completeMeteor = () => {
+                    let destroyed = 0;
+                    if (targetNode) {
+                        const removed = RulesEngine.destroyStoneAndPolyGroup(board, state, targetNode.id);
+                        destroyed = removed.length;
+                    }
+                    SoundFX.playCapture();
+                    const msg = isFinalAlly 
+                        ? `☄️ Meteor Impact! Friendly fire! ${destroyed > 1 ? `An allied polyomino block (${destroyed} stones)` : 'An allied stone'} was obliterated.`
+                        : `☄️ Meteor Impact! ${destroyed > 1 ? `An enemy polyomino block (${destroyed} stones)` : 'An enemy stone'} was obliterated.`;
+                    onSuccess(msg);
+                };
 
-                SoundFX.playCapture();
-                onSuccess(`☄️ Meteor Impact! An enemy stone was obliterated.`);
+                if (onVisuals) {
+                    onVisuals('meteor', { nodeId: targetNodeId, isAlly: isFinalAlly }, completeMeteor);
+                } else {
+                    completeMeteor();
+                }
+                
                 return true;
             }
 
@@ -194,9 +262,14 @@ export class RogueliteManager {
 
                 const targetId = candidateNodes[Math.floor(Math.random() * candidateNodes.length)];
                 const targetNode = board.nodes.get(targetId);
+                let transmutedCount = 1;
                 if (targetNode && targetNode.stone) {
-                    targetNode.stone.playerId = playerId;
-                    targetNode.stone.isIndestructible = false;
+                    const transmuted = RulesEngine.transmuteStoneAndPolyGroup(board, targetNode.id, playerId);
+                    transmutedCount = transmuted.length;
+                    for (const tid of transmuted) {
+                        const tn = board.nodes.get(tid);
+                        if (tn && tn.stone) tn.stone.isIndestructible = false;
+                    }
                 }
 
                 const capturedCount = RulesEngine.resolveBoardCaptures(board, state, playerId);
@@ -207,7 +280,7 @@ export class RogueliteManager {
                 card.usesLeft--;
                 SoundFX.playPlaceStone();
                 const captureMsg = capturedCount > 0 ? ` And you captured ${capturedCount} enemy stone(s) stripped of liberties!` : '';
-                onSuccess(`☯️ Yin-Yang Inversion! An enemy stone was converted to your side.${captureMsg}`);
+                onSuccess(`☯️ Yin-Yang Inversion! ${transmutedCount > 1 ? `An enemy polyomino block (${transmutedCount} stones)` : 'An enemy stone'} was converted to your side.${captureMsg}`);
                 return true;
             }
         }

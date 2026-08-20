@@ -105,7 +105,7 @@
   transform: translateX(-50%);
   z-index: 1000;
   pointer-events: none;
-  width: min(560px, 92vw);
+  width: min(728px, 92vw);
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -136,7 +136,7 @@
 
 .tutorial-title {
   color: #fbbf24;
-  font-size: 1.05rem;
+  font-size: 1.26rem;
   font-weight: 800;
   letter-spacing: 0.3px;
   margin: 0;
@@ -144,7 +144,7 @@
 
 .tutorial-body {
   color: #f8fafc;
-  font-size: 0.92rem;
+  font-size: 1.10rem;
   line-height: 1.35;
   margin: 0;
 }
@@ -307,5 +307,16 @@ body[data-theme="light"] .tutorial-continue-btn:hover {
   0% { transform: scale(0); opacity: 0; }
   60% { transform: scale(1.2); opacity: 1; }
   100% { transform: scale(1); opacity: 1; }
+}
+
+/* Modificadores de Layout cuando el Tutorial está activo */
+body.tutorial-active:not(.tutorial-show-spellbar) .game-footer,
+body.tutorial-active:not(.tutorial-show-spellbar) .spellbar {
+  display: none !important;
+}
+
+body.tutorial-active #board-container {
+  transform: translateY(-22px) scale(0.97);
+  transform-origin: center center;
 }
 

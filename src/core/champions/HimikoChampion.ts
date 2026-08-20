@@ -4,26 +4,28 @@ import type { GraphBoard, PlayerId } from '../GraphBoard';
 import type { GameState } from '../GameState';
 import { RulesEngine } from '../RulesEngine';
 import { HimikoVFX } from '../../graphics/vfx/HimikoVFX';
+import { getLanguage } from '../../i18n/i18n';
 
 import type { BoardSize } from '../../types';
 
 export const HimikoPassiveSkill: ChampionPassiveSkill = {
     name: 'Celestial Stone Rain',
     icon: '🌧️',
-    description: 'At the end of your 15th personal turn, allied stones rain down from heaven onto random empty intersections (4 on 9x9, 7 on 13x13, 13 on 19x19).',
-    conditionDesc: 'At end of Turn 15'
+    description: 'At the end of your 20th personal turn, allied stones rain down from heaven onto random empty intersections (4 on 9x9, 8 on 13x13, 18 on 19x19).',
+    conditionDesc: 'At end of Turn 20'
 };
 
 export class HimikoChampion {
     /**
-     * Sublinear Diminishing Returns Formula for Himiko's Celestial Stone Rain:
-     * - Reduces density as the board grows so larger boards are not overwhelmed:
-     *   f(N) = round( 4 * (N / 81)^0.7885 )
+     * Proportional Density Formula for Himiko's Celestial Stone Rain:
+     * - Base: 4 stones on 9x9 (81 intersections) -> Density ratio = 4 / 81 (~4.938%)
+     * - Universal formula for any board with N intersections:
+     *   f(N) = round( N * (4 / 81) )
      * - Exact values:
-     *   - 9x9 (81 intersections): 4 * (81/81)^0.7885 = 4 stones
-     *   - 13x13 (169 intersections): 4 * (169/81)^0.7885 ≈ 7.15 -> 7 stones
-     *   - 19x19 (361 intersections): 4 * (361/81)^0.7885 = 13.00 -> 13 stones
-     *   - Any future / procedural size (N intersections): Math.max(1, Math.min(validCount, Math.round(4 * Math.pow(validCount / 81, 0.7885))))
+     *   - 9x9 (81 intersections): round(81 * 4 / 81) = 4 stones
+     *   - 13x13 (169 intersections): round(169 * 4 / 81) = round(8.345) = 8 stones
+     *   - 19x19 (361 intersections): round(361 * 4 / 81) = round(17.827) = 18 stones
+     *   - Any future / procedural size (N intersections): Math.max(1, Math.min(validCount, Math.round((validCount * 4) / 81)))
      */
     public static getStoneRainCount(boardOrSize?: GraphBoard | BoardSize | number | null): number {
         if (!boardOrSize) return 4;
@@ -42,7 +44,7 @@ export class HimikoChampion {
             validCount = 81;
         }
 
-        return Math.max(1, Math.min(validCount, Math.round(4 * Math.pow(validCount / 81, 0.7885))));
+        return Math.max(1, Math.min(validCount, Math.round((validCount * 4) / 81)));
     }
 
     public static checkAndTriggerPassive(
@@ -87,7 +89,10 @@ export class HimikoChampion {
         };
 
         const onAllFinished = () => {
-            onNotify(`🌧️✨ Himiko’s Celestial Stone Rain! Upon finishing personal turn 15, ${chosen.length} blessed allied stones descended onto the Goban.`);
+            const isEn = getLanguage() === 'en';
+            onNotify(isEn
+                ? `🌧️✨ Himiko’s Celestial Stone Rain! Upon finishing personal turn 15, ${chosen.length} blessed allied stones descended onto the Goban.`
+                : `🌧️✨ ¡Lluvia Pétrea Celestial de Himiko! Al finalizar el turno 15, ${chosen.length} piedras aliadas bendecidas descendieron sobre el Goban.`);
             onBoardUpdated();
         };
 

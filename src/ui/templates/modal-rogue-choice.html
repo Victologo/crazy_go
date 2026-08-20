@@ -1,0 +1,44 @@
+    <!-- ================= MODAL: ACTIVE ROGUELIKE CHOICE ================= -->
+    <div id="modal-rogue-choice" class="modal-backdrop hidden">
+      <div class="modal-card modal-choice-dialog">
+        <div class="modal-header">
+          <h2>⚔️ Active Roguelike Expedition</h2>
+          <p class="modal-desc">You have a saved journey recorded along the spiritual Goban path.</p>
+        </div>
+
+        <div class="modal-body-scroll">
+          <div class="saved-run-card" id="saved-run-info-box">
+            <img id="saved-run-hero-img" src="./heroes/tengu_face.jpg" alt="Champion" />
+            <div class="saved-run-details">
+              <strong id="saved-run-hero-name">Tengu</strong>
+              <div class="saved-run-meta">
+                <span id="saved-run-diff" class="pill-badge">Normal Difficulty</span>
+              </div>
+              <small id="saved-run-progress">📍 Expedition ready to resume</small>
+            </div>
+          </div>
+
+          <div class="choice-actions-container">
+            <button id="btn-rogue-resume-active" class="btn btn-choice-large btn-resume-run">
+              <div class="choice-large-icon">▶️</div>
+              <div class="choice-large-text">
+                <strong>Continue Expedition</strong>
+                <span>Resume match exactly where you left off</span>
+              </div>
+            </button>
+
+            <button id="btn-rogue-start-fresh" class="btn btn-choice-large btn-fresh-run">
+              <div class="choice-large-icon">🔄</div>
+              <div class="choice-large-text">
+                <strong>Start New Expedition</strong>
+                <span>Discard current run and choose a fresh champion</span>
+              </div>
+            </button>
+          </div>
+        </div>
+
+        <div class="modal-footer">
+          <button id="btn-rogue-choice-cancel" class="btn btn-modal-secondary">Return to Menu</button>
+        </div>
+      </div>
+    </div>

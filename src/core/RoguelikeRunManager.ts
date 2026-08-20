@@ -27,6 +27,7 @@ export class RoguelikeRunManager {
     public static isRunActive: boolean = false;
     public static runDifficulty: RogueliteDifficulty = 'easy';
     public static selectedHero: HeroId = 'tengu';
+    public static gameMode: '1p' | 'coop' = '1p';
     
     // Estado del Mapa Procedural y Progresión
     public static map: RoguelikeMap | null = null;
@@ -50,8 +51,8 @@ export class RoguelikeRunManager {
                 icon: '👤',
                 title: t('champion.normal.title'),
                 description: t('champion.normal.passive_desc'),
-                image: '/heroes/normal.png',
-                faceImage: '/heroes/normal_face.jpg',
+                image: './heroes/normal.png',
+                faceImage: './heroes/normal_face.jpg',
                 quote: t('champion.normal.quote'),
                 skillType: 'none',
                 activeName: t('champion.normal.name'),
@@ -66,14 +67,14 @@ export class RoguelikeRunManager {
                 icon: '🦅',
                 title: t('champion.tengu.title'),
                 description: t('champion.tengu.quote'),
-                image: '/heroes/tengu.png',
-                faceImage: '/heroes/tengu_face.jpg',
+                image: './heroes/tengu.png',
+                faceImage: './heroes/tengu_face.jpg',
                 quote: t('champion.tengu.quote'),
                 skillType: 'active',
                 activeName: t('champion.tengu.active_name'),
                 activeDesc: t('champion.tengu.active_desc'),
                 activeCharges: 1,
-                startingSpells: { rewind: 2, meteor: 0, shield: 0, convert: 0 }
+                startingSpells: { rewind: 0, meteor: 0, shield: 0, convert: 0 }
             },
             himiko: {
                 id: 'himiko',
@@ -81,13 +82,13 @@ export class RoguelikeRunManager {
                 icon: '✨',
                 title: t('champion.himiko.title'),
                 description: t('champion.himiko.quote'),
-                image: '/heroes/himiko.png',
-                faceImage: '/heroes/himiko_face.jpg',
+                image: './heroes/himiko.png',
+                faceImage: './heroes/himiko_face.jpg',
                 quote: t('champion.himiko.quote'),
                 skillType: 'passive',
                 passiveName: t('champion.himiko.passive_name'),
                 passiveDesc: t('champion.himiko.passive_desc'),
-                startingSpells: { rewind: 2, meteor: 0, shield: 0, convert: 0 }
+                startingSpells: { rewind: 0, meteor: 0, shield: 0, convert: 0 }
             },
             kitsune: {
                 id: 'kitsune',
@@ -95,14 +96,14 @@ export class RoguelikeRunManager {
                 icon: '🦊',
                 title: t('champion.kitsune.title'),
                 description: t('champion.kitsune.quote'),
-                image: '/heroes/kitsune.png',
-                faceImage: '/heroes/kitsune_face.jpg',
+                image: './heroes/kitsune.png',
+                faceImage: './heroes/kitsune_face.jpg',
                 quote: t('champion.kitsune.quote'),
                 skillType: 'active',
                 activeName: t('champion.kitsune.active_name'),
                 activeDesc: t('champion.kitsune.active_desc'),
                 activeCharges: 2,
-                startingSpells: { rewind: 2, meteor: 0, shield: 0, convert: 0 }
+                startingSpells: { rewind: 0, meteor: 0, shield: 0, convert: 0 }
             },
             ronin: {
                 id: 'ronin',
@@ -110,13 +111,13 @@ export class RoguelikeRunManager {
                 icon: '⚡',
                 title: t('champion.ronin.title'),
                 description: t('champion.ronin.quote'),
-                image: '/heroes/ronin.png',
-                faceImage: '/heroes/ronin_face.jpg',
+                image: './heroes/ronin.png',
+                faceImage: './heroes/ronin_face.jpg',
                 quote: t('champion.ronin.quote'),
                 skillType: 'passive',
                 passiveName: t('champion.ronin.passive_name'),
                 passiveDesc: t('champion.ronin.passive_desc'),
-                startingSpells: { rewind: 2, meteor: 0, shield: 0, convert: 0 }
+                startingSpells: { rewind: 0, meteor: 0, shield: 0, convert: 0 }
             },
             alchemist: {
                 id: 'alchemist',
@@ -124,14 +125,14 @@ export class RoguelikeRunManager {
                 icon: '⚗️',
                 title: t('champion.alchemist.title'),
                 description: t('champion.alchemist.quote'),
-                image: '/heroes/alchemist.png',
-                faceImage: '/heroes/alchemist_face.jpg',
+                image: './heroes/alchemist.png',
+                faceImage: './heroes/alchemist_face.jpg',
                 quote: t('champion.alchemist.quote'),
                 skillType: 'active',
                 activeName: t('champion.alchemist.active_name'),
                 activeDesc: t('champion.alchemist.active_desc'),
                 activeCharges: 1,
-                startingSpells: { rewind: 2, meteor: 0, shield: 0, convert: 0 }
+                startingSpells: { rewind: 0, meteor: 0, shield: 0, convert: 0 }
             },
             ryujin: {
                 id: 'ryujin',
@@ -139,13 +140,13 @@ export class RoguelikeRunManager {
                 icon: '🐲',
                 title: t('champion.ryujin.title'),
                 description: t('champion.ryujin.quote'),
-                image: '/heroes/ryujin.png',
-                faceImage: '/heroes/ryujin_face.jpg',
+                image: './heroes/ryujin.png',
+                faceImage: './heroes/ryujin_face.jpg',
                 quote: t('champion.ryujin.quote'),
                 skillType: 'passive',
                 passiveName: t('champion.ryujin.passive_name'),
                 passiveDesc: t('champion.ryujin.passive_desc'),
-                startingSpells: { rewind: 2, meteor: 0, shield: 0, convert: 0 }
+                startingSpells: { rewind: 0, meteor: 0, shield: 0, convert: 0 }
             }
         };
     }
@@ -179,18 +180,26 @@ export class RoguelikeRunManager {
     /**
      * Inicia una nueva expedición generando el mapa procedural desde el Nodo 0
      */
-    public static startRun(difficulty: RogueliteDifficulty, heroId: HeroId) {
+    public static startRun(difficulty: RogueliteDifficulty, heroId: HeroId, mode: '1p' | 'coop' = '1p') {
         this.isRunActive = true;
         this.runDifficulty = difficulty;
         this.selectedHero = heroId;
+        this.gameMode = mode;
         this.magatamas = 50;
         this.permanentKomiBonus = 0;
         this.completedNodes.clear();
         this.currentNodeId = null;
         this.polyominoes = { sprouting: 0, domino: 0, monolith: 0 };
 
-        // Al inicio de run: solo 2 hechizos de rebobinar
-        RogueliteManager.initSpells({ rewind: 2, meteor: 0, shield: 0, convert: 0 });
+        // Al inicio de run: rebobinares dependen de la dificultad y solo el Hombre Normal los tiene
+        let rewindCount = 0;
+        if (heroId === 'normal') {
+            if (difficulty === 'easy') rewindCount = 4;
+            else if (difficulty === 'normal') rewindCount = 2;
+            else if (difficulty === 'hard') rewindCount = 1;
+            else rewindCount = 0; // extreme
+        }
+        RogueliteManager.initSpells({ rewind: rewindCount, meteor: 0, shield: 0, convert: 0 });
 
         // Generar mapa procedural
         this.map = RoguelikeMapGenerator.generateMap(difficulty);
@@ -265,6 +274,19 @@ export class RoguelikeRunManager {
     }
 
     /**
+     * CHEAT/DEV: Desbloquea todos los nodos del mapa y permite viaje libre
+     */
+    public static unlockAllMapNodes() {
+        if (!this.map) return;
+        for (const node of this.map.nodes.values()) {
+            if (node.status === 'locked' || node.status === 'completed') {
+                node.status = 'available';
+            }
+        }
+        this.saveToLocalStorage();
+    }
+
+    /**
      * Añade Magatamas
      */
     public static addMagatamas(amount: number) {
@@ -302,6 +324,7 @@ export class RoguelikeRunManager {
                 isRunActive: this.isRunActive,
                 runDifficulty: this.runDifficulty,
                 selectedHero: this.selectedHero,
+                gameMode: this.gameMode,
                 magatamas: this.magatamas,
                 permanentKomiBonus: this.permanentKomiBonus,
                 completedNodes: Array.from(this.completedNodes),
@@ -336,6 +359,7 @@ export class RoguelikeRunManager {
             this.isRunActive = true;
             this.runDifficulty = data.runDifficulty || 'easy';
             this.selectedHero = data.selectedHero || 'tengu';
+            this.gameMode = data.gameMode || '1p';
             this.magatamas = data.magatamas || 50;
             this.permanentKomiBonus = data.permanentKomiBonus || 0;
             this.completedNodes = new Set(data.completedNodes || []);

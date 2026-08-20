@@ -9,17 +9,18 @@
   position: relative;
   width: clamp(230px, 19vw, 320px);
   z-index: 10;
-  pointer-events: auto;
+  pointer-events: none; /* Las siluetas no deben bloquear clics en los bordes/1ª línea del Goban */
   user-select: none;
   flex-shrink: 1;
   margin-bottom: 0.35rem;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-/* Silueta del Jugador Principal (Posicionado un 3% más abajo para todos los personajes) */
+/* Silueta del Jugador Principal (Posicionado con suficiente margen inferior para que los personajes altos no se corten arriba) */
 .duel-standee-player {
-  width: clamp(270px, 22vw, 375px);
-  transform: translateY(3%);
+  width: clamp(285px, 23vw, 400px);
+  transform: translateY(6%) scale(1.3);
+  transform-origin: bottom center;
 }
 
 .duel-standee-player .duel-standee-figure {
@@ -27,27 +28,70 @@
 }
 
 .duel-standee-player .duel-standee-figure img {
-  transform: translateY(30px) scale(1.42);
+  transform: translateY(92px) scale(1.50);
   transform-origin: bottom center;
   filter: drop-shadow(0 22px 28px rgba(0, 0, 0, 0.95)) drop-shadow(0 0 26px rgba(245, 158, 11, 0.3));
 }
 
 .duel-standee-player:hover .duel-standee-figure img {
-  transform: translateY(25px) scale(1.48);
+  transform: translateY(88px) scale(1.55);
   filter: drop-shadow(0 28px 34px rgba(0, 0, 0, 0.98)) drop-shadow(0 0 34px rgba(245, 158, 11, 0.5));
 }
 
-/* Hombre Normal / Aprendiz de Go: Subido 30px (asentado en 70px) */
+/* Persona Normal / Go Canónico Puro: Orientación perfecta hacia el Goban */
 .duel-standee-player.hero-normal .duel-standee-figure img,
 .duel-standee-player[data-hero="normal"] .duel-standee-figure img,
 #duel-player-img.hero-normal-img {
-  transform: translateY(70px) scale(1.45) !important;
+  transform: translateY(115px) scaleX(-1) scale(1.52) !important;
 }
 
 .duel-standee-player.hero-normal:hover .duel-standee-figure img,
 .duel-standee-player[data-hero="normal"]:hover .duel-standee-figure img,
 #duel-player-img.hero-normal-img:hover {
-  transform: translateY(65px) scale(1.51) !important;
+  transform: translateY(110px) scaleX(-1) scale(1.57) !important;
+}
+
+.duel-standee-enemy.hero-normal .duel-standee-figure img,
+.duel-standee-enemy[data-hero="normal"] .duel-standee-figure img,
+.multi-standee-card .duel-standee-figure img.hero-normal-img,
+#duel-enemy-img.hero-normal-img,
+#duel-p2-img.hero-normal-img,
+#duel-p3-img.hero-normal-img,
+#duel-p4-img.hero-normal-img {
+  transform: translateY(105px) scaleX(1) scale(1.45) !important;
+}
+
+.duel-standee-enemy.hero-normal:hover .duel-standee-figure img,
+.duel-standee-enemy[data-hero="normal"]:hover .duel-standee-figure img,
+.multi-standee-card:hover .duel-standee-figure img.hero-normal-img,
+#duel-enemy-img.hero-normal-img:hover,
+#duel-p2-img.hero-normal-img:hover,
+#duel-p3-img.hero-normal-img:hover,
+#duel-p4-img.hero-normal-img:hover {
+  transform: translateY(100px) scaleX(1) scale(1.50) !important;
+}
+
+/* Ronin: Orientación perfecta hacia el Goban */
+.duel-standee-player[data-hero="ronin"] .duel-standee-figure img,
+.duel-standee-player.hero-ronin .duel-standee-figure img {
+  transform: translate(10px, 92px) scaleX(-1) scale(1.58) !important;
+}
+
+.duel-standee-player[data-hero="ronin"]:hover .duel-standee-figure img,
+.duel-standee-player.hero-ronin:hover .duel-standee-figure img {
+  transform: translate(10px, 88px) scaleX(-1) scale(1.64) !important;
+}
+
+.duel-standee-enemy[data-hero="ronin"] .duel-standee-figure img,
+.duel-standee-enemy.hero-ronin .duel-standee-figure img,
+.multi-standee-card .duel-standee-figure img[src*="ronin.png"] {
+  transform: translateY(105px) scaleX(1) scale(1.45) !important;
+}
+
+.duel-standee-enemy[data-hero="ronin"]:hover .duel-standee-figure img,
+.duel-standee-enemy.hero-ronin:hover .duel-standee-figure img,
+.multi-standee-card:hover .duel-standee-figure img[src*="ronin.png"] {
+  transform: translateY(100px) scaleX(1) scale(1.50) !important;
 }
 
 .duel-standee-figure {
@@ -59,16 +103,20 @@
   justify-content: center;
   perspective: 1200px;
   animation: duelistZenitalFloat 4.5s ease-in-out infinite;
+  pointer-events: none; /* No interceptar clics sobre el Goban */
 }
 
-/* Silueta de Enemigos y Rivales IA (Derecha): Subidos 30px (asentados en 70px) */
+/* Silueta de Enemigos y Rivales IA (Derecha) */
 .duel-standee-enemy {
-  width: clamp(280px, 23vw, 395px);
+  width: clamp(290px, 24vw, 410px);
+  transform: translateY(6%);
+  pointer-events: none;
 }
 
 .duel-standee-enemy .duel-standee-figure {
   height: clamp(340px, 50vh, 530px);
   animation: duelistZenitalFloat 4.8s ease-in-out infinite 0.5s;
+  pointer-events: none;
 }
 
 @keyframes duelistZenitalFloat {
@@ -89,17 +137,61 @@
   transform-origin: bottom center;
   filter: drop-shadow(0 20px 24px rgba(0, 0, 0, 0.9)) drop-shadow(0 0 22px rgba(245, 158, 11, 0.25));
   transition: all 0.3s ease;
+  pointer-events: none; /* Crucial: no bloquea la 1ª línea */
 }
 
+/* El rival/IA (derecha) mira por defecto a la izquierda hacia el tablero */
 .duel-standee-enemy .duel-standee-figure img {
-  transform: translateY(70px) scaleX(-1) scale(1.36);
+  transform: translateY(105px) scaleX(-1) scale(1.45);
   transform-origin: bottom center;
   filter: drop-shadow(0 20px 24px rgba(0, 0, 0, 0.9)) drop-shadow(0 0 22px rgba(239, 68, 68, 0.25));
+  pointer-events: none;
 }
 
 .duel-standee-enemy:hover .duel-standee-figure img {
-  transform: translateY(65px) scaleX(-1) scale(1.43);
+  transform: translateY(100px) scaleX(-1) scale(1.50);
   filter: drop-shadow(0 25px 30px rgba(0, 0, 0, 0.95)) drop-shadow(0 0 30px rgba(239, 68, 68, 0.45));
+}
+
+/* Alquimista: Orientación perfecta hacia el Goban en ambos lados */
+.duel-standee-player[data-hero="alchemist"] .duel-standee-figure img,
+.duel-standee-player.hero-alchemist .duel-standee-figure img {
+  transform: translateY(92px) scaleX(1) scale(1.50) !important;
+}
+
+.duel-standee-player[data-hero="alchemist"]:hover .duel-standee-figure img {
+  transform: translateY(88px) scaleX(1) scale(1.55) !important;
+}
+
+.duel-standee-enemy[data-hero="alchemist"] .duel-standee-figure img,
+.duel-standee-enemy.hero-alchemist .duel-standee-figure img,
+.multi-standee-card .duel-standee-figure img[src*="alchemist.png"] {
+  transform: translateY(105px) scaleX(-1) scale(1.45) !important;
+}
+
+.duel-standee-enemy[data-hero="alchemist"]:hover .duel-standee-figure img,
+.duel-standee-enemy.hero-alchemist:hover .duel-standee-figure img,
+.multi-standee-card:hover .duel-standee-figure img[src*="alchemist.png"] {
+  transform: translateY(100px) scaleX(-1) scale(1.50) !important;
+}
+
+/* Tengu: Ajuste de escala al 125% del tamaño estándar (ignora recortes de alas) */
+.duel-standee-player[data-hero="tengu"] .duel-standee-figure img,
+.duel-standee-player.hero-tengu .duel-standee-figure img {
+  transform: translateY(92px) scale(1.88) !important; /* 1.50 * 1.25 */
+}
+
+.duel-standee-player[data-hero="tengu"]:hover .duel-standee-figure img {
+  transform: translateY(88px) scale(1.93) !important;
+}
+
+.duel-standee-enemy[data-hero="tengu"] .duel-standee-figure img,
+.duel-standee-enemy.hero-tengu .duel-standee-figure img {
+  transform: translateY(105px) scaleX(-1) scale(1.82) !important; /* 1.45 * 1.25 */
+}
+
+.duel-standee-enemy[data-hero="tengu"]:hover .duel-standee-figure img {
+  transform: translateY(100px) scaleX(-1) scale(1.87) !important;
 }
 
 .duel-standee-ground-shadow {
@@ -116,35 +208,161 @@
   z-index: -1;
 }
 
-/* Placa de Nombre y Título Flotante */
+/* Placa de Nombre y Título Flotante (SIEMPRE por delante de la figura con z-index 50) */
 .duel-standee-plate {
   margin-top: 0.35rem;
   width: 100%;
-  max-width: 220px;
-  background: rgba(15, 23, 42, 0.88);
-  border: 1.5px solid rgba(245, 158, 11, 0.45);
+  max-width: 235px; /* Ampliado un 7% para visualización cómoda de fórmulas de combate */
+  background: rgba(15, 23, 42, 0.95);
+  border: 1.5px solid rgba(245, 158, 11, 0.55);
   border-radius: var(--radius-md);
-  padding: 0.65rem 0.85rem;
-  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.6), 0 0 15px rgba(245, 158, 11, 0.15);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
+  padding: 0.55rem 0.75rem;
+  box-shadow: 0 16px 36px rgba(0, 0, 0, 0.98), 0 0 22px rgba(245, 158, 11, 0.3);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
   display: flex;
+  pointer-events: auto; /* La placa y los botones sí son interactivos */
+  position: relative;
+  z-index: 50 !important;
   flex-direction: column;
   align-items: center;
   gap: 0.3rem;
   text-align: center;
+  transform: translateY(-30px); /* Sube la placa 30px para mayor visibilidad del personaje */
+}
+
+/* Step 6 Stage Preview 4P Squad Box */
+.wizard-stage-4p-box {
+  position: relative;
+  width: 240px;
+  height: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: flex-end;
+  left: -30px; /* Adelantado 30px hacia la izquierda */
+  user-select: none;
+}
+
+.wizard-stage-4p-img {
+  position: absolute;
+  bottom: 0;
+  height: 85%;
+  max-width: 68%;
+  object-fit: contain;
+  object-position: bottom center;
+  transition: all 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+  transform-origin: bottom center;
+}
+
+.wizard-stage-4p-img.stage-4p-left {
+  left: calc(50% - 95px);
+  transform: translateX(-50%) scale(0.85);
+  z-index: 2;
+  filter: brightness(0.65) grayscale(25%);
+}
+
+.wizard-stage-4p-img.stage-4p-center {
+  left: 50%;
+  transform: translateX(-50%) scale(0.92);
+  z-index: 3;
+  filter: brightness(0.75);
+}
+
+.wizard-stage-4p-img.stage-4p-right {
+  left: calc(50% + 95px);
+  transform: translateX(-50%) scale(0.85);
+  z-index: 1;
+  filter: brightness(0.65) grayscale(25%);
+}
+
+.wizard-stage-4p-img.stage-slot-active {
+  z-index: 10 !important;
+  transform: translateX(-50%) scale(1.08) translateY(-6px) !important;
+  filter: brightness(1.25) drop-shadow(0 0 16px rgba(255, 255, 255, 0.6)) !important;
 }
 
 /* Panel Multi-Contrincantes para 4 Jugadores (FFA 1v3 IA o 4P Local) */
 .duel-multi-standees {
+  position: relative;
   display: flex;
-  flex-direction: column;
   justify-content: center;
-  gap: 0.75rem;
-  z-index: 10;
-  width: clamp(210px, 18vw, 280px);
+  align-items: flex-end;
+  width: 320px;
+  height: clamp(360px, 52vh, 540px);
   user-select: none;
   animation: fadeIn 0.4s ease;
+  z-index: 10;
+  margin-right: -1.5rem;
+}
+
+.multi-standee-card {
+  position: absolute;
+  bottom: 0;
+  transform-origin: bottom center;
+  transition: all 0.45s cubic-bezier(0.34, 1.56, 0.64, 1);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  pointer-events: none;
+}
+
+.multi-standee-card .duel-standee-figure {
+  height: clamp(280px, 44vh, 460px);
+}
+
+/* Standee al frente durante su turno activo: centrado, escala completa (1.24), brillante, nítido y con halo */
+.multi-standee-card.pos-front.active-turn {
+  left: 50%;
+  transform: translateX(-50%) scale(1.24) translateY(-15px);
+  z-index: 25 !important;
+  filter: brightness(1.2) drop-shadow(0 0 20px rgba(255, 255, 255, 0.6));
+  opacity: 1;
+}
+
+/* Standee al frente cuando NO es su turno (turno del jugador humano P1): 10% más pequeño, 50% máscara gris sin blur */
+.multi-standee-card.pos-front:not(.active-turn) {
+  left: 50%;
+  transform: translateX(-50%) scale(1.12) translateY(-10px);
+  z-index: 24 !important;
+  filter: grayscale(20%) brightness(0.82);
+  opacity: 0.94;
+}
+
+/* Standee en espera atrás a la derecha (10% más grande, mitad de blur = 1px) */
+.multi-standee-card.pos-back-right {
+  left: calc(50% + 95px);
+  transform: translateX(-50%) scale(0.80) translateY(10px);
+  z-index: 12 !important;
+  filter: grayscale(40%) blur(1px) brightness(0.65);
+  opacity: 0.88;
+}
+
+/* Standee en espera atrás a la izquierda (10% más grande, mitad de blur = 1px) */
+.multi-standee-card.pos-back-left {
+  left: calc(50% - 95px);
+  transform: translateX(-50%) scale(0.80) translateY(10px);
+  z-index: 11 !important;
+  filter: grayscale(40%) blur(1px) brightness(0.65);
+  opacity: 0.88;
+}
+
+.multi-standee-card .duel-standee-plate {
+  max-width: 175px;
+  padding: 0.4rem 0.55rem;
+  transform: translateY(-20px);
+  transition: all 0.3s ease;
+}
+
+.multi-standee-card.pos-front.active-turn .duel-standee-plate {
+  border-color: #f59e0b;
+  box-shadow: 0 0 20px rgba(245, 158, 11, 0.5), 0 8px 24px rgba(0, 0, 0, 0.8);
+  transform: translateY(-25px);
+}
+
+.multi-standee-card.pos-front:not(.active-turn) .duel-standee-plate {
+  border-color: rgba(255, 255, 255, 0.15);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.6);
+  transform: translateY(-20px);
 }
 
 .mini-opponent-card {
@@ -315,15 +533,15 @@ body[data-theme="light"] .duel-plate-title-group strong {
   max-width: 100%;
 }
 
-/* Botón de Habilidad Activa en la Placa del Campeón */
+/* Botón de Habilidad / Tarjeta de Pasiva en la Placa del Campeón */
 .btn-card-skill {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 0.4rem;
+  gap: 0.3rem;
   width: 100%;
-  padding: 0.5rem 0.65rem;
-  margin-top: 0.25rem;
+  padding: 0.4rem 0.55rem;
+  margin-top: 0.2rem;
   background: linear-gradient(135deg, rgba(245, 158, 11, 0.25) 0%, rgba(217, 119, 6, 0.45) 100%);
   border: 1.5px solid #fbbf24;
   border-radius: var(--radius-md);
@@ -349,7 +567,7 @@ body[data-theme="light"] .duel-plate-title-group strong {
   box-shadow: 0 0 20px rgba(239, 68, 68, 0.75) !important;
 }
 
-.btn-card-skill.depleted, .btn-card-skill:disabled {
+.btn-card-skill.depleted {
   opacity: 0.45;
   filter: grayscale(0.8);
   cursor: not-allowed;
@@ -358,15 +576,53 @@ body[data-theme="light"] .duel-plate-title-group strong {
   border-color: rgba(255, 255, 255, 0.15);
 }
 
+/* Tarjeta de Pasiva Innata / Automática (Sin botones grises, limpia y luminosa) */
+.btn-card-skill.passive-badge {
+  background: rgba(15, 23, 42, 0.75) !important;
+  border: 1.2px solid rgba(245, 158, 11, 0.45) !important;
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.5) !important;
+  opacity: 1 !important;
+  filter: none !important;
+  cursor: default !important;
+  padding: 0.35rem 0.5rem !important;
+}
+
+.btn-card-skill .duel-skill-name {
+  font-size: 0.78rem;
+  font-weight: 800;
+  color: #fef08a;
+  display: block;
+  line-height: 1.15;
+}
+
+.btn-card-skill .duel-skill-formula {
+  font-size: 0.70rem;
+  font-weight: 600;
+  color: #ffffff;
+  opacity: 0.95;
+  display: block;
+  margin-top: 2px;
+  line-height: 1.15;
+  letter-spacing: -0.01em;
+}
+
 body[data-theme="light"] .btn-card-skill {
   background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
   color: #78350f;
   border-color: #d97706;
 }
 
-body[data-theme="light"] .btn-card-skill:hover:not(:disabled) {
-  background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
-  color: #ffffff;
+body[data-theme="light"] .btn-card-skill.passive-badge {
+  background: rgba(254, 243, 199, 0.9) !important;
+  border-color: #d97706 !important;
+}
+
+body[data-theme="light"] .btn-card-skill .duel-skill-name {
+  color: #78350f;
+}
+
+body[data-theme="light"] .btn-card-skill .duel-skill-formula {
+  color: #92400e;
 }
 
 @media (max-width: 1200px) {
@@ -377,7 +633,7 @@ body[data-theme="light"] .btn-card-skill:hover:not(:disabled) {
     height: clamp(300px, 42vh, 420px);
   }
   .duel-standee-plate {
-    max-width: 180px;
+    max-width: 195px;
     padding: 0.45rem 0.65rem;
   }
 }
@@ -387,3 +643,52 @@ body[data-theme="light"] .btn-card-skill:hover:not(:disabled) {
     display: none !important;
   }
 }
+
+/* Animacion Flash Standee para Habilidades (Aura) */
+@keyframes standeeSkillFlash {
+  0% { filter: brightness(1) drop-shadow(0 0 0 rgba(245, 158, 11, 0)); transform: scale(1); }
+  30% { filter: brightness(1.6) drop-shadow(0 0 40px rgba(245, 158, 11, 0.9)); transform: scale(1.05); }
+  100% { filter: brightness(1) drop-shadow(0 0 22px rgba(245, 158, 11, 0.25)); transform: scale(1); }
+}
+.standee-skill-active .duel-standee-figure img {
+  animation: standeeSkillFlash 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275) !important;
+}
+
+/* Placa de Habilidad / Poder Único del Rival */
+.duel-enemy-skill-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  background: rgba(239, 68, 68, 0.16);
+  border: 1px solid rgba(248, 113, 113, 0.45);
+  color: #fca5a5;
+  padding: 0.22rem 0.55rem;
+  border-radius: var(--radius-full);
+  font-size: 0.70rem;
+  font-weight: 700;
+  margin-top: 0.25rem;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
+  max-width: 95%;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  animation: fadeIn 0.3s ease;
+}
+
+body[data-theme="light"] .duel-enemy-skill-pill {
+  background: rgba(239, 68, 68, 0.12);
+  border-color: rgba(239, 68, 68, 0.4);
+  color: #b91c1c;
+}
+
+/* Gran Dragón Sabio Gris (Jefe Final): Mirando hacia el Goban (Izquierda) */
+.duel-standee-enemy[data-hero="boss"] .duel-standee-figure img,
+#duel-enemy-img.hero-boss-img {
+  transform: translateY(95px) scaleX(-1) scale(1.52) !important;
+}
+
+.duel-standee-enemy[data-hero="boss"]:hover .duel-standee-figure img,
+#duel-enemy-img.hero-boss-img:hover {
+  transform: translateY(90px) scaleX(-1) scale(1.58) !important;
+}
+

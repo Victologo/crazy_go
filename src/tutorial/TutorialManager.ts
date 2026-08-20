@@ -6,7 +6,7 @@ import { PolyominoManager } from '../core/PolyominoManager';
 import { ChampionManager } from '../core/ChampionManager';
 import { RogueliteManager } from '../core/RogueliteManager';
 import type { PlayerId } from '../types';
-import { t } from '../i18n/i18n';
+import { t, getLanguage } from '../i18n/i18n';
 
 export class TutorialManager {
     public static isActive: boolean = false;
@@ -28,11 +28,15 @@ export class TutorialManager {
         }
 
         this.isActive = true;
+        document.body.classList.add('tutorial-active');
         this.currentChapter = chapter;
         this.currentStepIndex = 0;
         this.isAdvancing = false;
 
-        const isSpecialChapter = chapter.id === 'cap_7_campeones' || chapter.id === 'cap_8_hechizos_poliminos' || chapter.id === 'cap_9_entidades';
+        const isPolySpellChapter = chapter.id === 'cap_8_hechizos_poliminos';
+        const isChampionChapter = chapter.id === 'cap_7_campeones';
+        
+        document.body.classList.toggle('tutorial-show-spellbar', isPolySpellChapter);
 
         // Configurar la partida para el tutorial
         GameController.config = {
@@ -42,12 +46,12 @@ export class TutorialManager {
             heroId: chapter.heroId,
             komi: chapter.komi,
             shape: 'square',
-            ruleStyle: isSpecialChapter ? 'roguelite' : 'classic',
+            ruleStyle: isPolySpellChapter ? 'roguelite' : 'classic',
             specialStones: {
-                enabled: isSpecialChapter,
-                playerSprouting: isSpecialChapter ? 2 : 0,
-                playerDomino: isSpecialChapter ? 2 : 0,
-                playerMonolith: isSpecialChapter ? 1 : 0,
+                enabled: isPolySpellChapter,
+                playerSprouting: isPolySpellChapter ? 1 : 0,
+                playerDomino: isPolySpellChapter ? 1 : 0,
+                playerMonolith: isPolySpellChapter ? 1 : 0,
                 aiEnabled: false,
                 aiSprouting: 0,
                 aiDomino: 0,
@@ -57,34 +61,35 @@ export class TutorialManager {
 
         GameController.initGame(GameController.config);
 
-        if (isSpecialChapter) {
-            PolyominoManager.resetForMatch(false, GameController.config);
-            if (chapter.id === 'cap_7_campeones') {
-                ChampionManager.resetForMatch('tengu', GameController.board);
-                ChampionManager.setHero('tengu');
-                ChampionManager.activeChargesLeft = 1;
-                ChampionManager.isPassiveSkillAvailable = true;
-                HUDController.updateDuelists(
-                    false,
-                    'tengu',
-                    undefined,
-                    '1via',
-                    'easy'
-                );
-            } else {
-                ChampionManager.resetForMatch('normal', GameController.board);
-            }
-            if (chapter.id === 'cap_8_hechizos_poliminos') {
-                RogueliteManager.resetSpells({ meteor: 1, rewind: 1 });
-                const sprout = PolyominoManager.polyominoCards.get('sprouting');
-                if (sprout) sprout.usesLeft = 1;
-                const domino = PolyominoManager.polyominoCards.get('domino');
-                if (domino) domino.usesLeft = 1;
-                const monolith = PolyominoManager.polyominoCards.get('monolith');
-                if (monolith) monolith.usesLeft = 1;
-            }
+        PolyominoManager.resetForMatch(false, GameController.config);
+
+        if (isChampionChapter) {
+            ChampionManager.resetForMatch('tengu', GameController.board);
+            ChampionManager.setHero('tengu');
+            ChampionManager.activeChargesLeft = 1;
+            ChampionManager.isPassiveSkillAvailable = true;
+            RogueliteManager.resetSpells({});
+            HUDController.updateDuelists(
+                false,
+                'tengu',
+                undefined,
+                '1via',
+                'easy'
+            );
         } else {
             ChampionManager.resetForMatch('normal', GameController.board);
+        }
+
+        if (isPolySpellChapter) {
+            RogueliteManager.resetSpells({ meteor: 1, rewind: 1 });
+            const inv = new Map<import('../types').PolyominoType, number>();
+            inv.set('sprouting', 1);
+            inv.set('domino', 1);
+            inv.set('monolith', 1);
+            PolyominoManager.playerInventories.set(1, inv);
+            PolyominoManager.syncCardsWithInventory(1);
+        } else {
+            RogueliteManager.resetSpells({});
         }
 
         // Limpiar el tablero y colocar las piedras iniciales
@@ -120,6 +125,8 @@ export class TutorialManager {
             this.finishTimeout = null;
         }
         this.isActive = false;
+        document.body.classList.remove('tutorial-active');
+        document.body.classList.remove('tutorial-show-spellbar');
         this.currentChapter = null;
         this.currentStepIndex = 0;
         this.isAdvancing = false;
@@ -253,9 +260,10 @@ export class TutorialManager {
             GameController.renderer.render();
         }
 
+        const isEn = getLanguage() === 'en';
         const modal = document.getElementById('modal-tutorial-complete');
         if (!modal || !this.currentChapter) {
-            HUDController.showAlert("🎉 Chapter Completed!", 3000);
+            HUDController.showAlert(isEn ? "🎉 Chapter Completed!" : "🎉 ¡Lección Completada!", 3000);
             return;
         }
 
@@ -270,15 +278,15 @@ export class TutorialManager {
         const nextTitle = document.getElementById('tutorial-next-title');
         const nextBtn = document.getElementById('btn-tutorial-next');
 
-        if (titleEl) titleEl.innerText = `Lesson ${this.currentChapter.chapterNumber} Completed!`;
-        if (subtitleEl) subtitleEl.innerText = `You have successfully mastered: "${this.currentChapter.title}".`;
+        if (titleEl) titleEl.innerText = isEn ? `Lesson ${this.currentChapter.chapterNumber} Completed!` : `¡Lección ${this.currentChapter.chapterNumber} Completada!`;
+        if (subtitleEl) subtitleEl.innerText = isEn ? `You have successfully mastered: "${this.currentChapter.title}".` : `Has dominado con éxito: "${this.currentChapter.title}".`;
 
         if (nextChapter) {
             if (nextPreview) nextPreview.style.display = 'block';
             if (nextTitle) nextTitle.innerText = `${nextChapter.chapterNumber}. ${nextChapter.title}`;
             if (nextBtn) {
                 nextBtn.style.display = 'inline-flex';
-                nextBtn.innerText = `▶ Next Lesson (${nextChapter.chapterNumber})`;
+                nextBtn.innerText = isEn ? `▶ Next Lesson (${nextChapter.chapterNumber})` : `▶ Siguiente Lección (${nextChapter.chapterNumber})`;
                 nextBtn.onclick = () => {
                     modal.classList.add('hidden');
                     this.initTutorial(nextChapter.id);
@@ -288,7 +296,7 @@ export class TutorialManager {
             if (nextPreview) nextPreview.style.display = 'none';
             if (nextBtn) {
                 nextBtn.style.display = 'inline-flex';
-                nextBtn.innerText = `🎓 Finish Dojo`;
+                nextBtn.innerText = isEn ? `🎓 Finish Dojo` : `🎓 Finalizar Dojo`;
                 nextBtn.onclick = () => {
                     modal.classList.add('hidden');
                     this.stopTutorial();
@@ -298,7 +306,7 @@ export class TutorialManager {
         }
 
         modal.classList.remove('hidden');
-        HUDController.showAlert("🎉 Chapter Completed Successfully!");
+        HUDController.showAlert(isEn ? "🎉 Chapter Completed Successfully!" : "🎉 ¡Lección completada con éxito!");
     }
 
     // Retorna true si la jugada está permitida por el tutorial, false si debe ser bloqueada
@@ -307,36 +315,50 @@ export class TutorialManager {
 
         const expected = this.getExpectedAction();
         if (!expected) return false;
+        const isEn = getLanguage() === 'en';
 
         if (expected.type === 'place_stone') {
             if (nodeId === expected.nodeId) {
                 return true;
             } else {
-                HUDController.showAlert("🥋 Sensei: That is not the spot! Place your stone on the golden highlighted node.", 2500);
+                HUDController.showAlert(isEn ? "🥋 Sensei: That is not the spot! Place your stone on the golden highlighted node." : "🥋 Sensei: ¡Esa no es la posición! Coloca tu piedra en el nodo dorado resaltado.", 2500);
                 return false;
             }
         }
 
         if (expected.type === 'use_polyomino') {
             if (expected.polyType && PolyominoManager.activePolyomino !== expected.polyType) {
-                const polyName = expected.polyType === 'domino' ? 'Duplicity Stone 🀄' : expected.polyType === 'sprouting' ? 'Sprouting Stone 🌿' : 'Monolith Stone 🧱';
-                HUDController.showAlert(`🥋 Sensei: Select the ${polyName} piece from the bottom dock first.`, 2800);
+                const polyName = isEn 
+                    ? (expected.polyType === 'domino' ? 'Duplicity Tile 🀄' : expected.polyType === 'sprouting' ? 'Sprouting Stone 🌿' : 'Monolith Tile 🧱')
+                    : (expected.polyType === 'domino' ? 'Ficha Duplicidad 🀄' : expected.polyType === 'sprouting' ? 'Piedra Germinante 🌿' : 'Ficha Monolito 🧱');
+                HUDController.showAlert(isEn ? `🥋 Sensei: Select the ${polyName} piece from the bottom dock first.` : `🥋 Sensei: Selecciona primero la ${polyName} en la barra inferior.`, 2800);
                 return false;
             }
             if (expected.nodeId && nodeId !== expected.nodeId) {
-                HUDController.showAlert("🥋 Sensei: Place the special piece on the golden highlighted intersection.", 2500);
+                HUDController.showAlert(isEn ? "🥋 Sensei: Place the special piece on the golden highlighted intersection." : "🥋 Sensei: Coloca la ficha especial en la intersección dorada resaltada.", 2500);
                 return false;
+            }
+            if (expected.polyType === 'domino' && expected.rotation !== undefined) {
+                const requiredOrient = expected.rotation === 0 ? 'horizontal' : 'vertical';
+                if (PolyominoManager.orientation !== requiredOrient) {
+                    HUDController.showAlert(isEn 
+                        ? `🥋 Sensei: Press [R] to rotate the Duplicity tile ${requiredOrient === 'horizontal' ? 'horizontally [⇄]' : 'vertically [⇅]'} before placing it.` 
+                        : `🥋 Sensei: Pulsa [R] para rotar la Ficha Duplicidad en ${requiredOrient === 'horizontal' ? 'horizontal [⇄]' : 'vertical [⇅]'} antes de colocarla.`, 
+                        2800
+                    );
+                    return false;
+                }
             }
             return true;
         }
 
         if (expected.type === 'use_spell') {
             if (expected.spellId && RogueliteManager.selectedSpell !== expected.spellId) {
-                HUDController.showAlert("🥋 Sensei: Select the spell from the bottom dock first.", 2800);
+                HUDController.showAlert(isEn ? "🥋 Sensei: Select the spell from the bottom dock first." : "🥋 Sensei: Selecciona primero el pergamino en la barra inferior.", 2800);
                 return false;
             }
             if (expected.nodeId && nodeId !== expected.nodeId) {
-                HUDController.showAlert("🥋 Sensei: Cast the spell on the golden highlighted intersection.", 2500);
+                HUDController.showAlert(isEn ? "🥋 Sensei: Cast the spell on the golden highlighted intersection." : "🥋 Sensei: Lanza el pergamino sobre la casilla dorada resaltada.", 2500);
                 return false;
             }
             return true;
@@ -347,18 +369,18 @@ export class TutorialManager {
                 return false;
             }
             if (expected.nodeId && nodeId !== expected.nodeId) {
-                HUDController.showAlert("🥋 Sensei: Apunta la lluvia de meteoros al centro del grupo blanco indicado (6,4).", 2800);
+                HUDController.showAlert(isEn ? "🥋 Sensei: Aim Tengu's meteor rain at the marked center node (6,4)." : "🥋 Sensei: Apunta la lluvia de meteoros al centro del grupo blanco indicado (6,4).", 2800);
                 return false;
             }
             return true;
         }
 
         if (expected.type === 'dialog_only') {
-            HUDController.showAlert("🥋 Sensei: Pulsa 'Entendido ➔' o la barra espaciadora para continuar.", 2500);
+            HUDController.showAlert(isEn ? "🥋 Sensei: Press 'Understood ➔' or Spacebar to continue." : "🥋 Sensei: Pulsa 'Entendido ➔' o la barra espaciadora para continuar.", 2500);
             return false;
         }
         
-        HUDController.showAlert("🥋 Sensei: Realiza la acción requerida por la lección.", 2500);
+        HUDController.showAlert(isEn ? "🥋 Sensei: Complete the action required by the lesson." : "🥋 Sensei: Realiza la acción requerida por la lección.", 2500);
         return false;
     }
 }

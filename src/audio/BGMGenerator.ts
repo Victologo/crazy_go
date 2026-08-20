@@ -1,12 +1,20 @@
 // BGMGenerator.ts - Reproductor de Banda Sonora Tradicional Japonesa Acústica
 // Carga y reproduce de forma fluida y sin cortes las pistas de ambiente zen y combate japonés (Koto, Shō y Shakuhachi)
 
-export type BGMTrack = 'map' | 'battle';
+export type BGMTrack = 'menu' | 'map' | 'battle' | 'boss' | 'tutorial' | 'story' | 'online';
 
 export class BGMGenerator {
-    private static audioMap: HTMLAudioElement | null = null;
-    private static audioBattle: HTMLAudioElement | null = null;
-    private static currentTrack: BGMTrack = 'map';
+    private static audioTracks: Record<BGMTrack, HTMLAudioElement | null> = {
+        menu: null,
+        map: null,
+        battle: null,
+        boss: null,
+        tutorial: null,
+        story: null,
+        online: null
+    };
+    
+    private static currentTrack: BGMTrack = 'menu';
     private static isPlaying: boolean = false;
     private static isEnabled: boolean = true;
     private static volume: number = 0.55;
@@ -16,13 +24,24 @@ export class BGMGenerator {
         if (this.initialized || typeof window === 'undefined') return;
         this.initialized = true;
 
-        this.audioMap = new Audio('/audio/bgm_zen.wav');
-        this.audioMap.loop = true;
-        this.audioMap.volume = this.volume;
+        const files: Record<BGMTrack, string> = {
+            menu: './audio/bgm_zen.wav',
+            map: './audio/bgm_zen.wav',
+            battle: './audio/bgm_battle.wav',
+            boss: './audio/bgm_battle.wav',
+            tutorial: './audio/bgm_zen.wav',
+            story: './audio/bgm_battle.wav',
+            online: './audio/bgm_battle.wav'
+        };
 
-        this.audioBattle = new Audio('/audio/bgm_battle.wav');
-        this.audioBattle.loop = true;
-        this.audioBattle.volume = this.volume;
+        for (const [key, path] of Object.entries(files)) {
+            const track = key as BGMTrack;
+            this.audioTracks[track] = new Audio(path);
+            if (this.audioTracks[track]) {
+                this.audioTracks[track]!.loop = true;
+                this.audioTracks[track]!.volume = this.volume;
+            }
+        }
 
         // Desbloquear en primera interacción de usuario
         const unlock = () => {
@@ -39,14 +58,15 @@ export class BGMGenerator {
     }
 
     private static getActiveAudio(): HTMLAudioElement | null {
-        return this.currentTrack === 'battle' ? this.audioBattle : this.audioMap;
+        return this.audioTracks[this.currentTrack];
     }
 
 
     public static setVolume(vol: number) {
         this.volume = Math.max(0, Math.min(1, vol));
-        if (this.audioMap) this.audioMap.volume = this.volume;
-        if (this.audioBattle) this.audioBattle.volume = this.volume;
+        Object.values(this.audioTracks).forEach(audio => {
+            if (audio) audio.volume = this.volume;
+        });
     }
 
     public static setEnabled(enabled: boolean) {
@@ -58,13 +78,13 @@ export class BGMGenerator {
         }
     }
 
-    public static playMap() {
-        this.setTrack('map');
-    }
-
-    public static playBattle() {
-        this.setTrack('battle');
-    }
+    public static playMap() { this.setTrack('map'); }
+    public static playBattle() { this.setTrack('battle'); }
+    public static playMenu() { this.setTrack('menu'); }
+    public static playBoss() { this.setTrack('boss'); }
+    public static playTutorial() { this.setTrack('tutorial'); }
+    public static playStory() { this.setTrack('story'); }
+    public static playOnline() { this.setTrack('online'); }
 
     public static setTrack(track: BGMTrack) {
         this.initAudio();
@@ -107,14 +127,12 @@ export class BGMGenerator {
 
     public static stop() {
         this.isPlaying = false;
-        if (this.audioMap) {
-            this.audioMap.pause();
-            this.audioMap.currentTime = 0;
-        }
-        if (this.audioBattle) {
-            this.audioBattle.pause();
-            this.audioBattle.currentTime = 0;
-        }
+        Object.values(this.audioTracks).forEach(audio => {
+            if (audio) {
+                audio.pause();
+                audio.currentTime = 0;
+            }
+        });
     }
 
     private static fadeIn(audio: HTMLAudioElement, targetVol: number, durationMs: number) {

@@ -2,8 +2,10 @@ import { STORY_CAMPAIGN, type StoryDialogueLine } from './StoryCampaign';
 import { GameController } from '../controllers/GameController';
 import { HUDController } from '../ui/HUDController';
 import { StoryDialogueRenderer } from '../ui/StoryDialogueRenderer';
+import { GameEventBus } from '../events/GameEventBus';
 import { ChampionManager } from '../core/ChampionManager';
 import { SoundFX } from '../audio/SoundFX';
+import { getLanguage } from '../i18n/i18n';
 import type { HeroId, PlayerId } from '../types';
 
 export class StoryController {
@@ -143,6 +145,11 @@ export class StoryController {
                 this.resolveDialogueComplete = null;
                 cb();
             }
+
+            // Si es el turno de la IA, reanudar su pensamiento
+            if (GameController.state && !GameController.state.isGameOver && GameController.state.currentPlayer !== GameController.config.humanColor) {
+                GameController.checkAITurn();
+            }
         } else {
             this.renderCurrentDialogue();
         }
@@ -179,15 +186,30 @@ export class StoryController {
                     await StoryDialogueRenderer.showPowerDraftModal((chosenHero) => {
                         this.selectedPlayerHero = chosenHero;
                         ChampionManager.setHero(chosenHero, chapter.boardSize);
-                        HUDController.showAlert(`✨ ¡Has dominado el Qi de ${chosenHero.toUpperCase()}!`);
+                        const isEn = getLanguage() === 'en';
+                        HUDController.showAlert(isEn ? `✨ You have mastered the Qi of ${chosenHero.toUpperCase()}!` : `✨ ¡Has dominado el Qi de ${chosenHero.toUpperCase()}!`);
                         this.onChapterComplete();
                     });
+                } else if (isEnemyCapture && captiveId === chapter.targetCaptiveId) {
+                    const isEn = getLanguage() === 'en';
+                    HUDController.showAlert(isEn ? "💀 The relic was corrupted. Retrying chapter..." : "💀 La reliquia ha sido corrompida. Reiniciando capítulo...", 3000);
+                    setTimeout(() => {
+                        this.startChapter(this.currentChapterIndex);
+                    }, 2000);
                 } else {
                     this.checkWinCondition();
                 }
             });
         } else {
-            this.checkWinCondition();
+            if (isEnemyCapture && captiveId === chapter.targetCaptiveId) {
+                const isEn = getLanguage() === 'en';
+                HUDController.showAlert(isEn ? "💀 The relic was corrupted. Retrying chapter..." : "💀 La reliquia ha sido corrompida. Reiniciando capítulo...", 3000);
+                setTimeout(() => {
+                    this.startChapter(this.currentChapterIndex);
+                }, 2000);
+            } else {
+                this.checkWinCondition();
+            }
         }
     }
 
@@ -219,14 +241,28 @@ export class StoryController {
                     this.onChapterComplete();
                 }
             } else {
-                HUDController.showAlert("💀 Has sido superado en territorio. Pulsa 🔄 para reiniciar el capítulo.", 4000);
+                const isEn = getLanguage() === 'en';
+                HUDController.showAlert(isEn ? "💀 You have been outscored in territory. Retrying chapter..." : "💀 Has sido superado en territorio. Reiniciando capítulo...", 3500);
+                setTimeout(() => {
+                    this.startChapter(this.currentChapterIndex);
+                }, 2000);
+            }
+        } else if (chapter.winCondition === 'capture_specific') {
+            const target = GameController.state?.captives.find(c => c.id === chapter.targetCaptiveId);
+            if (!target || !target.isCaptured || target.capturedBy !== 1) {
+                const isEn = getLanguage() === 'en';
+                HUDController.showAlert(isEn ? "💀 Match ended before relic was secured. Retrying..." : "💀 Partida concluida sin sellar la reliquia. Reiniciando...", 3500);
+                setTimeout(() => {
+                    this.startChapter(this.currentChapterIndex);
+                }, 2000);
             }
         }
     }
 
     public static onChapterComplete() {
         SoundFX.playSpecial();
-        HUDController.showAlert("⭐ ¡Capítulo Completado! ⭐", 2200);
+        const isEn = getLanguage() === 'en';
+        HUDController.showAlert(isEn ? "⭐ Chapter Completed! ⭐" : "⭐ ¡Capítulo Completado! ⭐", 2200);
         
         setTimeout(() => {
             this.currentChapterIndex++;
@@ -234,3 +270,17 @@ export class StoryController {
         }, 1000);
     }
 }
+
+// Suscribirse a los eventos del juego
+GameEventBus.on('ENTITY_CAPTURED', (payload) => {
+    if (payload.gameMode === 'story') {
+        StoryController.onCaptiveCaptured(payload.captive.id, payload.capturerId);
+    }
+});
+
+GameEventBus.on('MATCH_ENDED', (payload) => {
+    if (payload.gameMode === 'story') {
+        const winnerId = payload.report.winner === 'black' ? 1 : 2;
+        StoryController.onMatchEnded(winnerId);
+    }
+});

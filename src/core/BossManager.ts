@@ -4,6 +4,7 @@ import { GameState } from './GameState';
 import { RulesEngine } from './RulesEngine';
 import { SoundFX } from '../audio/SoundFX';
 import { VFXManager } from '../graphics/VFXManager';
+import { getLanguage } from '../i18n/i18n';
 
 export interface CornerQuadrantInfo {
     cornerName: 'top_left' | 'top_right' | 'bottom_left' | 'bottom_right';
@@ -22,7 +23,7 @@ export class BossManager {
     public static readonly BOSS_NAME: string = 'Gran Dragón Sabio Gris';
     public static readonly BOSS_SKILL_NAME: string = 'Aliento Calcinante del Dragón';
     public static readonly BOSS_ICON: string = '🐉';
-    public static readonly BOSS_IMAGE: string = '/enemies/boss.png';
+    public static readonly BOSS_IMAGE: string = './enemies/boss.png';
 
     public static resetForMatch(isBoss: boolean) {
         this.isBossBattle = isBoss;
@@ -136,9 +137,8 @@ export class BossManager {
             let destroyedCount = 0;
             quadrant.nodes.forEach(n => {
                 if (n.stone && !n.stone.isIndestructible) {
-                    state.entityManager.destroyEntity(n.stone.id);
-                    n.stone = null;
-                    destroyedCount++;
+                    const removed = RulesEngine.destroyStoneAndPolyGroup(board, state, n.id);
+                    destroyedCount += removed.length;
                 }
             });
 
@@ -159,9 +159,13 @@ export class BossManager {
             const capturedCount = RulesEngine.resolveBoardCaptures(board, state, bossPlayerId);
 
             SoundFX.playCapture();
-            const captureExtra = capturedCount > 0 ? ` (¡y capturó ${capturedCount} piedra(s) por libertades!)` : '';
-            onSuccess(
-                `🐉🔥 ¡El Gran Dragón Sabio Gris ha desatado su Aliento Calcinante! Ha calcinado el 25% del tablero en la esquina (${destroyedCount} piedras destruidas) y colocado su piedra en el centro del vacío${captureExtra}.`
+            const isEn = getLanguage() === 'en';
+            const captureExtra = capturedCount > 0 
+                ? (isEn ? ` (and captured ${capturedCount} stone(s) with 0 liberties!)` : ` (¡y capturó ${capturedCount} piedra(s) por libertades!)`) 
+                : '';
+            onSuccess(isEn
+                ? `🐉🔥 The Great Grey Sage Dragon unleashed its Calcinating Breath! Incinerated 25% of the board in the corner (${destroyedCount} stones destroyed) and placed its stone in the center of the void${captureExtra}.`
+                : `🐉🔥 ¡El Gran Dragón Sabio Gris ha desatado su Aliento Calcinante! Ha calcinado el 25% del tablero en la esquina (${destroyedCount} piedras destruidas) y colocado su piedra en el centro del vacío${captureExtra}.`
             );
             onComplete();
         };

@@ -15,11 +15,27 @@ import { BossActiveSkill } from './champions/BossChampion';
 
 export type { TargetingMode, ChampionActiveSkill, ChampionPassiveSkill };
 
+export interface ChampionSnapshot {
+    activeChargesLeft: number;
+    isPassiveSkillAvailable: boolean;
+    dragonBurnKillsRemaining: number;
+    alchemistInversionsRemaining: number;
+    ryujinEarnedBurns19x19: number;
+    alchemistUsedThisTurn: boolean;
+}
+
+export const NormalHumanPassiveSkill: ChampionPassiveSkill = {
+    name: "Sensei's Retrospect",
+    icon: '⏳',
+    description: 'Master of calculation. Starts each match with 2 tactical Rewind charges to correct reading blunders.',
+    conditionDesc: 'Innate (2 Rewinds per match)'
+};
+
 export const RoninPassiveSkill: ChampionPassiveSkill = {
     name: "Samurai's Edge",
     icon: '⚡',
-    description: 'Every 25 turns elapsed, slashes the vital flow and eradicates 1 random enemy stone from the Goban.',
-    conditionDesc: 'Every 25 turns elapsed'
+    description: 'Every 20 turns elapsed, slashes the vital flow and eradicates 1 random enemy stone from the Goban.',
+    conditionDesc: 'Every 20 turns elapsed'
 };
 
 export class ChampionManager {
@@ -27,10 +43,47 @@ export class ChampionManager {
     public static activeChargesLeft: number = 1;
     public static isPassiveSkillAvailable: boolean = true;
     public static currentTargetingMode: TargetingMode = 'none';
+    public static heroOwnerId: PlayerId = 1; // El jugador dueño de las habilidades
     public static dragonBurnKillsRemaining: number = 0;
     public static alchemistInversionsRemaining: number = 0;
     public static ryujinEarnedBurns19x19: number = 0;
     public static targetingPlayerId: PlayerId = 1;
+    /** Impide que el Alquimista use su habilidad más de una vez por turno */
+    public static alchemistUsedThisTurn: boolean = false;
+
+    public static getSnapshot(): ChampionSnapshot {
+        return {
+            activeChargesLeft: this.activeChargesLeft,
+            isPassiveSkillAvailable: this.isPassiveSkillAvailable,
+            dragonBurnKillsRemaining: this.dragonBurnKillsRemaining,
+            alchemistInversionsRemaining: this.alchemistInversionsRemaining,
+            ryujinEarnedBurns19x19: this.ryujinEarnedBurns19x19,
+            alchemistUsedThisTurn: this.alchemistUsedThisTurn
+        };
+    }
+
+    public static restoreSnapshot(snapshot: ChampionSnapshot) {
+        if (!snapshot) return;
+        this.activeChargesLeft = snapshot.activeChargesLeft;
+        this.isPassiveSkillAvailable = snapshot.isPassiveSkillAvailable;
+        this.dragonBurnKillsRemaining = snapshot.dragonBurnKillsRemaining;
+        this.alchemistInversionsRemaining = snapshot.alchemistInversionsRemaining;
+        this.ryujinEarnedBurns19x19 = snapshot.ryujinEarnedBurns19x19;
+        this.alchemistUsedThisTurn = snapshot.alchemistUsedThisTurn ?? false;
+        this.currentTargetingMode = 'none';
+    }
+
+    /**
+     * Llamado por GameState.advanceTurn cuando el turno cambia al jugador 'nextPlayer'.
+     * Solo resetea el flag alchemistUsedThisTurn cuando el turno vuelve al dueño del héroe,
+     * de modo que el flag bloquea correctamente durante el turno de la IA.
+     */
+    public static onTurnAdvanced(nextPlayer?: PlayerId): void {
+        // Resetear el flag solo cuando le toca de nuevo al jugador del Alquimista
+        if (nextPlayer === undefined || nextPlayer === this.heroOwnerId) {
+            this.alchemistUsedThisTurn = false;
+        }
+    }
 
     // Compatibilidad retroactiva
     public static get roninInversionsRemaining(): number {
@@ -48,12 +101,15 @@ export class ChampionManager {
     };
 
     public static readonly PASSIVE_SKILLS: Partial<Record<HeroId, ChampionPassiveSkill>> = {
+        normal: NormalHumanPassiveSkill,
         himiko: HimikoPassiveSkill,
         ronin: RoninPassiveSkill,
         ryujin: RyujinPassiveSkill
     };
 
     public static get isActiveSkillAvailable(): boolean {
+        // El Alquimista no puede reusar su habilidad en el mismo turno aunque le queden cargas
+        if (this.currentHero === 'alchemist' && this.alchemistUsedThisTurn) return false;
         return this.activeChargesLeft > 0;
     }
 
@@ -74,14 +130,18 @@ export class ChampionManager {
         this.isPassiveSkillAvailable = true;
         this.currentTargetingMode = 'none';
         this.dragonBurnKillsRemaining = 0;
-        this.alchemistInversionsRemaining = 0;
+        this.alchemistInversionsRemaining = heroId === 'alchemist' ? this.getAlchemistInversionCount(boardOrSize) : 0;
         this.ryujinEarnedBurns19x19 = 0;
+        this.alchemistUsedThisTurn = false;
         this.targetingPlayerId = 1;
+        this.heroOwnerId = 1;
 
         if (heroId === 'kitsune') {
             this.activeChargesLeft = this.getKitsuneShieldCharges(boardOrSize);
-        } else if (heroId === 'tengu' || heroId === 'alchemist') {
+        } else if (heroId === 'tengu') {
             this.activeChargesLeft = 1;
+        } else if (heroId === 'alchemist') {
+            this.activeChargesLeft = this.alchemistInversionsRemaining;
         } else {
             this.activeChargesLeft = 0;
         }
@@ -104,11 +164,12 @@ export class ChampionManager {
         _onExtraTurnGranted?: () => void
     ) {
         if (!this.currentHero || state.isGameOver) return;
+        if (playerId !== this.heroOwnerId) return; // Solo dispara si el turno pertenece al dueño del héroe
 
         const playerTurns = state.getPlayerTurnCount(playerId);
 
-        // 1. Himiko la Astrónoma: Lluvia Pétrea al finalizar su Turno 15 personal
-        if (this.currentHero === 'himiko' && this.isPassiveSkillAvailable && playerTurns >= 15) {
+        // 1. Himiko la Astrónoma: Lluvia Pétrea al finalizar su Turno 20 personal
+        if (this.currentHero === 'himiko' && this.isPassiveSkillAvailable && playerTurns >= 20) {
             this.isPassiveSkillAvailable = false;
             HimikoChampion.checkAndTriggerPassive(board, state, playerId, svgElement, onNotify, onBoardUpdated);
             return;
@@ -143,7 +204,7 @@ export class ChampionManager {
     /**
      * Ejecuta una habilidad con objetivo sobre una coordenada/nodo
      */
-    public static executeTargetedSkill(
+    public static async executeTargetedSkill(
         board: GraphBoard,
         state: GameState,
         targetNodeId: string,
@@ -152,14 +213,14 @@ export class ChampionManager {
         onSuccess: (msg: string) => void,
         onError: (msg: string) => void,
         onComplete: () => void
-    ): boolean {
+    ): Promise<boolean> {
         // 1. Tengu: Lluvia Meteórica
         if (this.currentHero === 'tengu') {
-            const ok = TenguChampion.executeSkill(board, targetNodeId, svgElement, onSuccess, onComplete);
-            if (ok) {
+            const ok = TenguChampion.executeSkill(board, targetNodeId, svgElement, onSuccess, () => {
                 this.activeChargesLeft = Math.max(0, this.activeChargesLeft - 1);
                 this.currentTargetingMode = 'none';
-            }
+                onComplete();
+            });
             return ok;
         }
 
@@ -171,19 +232,19 @@ export class ChampionManager {
                 playerId,
                 this.activeChargesLeft,
                 onSuccess,
-                onError,
-                onComplete
+                onError
             );
             if (ok) {
                 this.activeChargesLeft = Math.max(0, this.activeChargesLeft - 1);
                 this.currentTargetingMode = 'none';
+                onComplete();
             }
             return ok;
         }
 
         // 3. Alquimista: Inversión Cromática / Transmutación Yin-Yang
         if (this.currentHero === 'alchemist' || this.currentTargetingMode === 'convert_enemy') {
-            const res = AlchemistChampion.executeSkill(
+            const res = await AlchemistChampion.executeSkill(
                 board,
                 state,
                 targetNodeId,
@@ -191,16 +252,25 @@ export class ChampionManager {
                 this.alchemistInversionsRemaining,
                 svgElement,
                 onSuccess,
-                onError,
-                onComplete
+                onError
             );
 
             if (res.success) {
                 this.alchemistInversionsRemaining = res.newInversionsRemaining;
                 if (res.isFinished) {
                     this.activeChargesLeft = Math.max(0, this.activeChargesLeft - 1);
+                    // CRÍTICO: poner el flag ANTES de advanceTurn para que onTurnAdvanced()
+                    // no lo destruya. El flag sobrevivirá al turno de la IA porque
+                    // onTurnAdvanced() solo lo resetea cuando le vuelve a tocar al dueño del héroe.
+                    this.alchemistUsedThisTurn = true;
                     this.currentTargetingMode = 'none';
+                    // Avanzar turno sin incrementar consecutivePasses:
+                    // La Inversión Cromática NO es un pase voluntario — es una acción táctica.
+                    // Usar advanceTurn() directamente evita que la IA vea consecutivePasses>=1
+                    // y pase su turno de forma prematura en respuesta.
+                    state.advanceTurn();
                 }
+                onComplete();
             }
             return res.success;
         }
@@ -210,11 +280,11 @@ export class ChampionManager {
             const res = RyujinChampion.executeBurn(
                 board,
                 targetNodeId,
+                playerId,
                 this.dragonBurnKillsRemaining,
                 svgElement,
                 onSuccess,
-                onError,
-                onComplete
+                onError
             );
 
             if (res.success) {
@@ -222,6 +292,7 @@ export class ChampionManager {
                 if (res.isFinished) {
                     this.currentTargetingMode = 'none';
                 }
+                onComplete();
             }
             return res.success;
         }

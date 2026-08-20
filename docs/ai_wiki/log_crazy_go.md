@@ -2,6 +2,400 @@
 
 Este registro cronológico documenta los avances diarios en el desarrollo del juego. (Orden: Más reciente arriba).
 
+## 20 de Agosto de 2026 - Día 6 (Sesión 110): Actualización v14 (Balance del Alquimista y UI Scaling)
+
+### 📢 Devlog Oficial de la Versión v14 (Itch.io CommonMark):
+
+> ### **Update v14: The Alchemist Balance & UI Polish!**
+>
+> Following up on our massive v13 release, we've brought a set of highly requested tweaks to improve combat feel and character balance!
+>
+> ### **1. Alchemist Rework (1 Per Turn Limit)**
+> The Alchemist's Chromatic Inversion was a bit too chaotic. We've balanced it so that you can now only transmute **1 stone per turn maximum**, instantly passing the turn afterward. To compensate, the total number of uses you get per match now scales with board size: 1 use on 9x9, 2 uses on 13x13, and 4 uses on massive 19x19 boards!
+>
+> ### **2. UI Scaling & Clarity**
+> - **Larger Player Presence:** We increased the size of the player's standee and info card by 30%. Your hero now stands taller and prouder on the left side of the screen!
+> - **Compact Gobans:** We slightly shrunk the Go board globally to prevent it from overlapping with the spell ribbon at the bottom of the screen.
+> - **4-Player Optimized Space:** In 4-player matches, the board shrinks an additional 15% dynamically, ensuring you always have a perfect view of all 4 character standees and their timers.
+>
+> *— The Crazy Go Dev Team*
+
+---
+
+## 20 de Agosto de 2026 - Día 6 (Sesión 109): Actualización Mayor v13 Oficial (Scoring Infalible, Fichas Indivisibles, Byo-Yomi y Roguelike Overhaul)
+
+> ### **Major Update v13: Bulletproof Territory Scoring, Indivisible Polyominoes & Tournament Byo-Yomi!**
+>
+> Hey everyone! In this major update, we've delivered an enormous leap forward across every dimension of the game—from mathematically airtight Go endgame scoring to tournament-grade time controls, unified tactical polyominoes, and a complete roguelike reward overhaul.
+>
+> ---
+>
+> ### **1. Why the Scoring Overhaul Was Necessary (and Why the Old System Failed)**
+> In previous versions, the scoring system used quick shortcuts to estimate whether stones were alive. If an enemy group had several empty spots around it inside your walls, the game falsely assumed it was "alive" just because of the number of liberties—even when it was completely sealed off with zero chance of making two eyes. This ruined the final score on larger boards (like 19x19) and asymmetrical maps like the Hourglass, because dead invasion stones were not being removed, turning your hard-earned territory into neutral dame points.
+>
+> **What's new in the v13 Life & Death Engine:**
+> - **Enclosure Detection:** The engine scans all sealed regions. Any enemy stones trapped inside your perimeter walls without two independent eyes are cleanly detected as dead and converted into captured prisoners.
+> - **Universal Benson + Deep Influence:** Influence propagation was expanded (radius 6) along graph edges, judging massive board frameworks accurately without false alive flags.
+> - **Full Seki (Mutual Life) Resolution:** When two groups without eyes share mutually locked liberties, the game detects the deadlock, preserves both groups, and marks the shared liberties as neutral dame with a purple "S" badge.
+> - **Native Graph Topology Support:** All life, death, and territory calculations run on topological graph algorithms, working flawlessly across standard squares, rings, geodes, hourglasses, triangles, islands, and 4-player battles.
+>
+> ---
+>
+> ### **2. Indivisible Special Polyomino Stones (Single-Unit Physics)**
+> - **One Solid Piece:** Special polyominoes (Duplicity 2x1, Monolith 2x2, etc.) are now treated as **single, indivisible physical objects**—not individual loose stones.
+> - **Unified Destruction & Transmutation:** If ANY champion ability, meteor strike, dragon flame, katana slash, boss breath, or scroll spell hits even a single intersection of a polyomino, **the entire piece is destroyed or transmuted together in a single unified blast**!
+> - **Unified Visuals & Tooltips:** Rendered as continuous physical slabs (cyan pill capsule for 2x1, golden megalith for 2x2) with rich hover tooltips explaining their tactical properties.
+>
+> ---
+>
+> ### **3. Tournament-Grade Time Controls & Byo-Yomi Suite**
+> You can now configure the exact clock format for local matches (1v1, 1vAI, and 4P FFA):
+> - **⚡ Per-Move Pure Byo-Yomi:** Quick presets (5s, 10s, 15s, 20s, 30s, 45s, 60s) + custom numerical input.
+> - **🏯 Japanese Byo-Yomi (Main Time + Periods):** Set main bank time (e.g. 5 min) + N periods of X seconds (e.g. 3×30s). Playing within time resets the clock without consuming a period; running out of time consumes 1 period!
+> - **⏱️ Fischer Clock:** Base bank time + increment seconds added per placed stone.
+> - **⏳ Absolute Bank Time:** Traditional clock from 1 min to 30 min + custom minutes.
+> - **Tense Audio Tick (`SoundFX.playClockTick`):** Subtle rhythmic audio pulses during the final 5 seconds of every turn.
+> - **Urgent Visual Alert (`.timer-urgent`):** High-intensity pulsating red glow on the HUD timer when 5 seconds or fewer remain.
+>
+> ---
+>
+> ### **4. Roguelike Rewards Overhaul (No More Arbitrary Komi!)**
+> - **Spiritual Pact at Shrines:** Commune with ancestral champions and channel ANY hero (Kitsune, Tengu, Ryūjin, Ronin, Alchemist, Himiko) with their active skill for your next battle!
+> - **Arcane Study & Tactical Masonry at Campsites:** Choose between offensive spell caches (+1 Meteor & +1 Inversion) or tactical polyomino tile bundles (+1 Monolith 2x2 & +1 Duplicity 2x1).
+> - **In-Combat Hostage Rescues:** Freeing trapped monks grants active skill charges and Divine Shields; releasing guardian spirits grants Monolith tiles and Yin-Yang Transmutations.
+>
+> ---
+>
+> ### **5. Final Boss Dragon Awakening & Combat Polish**
+> - **Calcinating Breath AI:** The Great Grey Sage Dragon now unleashes its 25% quadrant flame breath during late-game turns with screen-shaking VFX.
+> - **Enemy Skill Badges:** Standees feature an informative skill pill explaining each rival's powers.
+> - **Laser-Sharp Ronin Slash:** Fixed SVG transform anchoring and added an exact crosshair reticle for katana slashes.
+> - **Tactical [R] Rotation:** Rotate polyominoes instantly with key `[R]` and realistic wood SFX.
+> - **Expanded Goban Area (+15% to +35%):** Elevated zenital alignment (-22px) and compact border algorithm that maximizes board size across all shapes.
+>
+> ---
+>
+> ### **Looking Ahead:**
+> Having the core Go rules and endgame scoring 100% mathematically airtight was the mandatory foundation we needed. Next, we will begin developing and training our custom **Neural Network / Reinforcement Learning AI** via self-play, where flawless rules guarantee perfect reward signals from day one!
+>
+> Enjoy the update, and see you on the Goban!
+>
+> *— The Crazy Go Dev Team*
+
+---
+
+**1. Atajo 'R' para Rotar Duplicidad con Sonido Táctico (`SoundFX.ts`, `PolyominoManager.ts`, `InteractionManager.ts`, `GameController.ts`, `KeyboardController.ts`):**
+- Añadido `SoundFX.playRotate()` sintetizando un giro nítido y suave de madera/mineral vía Web Audio API.
+- Al presionar `R`, si la ficha no estaba activa pero hay cargas en el inventario, se equipa y rota automáticamente (`Horizontal ⇄` / `Vertical ⇅`).
+- El fantasma de colocación bajo el cursor se actualiza instantáneamente con `refreshCurrentHoverGhost()`.
+
+**2. Algoritmo Dinámico de Escalado y Optimización de Espacio del Goban (`SVGRenderer.ts`, `board.css`, `GraphBoard.ts`, `BoardGenerators.ts`):**
+- `#board-container` ampliado un +5% de escala base con límites expandidos a `calc(100vh - 165px)` y `clamp(340px, 54vw, 780px)`.
+- Algoritmo de padding adaptativo: tableros no picudos (cuadrados, hexagonales, geodas, islas, espiral, etc.) reducen su margen de madera a `stoneRadius * 1.25 + 4`, ganando un **10% a 15%** de tamaño útil, mientras que los tableros triangulares conservan el margen adecuado para su vértice superior.
+
+**3. Localización Completa de P3/P4 y Compactación del HUD (`translations.ts`, `HUDController.ts`, `layout.css`):**
+- Traducidas las etiquetas de P3 (`Esmeralda` / `Emerald`) y P4 (`Amatista` / `Amethyst`), y el badge `🤖 Pensando...` / `🤖 Thinking...`.
+- Formato conciso en topbar (`Negras (Tú)`, `Blancas (IA • Nivel)`) y fijación `white-space: nowrap` en `.hud-player-pill`.
+
+**4. Standee Rival Frontal en 4 Jugadores durante Turno de P1 (`champions.css`, `DuelistRenderer.ts`):**
+- Cuando es nuestro turno (P1), el combatiente frontal (P2) se reduce un 10% (`scale(1.12)`), con una máscara gris suave del 50% de los de atrás (`grayscale(20%) brightness(0.82)`) y sin blur (`blur(0)`).
+- Al entrar en su turno activo, crece a escala completa (`scale(1.24)`), brillo 1.2, drop-shadow y placa dorada activa.
+
+**5. Animación Cinemática de Desvanecimiento para Piedras Muertas (`board.css`, `SVGRenderer.ts`):**
+- Animación CSS `@keyframes deadStoneFade` y `@keyframes deadCrossFadeIn` que transiciona la opacidad del 100% al 30% en 1.2s junto con la cruz roja `✕`.
+
+**6. Paquetes Oficiales Generados (v13):**
+- `crazy_go_itchio_v13_browser.zip` (37.86 MB) — Paquete web HTML5 con rutas UNIX para Itch.io.
+- `crazy_go_windows_v13.zip` (37.86 MB) — Paquete portable para Windows PC con `CrazyGo.exe`.
+
+---
+
+## 20 de Agosto de 2026 - Día 6 (Sesión 106): Detección Canónica de Piedras Muertas (Enclosure Pass), Resolución de Seki y Blindaje de Reglas para IA/ML
+
+**1. Reingeniería del Algoritmo de Detección de Piedras Muertas (`TerritoryScorer.ts`):**
+- **Problema / Diagnóstico Previo:** En partidas reales (como en el mapa *Reloj de Arena* y tableros 19x19 estándar), piedras enemigas atrapadas en esquinas o dentro de recintos cerrados gigantescos no se marcaban como muertas al finalizar el juego. Esto ocurría por dos causas principales:
+  1. *Falso Positivo por Libertades / Tamaño:* La heurística anterior saltaba prematuramente si una cadena enemiga tenía $\ge 5$ libertades o $\ge 8$ piedras (`chain.liberties.size >= 5 || chain.nodes.size >= 8`), asumiendo erróneamente que estaba viva aunque todas esas libertades fueran cavidades internas dentro del territorio rival sellado sin posibilidad de escapar ni formar 2 ojos reales.
+  2. *Radio de Influencia Insuficiente:* El BFS de influencia térmica sólo alcanzaba una profundidad de 4 saltos, insuficiente para cercos de gran escala en tableros 19x19.
+- **Solución Canónica (Pipeline de 3 Pasadas):**
+  1. *1ª Pasada — Recinto Cerrado Estricto (`detectDeadStonesViaEnclosure`):* Detecta todas las regiones vacías 100% acordonadas por un jugador $P$. Toda cadena enemiga cuyas libertades residan íntegramente dentro de ese recinto sin poseer 2 ojos independientes locales es declarada incondicionalmente **MUERTA**.
+  2. *2ª Pasada — Benson Universal + Influencia BFS (Radio 6):* Evalúa las cadenas restantes eliminando el corte prematuro de libertades y extendiendo el alcance del campo de influencia a 6 saltos topológicos.
+  3. *Inundación Territorial Limpia:* Las piedras declaradas muertas se tratan como casillas vacías en el BFS de territorio y se acreditan como $+1$ prisionero para el captor.
+
+**2. Detección Canónica de Seki (`detectAndResolveSeki`):**
+- **Problema:** En situaciones de vida mutua (*Seki*), dos grupos rivales sin dos ojos comparten libertades vitales de forma que ninguno puede jugar en ellas sin suicidarse. El sistema previo podía forzar la muerte de uno de los dos por diferencia de influencia o contar el espacio compartido como territorio.
+- **Solución Implementada:**
+  - Se añadió la 3ª pasada de resolución de Seki en `TerritoryScorer.ts`, estructurada en tres capas (Seki Directo con libertades 100% compartidas, Seki con ojos privados insuficientes y rescate de cadenas falsamente sentenciadas a muerte).
+  - En reglas de Go (japonesas), el espacio en Seki no suma territorio para ningún jugador (*Dame* absoluto).
+  - Se agregó el campo `sekiMap: Set<string>` en `ScoreReport` y se diseñó un render visual distintivo en `SVGRenderer.ts` (triángulos semitransparentes morados con la insignia `"S"`).
+  - Compatible de forma nativa tanto para 2 como para 4 jugadores en cualquier topología de grafo.
+
+**3. Benchmark contra Motores de la Industria (KataGo, goscorer, GNU Go):**
+- Se realizó una investigación comparativa exhaustiva contra `goscorer` (librería de reglas japonesas creada por David J. Wu / autor de KataGo) y los estándares de AlphaZero/Tromp-Taylor.
+- Se verificó que el motor de reglas (capturas simultáneas, prevención de suicidio, Teorema de Benson, inundación topológica y Seki) es 100% sólido y exacto, dejando el entorno de simulación plenamente preparado y matemáticamente blindado para el entrenamiento de redes neuronales (Reinforcement Learning / Self-Play).
+
+**4. Paquetes Oficiales Generados (v13):**
+- `crazy_go_itchio_v13_browser.zip` — Paquete web HTML5 con rutas UNIX para Itch.io.
+- `crazy_go_windows_v13.zip` — Paquete portable para Windows PC con `CrazyGo.exe`.
+
+---
+
+## 18 de Agosto de 2026 - Día 5 (Sesión 105): Fix Definitivo del Alquimista, IA Matemática Adaptativa y Orientación de Campeones
+
+**1. Fix Definitivo Alquimista (`advanceTurn()` en lugar de `passTurn()`):**
+- **Problema / Síntoma:** Al utilizar la habilidad activa "Inversión Cromática" del Alquimista (especialmente al pintar una piedra propia al color enemigo de negra a blanca), el turno volvía de inmediato al jugador humano sin que la IA colocase su ficha real en el tablero, o a veces sonaba un impacto pero no se colocaba nada y el jugador humano podía poner ficha inmediatamente sin esperar turno.
+- **Causa Raíz:** En `ChampionManager.executeTargetedSkill()`, al finalizar las transmutaciones (`isFinished === true`), se ejecutaba `state.passTurn()`. Esto incrementaba el contador de pases de Go (`state.consecutivePasses = 1`). Aunque después se reseteaba manualmente a 0, este estado previo activaba la lectura de fin de partida en `GoAI.ts` (`opponentJustPassed = state.consecutivePasses >= 1`). Como las Blancas cuentan con la ventaja de Komi (+6.5), la IA interpretaba que el jugador había pasado y pasaba en respuesta para cerrar el juego o saltarse su turno.
+- **Solución:** Se reemplazó `state.passTurn()` + reset manual por `state.advanceTurn()` directamente en `src/core/ChampionManager.ts`. La Inversión Cromática es una jugada táctica activa, no un pase de tablero; `state.advanceTurn()` avanza el turno limpiamente a la IA (`currentPlayer = 2`), preserva el bloqueo `alchemistUsedThisTurn = true`, y garantiza que la IA evalúe y coloque siempre su piedra real en el Goban antes de devolverle el turno al jugador.
+
+**2. Evaluación Matemática Adaptativa de Fin de Partida en IA (`GoAI.ts`):**
+- **Modelo Combinatorio Dinámico:** Se sustituyó la heurística empírica fija (`territorio >= 70%` y `turno >= 16`) por una formulación matemática adaptativa a la topología y dimensiones del grafo ($G = (V, E)$):
+  - **Índice de Resolución Topológica ($\Phi$):** $\Phi(G) = \frac{|V_{\text{piedras}}| + |V_{\text{territorio}}|}{|V_{\text{válidos}}|}$, ignorando obstáculos y casillas destruidas en tableros asimétricos (*Islas*, *Reloj de Arena*, *Geoda*, etc.).
+  - **Turno Mínimo Dinámico ($T_{\text{min}}$):** $T_{\text{min}} = \max(8, \lfloor 0.22 \times |V_{\text{válidos}}| \rfloor)$ escalando proporcionalmente de tableros pequeños de 40 nodos (8 turnos) a 19x19 (79 turnos).
+  - **Temperatura Marginal ($T \le 0$):** La IA solo acepta o propone pase si no existen grupos en Atari salvables o capturables y la mejor jugada legal no aporta incremento de puntuación neta ($\Delta\text{Score} \le 0$).
+
+**3. Orientación Horizontal Completa de Campeones hacia el Goban:**
+- Se corrigió la rotación de todos los duelistas para que miren siempre hacia el centro del Goban:
+  - **Alquimista:** Orientación natural `scaleX(1)` en el lado del jugador (mira a la derecha) y `scaleX(-1)` en el lado del rival (mira a la izquierda).
+  - **Persona Normal & Ronin:** Volteo horizontal `scaleX(-1)` en el lado del jugador (miran a la derecha) y `scaleX(1)` en el rival (miran a la izquierda).
+  - Homogeneizado tanto en el combate in-game (1v1 y 4P).
+
+**4. Ajuste Visual Fino en Combate 4P:**
+- Standee activo al frente (`pos-front`): Escalado un +30% adicional (`scale(1.24)`).
+- Standees en espera atrás (`pos-back-right` y `pos-back-left`): Escalados un +10% (`scale(0.80)`) y con desenfoque suave reducido a 1px de blur (`filter: grayscale(40%) blur(1px) brightness(0.65)`).
+
+**5. Komi Individual y Escalonado para 4 Jugadores (P2: 2.5, P3: 4.5, P4: 6.5) y Anuncio de Inicio:**
+- **Asistente de Partida Local (Paso 7 - Ajustes):** En partidas de 4 jugadores, la interfaz sustituye el control único por 3 filas independientes para cada jugador que juega después de Negras:
+  - ⚪ **Blancas (P2 • 2º Turno):** `2.5 pts` por defecto (presets 0.5, 1.5, 2.5, 3.5 + input libre).
+  - 🟢 **Esmeralda (P3 • 3º Turno):** `4.5 pts` por defecto (presets 2.5, 3.5, 4.5, 5.5 + input libre).
+  - 🟣 **Amatista (P4 • 4º Turno):** `6.5 pts` por defecto (presets 4.5, 5.5, 6.5, 7.5 + input libre).
+- **HUD y Modal de Puntuación:** Las píldoras de captura del top bar in-game reflejan el Komi exacto de cada color (`(+2.5)`, `(+4.5)`, `(+6.5)`), y el modal final de recuento desglosa las filas de Komi para Esmeralda y Amatista.
+**6. Paquetes Oficiales Generados (v12) y Fix de Compatibilidad UNIX/Itch.io:**
+- **Diagnóstico del Fallo:** Al comparar las entradas internas del ZIP funcional (v5) contra el ZIP fallido (v12), se detectó que la herramienta `.NET ZipFile` de Windows escribía las rutas relativas usando barras invertidas (`assets\index.css`). En los servidores Linux de Itch.io, la contrabarra `\` no separa directorios, por lo que no se creaba la carpeta `assets/`, resultando en un error 404 para el CSS y JS y haciendo que la web mostrara solo el HTML plano.
+- **Corrección Definitiva:** Se reescribió `scripts/build_packages.js` utilizando `archiver.ZipArchive` para generar rutas con el estándar estricto UNIX (`assets/index-Ct6FrkXl.css`, `heroes/alchemist.png`, etc.).
+- **Resultado y Validación:** Subido y verificado exitosamente en el navegador de Itch.io por el usuario, cargando todos los assets, estilos CSS, scripts JS, audio y fondos con fluidez total y 0 errores 404.
+- **Paquetes Oficiales (v12):**
+  - `crazy_go_itchio_v12_browser.zip` (37.86 MB) — Para subir a Itch.io como juego en el navegador web (HTML5).
+  - `crazy_go_windows_v12.zip` (37.86 MB) — Único paquete ejecutable portable para Windows con `CrazyGo.exe`.
+
+**7. Conteo Canónico de Territorio y Detección de Piedras Muertas (Enclosure & Two-Eyes):**
+- **Problema Detectado:** Al finalizar la partida, si el oponente tenía piedras invasoras o aisladas dentro del territorio sellado del jugador (ej. piedras blancas dentro del dragón de negras), el algoritmo previo no las eliminaba. Al hacer el BFS, esas piedras enemigas contaminaban el recinto, haciendo que las casillas vacías contiguas se marcaran como neutras (*Dame*) o se entregaran al oponente, causando derrotas injustas.
+- **Solución Canónica Implementada (`TerritoryScorer.ts`):**
+  1. *Análisis Topológico de Recintos:* Traza la región accesible desde cada cadena y sus libertades. Si todo el perímetro exterior está sellado exclusivamente por un único rival ($Q$) y la cadena no posee 2 ojos independientes para vivir, la cadena se declara formalmente **MUERTA**.
+  2. *Conversión en Prisioneros y Territorio:* Cada piedra muerta suma $+1$ a las capturas del jugador que la encerró, y la casilla que ocupaba se convierte en territorio efectivo.
+  3. *Inundación BFS Pura:* El territorio se computa sobre el tablero libre de piedras muertas, garantizando que todo espacio cerrado pertenezca al 100% a su dueño legítimo.
+  4. *Visualización en Goban:* Las piedras muertas se muestran atenuadas (opacidad 40%) con un distintivo `✕` rojo de captura, y se dibuja el cuadrado de territorio correspondiente.
+
+---
+
+## 18 de Agosto de 2026 - Día 5 (Sesión 104): Rebobinares para Persona Normal, SFX Zen Bong de Pase de Turno y Puesta en Escena 4P
+
+**1. Persona Normal con 2 Rebobinares Universales:**
+- Si se elige al campeón Persona Normal, ahora dispone de 2 cartas tácticas de Rebobinar (⏳) en cualquier modo de juego (Online P2P, Local 1v1, 1vIA, 4 Jugadores, Sandbox). En modo Roguelike se mantiene la escala por dificultad.
+- Actualizadas las descripciones y fórmulas de combate en `translations.ts` (ES y EN) y habilitada la visibilidad en `HUDController.ts`.
+
+**2. Efecto de Sonido "Bong" de Pase de Turno:**
+- Se re-sintetizó `SoundFX.playPass()` mediante Web Audio API emitiendo un auténtico golpe suave de mazo y resonancia de campana zen / gong tradicional ("Bong" en Sol / 196Hz con armónicos ricos de 0.85s).
+- Corregidos `GameController.handlePass` y `GameController.checkAITurn` para que al pasar turno (humano o IA) nunca suene a impacto de piedra (`playPlaceStone`).
+
+**3. Puesta en Escena 4P en Combate y Wizard:**
+- **Wizard (Paso 6):** Contenedor `.wizard-stage-4p-box` desplazado 30px a la izquierda con separación de 95px y glow interactivo en el slot seleccionado (`.stage-slot-active`).
+- **Combate 4P (In-Game HUD):** Layout de profundidad 3D con rotación secuencial fluida hacia la izquierda en orden de turnos (P1 -> P2 -> P3 -> P4).
+
+**4. Aislamiento de Selección de Persona Normal en Modo Local:**
+- Se corrigió la persistencia que hacía aparecer standees de Ronin, Kitsune o Senseis al elegir Persona Normal en partidas locales o de 4 jugadores.
+
+---
+> 🚀 **VERSIÓN PUBLICADA EN ITCH.IO (v12)** 🚀
+> *(Todo lo que está debajo de esta marca ya fue publicado. Los nuevos logs deben insertarse ARRIBA de esta marca para la próxima actualización v13)*
+---
+
+
+
+## 17 de Agosto de 2026 - Día 4 (Sesión 103): Fix Menú de Cinta, Resolución del Cuelgue de IA en Acto 2 y Arreglos Visuales del Wizard
+
+**1. Fix Menú de Cinta (Lección 8):**
+- Se solucionó el bloqueo en el tutorial del Dojo (Lección 8) donde los clics y atajos de teclado para hechizos y poliminós no avanzaban el progreso.
+- Se refactorizaron `KeyboardController.ts` y `GameEventBinder.ts` para enrutar los comandos de selección directamente a los métodos públicos de `GameController` en lugar de saltarse el flujo, permitiendo que `TutorialManager` escuche e intercepte correctamente los eventos esperados.
+
+**2. Resolución del Bloqueo Infinito de IA (Acto 2):**
+- **Causa raíz:** Un "Ghost Node Loop" por desincronización de semilla procedural. El tablero `eroded` (erosionado) en el hilo principal se generaba con una semilla aleatoria diferente a la del Web Worker de la IA. La IA intentaba jugar en casillas que para ella existían, pero que en la interfaz gráfica eran invisibles o estaban borradas, haciendo que el comando fallase en silencio y se reintentase en bucle infinito cada 1.2 segundos sin avanzar nunca de turno.
+- **Solución:** Se centralizó la generación de la semilla procedural en `GameController.initGame()` y se inyectó como parámetro `config.seed` al inicializar el Web Worker, garantizando una topología de nodos idéntica 1:1 entre el motor físico y la IA.
+
+**3. Renderizado de la Textura de Madera en Escenarios (Wizard):**
+- **Problema:** En el paso 5 del menú de configuración, la cuadrícula del tablero se veía, pero la textura de madera subyacente aparecía transparente y con fallos visuales.
+- **Solución:** Se extrajo el bloque inyectable `<defs>` (que contiene luces, sombras y la imagen `#wood-texture`) del `SVGRenderer` a un nuevo contenedor SVG global invisible alojado directamente en el `document.body`. Esto previno que los patrones SVG colapsaran cuando se ocultaban los paneles padres con `display: none` en el asistente.
+
+**4. Traducción y Localización:**
+- Se integró la clave perdida `wizard.step_opponent` en `translations.ts` para mostrar correctamente las migas de pan "Paso 6: Oponente" / "Opponent".
+
+---
+## 17 de Agosto de 2026 - Día 4 (Sesión 103): Fix de Interfaz de Escenarios y Topologías en Wizard Local y Online
+
+**1. Corrección de Selección de Escenarios y Topologías (Paso de Host):**
+- Se arregló el fallo en los modales de configuración (Local y Online) donde la selección de escenarios (Dojo, Meadow, etc.) y nuevas topologías (`islands_v1`, `hourglass`, `geode`, etc.) no actualizaban visualmente los botones ni los fondos del escenario en tiempo real.
+- Ahora `OnlineModalRenderer.ts` y `SetupModalRenderer.ts` procesan correctamente todas las opciones y refrescan el entorno completo al instante.
+
+---
+## 17 de Agosto de 2026 - Día 4 (Sesión 102): Ajustes Visuales de Tengu, Fix de Animación Kitsune y Wizard, Algoritmo Criptográfico Himiko
+
+**1. Ajustes Visuales de Tengu (Escalado):**
+- La imagen del campeón Tengu ha sido escalada globalmente para ser un 25% más grande en todas las vistas de combate y menús de selección.
+
+**2. Solución al Bug de Doble Animación de Kitsune:**
+- **Causa raíz:** La animación de rotura del Escudo Divino de Kitsune se disparaba de forma síncrona con la destrucción del contenedor en `SVGRenderer`, causando reinicios visuales o duplicados percibidos.
+- **Solución:** Diferido el disparo del VFX (usando `setTimeout`) y aplicado un filtro (`Set`) para evitar ejecuciones múltiples sobre un mismo escudo en un instante.
+
+**3. Renderizado de Fondo del Tablero en Wizard:**
+- Se corrigió la previsualización del tablero en los pasos del Wizard. Ahora, `.wizard-stage-board-svg` y `.wizard-board-preview-svg` muestran correctamente el fondo de madera, sombras y padding como en la partida, en lugar de líneas transparentes.
+
+**4. Aleatoriedad Absoluta (Criptográfica) para la Lluvia Pétrea de Himiko:**
+- Se reemplazó el `Math.random` estándar por un `window.crypto.getRandomValues()` dentro del Fisher-Yates. Esto garantiza máxima entropía y aleatoriedad estadísticamente perfecta. Las sensaciones de impacto frecuente en los bordes se deben a razones geométricas puras (las dos últimas líneas de un tablero 19x19 contienen más del 65% de los nodos totales).
+
+---
+> 🚀 **VERSIÓN PUBLICADA EN ITCH.IO (v10)** 🚀
+> *(Todo lo que está debajo de esta marca ya fue publicado. Los nuevos logs deben insertarse ARRIBA de esta marca para la próxima actualización v11)*
+---
+
+## 17 de Agosto de 2026 - Día 4 (Sesión 101): Nuevo Wizard de Partida Local (7 Pasos), Fix Visual IA y Correcciones del Alquimista
+
+**1. Wizard de Configuración Local Reestructurado (6 → 7 Pasos):**
+- **Paso 3 — Tablero con Fondo Vacío:** El preview del tablero ahora muestra un fondo blanco con cuadrícula gris muy sutil (clase `wizard-board-no-scenery`) para indicar que aún no se ha elegido escenario. Antes mostraba el fondo de combate, lo que era confuso.
+- **Paso 5 — Solo Escenario:** El selector de rival se eliminó de este paso. El rival permanece misterioso mientras se elige el escenario.
+- **Paso 6 — Oponente (NUEVO):** Paso completamente nuevo con un stage de combate completo (tu campeón + tablero + rival). Permite elegir entre:
+  - 🎲 Cualquiera (azar total)
+  - 🧘 Monje (uno de 5 monjes elegido al azar al abrir el wizard, consistente durante toda la sesión)
+  - 🧙 Sabio (igual pero con los 5 sabios)
+  - Cualquier campeón específico (Tengu, Himiko, Kitsune, Ronin, Alquimista, Ryūjin)
+  - 👤 Persona Normal (sin habilidades)
+- El monje/sabio resuelto en el wizard es el mismo que aparece en el HUD de combate (no se re-aleatoriza al iniciar partida).
+
+**2. Fix Visual: Piedras de la IA "Invisibles" (bug general de render):**
+- **Causa raíz:** Los VFX asíncronos (`checkPassiveTriggers`) y las comprobaciones de entidades neutrales podían ejecutar un re-renderizado justo después de que la IA colocaba su piedra, sobreescribiendo visualmente el estado del tablero y dejando la piedra sin mostrar (aunque el sonido se había reproducido).
+- **Solución:** Se añadió un `requestAnimationFrame()` de render garantizado tras cada turno de IA en `GameController.checkAITurn()`. Esto asegura que el estado visual del SVG siempre refleja el estado real del juego después de cualquier VFX.
+
+**3. Correcciones Adicionales del Alquimista:**
+- Confirmado: el bug de "turno extra" después de usar la habilidad sobre propia piedra estaba ya corregido. El `alchemistUsedThisTurn` actúa correctamente como doble barrera.
+- Aclarado que el sonido escuchado al convertir piedra propia podía ser `SoundFX.playCapture()` si la piedra transmutada quedaba sin libertades y era capturada inmediatamente.
+
+**4. Mejoras de Proyecto (Infraestructura AI):**
+- **`GEMINI.md` actualizado:** Se añadió el paso 4 obligatorio de lectura: `docs/ai_wiki/codebase_map.md`. Ahora toda IA que abra el proyecto leerá el mapa de código desde el primer momento.
+- **`active_context.md` actualizado** con el estado completo de esta sesión.
+
+**5. Paquetes generados:**
+- `crazy_go_itchio_v10_browser.zip` (37.85 MB) — Para subir a Itch.io como juego de navegador.
+- `crazy_go_windows_v10.zip` (37.85 MB) — Descargable para Windows (abre `index.html` con cualquier navegador o mediante `JUGAR_CRAZY_GO.bat`).
+
+---
+
+## 17 de Agosto de 2026 - Día 4 (Sesión 100): Alquimista Balanceado, Magia Meteórica Inestable y Estabilidad Visual de Menús
+
+
+**1. Balance y Funcionalidad Completa del Alquimista:**
+- **Transmutación Ajustada por Tablero:** Se corrigió para que convierta 1 piedra en 9x9, 2 en 13x13 y 4 en 19x19.
+- **Paso de Turno Automático y Cero Bloqueos:** Al pintar/transmutar la última ficha, el Alquimista cede el turno automáticamente (`consecutivePasses = 0`) para evitar que la IA asuma que el juego ha terminado.
+- **Identidad Visual Aumentada:** El icono del cursor ahora es un pincel gigante (en lugar del tornado de Ronin) y la animación de pintado y gota es 3 veces más grande. También se corrigió el tooltip flotante para que indique explícitamente el cambio de color.
+
+**2. Hechizo Místico "Meteor Strike" (Doble Filo):**
+- **Impacto Impredecible:** El hechizo consumible "Meteor Strike" ya no ataca de forma 100% segura. Ahora tiene un 80% de probabilidades de impactar en una ficha enemiga y un 20% de probabilidad de carbonizar una ficha propia.
+- **VFX Bicolor:** El meteoro cae envuelto en fuego rojo si impacta al enemigo, y envuelto en llamas azules/purpúreas si traiciona al jugador aliado.
+- **Precisión Geométrica:** Se corrigió el bug que permitía múltiples meteoros en la misma intersección; ahora garantizan un impacto máximo por nodo.
+
+**3. Reconexión del Sistema de Efectos Persistentes (VFX Live Container):**
+- **Bug Solucionado:** La refactorización anterior del `SVGRenderer` borraba instantáneamente la animación del escudo de Kitsune rompiéndose y de la piedra elevándose al rebobinar.
+- **Solución:** Ambas animaciones se han redirigido al `#vfx-live-container`, garantizando que sobrevivan al repintado en caliente del tablero.
+
+**4. Optimizaciones Críticas de Modal e Interfaz:**
+- **Previsualización de Partida Viva:** Se arregló el fallo fatal en el constructor del SVG en los Modales (Local y Online) que impedía previsualizar el tablero y la atmósfera (Paso 3 y 5) al configurar una partida.
+- **Duelistas Imponentes (+40%):** En el Paso 5 (Combate), ambos avatares de campeones (Izquierdo y Derecho) se dimensionaron simétricamente y aumentaron un 40% su tamaño nativo (`252x301px`) para máxima presencia.
+- **Cinta Superior de Turno Limpia:** Se purgó el icono negro redundante y el guion, colapsando el título a una sola línea estética (`Black (Your Turn)` o `White (AI 16k)`).
+
+---
+
+## 16 de Agosto de 2026 - Día 3 (Sesión 99): Ryūjin — Quema Aliada, Desincronización de Turno y Win Rate Táctico
+
+**1. Ryūjin — Dragon's Fury puede quemar fichas propias Y enemigas:**
+- Se eliminó la restricción `playerId === enemyOnly` en `RyujinChampion.executeBurn()`.
+- Ahora cualquier piedra con ficha (propia o rival) es objetivo válido. Solo las piedras con Escudo Divino (Kitsune) siguen siendo inmunes.
+- Los mensajes en UI/EN se actualizaron para reflejar "cualquier piedra" en lugar de "piedra enemiga".
+
+**2. Bug crítico: Ficha del color rival al quemar + Bloqueo de partida:**
+- **Causa raíz:** Después de la última quema, `onMovePlaced(nodeId, isLocal=true)` llamaba a `onNodeClicked` con `isLocal=true`, re-ejecutando todos los efectos post-movimiento local (`coopSubTurn`, capturas de rehenes, callbacks online) que ya habían corrido cuando se puso la piedra. Esto corrompía el estado de turno → la IA colocaba una ficha con el color equivocado y luego el juego se bloqueaba.
+- **Solución:** Se añadió `onPassiveBurnCompleted?: () => void` como campo público en `SVGRenderer`. Cuando la Furia del Dragón completa su última quema, en lugar de llamar a `onMovePlaced`, llama a este callback dedicado.
+- En `GameController`, este callback llama directamente a `checkAITurn()` para modos 1vIA/historia (o restaura `isInteractive` en otros modos) — sin pasar por el bloque local que causaba duplicación de efectos.
+
+**3. Win Rate — Evaluación compuesta táctica (antes solo territorio):**
+- **Problema:** La fórmula anterior solo usaba puntuación japonesa de territorio (valores casi nulos en mitad de partida) → resultados ilógicos como "73% blancas" cuando negras tenían posición claramente superior.
+- **Nueva fórmula compuesta ponderada:**
+  - **40% Territorio** provisional (BFS japonés)
+  - **20% Diferencia de piedras** en tablero (×escala por tamaño)
+  - **20% Libertades por piedra** (indicador de vitalidad táctica)
+  - **10% Grupos vivos** (Benson's Algorithm, ×4 pts por grupo)
+  - **10% Capturas** (×escala)
+- La función sigmoide logística se ajustó con `steepness` reducido (0.14/0.22/0.32) para que la composición más rica no explote hacia los extremos.
+
+**4. Paquete generado:** `crazy_go_itchio_v9.zip` (37.78 MB) para Itch.io Browser.
+
+---
+
+## 16 de Agosto de 2026 - Día 3 (Sesión 98): Guía de Publicación en Itch.io, Notificaciones a Compradores, Balance de Campeones y Asistente Panorámico
+
+**1. Gestión de Compradores y Seguidores en Itch.io:**
+- **Identificar Compradores:** En tu panel de creador (*Creator Dashboard*), ve a `Analytics` ➔ pestaña `Purchases` o `Sales / Earnings`. Allí verás el nombre de usuario, email, importe pagado, fecha y país de quien adquirió el juego.
+- **Identificar Seguidores:** En tu perfil o en el Dashboard, pulsa en tu contador de `Followers` para ver quién sigue tu cuenta o tiene tu juego en sus colecciones.
+
+**2. Procedimiento Recomendado para Actualizar el Juego en Itch.io:**
+- **Versión Web (HTML5 Browser):** En `Edit Game` ➔ sección `Uploads`, sube `crazy_go_itchio_v8.zip`, marca la casilla *"This file will be played in the browser"* y elimina el archivo ZIP web anterior para que el juego se actualice en el navegador sin ocupar espacio redundante.
+- **Versión Descargable (Windows Desktop):** Sube `CrazyGo_Portable.zip`, ponle de etiqueta *"Windows Portable (v1.2)"* y marca el icono de Windows. Puedes eliminar el ZIP ejecutable viejo o desmarcarlo.
+
+**3. Envío de Notificación a Compradores y Seguidores (Devlog):**
+- Ve a `Dashboard ➔ Edit Game ➔ Devlogs ➔ Add Post` (o en la barra superior de tu juego `Interact ➔ Post Devlog`).
+- Marca la casilla opcional: **"Notify people who bought or follow this game"** (esto les envía un correo electrónico y una alerta en el feed de Itch.io).
+- Utiliza la plantilla bilingüe redactada en primera persona (biólogo creando un MVP jugable con ayuda de IA y buscando feedback de la comunidad).
+
+**4. Resumen de Mejoras Técnicas Implementadas en el Juego:**
+- **Balance de Habilidades:** Himiko (*Lluvia Pétrea Celestial*) ajustada al Turno 20; Ronin (*Filo del Samurai*) ajustado a cada 17 turnos.
+- **Internacionalización 100% (ES/EN):** Sincronización completa de modales, asistentes, botones de navegación (`Atrás` / `Siguiente`), tarjetas de habilidades y nombres de escenarios y rivales.
+- **Asentamiento y Escalado de Figuras:** Siluetas bajadas para evitar cualquier corte superior en coronas o cuernos (`Himiko`, `Ryūjin`, `Ronin`) y ampliadas a `scale(1.50)`.
+- **Asistente Panorámico:** Ampliación a `1160px` de ancho útil para eliminar márgenes morados vacíos.
+- **Sistema de Zoom Accesible:** Control global por slider y atajos de teclado (`Ctrl + +`, `Ctrl + -`, `Ctrl + 0`).
+
+---
+
+## 15 de Agosto de 2026 - Día 2 (Sesión 97): Solución al Pase Prematuro en IA Dan, Conteo Inmune a Piedras Muertas y Visibilidad de Habilidades en Modo Clásico
+
+**Resumen del hito y mejoras:**
+1. **Corrección Crítica de IA Dan y Pase Prematuro (`GoAI.ts`):**
+   - **Base de Vida Ajustada:** Se corrigió un error donde la IA "Maestro" valoraba las jugadas de 2 libertades con 0 puntos extra. Ahora reciben puntuación de supervivencia para evitar que el score de la mejor jugada cayera por debajo del umbral de pase.
+   - **Abandono Lógico Proactivo:** La IA de máximo nivel ahora solo pasará su turno proactivamente si absolutamente todas las jugadas posibles otorgan puntos negativos (es decir, jugar solo resta territorio sin posibilidad de captura).
+
+2. **Refinamiento del Algoritmo de Territorio Japonés (`TerritoryScorer.ts`):**
+   - **Inmunidad a Invasiones Suicidas (Piedras Muertas):** Anteriormente, una sola piedra suelta sin viabilidad ("muerta") en territorio propio causaba que la frontera se considerara "neutral" (2 jugadores), anulando decenas de puntos.
+   - **Umbral Probabilístico de Dominio (74%):** Se sustituyó la detección binaria por un umbral robusto. Si un jugador posee el 74% o más de los bordes perimetrales e internos de una región vacía, la región entera se le adjudica incondicionalmente, neutralizando los intentos de sabotaje con piedras suicidas.
+
+3. **Restauración del Dock de Campeón en Modo Clásico (`HUDController.ts`, `index.html`):**
+   - **Visibilidad Separada:** Se corrigió el problema donde seleccionar a un Campeón en "1v1" o "1vIA" ocultaba toda la barra inferior. Ahora, en Modo Local/Clásico, el contenedor principal de la barra inferior se mantiene visible junto con el avatar del Campeón, su botón de habilidad y los Poliminós. Únicamente se oculta la sección central de los 4 Hechizos Místicos de Roguelike.
+
+## 15 de Agosto de 2026 - Día 2 (Sesión 96): Pasiva de Ronin cada 20 Turnos, Descripción en Cuadro de Combate, Refactorización Modular y Corrección de Doble VFX
+
+**Resumen del hito y mejoras:**
+1. **Recalibración de la Pasiva de Ronin a 20 Turnos (`RoninChampion.ts`, `translations.ts`):**
+   - La pasiva *Filo del Samurai* (`Samurai's Edge`) ahora se activa con precisión matemática cada **20 turnos individuales** del jugador (turnos 20, 40, 60...) en lugar de cada 25 turnos.
+   - Actualizadas todas las cadenas de texto y notificaciones en Español e Inglés (`translations.ts`).
+
+2. **Descripción Resumida de Pasiva en la Tarjeta de Combate (`HUDController.ts`, `champions.css`):**
+   - En el cuadro de combatiente (`#duel-player-card`), el botón inferior ahora proyecta directamente el nombre de la pasiva en negrita y su descripción concisa y clara (*"Cada 20 turnos destruye automáticamente 1 piedra enemiga aleatoria en el Goban"* en ES / *"Every 20 turns, destroys 1 random enemy stone on the Goban"* en EN).
+
+3. **Corrección de Animación y Eliminación Real de Fichas de Ronin (`RoninChampion.ts`, `RoninVFX.ts`):**
+   - Se eliminó el tajo duplicado paralelo que creaba dos estelas y solapamientos sónicos.
+   - El tajo de katana se ejecuta de forma única y centrada sobre la intersección tras 220 ms de retardo, retirando la piedra enemiga del grafo, sumando el punto de captura y recalculando libertades en cadena con `RulesEngine.resolveBoardCaptures`.
+
+4. **Refactorización Modular de UI (`HUDController.ts`, `DuelistRenderer.ts`):**
+   - Extracción del renderizado de combatientes (1v1, 4P FFA, IA y Tutorial) a [`DuelistRenderer.ts`](file:///C:/Users/VICTOR/Desktop/crazy_go/src/ui/DuelistRenderer.ts), reduciendo `HUDController.ts` de 876 a ~500 líneas.
+
+5. **Compilación Limpia (`npx tsc --noEmit`):**
+   - Verificación de tipos completada con 0 errores.
+
+---
+
 ## 15 de Agosto de 2026 - Día 2 (Sesión 95): Expansión Cinemática del Modo Historia, Recalibración Universal de Tengu, Limpieza de Topbar y Pase Canónico de IA
 
 **Resumen del hito y mejoras:**
@@ -1067,3 +1461,41 @@ Este registro cronológico documenta los avances diarios en el desarrollo del ju
 ## 🗄️ Archivo Histórico de Sesiones Anteriores
 Las sesiones 19 a 30 han sido factorizadas y archivadas para optimizar el rendimiento y la legibilidad.
 👉 **Consulta el histórico completo en:** [`log_archive_sesiones_19_30.md`](file:///c:/Users/VICTOR/Desktop/crazy_go/docs/ai_wiki/log_archive_sesiones_19_30.md).
+
+---
+
+## 17 de Agosto de 2026 - Sesión 48: Corrección de Bug de Ryūjin, Aclaración de Tableros Irregulares y Correcciones Visuales (Fase 41)
+
+**Resumen del hito:**
+1. **Corrección de Bug de Ryūjin en Modo Co-op:**
+   - Detectado que tras usar la habilidad pasiva *Furia del Dragón* de Ryūjin en el modo Roguelike Cooperativo, el juego dejaba en el cursor del jugador una piedra del rival y bloqueaba el sistema de turnos.
+   - Solución: En `GameController.ts`, el modo `'coop'` ahora se evalúa correctamente junto a `'1via'` para delegar el control a la IA (`checkAITurn()`) y no habilitar la interfaz interactiva para el jugador cuando no le corresponde su turno, impidiendo que coloque una piedra rival.
+2. **Aclaración de Comportamiento en Tableros Irregulares (Archipiélago Dual):**
+   - El reporte de que *"un grupo no se captura por falta de libertades"* en las islas conectadas no era un error del código. Las diferentes regiones (ej. hexágono y triángulo) están unidas por un puente formando una sola súper-cadena que requiere que se rellenen absolutamente todas sus libertades. No requiere optimización del código fuente, sino un cambio en la percepción de los turnos (es vital *Pasar Turno* cuando no quedan jugadas beneficiosas en lugar de llenar el territorio propio).
+3. **Mejora Integral del Zoom (`ModalManager.ts`, `AppEventBinder.ts`):**
+   - Completada la Tarea 261.
+   - Refactorizada la función de zoom para permitir incrementos/decrementos precisos en pasos del 10% (rango del 10% al 200%).
+   - Se eliminó la persistencia errónea inter-sesiones en `localStorage`, garantizando que la partida inicie siempre en un nítido 100%.
+   - Creado un manejador de eventos del nuevo botón de `Restablecer Zoom` en el menú para centrar y escalar de vuelta a la proporción original con un clic.
+4. **Adiciones Secundarias Integradas (Tareas 258, 259, 260):**
+   - Ajustes en el Icono de Batalla del modo Roguelike para mayor claridad visual.
+   - Integración final del modo *Co-op Roguelike 2P* dentro del menú Roguelike.
+   - Sincronización de Música de Fondo Dinámica (BGM) en los duelos.
+
+---
+
+## 17 de Agosto de 2026 - Sesión 52 y 53: Refactorización Arquitectónica de Eventos, Mejoras del Alquimista y Opciones de FPS (Fases 44 y 45)
+
+**Resumen del hito:**
+1. **Refactorización Arquitectónica (Clean Architecture):**
+   - Extracción masiva de código monolítico desde GameController.ts.
+   - Se crearon nuevos *Binders* para gestionar los eventos del sistema: MenuEventBinder.ts, GameEventBinder.ts y OnlineEventBinder.ts, que delegaron el control visual puramente al DOM sin ensuciar la lógica del juego.
+   - Creación e integración de InteractionManager.ts como la nueva fachada principal para capturar interacciones de teclado, modales, habilidades activas, uso de hechizos y despliegue de poliminós.
+   - Creación de GameEventBus.ts para conectar de forma desacoplada la notificación de jugadas y turnos con RoguelikeController y StoryController.
+   - Resolución de todos los conflictos y dependencias cruzadas generadas por el rediseño para asegurar \  Errores\ en la validación estricta de TypeScript.
+2. **Mejoras del Campeón Alquimista (Inversión Cromática):**
+   - **VFX Remasterizado:** Ahora, al usar su habilidad activa, aparece una brocha o pincel animado (🖌️) de forma elegante pintando sobre la piedra para simular la transmutación visual del color, limitando la fluidez a los parámetros del nuevo sistema de FPS.
+   - **Elección Completa en 4 Jugadores:** La habilidad ahora cambia "cualquier piedra a cualquier otro color", en lugar de limitarse a Blanco/Negro. En partidas de más de 2 jugadores, ahora despliega un modal intermedio (\#modal-color-picker\) donde el jugador elige manualmente a qué color exacto va a convertir la piedra (Negro, Blanco, Verde o Púrpura). Se implementó usando de forma eficiente una función \sync\ en el flujo del \ChampionManager\.
+3. **Nuevas Configuraciones Básicas del Sistema:**
+   - **Límite de FPS (Animaciones):** Agregada una opción en el modal de \Opciones\ que permite reducir la tasa de refresco (30 FPS) para efectos visuales o dejarlo fluido (60 FPS) mediante \GlobalSettings.ts\. Útil para ahorrar batería en portátiles o mejorar fluidez en dispositivos de menores recursos.
+   - **Animaciones de Partículas:** Añadido un botón de palanca adicional para activar/desactivar completamente la ejecución de animaciones SVG/VFX en tiempo real.

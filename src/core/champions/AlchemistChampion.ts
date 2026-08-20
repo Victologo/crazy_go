@@ -6,40 +6,31 @@ import type { BoardSize } from '../../types';
 import { RulesEngine } from '../RulesEngine';
 import { SoundFX } from '../../audio/SoundFX';
 import { AlchemistVFX } from '../../graphics/vfx/AlchemistVFX';
+import { getLanguage } from '../../i18n/i18n';
+import { ModalManager } from '../../ui/ModalManager';
 
 export const AlchemistActiveSkill: ChampionActiveSkill = {
     name: 'Chromatic Inversion',
     icon: '⚗️',
-    description: 'Transmutes the color of stones on the board (1 on 9x9, 2 on 13x13, 3 on 19x19 in the same turn). Turn automatically passes upon completion.',
+    description: 'Transmutes 1 to 4 stones (based on board size) to any other color. Turn automatically passes upon completion.',
     targetingMode: 'convert_enemy'
 };
 
 export class AlchemistChampion {
     public static getInversionCount(boardOrSize?: GraphBoard | BoardSize | number | null): number {
-        if (!boardOrSize) return 1;
-
-        let totalNodes: number;
+        let s = 9;
         if (typeof boardOrSize === 'number') {
-            if (boardOrSize === 19) totalNodes = 361;
-            else if (boardOrSize === 13) totalNodes = 169;
-            else if (boardOrSize === 9) totalNodes = 81;
-            else totalNodes = boardOrSize;
-        } else if (typeof boardOrSize === 'object' && 'nodes' in boardOrSize) {
-            totalNodes = boardOrSize.nodes.size;
-        } else {
-            totalNodes = 81;
+            s = boardOrSize;
+        } else if (boardOrSize && typeof (boardOrSize as GraphBoard).nodes !== 'undefined') {
+            const count = (boardOrSize as GraphBoard).nodes.size;
+            s = count >= 361 ? 19 : (count >= 169 ? 13 : 9);
         }
-
-        if (totalNodes > 220) {
-            return 3; // 19x19 -> 3 inversions
-        } else if (totalNodes > 100) {
-            return 2; // 13x13 -> 2 inversions
-        } else {
-            return 1; // 9x9 -> 1 inversion
-        }
+        if (s >= 19) return 4;
+        if (s >= 13) return 2;
+        return 1;
     }
 
-    public static executeSkill(
+    public static async executeSkill(
         board: GraphBoard,
         state: GameState,
         targetNodeId: string,
@@ -47,62 +38,67 @@ export class AlchemistChampion {
         currentInversionsRemaining: number,
         svgElement: SVGSVGElement | null,
         onSuccess: (msg: string) => void,
-        onError: (msg: string) => void,
-        onComplete: () => void
-    ): { success: boolean; newInversionsRemaining: number; isFinished: boolean } {
+        onError: (msg: string) => void
+    ): Promise<{ success: boolean; newInversionsRemaining: number; isFinished: boolean }> {
         const centerNode = board.nodes.get(targetNodeId);
         if (!centerNode) return { success: false, newInversionsRemaining: currentInversionsRemaining, isFinished: false };
 
+        const isEn = getLanguage() === 'en';
+
         if (!centerNode.stone) {
             SoundFX.playIllegal();
-            onError('You must select an intersection with a stone to invert its color.');
+            onError(isEn ? 'You must select an intersection with a stone to invert its color.' : 'Debes seleccionar una intersección con una piedra para invertir su color.');
             return { success: false, newInversionsRemaining: currentInversionsRemaining, isFinished: false };
         }
 
         if (centerNode.stone.isIndestructible) {
             SoundFX.playIllegal();
-            onError('🛡️ This stone is protected by the Sacred Shield and is immune to transmutation!');
+            onError(isEn ? '🛡️ This stone is protected by the Sacred Shield and is immune to transmutation!' : '🛡️ ¡Esta piedra está protegida por el Escudo Divino y es inmune a la transmutación!');
             return { success: false, newInversionsRemaining: currentInversionsRemaining, isFinished: false };
         }
 
-        if (svgElement) {
-            AlchemistVFX.triggerTransmuteSlash({ x: centerNode.x, y: centerNode.y }, svgElement);
+        // Determine target color
+        let targetColor: PlayerId;
+        if (state.playerCount === 2) {
+            targetColor = (centerNode.stone.playerId === playerId) ? (playerId === 1 ? 2 : 1) : playerId;
+        } else {
+            const chosenColor = await ModalManager.openColorPickerModal();
+            if (!chosenColor) {
+                onError(isEn ? 'Transmutation cancelled.' : 'Transmutación cancelada.');
+                return { success: false, newInversionsRemaining: currentInversionsRemaining, isFinished: false };
+            }
+            targetColor = chosenColor;
         }
 
-        // Invert color
-        if (centerNode.stone.playerId === playerId) {
-            centerNode.stone.playerId = (state.playerCount === 2 ? (playerId === 1 ? 2 : 1) : (((playerId % state.playerCount) + 1) as PlayerId));
-        } else {
-            centerNode.stone.playerId = playerId;
+        const transmutedNodeIds = RulesEngine.transmuteStoneAndPolyGroup(board, centerNode.id, targetColor);
+
+        if (svgElement) {
+            for (const nid of transmutedNodeIds) {
+                const targetNode = board.nodes.get(nid);
+                if (targetNode) {
+                    AlchemistVFX.triggerTransmuteSlash({ x: targetNode.x, y: targetNode.y }, svgElement);
+                }
+            }
         }
 
         // Resolve captures
-        const capturedCurrent = RulesEngine.resolveBoardCaptures(board, state, playerId);
-        const otherPid = (state.playerCount === 2 ? (playerId === 1 ? 2 : 1) : (((playerId % state.playerCount) + 1) as PlayerId));
-        const capturedOther = RulesEngine.resolveBoardCaptures(board, state, otherPid);
+        const currentPid = targetColor;
+        const capturedCurrent = RulesEngine.resolveBoardCaptures(board, state, currentPid);
+        const otherPid = currentPid === 1 ? 2 : 1;
+        const capturedOther = RulesEngine.resolveBoardCaptures(board, state, otherPid as PlayerId);
         const totalCaptured = capturedCurrent + capturedOther;
+        if (totalCaptured > 0) SoundFX.playCapture();
 
-        if (totalCaptured > 0) {
-            SoundFX.playCapture();
-        }
+        const remaining = currentInversionsRemaining - 1;
+        const isFinished = true; // El usuario pidió máximo 1 por turno
+        // NOTA: el passTurn() lo ejecuta ChampionManager DESPUÉS de poner alchemistUsedThisTurn=true
+        // para evitar que advanceTurn() resetee el flag antes de poder usarlo como barrera.
 
-        let invRemaining = currentInversionsRemaining;
-        if (invRemaining <= 0) {
-            invRemaining = this.getInversionCount(board);
-        }
-        invRemaining = Math.max(0, invRemaining - 1);
+        const msg = isEn 
+            ? `⚗️ Alchemist converted a stone! Turn passed. (${remaining} uses left in match)`
+            : `⚗️ ¡El Alquimista ha convertido una piedra! El turno ha pasado. (Quedan ${remaining} usos en la partida)`;
 
-        const captureMsg = totalCaptured > 0 
-            ? ` And captured ${totalCaptured} stone(s) with 0 liberties!`
-            : '';
-
-        if (invRemaining > 0) {
-            onSuccess(`⚗️ Alchemical Transmutation performed!${captureMsg} Select ${invRemaining} more stone(s) this turn.`);
-            return { success: true, newInversionsRemaining: invRemaining, isFinished: false };
-        } else {
-            onSuccess(`⚗️ Alchemical Transmutation completed!${captureMsg} Passing turn...`);
-            onComplete();
-            return { success: true, newInversionsRemaining: 0, isFinished: true };
-        }
+        onSuccess(msg);
+        return { success: true, newInversionsRemaining: remaining, isFinished: isFinished };
     }
 }

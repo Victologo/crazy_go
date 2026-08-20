@@ -2,6 +2,7 @@
 import { RoguelikeRunManager } from '../core/RoguelikeRunManager';
 import type { RogueliteDifficulty } from '../types';
 import { BGMGenerator } from '../audio/BGMGenerator';
+import { getLanguage } from '../i18n/i18n';
 
 export type AppScreen = 'main-menu' | 'roguelike-map' | 'game';
 
@@ -23,7 +24,7 @@ export class ScreenManager {
         document.getElementById('game-screen')?.classList.add('hidden');
         document.getElementById('roguelike-map-screen')?.classList.add('hidden');
 
-        BGMGenerator.playMap();
+        BGMGenerator.playMenu();
 
         if (this.onScreenChangeCallback) {
             this.onScreenChangeCallback('main-menu');
@@ -51,8 +52,6 @@ export class ScreenManager {
         document.getElementById('roguelike-map-screen')?.classList.add('hidden');
         document.getElementById('game-screen')?.classList.remove('hidden');
 
-        BGMGenerator.playBattle();
-
         if (this.onScreenChangeCallback) {
             this.onScreenChangeCallback('game');
         }
@@ -63,16 +62,22 @@ export class ScreenManager {
         const avatarEl = document.getElementById('map-hero-avatar');
         const nameEl = document.getElementById('map-hero-name');
         const diffEl = document.getElementById('map-diff-text');
+        const isEn = getLanguage() === 'en';
         if (avatarEl) avatarEl.innerText = hero.icon;
         if (nameEl) nameEl.innerText = hero.name;
         if (diffEl) {
-            const diffLabels: Record<RogueliteDifficulty, string> = {
+            const diffLabels: Record<RogueliteDifficulty, string> = isEn ? {
+                easy: '🟢 Easy',
+                normal: '🟡 Normal',
+                hard: '🔴 Hard',
+                extreme: '🟣 Grandmaster'
+            } : {
                 easy: '🟢 Fácil',
                 normal: '🟡 Normal',
                 hard: '🔴 Difícil',
                 extreme: '🟣 Gran Maestro'
             };
-            diffEl.innerText = diffLabels[RoguelikeRunManager.runDifficulty] || '🟢 Fácil';
+            diffEl.innerText = diffLabels[RoguelikeRunManager.runDifficulty] || (isEn ? '🟢 Easy' : '🟢 Fácil');
         }
     }
 }

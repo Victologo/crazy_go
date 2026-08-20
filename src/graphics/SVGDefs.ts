@@ -86,6 +86,17 @@ export class SVGDefs {
                 <stop offset="70%" stop-color="#f59e0b" stop-opacity="0.8" />
                 <stop offset="100%" stop-color="#fbbf24" stop-opacity="1" />
             </linearGradient>
+
+            <!-- Textura de Madera para el Tablero Dinámico -->
+            <pattern id="wood-texture" patternUnits="userSpaceOnUse" width="1200" height="1200">
+                <image href="./wood_kaya.jpg" x="0" y="0" width="1200" height="1200" preserveAspectRatio="xMidYMid slice" />
+            </pattern>
+
+            <!-- Sombra del Tablero (Efecto Elevado) -->
+            <filter id="board-shadow" x="-10%" y="-10%" width="120%" height="120%">
+                <feDropShadow dx="0" dy="15" stdDeviation="12" flood-color="#000000" flood-opacity="0.85"/>
+                <feDropShadow dx="0" dy="0" stdDeviation="25" flood-color="#f59e0b" flood-opacity="0.18"/>
+            </filter>
         `;
         return defs;
     }

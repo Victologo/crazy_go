@@ -14,8 +14,14 @@ if %errorlevel% neq 0 (
 )
 
 echo.
-echo [2/3] Empaquetando versiones portables y web...
-powershell -Command "Compress-Archive -Path dist\* -DestinationPath CrazyGo_Web_Itch.zip -Force; Compress-Archive -Path dist\*, JUGAR_CRAZY_GO.bat -DestinationPath CrazyGo_Portable.zip -Force"
+echo [2/3] Empaquetando ejecutable CrazyGo.exe y paquete portable...
+C:\Windows\Microsoft.NET\Framework64\v4.0.30319\csc.exe /target:winexe /out:CrazyGo.exe scripts\Launcher.cs >nul
+if exist "CrazyGo_Portable" rmdir /s /q "CrazyGo_Portable"
+mkdir "CrazyGo_Portable"
+mkdir "CrazyGo_Portable\dist"
+xcopy /E /I /Y "dist" "CrazyGo_Portable\dist" >nul
+copy /Y "CrazyGo.exe" "CrazyGo_Portable\CrazyGo.exe" >nul
+powershell -NoProfile -Command "Compress-Archive -Path 'CrazyGo_Portable\*' -DestinationPath 'CrazyGo_Portable.zip' -Force; Compress-Archive -Path 'dist\*' -DestinationPath 'CrazyGo_Web_Itch.zip' -Force"
 
 echo.
 echo [3/3] Subiendo cambios a GitHub (git add, commit y push)...

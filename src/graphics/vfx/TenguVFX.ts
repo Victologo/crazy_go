@@ -12,11 +12,13 @@ export class TenguVFX {
         svgElement: SVGSVGElement,
         onImpactNode: (index: number) => void,
         onComplete: () => void,
-        stoneRadius: number = 18
+        stoneRadius: number = 18,
+        meteorTheme: 'red' | 'blue' = 'red'
     ) {
         const vfxLayer = document.createElementNS('http://www.w3.org/2000/svg', 'g');
         vfxLayer.setAttribute('class', 'vfx-meteor-layer');
-        svgElement.appendChild(vfxLayer);
+        const liveContainer = svgElement.querySelector('#vfx-live-container') || svgElement;
+        liveContainer.appendChild(vfxLayer);
 
         const r = Math.max(10, stoneRadius);
         const headR = r * 0.72;
@@ -37,7 +39,7 @@ export class TenguVFX {
                 outerTail.setAttribute('y1', `${coord.y - tailLenY}`);
                 outerTail.setAttribute('x2', `${coord.x}`);
                 outerTail.setAttribute('y2', `${coord.y}`);
-                outerTail.setAttribute('stroke', '#ef4444');
+                outerTail.setAttribute('stroke', meteorTheme === 'red' ? '#ef4444' : '#3b82f6');
                 outerTail.setAttribute('stroke-width', `${r * 0.44}`);
                 outerTail.setAttribute('stroke-linecap', 'round');
                 outerTail.setAttribute('opacity', '0.9');
@@ -49,7 +51,7 @@ export class TenguVFX {
                 coreTail.setAttribute('y1', `${coord.y - tailLenY * 0.78}`);
                 coreTail.setAttribute('x2', `${coord.x}`);
                 coreTail.setAttribute('y2', `${coord.y}`);
-                coreTail.setAttribute('stroke', '#fef08a');
+                coreTail.setAttribute('stroke', meteorTheme === 'red' ? '#fde047' : '#93c5fd');
                 coreTail.setAttribute('stroke-width', `${r * 0.2}`);
                 coreTail.setAttribute('stroke-linecap', 'round');
                 coreTail.setAttribute('opacity', '0.95');
@@ -60,10 +62,10 @@ export class TenguVFX {
                 head.setAttribute('cx', `${coord.x}`);
                 head.setAttribute('cy', `${coord.y}`);
                 head.setAttribute('r', `${headR}`);
-                head.setAttribute('fill', '#fbbf24');
-                head.setAttribute('stroke', '#ea580c');
+                head.setAttribute('fill', meteorTheme === 'red' ? '#fbbf24' : '#60a5fa');
+                head.setAttribute('stroke', meteorTheme === 'red' ? '#ea580c' : '#2563eb');
                 head.setAttribute('stroke-width', `${r * 0.14}`);
-                head.setAttribute('filter', 'drop-shadow(0 0 12px #f97316)');
+                head.setAttribute('filter', meteorTheme === 'red' ? 'drop-shadow(0 0 12px #f97316)' : 'drop-shadow(0 0 12px #3b82f6)');
                 meteorGroup.appendChild(head);
 
                 vfxLayer.appendChild(meteorGroup);
@@ -88,10 +90,10 @@ export class TenguVFX {
                     const burst = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
                     burst.setAttribute('cx', `${coord.x}`);
                     burst.setAttribute('cy', `${coord.y}`);
-                    burst.setAttribute('r', `${r * 0.35}`);
+                    burst.setAttribute('r', '0');
                     burst.setAttribute('fill', 'none');
-                    burst.setAttribute('stroke', '#ef4444');
-                    burst.setAttribute('stroke-width', `${r * 0.22}`);
+                    burst.setAttribute('stroke', meteorTheme === 'red' ? '#f97316' : '#3b82f6');
+                    burst.setAttribute('stroke-width', `${r * 0.8}`);
                     burst.setAttribute('class', 'vfx-meteor-burst');
                     vfxLayer.appendChild(burst);
 

@@ -1,6 +1,7 @@
 // network/NetworkManager.ts - Gestor de Red P2P Instantáneo con WebRTC y MQTT Broker Swarm
 import { joinRoom, type Room } from '@trystero-p2p/mqtt';
 import type { PlayerId, HeroId, OnlineGameConfig } from '../types';
+import { getLanguage } from '../i18n/i18n';
 
 export interface PlayerSlotInfo {
     id: PlayerId;
@@ -20,6 +21,7 @@ export type NetworkMessage =
     | { type: 'MOVE'; nodeId: string; senderColor?: PlayerId }
     | { type: 'PASS'; senderColor?: PlayerId }
     | { type: 'SKILL_USE'; skillType: string; targetNodeId: string; senderColor: PlayerId }
+    | { type: 'UNDO_REWIND'; senderColor?: PlayerId }
     | { type: 'SCORE' }
     | { type: 'REMATCH'; config: OnlineGameConfig }
     | { type: 'DISCONNECT'; senderColor?: PlayerId };
@@ -44,6 +46,7 @@ export class NetworkManager {
     public static onMoveReceived: ((nodeId: string) => void) | null = null;
     public static onPassReceived: (() => void) | null = null;
     public static onSkillReceived: ((skillType: string, targetNodeId: string, senderColor?: PlayerId) => void) | null = null;
+    public static onUndoReceived: ((senderColor?: PlayerId) => void) | null = null;
     public static onGameEndReceived: (() => void) | null = null;
     public static onPeerDisconnected: (() => void) | null = null;
     public static onError: ((msg: string) => void) | null = null;
@@ -370,6 +373,9 @@ export class NetworkManager {
             case 'SKILL_USE':
                 if (this.onSkillReceived) this.onSkillReceived(msg.skillType, msg.targetNodeId, msg.senderColor);
                 break;
+            case 'UNDO_REWIND':
+                if (this.onUndoReceived) this.onUndoReceived(msg.senderColor);
+                break;
             case 'SCORE':
                 if (this.onGameEndReceived) this.onGameEndReceived();
                 break;
@@ -414,6 +420,9 @@ export class NetworkManager {
                 break;
             case 'SKILL_USE':
                 if (this.onSkillReceived) this.onSkillReceived(msg.skillType, msg.targetNodeId, msg.senderColor);
+                break;
+            case 'UNDO_REWIND':
+                if (this.onUndoReceived) this.onUndoReceived(msg.senderColor);
                 break;
             case 'SCORE':
                 if (this.onGameEndReceived) this.onGameEndReceived();
@@ -462,19 +471,22 @@ export class NetworkManager {
         for (let i = 0; i < pCount - 1; i++) {
             const guest = guestEntries[i];
             const fallbackColor = remainingColors[i] || 2;
+            const isEn = getLanguage() === 'en';
             if (guest) {
                 const guestHero = guest.heroId || (this.currentConfig.guestHeroes ? this.currentConfig.guestHeroes[guest.playerId] : null) || null;
+                const playerWord = isEn ? 'Player' : 'Jugador';
                 slots.push({
                     id: guest.playerId,
-                    name: `Jugador ${guest.playerId} (${colorNames[guest.playerId]})`,
+                    name: `${playerWord} ${guest.playerId} (${colorNames[guest.playerId]})`,
                     isHost: false,
                     connected: true,
                     heroId: guestHero
                 });
             } else {
+                const waitingWord = isEn ? 'Waiting...' : 'Esperando...';
                 slots.push({
                     id: fallbackColor,
-                    name: `Esperando... (${colorNames[fallbackColor]})`,
+                    name: `${waitingWord} (${colorNames[fallbackColor]})`,
                     isHost: false,
                     connected: false,
                     heroId: null
@@ -524,6 +536,15 @@ export class NetworkManager {
             type: 'SKILL_USE',
             skillType,
             targetNodeId,
+            senderColor: this.assignedColor
+        };
+        this.sendFn(msg);
+    }
+
+    public static sendUndoRewind() {
+        if (!this.sendFn) return;
+        const msg: NetworkMessage = {
+            type: 'UNDO_REWIND',
             senderColor: this.assignedColor
         };
         this.sendFn(msg);

@@ -14,6 +14,91 @@ export interface MoveResult {
 export class RulesEngine {
     
     /**
+     * Comprueba si una jugada es legal (no ocupada, terreno válido, no suicidio y no violación de Ko)
+     */
+    static isMoveLegal(
+        board: GraphBoard,
+        state: GameState,
+        nodeId: string,
+        playerId: PlayerId
+    ): { isLegal: boolean; errorReason?: 'OCCUPIED' | 'INVALID_TERRAIN' | 'SUICIDE' | 'KO' | 'GAME_OVER' } {
+        if (state.isGameOver) return { isLegal: false, errorReason: 'GAME_OVER' };
+        const node = board.nodes.get(nodeId);
+        if (!node) return { isLegal: false, errorReason: 'INVALID_TERRAIN' };
+        const isCaptiveNode = state.captives?.some(c => (c.nodeId === nodeId || c.nodeIds?.includes(nodeId)) && !c.isCaptured);
+        if (node.stone !== null || node.terrain === 'DESTROYED' || node.terrain === 'OBSTACLE' || isCaptiveNode) {
+            return { isLegal: false, errorReason: 'OCCUPIED' };
+        }
+
+        // Simulación temporal sin alterar el EntityManager
+        node.stone = {
+            id: 'temp_sim',
+            playerId: playerId,
+            isInvisible: false,
+            isIndestructible: false,
+            isFrozen: false,
+            stoneType: 'single'
+        };
+
+        // Comprobar capturas enemigas
+        const nodesToCapture = new Set<string>();
+        for (const neighborId of node.neighbors) {
+            const neighborNode = board.nodes.get(neighborId);
+            if (neighborNode && neighborNode.stone && neighborNode.stone.playerId !== playerId) {
+                const liberties = board.getLiberties(neighborId);
+                if (liberties.size === 0) {
+                    const chain = board.getChain(neighborId);
+                    let canCapture = true;
+                    for (const chainNodeId of chain) {
+                        const chainNode = board.nodes.get(chainNodeId);
+                        if (chainNode?.stone?.isIndestructible) {
+                            canCapture = false;
+                            break;
+                        }
+                    }
+                    if (canCapture) {
+                        for (const c of chain) nodesToCapture.add(c);
+                    }
+                }
+            }
+        }
+
+        // Chequeo de Suicidio
+        if (nodesToCapture.size === 0) {
+            const myLiberties = board.getLiberties(nodeId);
+            if (myLiberties.size === 0) {
+                node.stone = null;
+                return { isLegal: false, errorReason: 'SUICIDE' };
+            }
+        }
+
+        // Chequeo de Ko
+        if (nodesToCapture.size > 0 && state.boardHistory.length >= 2) {
+            const capturedBackup = new Map<string, StoneInfo>();
+            for (const capId of nodesToCapture) {
+                const capNode = board.nodes.get(capId);
+                if (capNode && capNode.stone) {
+                    capturedBackup.set(capId, { ...capNode.stone });
+                    capNode.stone = null;
+                }
+            }
+            const candidate = board.serializeState();
+            const prev = state.boardHistory[state.boardHistory.length - 2];
+            for (const [capId, st] of capturedBackup) {
+                const capNode = board.nodes.get(capId);
+                if (capNode) capNode.stone = st;
+            }
+            if (candidate === prev) {
+                node.stone = null;
+                return { isLegal: false, errorReason: 'KO' };
+            }
+        }
+
+        node.stone = null;
+        return { isLegal: true };
+    }
+
+    /**
      * Intenta colocar una piedra en un nodo según las reglas estándar de Go y las excepciones de Crazy Go.
      */
     static tryPlaceStone(
@@ -76,7 +161,7 @@ export class RulesEngine {
                         }
                         
                         // Escudo de congelación
-                        for (const adjToChain of chainNode!.neighbors) {
+                        for (const adjToChain of (chainNode?.neighbors ?? [])) {
                             if (board.nodes.get(adjToChain)?.stone?.isFrozen) {
                                 canCapture = false;
                                 break;
@@ -182,6 +267,7 @@ export class RulesEngine {
 
         // 2. Colocación provisional de todas las piedras del bloque poliminó
         const createdEntityIds: { nodeId: string; entityId: string }[] = [];
+        const polyGroupId = `poly_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`;
         for (const nid of nodeIds) {
             const n = board.nodes.get(nid)!;
             const newEntityId = state.entityManager.createEntity();
@@ -191,7 +277,8 @@ export class RulesEngine {
                 isInvisible: false,
                 isIndestructible: false,
                 isFrozen: false,
-                stoneType: polyominoType
+                stoneType: polyominoType,
+                polyGroupId
             };
             createdEntityIds.push({ nodeId: nid, entityId: newEntityId });
         }
@@ -437,5 +524,118 @@ export class RulesEngine {
         }
 
         return rescuedCount;
+    }
+
+    /**
+     * Cuenta cuántas piedras enemigas se capturarían si la casilla `nodeId` perteneciera a `playerId`.
+     * NO muta el tablero. Para usar en simulaciones de IA (ej. búsqueda de mejor inversión cromática).
+     */
+    public static countPotentialCaptures(board: GraphBoard, nodeId: string, playerId: PlayerId): number {
+        const node = board.nodes.get(nodeId);
+        if (!node || !node.stone) return 0;
+
+        let count = 0;
+        const checked = new Set<string>();
+
+        for (const neighborId of node.neighbors) {
+            if (checked.has(neighborId)) continue;
+            const neighbor = board.nodes.get(neighborId);
+            if (!neighbor?.stone || neighbor.stone.playerId === playerId) continue;
+
+            // Ver si la cadena del vecino enemigo quedará con 0 libertades
+            const chain = board.getChain(neighborId);
+            for (const c of chain) checked.add(c);
+
+            // Verificar si la cadena tiene alguna indestructible (Kitsune shield)
+            let hasIndestructible = false;
+            for (const c of chain) {
+                if (board.nodes.get(c)?.stone?.isIndestructible) { hasIndestructible = true; break; }
+            }
+            if (hasIndestructible) continue;
+
+            // Contar libertades de la cadena ignorando la ficha recién "invertida" (ya es del playerId)
+            let liberties = 0;
+            for (const c of chain) {
+                const chainNode = board.nodes.get(c);
+                if (!chainNode) continue;
+                for (const nbId of chainNode.neighbors) {
+                    const nb = board.nodes.get(nbId);
+                    if (nb && nb.stone === null && nb.terrain !== 'DESTROYED' && nb.terrain !== 'OBSTACLE') {
+                        liberties++;
+                    }
+                }
+            }
+            if (liberties === 0) count += chain.size;
+        }
+        return count;
+    }
+
+    /**
+     * Destruye una piedra y, si pertenece a una ficha poliminó multi-casilla (polyGroupId),
+     * destruye la pieza completa al unísono como un único bloque físico indivisible.
+     */
+    public static destroyStoneAndPolyGroup(
+        board: GraphBoard, 
+        state?: GameState | null, 
+        nodeId?: string
+    ): string[] {
+        if (!nodeId) return [];
+        const node = board.nodes.get(nodeId);
+        if (!node || !node.stone || node.stone.isIndestructible) return [];
+
+        const destroyedNodeIds: string[] = [];
+        const polyGroupId = node.stone.polyGroupId;
+
+        if (polyGroupId) {
+            // Destruir todas las casillas que conforman este mismo bloque poliminó
+            for (const n of board.nodes.values()) {
+                if (n.stone && n.stone.polyGroupId === polyGroupId && !n.stone.isIndestructible) {
+                    if (state && state.entityManager) {
+                        state.entityManager.destroyEntity(n.stone.id);
+                    }
+                    n.stone = null;
+                    destroyedNodeIds.push(n.id);
+                }
+            }
+        } else {
+            // Ficha individual estándar de 1 casilla
+            if (state && state.entityManager) {
+                state.entityManager.destroyEntity(node.stone.id);
+            }
+            node.stone = null;
+            destroyedNodeIds.push(node.id);
+        }
+
+        return destroyedNodeIds;
+    }
+
+    /**
+     * Transmuta el color de una piedra y, si pertenece a una ficha poliminó multi-casilla,
+     * transmuta la pieza completa al unísono como un único bloque físico indivisible.
+     */
+    public static transmuteStoneAndPolyGroup(
+        board: GraphBoard, 
+        nodeId: string, 
+        newPlayerId: PlayerId
+    ): string[] {
+        const node = board.nodes.get(nodeId);
+        if (!node || !node.stone || node.stone.isIndestructible) return [];
+
+        const transmutedNodeIds: string[] = [];
+        const polyGroupId = node.stone.polyGroupId;
+
+        if (polyGroupId) {
+            for (const n of board.nodes.values()) {
+                if (n.stone && n.stone.polyGroupId === polyGroupId && !n.stone.isIndestructible) {
+                    n.stone.playerId = newPlayerId;
+                    transmutedNodeIds.push(n.id);
+                }
+            }
+        } else {
+            node.stone.playerId = newPlayerId;
+            transmutedNodeIds.push(node.id);
+        }
+
+        return transmutedNodeIds;
     }
 }

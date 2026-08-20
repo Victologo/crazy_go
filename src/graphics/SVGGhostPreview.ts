@@ -3,6 +3,8 @@ import type { GraphBoard, BoardNode } from '../core/GraphBoard';
 import type { GameState } from '../core/GameState';
 import { PolyominoManager } from '../core/PolyominoManager';
 import { ChampionManager } from '../core/ChampionManager';
+import { RulesEngine } from '../core/RulesEngine';
+import { getLanguage } from '../i18n/i18n';
 
 export class SVGGhostPreview {
     public static renderGhost(
@@ -121,7 +123,10 @@ export class SVGGhostPreview {
 
                 const tooltipY = minY - stoneRadius * 1.5;
                 const meteorCount = ChampionManager.getMeteorCount(board);
-                const pillTextContent = `☄️ Zona de Ataque (${zoneNodes.length} casillas / ${meteorCount} impactos)`;
+                const isEn = getLanguage() === 'en';
+                const pillTextContent = isEn 
+                    ? `☄️ Strike Zone (${zoneNodes.length} tiles / ${meteorCount} hits)`
+                    : `☄️ Zona de Ataque (${zoneNodes.length} casillas / ${meteorCount} impactos)`;
                 const pillWidth = Math.max(200, pillTextContent.length * 8.2);
                 const pillHeight = 22;
 
@@ -177,7 +182,12 @@ export class SVGGhostPreview {
             iconText.setAttribute("y", (node.y + 5).toString());
             iconText.setAttribute("text-anchor", "middle");
             iconText.setAttribute("font-size", (stoneRadius * 0.9).toString());
-            iconText.textContent = ChampionManager.currentTargetingMode === 'dragon_burn_2' ? "🔥" : (ChampionManager.currentTargetingMode === 'convert_enemy' ? "🌪️" : "🛡️");
+            const iconMap = {
+                dragon_burn_2: '🔥',
+                shield_target: '🛡️',
+                convert_enemy: ChampionManager.currentHero === 'alchemist' ? '🖌️' : '🌪️'
+            };
+            iconText.textContent = iconMap[ChampionManager.currentTargetingMode as keyof typeof iconMap] || '❓';
             targetGroup.appendChild(iconText);
 
             if (ChampionManager.currentTargetingMode === 'dragon_burn_2') {
@@ -219,11 +229,13 @@ export class SVGGhostPreview {
                 const pillText = document.createElementNS("http://www.w3.org/2000/svg", "text");
 
                 const tooltipY = node.y - stoneRadius * 1.6;
-                const remaining = ChampionManager.roninInversionsRemaining > 0 
-                    ? ChampionManager.roninInversionsRemaining 
-                    : ChampionManager.getRoninInversionCount(board);
+                const isAlchemist = ChampionManager.currentHero === 'alchemist';
+                const remaining = isAlchemist 
+                    ? ChampionManager.alchemistInversionsRemaining > 0 ? ChampionManager.alchemistInversionsRemaining : ChampionManager.getAlchemistInversionCount(board)
+                    : ChampionManager.roninInversionsRemaining > 0 ? ChampionManager.roninInversionsRemaining : ChampionManager.getRoninInversionCount(board);
+                
                 const pillTextContent = isValid
-                    ? `🌪️ Invertir Color (${remaining} restante(s))`
+                    ? (isAlchemist ? `🖌️ Transmutar Color (${remaining} restante(s))` : `🌪️ Invertir Color (${remaining} restante(s))`)
                     : (node.stone?.isIndestructible ? `🛡️ Piedra Sagrada Inmune` : `⚠️ Selecciona una piedra`);
                 const pillWidth = Math.max(160, pillTextContent.length * 7.5);
                 const pillHeight = 20;
@@ -360,6 +372,33 @@ export class SVGGhostPreview {
         // Preview Estándar
         const isCaptiveNode = state.captives?.some(c => (c.nodeId === node.id || c.nodeIds?.includes(node.id)) && !c.isCaptured);
         if (node.stone !== null || isCaptiveNode) return;
+
+        // Comprobar si el movimiento es legal bajo las reglas de Go (Suicidio, Ko, etc.)
+        const legality = RulesEngine.isMoveLegal(board, state, node.id, state.currentPlayer);
+        if (!legality.isLegal) {
+            // Mostrar indicador de jugada prohibida (cruz roja suave)
+            const forbiddenCircle = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+            forbiddenCircle.setAttribute("cx", node.x.toString());
+            forbiddenCircle.setAttribute("cy", node.y.toString());
+            forbiddenCircle.setAttribute("r", (stoneRadius * 0.55).toString());
+            forbiddenCircle.setAttribute("fill", "rgba(239, 68, 68, 0.25)");
+            forbiddenCircle.setAttribute("stroke", "#ef4444");
+            forbiddenCircle.setAttribute("stroke-width", "1.5");
+
+            const forbiddenText = document.createElementNS("http://www.w3.org/2000/svg", "text");
+            forbiddenText.setAttribute("x", node.x.toString());
+            forbiddenText.setAttribute("y", (node.y + 4).toString());
+            forbiddenText.setAttribute("text-anchor", "middle");
+            forbiddenText.setAttribute("font-size", "13px");
+            forbiddenText.setAttribute("font-weight", "bold");
+            forbiddenText.setAttribute("fill", "#ef4444");
+            forbiddenText.textContent = "✕";
+
+            ghostGroup.appendChild(forbiddenCircle);
+            ghostGroup.appendChild(forbiddenText);
+            svgElement.appendChild(ghostGroup);
+            return;
+        }
 
         const ghostCircle = document.createElementNS("http://www.w3.org/2000/svg", "circle");
         ghostCircle.setAttribute("cx", node.x.toString());

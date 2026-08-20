@@ -1,0 +1,118 @@
+    <!-- ================= MODAL: ROGUELIKE EXPEDITION ================= -->
+    <div id="roguelike-setup-modal" class="modal-backdrop hidden">
+      <div class="modal-card modal-rogue-panoramic">
+        <div class="modal-header rogue-header-panoramic">
+          <div>
+            <h2>⚔️ Roguelike Expedition</h2>
+            <p class="modal-desc">Select your journey difficulty and Mystic Champion to begin</p>
+          </div>
+        </div>
+
+        <div class="modal-body-scroll rogue-body-panoramic">
+          <!-- Expedition Difficulty -->
+          <div class="setup-section rogue-diff-section">
+            <label class="setup-label">Expedition Difficulty</label>
+            <div class="setup-grid grid-4 rogue-diff-grid">
+              <button id="rogue-diff-easy" class="btn btn-choice active" data-diff="easy">
+                <span class="choice-icon">🟢</span>
+                <span class="choice-title">Easy</span>
+                <small class="diff-sub">Beginner</small>
+              </button>
+              <button id="rogue-diff-normal" class="btn btn-choice" data-diff="normal">
+                <span class="choice-icon">🟡</span>
+                <span class="choice-title">Normal</span>
+                <small class="diff-sub">Warrior</small>
+              </button>
+              <button id="rogue-diff-hard" class="btn btn-choice" data-diff="hard">
+                <span class="choice-icon">🔴</span>
+                <span class="choice-title">Hard</span>
+                <small class="diff-sub">Master</small>
+              </button>
+              <button id="rogue-diff-extreme" class="btn btn-choice btn-dan" data-diff="extreme">
+                <span class="choice-icon">🟣</span>
+                <span class="choice-title">Grandmaster</span>
+                <small class="diff-sub">Supreme Dan</small>
+              </button>
+            </div>
+          </div>
+
+          <!-- Champion Showcase Card -->
+          <div class="rogue-hero-panoramic-box">
+            <button id="btn-hero-prev" class="btn-hero-nav" title="Previous Champion">◀</button>
+
+            <div class="hero-showcase-card" id="rogue-hero-showcase-card">
+              <div class="hero-portrait-wrapper">
+                <img id="rogue-hero-showcase-img" src="./heroes/tengu_face.jpg" alt="Champion" class="hero-showcase-img" />
+              </div>
+
+              <div class="hero-details">
+                <div class="hero-header-row">
+                  <div class="hero-titles-col">
+                    <h3 id="rogue-hero-showcase-name" class="hero-title">Tengu</h3>
+                  </div>
+                </div>
+
+                <div class="hero-skills-grid">
+                  <div class="hero-skill-box active-skill-box rogue-hero-active-box">
+                    <div class="skill-box-header">
+                      <span class="skill-type-tag active-tag">💥 ACTIVE SKILL</span>
+                      <strong id="rogue-hero-active-name" class="skill-name">☄️ Meteor Strike (1 use)</strong>
+                    </div>
+                    <p id="rogue-hero-active-desc" class="skill-desc">Select an area: unleashes falling meteors destroying unprotected stones.</p>
+                  </div>
+
+                  <div class="hero-skill-box passive-skill-box rogue-hero-passive-box" style="display: none;">
+                    <div class="skill-box-header">
+                      <span class="skill-type-tag passive-tag" id="rogue-hero-passive-tag">✨ PASSIVE SKILL</span>
+                      <strong id="rogue-hero-passive-name" class="skill-name">🌧️ Celestial Stone Rain</strong>
+                    </div>
+                    <p id="rogue-hero-passive-desc" class="skill-desc">At the end of personal turn 15, allied stones rain down onto empty intersections.</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <button id="btn-hero-next" class="btn-hero-nav" title="Next Champion">▶</button>
+          </div>
+
+          <!-- Thumbnail Strip -->
+          <div class="hero-thumb-strip" id="rogue-hero-thumb-strip">
+            <button class="hero-thumb-btn active" data-hero="normal">
+              <img src="./heroes/normal_face.jpg" alt="Normal" />
+              <span>Normal</span>
+            </button>
+            <button class="hero-thumb-btn" data-hero="tengu">
+              <img src="./heroes/tengu_face.jpg" alt="Tengu" />
+              <span>Tengu</span>
+            </button>
+            <button class="hero-thumb-btn" data-hero="himiko">
+              <img src="./heroes/himiko_face.jpg" alt="Himiko" />
+              <span>Himiko</span>
+            </button>
+            <button class="hero-thumb-btn" data-hero="kitsune">
+              <img src="./heroes/kitsune_face.jpg" alt="Kitsune" />
+              <span>Kitsune</span>
+            </button>
+            <button class="hero-thumb-btn" data-hero="ronin">
+              <img src="./heroes/ronin_face.jpg" alt="Ronin" />
+              <span>Ronin</span>
+            </button>
+            <button class="hero-thumb-btn" data-hero="alchemist">
+              <img src="./heroes/alchemist_face.jpg" alt="Alchemist" />
+              <span>Alchemist</span>
+            </button>
+            <button class="hero-thumb-btn" data-hero="ryujin">
+              <img src="./heroes/ryujin_face.jpg" alt="Ryūjin" />
+              <span>Ryūjin</span>
+            </button>
+          </div>
+        </div>
+
+        <div class="modal-footer rogue-footer-panoramic">
+          <button id="btn-rogue-cancel" class="btn btn-modal-secondary">Back</button>
+          <button id="btn-rogue-start" class="btn btn-hero btn-rogue-cta">
+            <span>▶️ Begin Expedition</span>
+          </button>
+        </div>
+      </div>
+    </div>

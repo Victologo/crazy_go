@@ -92,8 +92,8 @@ body[data-theme="light"] .btn-topbar:hover {
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  background: var(--bg-card-sub);
-  border: 1px solid var(--border-subtle);
+  background: transparent;
+  border: none;
   padding: 0.35rem 0.85rem;
   border-radius: var(--radius-full);
   font-size: 0.85rem;
@@ -114,13 +114,20 @@ body[data-theme="light"] .btn-topbar:hover {
 }
 
 .hud-player-pill {
-  border-color: rgba(245, 158, 11, 0.3);
-  background: var(--bg-card-sub);
+  border: none;
+  background: transparent;
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  white-space: nowrap;
+  flex-shrink: 0;
 }
 
 .hud-player-text {
   font-weight: 600;
+  font-size: 0.85rem;
   color: var(--text-primary);
+  white-space: nowrap;
 }
 
 .stone-indicator {
@@ -271,7 +278,7 @@ body[data-theme="light"] .btn-topbar:hover {
   justify-content: center;
   position: relative;
   background: radial-gradient(circle at center, rgb(12 16 26 / 45%) 0%, rgb(6 9 15 / 0%) 100%), 
-              url('/bg_combat.jpg') center center / cover no-repeat;
+              url('../bg_combat.jpg') center center / cover no-repeat;
   overflow: hidden;
   padding: 0.35rem 1.5rem;
   gap: 1.5rem;
@@ -280,40 +287,47 @@ body[data-theme="light"] .btn-topbar:hover {
 
 #board-viewport[data-bg="combat"] {
   background: radial-gradient(circle at center, rgb(12 16 26 / 45%) 0%, rgb(6 9 15 / 0%) 100%), 
-              url('/bg_combat.jpg') center center / cover no-repeat;
+              url('../bg_combat.jpg') center center / cover no-repeat;
 }
 
 #board-viewport[data-bg="story"] {
   background: radial-gradient(circle at center, rgb(10 14 26 / 40%) 0%, rgb(5 8 18 / 0%) 100%), 
-              url('/bg_story.jpg') center center / cover no-repeat;
+              url('../bg_story.jpg') center center / cover no-repeat;
 }
 
 #board-viewport[data-bg="tutorial"] {
   background: radial-gradient(circle at center, rgb(20 18 14 / 35%) 0%, rgb(10 8 5 / 0%) 100%), 
-              url('/bg_tutorial.jpg') center center / cover no-repeat;
+              url('../bg_tutorial.jpg') center center / cover no-repeat;
 }
 
 #board-viewport[data-bg="boss"] {
   background: radial-gradient(circle at center, rgb(25 10 5 / 45%) 0%, rgb(12 4 2 / 0%) 100%), 
-              url('/bg_boss.jpg') center center / cover no-repeat;
+              url('../bg_boss.jpg') center center / cover no-repeat;
 }
 
 #board-viewport[data-bg="meadow"] {
   background: radial-gradient(circle at center, rgb(15 28 15 / 35%) 0%, rgb(8 16 8 / 0%) 100%), 
-              url('/bg_meadow.jpg') center center / cover no-repeat;
+              url('../bg_meadow.jpg') center center / cover no-repeat;
 }
 
 #board-viewport[data-bg="sunset"] {
   background: radial-gradient(circle at center, rgb(28 16 10 / 40%) 0%, rgb(15 8 4 / 0%) 100%), 
-              url('/bg_sunset.jpg') center center / cover no-repeat;
+              url('../bg_sunset.jpg') center center / cover no-repeat;
 }
 
 #board-viewport[data-bg="night"] {
   background: radial-gradient(circle at center, rgb(10 16 28 / 40%) 0%, rgb(5 8 16 / 0%) 100%), 
-              url('/bg_night.jpg') center center / cover no-repeat;
+              url('../bg_night.jpg') center center / cover no-repeat;
 }
 
-body[data-theme="light"] #board-viewport {
-  background: radial-gradient(circle at center, rgba(248, 245, 238, 0.35) 0%, rgba(220, 210, 195, 0.05) 100%), 
-              url('/bg_combat.jpg') center center / cover no-repeat;
+body[data-theme="light"] #board-viewport::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: radial-gradient(circle at center, rgba(248, 245, 238, 0.25) 0%, rgba(220, 210, 195, 0.05) 100%);
+  pointer-events: none;
+  z-index: 1;
 }

@@ -4,12 +4,22 @@ import { RoguelikeRunManager } from '../../core/RoguelikeRunManager';
 import { RogueliteManager } from '../../core/RogueliteManager';
 
 import { ModalManager } from '../ModalManager';
+import { getLanguage } from '../../i18n/i18n';
 
 export class RogueModalRenderer {
+    public static openRoguelikeSetupModal() {
+        document.getElementById('roguelike-setup-modal')?.classList.remove('hidden');
+    }
+
+    public static closeRoguelikeSetupModal() {
+        document.getElementById('roguelike-setup-modal')?.classList.add('hidden');
+    }
+
     public static openRogueChoiceModal() {
         const modal = document.getElementById('modal-rogue-choice');
         if (!modal) return;
 
+        const isEn = getLanguage() === 'en';
         const hero = RoguelikeRunManager.HEROES[RoguelikeRunManager.selectedHero || 'tengu'];
         const imgEl = document.getElementById('saved-run-hero-img') as HTMLImageElement | null;
         const nameEl = document.getElementById('saved-run-hero-name');
@@ -19,7 +29,12 @@ export class RogueModalRenderer {
         if (imgEl && hero) imgEl.src = hero.faceImage || hero.image;
         if (nameEl && hero) nameEl.innerText = `${hero.icon} ${hero.name}`;
         if (diffEl) {
-            const diffMap: Record<string, string> = { 
+            const diffMap: Record<string, string> = isEn ? { 
+                easy: 'Easy (Apprentice)', 
+                normal: 'Normal (Warrior)', 
+                hard: 'Hard (Master)', 
+                extreme: 'Extreme (Grandmaster)' 
+            } : { 
                 easy: 'Fácil (Principiante)', 
                 normal: 'Normal (Guerrero)', 
                 hard: 'Difícil (Maestro)', 
@@ -29,7 +44,9 @@ export class RogueModalRenderer {
         }
         if (progEl) {
             const node = RoguelikeRunManager.getCurrentNode();
-            progEl.innerText = node ? `📍 Posición: ${node.title}` : '📍 Expedición lista para continuar';
+            progEl.innerText = node 
+                ? (isEn ? `📍 Position: ${node.title}` : `📍 Posición: ${node.title}`) 
+                : (isEn ? '📍 Expedition ready to resume' : '📍 Expedición lista para continuar');
         }
 
         modal.classList.remove('hidden');
@@ -39,7 +56,7 @@ export class RogueModalRenderer {
         document.getElementById('modal-rogue-choice')?.classList.add('hidden');
     }
 
-    public static updateRoguelikeSetupModalUI(tempDifficulty: RogueliteDifficulty, tempHero: HeroId) {
+    public static updateRoguelikeSetupModalUI(_tempMode: '1p' | 'coop', tempDifficulty: RogueliteDifficulty, tempHero: HeroId) {
         document.getElementById('rogue-diff-easy')?.classList.toggle('active', tempDifficulty === 'easy');
         document.getElementById('rogue-diff-normal')?.classList.toggle('active', tempDifficulty === 'normal');
         document.getElementById('rogue-diff-hard')?.classList.toggle('active', tempDifficulty === 'hard');
@@ -64,7 +81,7 @@ export class RogueModalRenderer {
         const heroImg = document.getElementById('reward-hero-img') as HTMLImageElement | null;
         const heroName = document.getElementById('reward-hero-name');
         if (heroImg && hero) {
-            heroImg.src = hero.image || hero.faceImage || '/heroes/tengu.png';
+            heroImg.src = hero.image || hero.faceImage || './heroes/tengu.png';
         }
         if (heroName && hero) {
             heroName.innerText = hero.name;
@@ -114,7 +131,7 @@ export class RogueModalRenderer {
         icon: string,
         title: string,
         desc: string,
-        actions: { id: string; label: string; sub?: string; icon: string; disabled?: boolean; onClick: () => void }[]
+        actions: { id: string; label: string; sub?: string; icon: string; image?: string; selected?: boolean; disabled?: boolean; onClick: () => void }[]
     ) {
         const modal = document.getElementById('rogue-event-modal');
         const iconEl = document.getElementById('event-modal-icon');
@@ -128,22 +145,52 @@ export class RogueModalRenderer {
 
         if (actionsContainer) {
             actionsContainer.innerHTML = '';
-            actions.forEach(act => {
-                const btn = document.createElement('button');
-                btn.className = 'btn-event-action';
-                btn.disabled = !!act.disabled;
-                btn.innerHTML = `
-                    <div class="event-action-icon">${act.icon}</div>
-                    <div class="event-action-text">
-                        <strong>${act.label}</strong>
-                        ${act.sub ? `<small>${act.sub}</small>` : ''}
-                    </div>
-                `;
-                btn.addEventListener('click', () => {
-                    act.onClick();
+            const isFloatingImageMode = actions.some(a => !!a.image);
+
+            if (isFloatingImageMode) {
+                const grid = document.createElement('div');
+                grid.className = 'event-floating-grid';
+                actions.forEach(act => {
+                    const itemBtn = document.createElement('button');
+                    itemBtn.className = `btn-floating-item ${act.selected ? 'active selected' : ''}`;
+                    itemBtn.disabled = !!act.disabled;
+                    itemBtn.innerHTML = `
+                        <div class="floating-item-art">
+                            ${act.image ? `<img src="${act.image}" class="floating-item-img" alt="${act.label}"/>` : `<span class="floating-item-emoji">${act.icon}</span>`}
+                            ${act.selected ? `<div class="floating-item-badge">✓</div>` : ''}
+                        </div>
+                        <div class="floating-item-info">
+                            <strong class="floating-item-title">${act.label}</strong>
+                            ${act.sub ? `<span class="floating-item-desc">${act.sub}</span>` : ''}
+                        </div>
+                    `;
+                    itemBtn.addEventListener('click', () => {
+                        act.onClick();
+                    });
+                    grid.appendChild(itemBtn);
                 });
-                actionsContainer.appendChild(btn);
-            });
+                actionsContainer.appendChild(grid);
+            } else {
+                const list = document.createElement('div');
+                list.className = 'event-options-list';
+                actions.forEach(act => {
+                    const btn = document.createElement('button');
+                    btn.className = `btn-event-option ${act.selected ? 'active' : ''}`;
+                    btn.disabled = !!act.disabled;
+                    btn.innerHTML = `
+                        <div class="event-option-icon">${act.icon}</div>
+                        <div class="event-option-info">
+                            <strong class="event-option-title">${act.label}</strong>
+                            ${act.sub ? `<span class="event-option-desc">${act.sub}</span>` : ''}
+                        </div>
+                    `;
+                    btn.addEventListener('click', () => {
+                        act.onClick();
+                    });
+                    list.appendChild(btn);
+                });
+                actionsContainer.appendChild(list);
+            }
         }
 
         if (modal) modal.classList.remove('hidden');
@@ -186,6 +233,7 @@ export class RogueModalRenderer {
         if (komiEl) komiEl.innerText = `+${RoguelikeRunManager.permanentKomiBonus.toFixed(1)}`;
 
         const spellsContainer = document.getElementById('deck-spells-container');
+        const isEn = getLanguage() === 'en';
         if (spellsContainer) {
             spellsContainer.innerHTML = '';
             
@@ -193,12 +241,13 @@ export class RogueModalRenderer {
             RogueliteManager.getSpells().forEach((spell: any) => {
                 const card = document.createElement('div');
                 card.className = `deck-spell-card ${spell.usesLeft === 0 ? 'depleted' : ''}`;
+                const useWord = isEn ? (spell.usesLeft === 1 ? 'use' : 'uses') : (spell.usesLeft === 1 ? 'uso' : 'usos');
                 card.innerHTML = `
                     <div class="deck-spell-icon">${spell.icon}</div>
                     <div class="deck-spell-details">
                         <div class="deck-spell-header">
                             <strong>${spell.name}</strong>
-                            <span class="deck-spell-charges">${spell.usesLeft} ${spell.usesLeft === 1 ? 'uso' : 'usos'}</span>
+                            <span class="deck-spell-charges">${spell.usesLeft} ${useWord}</span>
                         </div>
                         <p>${spell.description}</p>
                     </div>
@@ -207,7 +256,29 @@ export class RogueModalRenderer {
             });
 
             // Fichas Poliminó Tácticas
-            const polyCards = [
+            const polyCards = isEn ? [
+                {
+                    id: 'domino',
+                    name: 'Duplicity Tile (2x1)',
+                    icon: '🀄',
+                    uses: RoguelikeRunManager.polyominoes.domino,
+                    desc: 'Block of 2 indissolubly joined stones. Rotates with [R].'
+                },
+                {
+                    id: 'sprouting',
+                    name: 'Sprouting Tile (1x1)',
+                    icon: '🌿',
+                    uses: RoguelikeRunManager.polyominoes.sprouting,
+                    desc: 'Automatically spawns an extra allied stone every 2 turns.'
+                },
+                {
+                    id: 'monolith',
+                    name: 'Monolith Tile (2x2)',
+                    icon: '🧱',
+                    uses: RoguelikeRunManager.polyominoes.monolith,
+                    desc: 'Titan block of 4 joined stones forming an indestructible square.'
+                }
+            ] : [
                 {
                     id: 'domino',
                     name: 'Ficha Dominó (2x1)',
@@ -234,12 +305,13 @@ export class RogueModalRenderer {
             polyCards.forEach(poly => {
                 const card = document.createElement('div');
                 card.className = `deck-spell-card ${poly.uses === 0 ? 'depleted' : ''}`;
+                const tileWord = isEn ? (poly.uses === 1 ? 'tile' : 'tiles') : (poly.uses === 1 ? 'ficha' : 'fichas');
                 card.innerHTML = `
                     <div class="deck-spell-icon">${poly.icon}</div>
                     <div class="deck-spell-details">
                         <div class="deck-spell-header">
                             <strong>${poly.name}</strong>
-                            <span class="deck-spell-charges">${poly.uses} ${poly.uses === 1 ? 'ficha' : 'fichas'}</span>
+                            <span class="deck-spell-charges">${poly.uses} ${tileWord}</span>
                         </div>
                         <p>${poly.desc}</p>
                     </div>

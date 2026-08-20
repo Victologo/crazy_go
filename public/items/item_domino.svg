@@ -1,0 +1,49 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" width="128" height="128">
+  <defs>
+    <radialGradient id="dominoGlow" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#f59e0b" stop-opacity="0.8"/>
+      <stop offset="60%" stop-color="#d97706" stop-opacity="0.3"/>
+      <stop offset="100%" stop-color="#78350f" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="tileBody" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#334155"/>
+      <stop offset="50%" stop-color="#1e293b"/>
+      <stop offset="100%" stop-color="#0f172a"/>
+    </linearGradient>
+    <radialGradient id="stoneWhite" cx="35%" cy="35%" r="65%">
+      <stop offset="0%" stop-color="#ffffff"/>
+      <stop offset="70%" stop-color="#e2e8f0"/>
+      <stop offset="100%" stop-color="#94a3b8"/>
+    </radialGradient>
+    <radialGradient id="stoneBlack" cx="35%" cy="35%" r="65%">
+      <stop offset="0%" stop-color="#475569"/>
+      <stop offset="60%" stop-color="#1e293b"/>
+      <stop offset="100%" stop-color="#020617"/>
+    </radialGradient>
+    <filter id="dominoShadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="6" stdDeviation="6" flood-color="#0f172a" flood-opacity="0.9"/>
+    </filter>
+  </defs>
+  <!-- Background Glow -->
+  <circle cx="64" cy="64" r="54" fill="url(#dominoGlow)" />
+  
+  <!-- Domino 2x1 Polyomino Tile Body -->
+  <g filter="url(#dominoShadow)" transform="rotate(-15 64 64)">
+    <!-- Tile Wooden Base -->
+    <rect x="22" y="42" width="84" height="44" rx="8" fill="url(#tileBody)" stroke="#f59e0b" stroke-width="2"/>
+    <!-- Divider Line -->
+    <line x1="64" y1="44" x2="64" y2="84" stroke="#f59e0b" stroke-width="2" stroke-dasharray="3 3"/>
+    
+    <!-- Stone Left (Black) -->
+    <circle cx="43" cy="64" r="14" fill="url(#stoneBlack)" stroke="#64748b" stroke-width="1.5"/>
+    <circle cx="40" cy="61" r="3" fill="#ffffff" opacity="0.3"/>
+    
+    <!-- Stone Right (Black or Linked) -->
+    <circle cx="85" cy="64" r="14" fill="url(#stoneBlack)" stroke="#64748b" stroke-width="1.5"/>
+    <circle cx="82" cy="61" r="3" fill="#ffffff" opacity="0.3"/>
+    
+    <!-- Golden Resonance Link -->
+    <line x1="43" y1="64" x2="85" y2="64" stroke="#fbbf24" stroke-width="2.5" stroke-linecap="round"/>
+    <circle cx="64" cy="64" r="3.5" fill="#fef08a"/>
+  </g>
+</svg>

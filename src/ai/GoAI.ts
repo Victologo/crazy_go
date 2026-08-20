@@ -61,18 +61,8 @@ export class GoAI {
         const enemyChainsInAtari = this.getAllEnemyChainsWithLiberties(board, aiPlayerId, 1);
         const myChainsWeak = this.getChainsWithLiberties(board, aiPlayerId, 2);
         const enemyChainsWeak = this.getAllEnemyChainsWithLiberties(board, aiPlayerId, 2);
-
-        // RESPUESTA INMEDIATA TRAS PASE DEL OPONENTE:
-        const opponentJustPassed = (state.lastMoveNodeId === null || state.consecutivePasses >= 1) && state.currentTurn > 2;
-        if (opponentJustPassed && myChainsInAtari.length === 0 && enemyChainsInAtari.length === 0) {
-            if (currentNetLead >= 0) {
-                return {
-                    nodeId: null,
-                    reason: `Victoria asegurada por ventaja de +${currentNetLead.toFixed(1)} pts (Pasar y finalizar)`,
-                    score: 9999
-                };
-            }
-        }
+        // Detección de si el oponente pasó turno de forma consecutiva
+        const opponentJustPassed = state.consecutivePasses >= 1;
 
         // Dimensiones del tablero
         const { maxCol, maxRow, sizeCategory } = this.getBoardDimensions(board);
@@ -135,23 +125,33 @@ export class GoAI {
                 if (nNode?.stone && nNode.stone.playerId !== aiPlayerId) enemyNeighborsNear++;
             }
             const mySimLibs = simBoard.getLiberties(nodeId);
-            if ((isEnemyTerritory || enemyNeighborsNear >= 3) && result.capturedCount === 0 && mySimLibs.size <= 2) {
-                continue; // Piedra muerta que solo regalaría prisioneros al oponente
+            if ((isEnemyTerritory || enemyNeighborsNear >= 2) && result.capturedCount === 0 && mySimLibs.size <= 2) {
+                // Comprobar si al jugar aquí nos conectamos a una cadena aliada fuerte que nos pueda salvar
+                let connectsToFriendlyWithLibs = false;
+                for (const nId of node.neighbors) {
+                    const nNode = board.nodes.get(nId);
+                    if (nNode?.stone?.playerId === aiPlayerId) {
+                        if (board.getLiberties(nId).size >= 3) connectsToFriendlyWithLibs = true;
+                    }
+                }
+                if (!connectsToFriendlyWithLibs) {
+                    continue; // Piedra muerta que solo regalaría prisioneros al oponente
+                }
             }
 
             let score = 0;
             let reason = 'Desarrollo de influencia';
 
-            const boardLine = this.getNodeBoardLine(nodeId, maxCol, maxRow);
+            const boardLine = this.getNodeBoardLine(board, nodeId, maxCol, maxRow);
 
             // ==================== I. APERTURA CANÓNICA FUSEKI & JOSEKI CON PERSONALIDAD ====================
             if (state.currentTurn <= (sizeCategory === 19 ? 24 : (sizeCategory === 13 ? 16 : 8))) {
                 const fusekiBonus = this.evaluateOpeningBook(nodeId, maxCol, maxRow, sizeCategory, board, aiPlayerId);
-                if (fusekiBonus > 0) {
+                if (fusekiBonus !== 0) {
                     const fusekiWeight = difficulty === 'dan' ? 1.6 : (difficulty === 'hard' ? 1.3 : (difficulty === 'medium' ? 1.15 : 0.55));
                     score += fusekiBonus * fusekiWeight;
-                    if (reason === 'Desarrollo de influencia') {
-                        reason = this.getFusekiReasonLabel(nodeId, maxCol, maxRow, sizeCategory);
+                    if (fusekiBonus > 0 && reason === 'Desarrollo de influencia') {
+                        reason = this.getFusekiReasonLabel(board, nodeId, maxCol, maxRow, sizeCategory);
                     }
                 }
             }
@@ -192,7 +192,7 @@ export class GoAI {
                     const isSingleStone = atariChain.size === 1;
                     if (isSingleStone && (difficulty === 'hard' || difficulty === 'dan')) {
                         const firstId = Array.from(atariChain)[0];
-                        const line = this.getNodeBoardLine(firstId, maxCol, maxRow);
+                        const line = this.getNodeBoardLine(board, firstId, maxCol, maxRow);
                         if (line === 1 && simulatedLiberties.size <= 2) {
                             saveBonus = 600; // Sacrificio estratégico permisible (Suteishi)
                         }
@@ -274,9 +274,9 @@ export class GoAI {
                 if (reason === 'Desarrollo de influencia') {
                     reason = `Ganar +${scoreDelta.toFixed(1)} pts netos de territorio`;
                 }
-            } else if (scoreDelta < 0 && result.capturedCount === 0) {
-                // Penalizar fuertemente cualquier jugada que reduzca el territorio neto o rellene ojos propios
-                score -= (difficulty === 'dan' ? 1600 : (difficulty === 'hard' ? 1000 : (difficulty === 'medium' ? 700 : 450)));
+            } else if (scoreDelta < 0 && result.capturedCount === 0 && currentScore.territoryMap.size > board.nodes.size * 0.45) {
+                // Penalizar solo si ya estamos en fase territorial avanzada
+                score -= (difficulty === 'dan' ? 800 : (difficulty === 'hard' ? 500 : (difficulty === 'medium' ? 300 : 150)));
             }
 
             // ==================== VII. CAMPO DE INFLUENCIA & MOYO (KATAGO) ====================
@@ -342,18 +342,36 @@ export class GoAI {
                 }
 
                 // 6. Líneas del Tablero & Personalidades de IA
-                if (boardLine === 3) {
+                // 6. Líneas del Tablero & Personalidades de IA
+                if (boardLine === 3 && node.neighbors.size >= 3) {
                     score += difficulty === 'dan' ? 350 : (difficulty === 'hard' ? 260 : (difficulty === 'medium' ? 190 : 85));
                     if (aiPlayerId === 2) score += 120; // P2 Blanco: Territorial 3ª línea
-                } else if (boardLine === 4) {
+                } else if (boardLine === 4 && node.neighbors.size >= 3) {
                     score += difficulty === 'dan' ? 300 : (difficulty === 'hard' ? 230 : (difficulty === 'medium' ? 165 : 70));
                     if (aiPlayerId === 3) score += 200; // P3 Verde: Gran Centro y Moyo en 4ª línea
                 } else if (boardLine === 1 && result.capturedCount === 0 && myChainsInAtari.length === 0) {
                     score -= (difficulty === 'easy' ? 80 : 850);
                 }
 
+                // 7. Evaluación Topológica para Grafos Asimétricos (Reloj de Arena, Geoda, Islas, etc.)
+                if (node.neighbors.size <= 2 && result.capturedCount === 0 && myChainsInAtari.length === 0) {
+                    let friendlyAdj = 0;
+                    for (const nId of node.neighbors) {
+                        if (board.nodes.get(nId)?.stone?.playerId === aiPlayerId) friendlyAdj++;
+                    }
+                    if (friendlyAdj === 0) {
+                        // Esquina o punta muerta aislada: penalizar fuertemente para evitar regalar piedras
+                        score -= (difficulty === 'easy' ? 250 : 950);
+                    }
+                }
+
+                // 8. Bonificación de Puentes e Istmos Estratégicos (Nodos conectores y cuellos de botella)
+                if (node.neighbors.size >= 4) {
+                    score += (difficulty === 'dan' ? 220 : (difficulty === 'hard' ? 160 : 100));
+                }
+
                 // Puntos Estrella (Hoshi)
-                if (node.isStarPoint) {
+                if (node.isStarPoint && node.neighbors.size >= 3) {
                     score += difficulty === 'dan' ? 360 : (difficulty === 'hard' ? 280 : (difficulty === 'medium' ? 210 : 95));
                 }
             }
@@ -460,58 +478,55 @@ export class GoAI {
             finalMove = bestCandidate;
         }
 
-        // ==================== EVALUACIÓN Y DECISIÓN DE PASAR TURNO ====================
-        // 1. Si el oponente acaba de pasar turno:
-        if (opponentJustPassed) {
-            // Si no hay capturas inmediatas en Atari que realizar:
-            if (enemyChainsInAtari.length === 0 && myChainsInAtari.length === 0) {
-                // Si la jugada no aporta ganancia neta o su puntuación es residual/baja:
-                if (finalMove.scoreDelta <= 0 || finalMove.score <= 100) {
-                    return {
-                        nodeId: null,
-                        reason: 'Aceptar fin de partida tras pase del rival (Territorios fijados)',
-                        score: 0
-                    };
-                }
+        // ==================== EVALUACIÓN MATEMÁTICA ADAPTATIVA DE FIN DE PARTIDA ====================
+        // 1. Contar nodos jugables válidos en el grafo (excluyendo obstáculos y terreno destruido)
+        let validNodesCount = 0;
+        let stonesCount = 0;
+        for (const [, node] of board.nodes.entries()) {
+            if (node.terrain !== 'DESTROYED' && node.terrain !== 'OBSTACLE') {
+                validNodesCount++;
+                if (node.stone !== null) stonesCount++;
+            }
+        }
+        const effectiveValidNodes = Math.max(1, validNodesCount);
+
+        // 2. Índice de Resolución Topológica: Proporción de tablero resuelto (Piedras + Territorio sellado)
+        const resolvedNodesCount = stonesCount + currentScore.territoryMap.size;
+        const graphResolutionRate = resolvedNodesCount / effectiveValidNodes;
+
+        // 3. Turno mínimo dinámico proporcional al tamaño y topología del grafo
+        const minTurnsProportional = Math.max(8, Math.floor(effectiveValidNodes * 0.22));
+
+        // 4. Criterio de Madurez del Tablero (adaptativo para 9x9, 13x13, 19x19, Islas, Reloj de Arena, etc.)
+        const isBoardMatured = (graphResolutionRate >= 0.65 && state.currentTurn >= minTurnsProportional) 
+                            || (graphResolutionRate >= 0.82);
+
+        const hasUrgentCombat = myChainsInAtari.length > 0 || enemyChainsInAtari.length > 0;
+
+        // Caso A: Si el rival pasó turno (consecutivePasses >= 1) y el tablero está matemáticamente maduro
+        if (opponentJustPassed && isBoardMatured && !hasUrgentCombat) {
+            // Si la IA ya va ganando o ninguna jugada legal aporta ganancia neta territorial (Temperatura T <= 0):
+            if (currentNetLead >= 0 || finalMove.scoreDelta <= 0) {
+                return {
+                    nodeId: null,
+                    reason: `Aceptar fin de partida (Resolución topológica: ${(graphResolutionRate * 100).toFixed(0)}%, T<=0)`,
+                    score: 0
+                };
             }
         }
 
-        // 2. Iniciativa proactiva de fin de partida (Endgame consolidado / Sin jugadas de valor):
-        if (state.currentTurn > 4) {
-            const hasUrgentCombat = myChainsInAtari.length > 0 || enemyChainsInAtari.length > 0;
-            if (!hasUrgentCombat) {
-                // A. Puntuación nula o negativa
-                if (finalMove.score <= 0) {
-                    return {
-                        nodeId: null,
-                        reason: 'No quedan jugadas viables que aporten territorio o vida (Pasar turno)',
-                        score: 0
-                    };
-                }
-
-                // B. Sin ganancia neta de puntos y puntuación modesta (evita jugar piedras superfluas en territorio propio)
-                if (finalMove.scoreDelta <= 0 && finalMove.score <= 75) {
-                    return {
-                        nodeId: null,
-                        reason: 'Territorio consolidado. No quedan jugadas que aumenten la puntuación (Pasar)',
-                        score: 0
-                    };
-                }
-
-                // C. Si las fronteras de territorio están selladas y no hay capturas ni cortes
-                const isBoardMostlySettled = currentScore.territoryMap.size >= board.nodes.size * 0.35 || state.currentTurn >= 12;
-                if (isBoardMostlySettled && finalMove.scoreDelta <= 0 && !finalMove.reason.includes('Capturar') && !finalMove.reason.includes('Atari')) {
-                    if (finalMove.score <= 110) {
-                        return {
-                            nodeId: null,
-                            reason: 'Fronteras de territorio selladas. Pasar para finalizar la partida.',
-                            score: 0
-                        };
-                    }
-                }
+        // Caso B: Iniciativa proactiva de fin de partida (Endgame maduro sin jugadas de valor positivo)
+        if (isBoardMatured && !hasUrgentCombat) {
+            if (finalMove.scoreDelta <= 0 && finalMove.score <= 50 && !finalMove.reason.includes('Capturar') && !finalMove.reason.includes('Atari')) {
+                return {
+                    nodeId: null,
+                    reason: 'Fronteras de territorio selladas y temperatura T<=0. Pasar para finalizar la partida.',
+                    score: 0
+                };
             }
         }
 
+        // 3. En apertura o medio juego (tablero abierto), la IA NUNCA pasa turno: ejecuta su mejor jugada en el Goban.
         return finalMove;
     }
 
@@ -636,7 +651,61 @@ export class GoAI {
     }
 
     /**
+     * Determina si el tablero es un cuadrado estándar continuo (9x9, 13x13 o 19x19) sin huecos ni asimetría
+     */
+    private static isStandardSquareBoard(board: GraphBoard, maxCol: number, maxRow: number): boolean {
+        const expectedCount = (maxCol + 1) * (maxRow + 1);
+        if (board.nodes.size !== expectedCount) return false;
+        for (let c = 0; c <= maxCol; c++) {
+            for (let r = 0; r <= maxRow; r++) {
+                const node = board.nodes.get(`${c},${r}`);
+                if (!node || node.terrain === 'DESTROYED' || node.terrain === 'OBSTACLE') {
+                    return false;
+                }
+            }
+        }
+        return true;
+    }
+
+    /**
+     * Calcula la profundidad topológica real (distancia efectiva a bordes, huecos y esquinas del grafo)
+     * 1 = Borde exterior / punta / rincón muerto con baja libertad
+     * 2 = Segunda línea / escalón estrecho
+     * 3 = Línea de base territorial (3ª línea)
+     * 4 = Centro / interior profundo de máxima conectividad
+     */
+    private static getTopologicalDepth(board: GraphBoard, nodeId: string): number {
+        const node = board.nodes.get(nodeId);
+        if (!node) return 1;
+        if (node.neighbors.size <= 2) return 1;
+
+        let hasOuterNeighbor = false;
+        let minNeighborDegree = 4;
+        for (const nId of node.neighbors) {
+            const nNode = board.nodes.get(nId);
+            if (!nNode || nNode.terrain === 'DESTROYED' || nNode.terrain === 'OBSTACLE') {
+                return 1;
+            }
+            if (nNode.neighbors.size <= 2) {
+                hasOuterNeighbor = true;
+            }
+            if (nNode.neighbors.size < minNeighborDegree) {
+                minNeighborDegree = nNode.neighbors.size;
+            }
+        }
+
+        if (node.neighbors.size === 3) {
+            return hasOuterNeighbor ? 1 : 2;
+        }
+
+        if (minNeighborDegree <= 2) return 2;
+        if (minNeighborDegree === 3) return 3;
+        return 4;
+    }
+
+    /**
      * Evalúa jugadas de apertura canónica (Fuseki & Joseki) para tableros cuadrados estándar
+     * o Heurística Topológica Avanzada para tableros asimétricos (Reloj de Arena, Islas, etc.)
      */
     private static evaluateOpeningBook(
         nodeId: string, 
@@ -646,11 +715,64 @@ export class GoAI {
         board: GraphBoard, 
         playerId: PlayerId
     ): number {
+        const node = board.nodes.get(nodeId);
+        if (!node) return 0;
+
+        const isStandard = this.isStandardSquareBoard(board, maxCol, maxRow);
+        const topoDepth = this.getTopologicalDepth(board, nodeId);
+
+        // ==================== APERTURA EN TABLEROS ASIMÉTRICOS (RELOJ DE ARENA, ISLAS, ETC.) ====================
+        if (!isStandard) {
+            // Penalización severa para esquinas muertas, puntas y bordes de escalón
+            if (topoDepth <= 1 || node.neighbors.size <= 2) {
+                return -850; // NUNCA jugar en puntas muertas ni esquinas de baja libertad en apertura
+            }
+            if (topoDepth === 2 && node.neighbors.size <= 3) {
+                return -450; // Evitar bordes estrechos y escalones en apertura
+            }
+
+            let asymmetricBonus = 0;
+
+            // 1. Núcleo Central de Alta Conectividad (Grado 4 con espacio abierto a distancia 2)
+            if (node.neighbors.size >= 4) {
+                let openRadius2 = 0;
+                for (const nId of node.neighbors) {
+                    const nNode = board.nodes.get(nId);
+                    if (nNode && nNode.terrain !== 'DESTROYED' && nNode.terrain !== 'OBSTACLE') {
+                        for (const nnId of nNode.neighbors) {
+                            const nnNode = board.nodes.get(nnId);
+                            if (nnNode && !nnNode.stone && nnNode.terrain !== 'DESTROYED' && nnNode.terrain !== 'OBSTACLE') {
+                                openRadius2++;
+                            }
+                        }
+                    }
+                }
+                asymmetricBonus += Math.min(650, openRadius2 * 45);
+            }
+
+            // 2. Control de Puentes, Cuellos de Botella e Istmos (ej. cuello del Reloj de Arena)
+            if (node.isStarPoint) {
+                asymmetricBonus += 450;
+            }
+
+            // 3. Profundidad Topológica 3 y 4 (Corazones de cada cámara)
+            if (topoDepth >= 3 && node.neighbors.size >= 4) {
+                asymmetricBonus += 350;
+            }
+
+            return asymmetricBonus;
+        }
+
+        // ==================== APERTURA EN TABLEROS CUADRADOS ESTÁNDAR ====================
         const parts = nodeId.split(',');
         if (parts.length !== 2) return 0;
         const c = parseInt(parts[0], 10);
         const r = parseInt(parts[1], 10);
         if (isNaN(c) || isNaN(r)) return 0;
+
+        if (node.neighbors.size <= 2) {
+            return 0;
+        }
 
         // 9x9 FUSEKI: Tengen (4,4) y esquinas (2,2 / 6,6)
         if (sizeCategory === 9) {
@@ -659,10 +781,10 @@ export class GoAI {
             if (c === centerC && r === centerR) {
                 return 700; // Tengen es el punto supremo en 9x9
             }
-            if ((c === 2 || c === maxCol - 2) && (r === 2 || r === maxRow - 2)) {
+            if ((c === 2 || c === maxCol - 2) && (r === 2 || r === maxRow - 2) && node.neighbors.size >= 4) {
                 return 550;
             }
-            if ((c === 2 || c === maxCol - 2) && (r === 3 || r === maxRow - 3)) {
+            if ((c === 2 || c === maxCol - 2) && (r === 3 || r === maxRow - 3) && node.neighbors.size >= 3) {
                 return 440;
             }
             return 0;
@@ -735,7 +857,12 @@ export class GoAI {
         return 0;
     }
 
-    private static getFusekiReasonLabel(nodeId: string, maxCol: number, maxRow: number, sizeCategory: 9 | 13 | 19): string {
+    private static getFusekiReasonLabel(board: GraphBoard, nodeId: string, maxCol: number, maxRow: number, sizeCategory: 9 | 13 | 19): string {
+        const isStandard = this.isStandardSquareBoard(board, maxCol, maxRow);
+        if (!isStandard) {
+            return 'Apertura: Control del centro y corredores abiertos';
+        }
+
         const parts = nodeId.split(',');
         const c = parseInt(parts[0], 10);
         const r = parseInt(parts[1], 10);
@@ -753,32 +880,43 @@ export class GoAI {
 
     /**
      * Calcula el mapa de calor de radiación de influencia territorial (KataGo Moyo Field)
+     * basado en propagación topológica pura a través del grafo.
+     * Funciona con 100% de precisión en Hexagonal, Triangular, Estrellas, Espirales, Islas y Relojes.
      */
     private static calculateInfluenceField(board: GraphBoard, aiPlayerId: PlayerId): Map<string, number> {
         const influenceMap = new Map<string, number>();
+        for (const nodeId of board.nodes.keys()) {
+            influenceMap.set(nodeId, 0);
+        }
 
-        for (const [targetId, _targetNode] of board.nodes.entries()) {
-            let totalInf = 0;
+        for (const [sourceId, sourceNode] of board.nodes.entries()) {
+            if (!sourceNode.stone) continue;
 
-            for (const [sourceId, sourceNode] of board.nodes.entries()) {
-                if (!sourceNode.stone) continue;
+            const libs = board.getLiberties(sourceId).size;
+            const libWeight = libs >= 3 ? 1.5 : (libs === 2 ? 0.9 : 0.3);
+            const sign = sourceNode.stone.playerId === aiPlayerId ? 1 : -1;
 
-                const [tx, ty] = targetId.split(',').map(v => parseInt(v, 10));
-                const [sx, sy] = sourceId.split(',').map(v => parseInt(v, 10));
-                if (isNaN(tx) || isNaN(ty) || isNaN(sx) || isNaN(sy)) continue;
+            const queue: { id: string; dist: number }[] = [{ id: sourceId, dist: 0 }];
+            const visited = new Set<string>([sourceId]);
 
-                const dist = Math.sqrt((tx - sx) ** 2 + (ty - sy) ** 2);
-                if (dist > 5.5) continue;
+            while (queue.length > 0) {
+                const { id, dist } = queue.shift()!;
+                const decay = 1 / (1 + 0.45 * Math.pow(dist, 1.8));
+                influenceMap.set(id, (influenceMap.get(id) || 0) + sign * libWeight * decay);
 
-                const libs = board.getLiberties(sourceId).size;
-                const libWeight = libs >= 3 ? 1.5 : (libs === 2 ? 0.9 : 0.3);
-                const sign = sourceNode.stone.playerId === aiPlayerId ? 1 : -1;
-                const decay = 1 / (1 + 0.45 * (dist ** 1.8));
-
-                totalInf += sign * libWeight * decay;
+                if (dist < 5) {
+                    const currNode = board.nodes.get(id);
+                    if (currNode) {
+                        for (const nId of currNode.neighbors) {
+                            const nNode = board.nodes.get(nId);
+                            if (nNode && nNode.terrain !== 'DESTROYED' && nNode.terrain !== 'OBSTACLE' && !visited.has(nId)) {
+                                visited.add(nId);
+                                queue.push({ id: nId, dist: dist + 1 });
+                            }
+                        }
+                    }
+                }
             }
-
-            influenceMap.set(targetId, totalInf);
         }
 
         return influenceMap;
@@ -812,24 +950,28 @@ export class GoAI {
     }
 
     /**
-     * Calcula la línea respecto al borde más cercano (1ª línea = borde, 2ª línea = derrota, 3ª línea = base territorial, 4ª línea = influencia)
+     * Calcula la línea respecto al borde más cercano adaptado a cualquier topología
      */
-    private static getNodeBoardLine(nodeId: string, maxCol: number, maxRow: number): number {
-        const parts = nodeId.split(',');
-        if (parts.length === 2) {
-            const c = parseInt(parts[0], 10);
-            const r = parseInt(parts[1], 10);
-            if (!isNaN(c) && !isNaN(r) && maxCol > 0 && maxRow > 0) {
-                const distCol = Math.min(c, maxCol - c) + 1;
-                const distRow = Math.min(r, maxRow - r) + 1;
-                return Math.min(distCol, distRow);
+    private static getNodeBoardLine(board: GraphBoard, nodeId: string, maxCol: number, maxRow: number): number {
+        const isStandard = this.isStandardSquareBoard(board, maxCol, maxRow);
+        if (isStandard) {
+            const parts = nodeId.split(',');
+            if (parts.length === 2) {
+                const c = parseInt(parts[0], 10);
+                const r = parseInt(parts[1], 10);
+                if (!isNaN(c) && !isNaN(r) && maxCol > 0 && maxRow > 0) {
+                    const distCol = Math.min(c, maxCol - c) + 1;
+                    const distRow = Math.min(r, maxRow - r) + 1;
+                    return Math.min(distCol, distRow);
+                }
             }
         }
-        return 3;
+        return this.getTopologicalDepth(board, nodeId);
     }
 
     /**
-     * Detecta relaciones de forma a distancia 2: Kosumi (diagonal), Ikken-Tobi (salto 1) y Keima (caballo)
+     * Detecta relaciones de forma canónica topológicas universales (Kosumi, Ikken-Tobi, Keima)
+     * válidas en cualquier grafo (cuadrado, triangular, hexagonal, estrellas, islas, etc.)
      */
     private static countDistance2Neighbors(
         board: GraphBoard, 
@@ -837,48 +979,71 @@ export class GoAI {
         playerId: PlayerId, 
         type: 'diagonal' | 'jump1' | 'keima'
     ): number {
-        const [cStr, rStr] = nodeId.split(',');
-        const c = parseInt(cStr, 10);
-        const r = parseInt(rStr, 10);
-        if (isNaN(c) || isNaN(r)) return 0;
+        const node = board.nodes.get(nodeId);
+        if (!node) return 0;
 
         let count = 0;
 
         if (type === 'diagonal') {
-            const offsets = [[1, 1], [1, -1], [-1, 1], [-1, -1]];
-            for (const [dc, dr] of offsets) {
-                const targetId = `${c + dc},${r + dr}`;
-                const targetNode = board.nodes.get(targetId);
-                if (targetNode?.stone?.playerId === playerId) {
-                    const cross1 = board.nodes.get(`${c + dc},${r}`);
-                    const cross2 = board.nodes.get(`${c},${r + dr}`);
-                    const isCut = cross1?.stone && cross1.stone.playerId !== playerId && cross2?.stone && cross2.stone.playerId !== playerId;
-                    if (!isCut) count++;
+            // Kosumi: Nodos aliados a distancia 2 en el grafo que comparten >= 2 vecinos mutuos
+            const friendlyAtDist2 = new Set<string>();
+            const mutualNeighborsCount = new Map<string, number>();
+
+            for (const n1 of node.neighbors) {
+                const node1 = board.nodes.get(n1);
+                if (!node1 || node1.terrain === 'DESTROYED' || node1.terrain === 'OBSTACLE') continue;
+
+                for (const n2 of node1.neighbors) {
+                    if (n2 === nodeId) continue;
+                    const node2 = board.nodes.get(n2);
+                    if (node2?.stone?.playerId === playerId) {
+                        friendlyAtDist2.add(n2);
+                        mutualNeighborsCount.set(n2, (mutualNeighborsCount.get(n2) || 0) + 1);
+                    }
+                }
+            }
+
+            for (const fId of friendlyAtDist2) {
+                if ((mutualNeighborsCount.get(fId) || 0) >= 2) {
+                    count++;
                 }
             }
         } else if (type === 'jump1') {
-            const offsets = [[2, 0], [-2, 0], [0, 2], [0, -2]];
-            for (const [dc, dr] of offsets) {
-                const targetId = `${c + dc},${r + dr}`;
-                const targetNode = board.nodes.get(targetId);
-                if (targetNode?.stone?.playerId === playerId) {
-                    const midId = `${c + dc / 2},${r + dr / 2}`;
-                    const midNode = board.nodes.get(midId);
-                    if (!midNode?.stone || midNode.stone.playerId === playerId) {
+            // Ikken-Tobi: Nodos aliados a distancia 2 conectados por exactamente 1 nodo intermedio libre
+            const seenFriendly = new Set<string>();
+            for (const n1 of node.neighbors) {
+                const node1 = board.nodes.get(n1);
+                if (!node1 || node1.stone !== null || node1.terrain === 'DESTROYED' || node1.terrain === 'OBSTACLE') continue;
+
+                for (const n2 of node1.neighbors) {
+                    if (n2 === nodeId || seenFriendly.has(n2)) continue;
+                    const node2 = board.nodes.get(n2);
+                    if (node2?.stone?.playerId === playerId) {
+                        seenFriendly.add(n2);
                         count++;
                     }
                 }
             }
         } else if (type === 'keima') {
-            const offsets = [
-                [2, 1], [2, -1], [-2, 1], [-2, -1],
-                [1, 2], [1, -2], [-1, 2], [-1, -2]
-            ];
-            for (const [dc, dr] of offsets) {
-                const targetId = `${c + dc},${r + dr}`;
-                const targetNode = board.nodes.get(targetId);
-                if (targetNode?.stone?.playerId === playerId) {
-                    count++;
+            // Keima: Nodos aliados a distancia 3 en el grafo a través de caminos libres
+            const seenKeima = new Set<string>();
+            for (const n1 of node.neighbors) {
+                const node1 = board.nodes.get(n1);
+                if (!node1 || node1.stone !== null) continue;
+
+                for (const n2 of node1.neighbors) {
+                    if (n2 === nodeId) continue;
+                    const node2 = board.nodes.get(n2);
+                    if (!node2 || node2.stone !== null) continue;
+
+                    for (const n3 of node2.neighbors) {
+                        if (n3 === nodeId || n3 === n1 || seenKeima.has(n3)) continue;
+                        const node3 = board.nodes.get(n3);
+                        if (node3?.stone?.playerId === playerId) {
+                            seenKeima.add(n3);
+                            count++;
+                        }
+                    }
                 }
             }
         }
@@ -910,15 +1075,9 @@ export class GoAI {
             return true;
         }
 
-        // En ausencia de enemigos, solo cuenta en líneas abiertas (línea 3 o mayor), nunca en la 1ª o 2ª línea de esquina vacía
-        const parts = nodeId.split(',');
-        if (parts.length === 2) {
-            const c = parseInt(parts[0], 10);
-            const r = parseInt(parts[1], 10);
-            if ((c <= 1 || r <= 1) && enemyNeighbors === 0) return false;
-        }
-
-        return friendlyNeighbors === 2 && node.neighbors.size >= 4 && enemyNeighbors > 0;
+        // En ausencia de enemigos, solo cuenta en áreas con profundidad topológica >= 2 (evitando esquinas muertas)
+        const topoDepth = this.getTopologicalDepth(board, nodeId);
+        return friendlyNeighbors >= 2 && topoDepth >= 2;
     }
 
     /**

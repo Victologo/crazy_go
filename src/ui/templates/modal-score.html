@@ -1,0 +1,130 @@
+    <!-- ================= MODAL: FINAL SCORING & VICTORY ================= -->
+    <div id="score-modal" class="modal-backdrop hidden">
+      <div class="modal-card modal-score modal-victory-unified" id="modal-score-card">
+        <img id="modal-victory-hero-art" src="./heroes/tengu.png" alt="Champion" class="modal-victory-hero-bg hidden" />
+
+        <div class="modal-score-content">
+          <div class="victory-gold-title-row" id="modal-victory-title-row">
+            <span class="victory-star left-star hidden" id="modal-star-left">⭐</span>
+            <h2 id="modal-winner-title">Victory for Black! ⚫</h2>
+          </div>
+          <p id="modal-margin-subtitle" class="modal-subtitle">Margin: +5.5 points</p>
+
+          <div id="modal-score-breakdown-grid" class="score-breakdown-grid">
+            <div class="breakdown-col black-col" id="modal-col-p1">
+              <h3>⚫ Black</h3>
+              <div class="score-row"><span>Territory:</span><strong id="modal-b-terr">0</strong></div>
+              <div class="score-row"><span>Prisoners:</span><strong id="modal-b-caps">0</strong></div>
+              <div class="score-row total-row"><span>Total:</span><strong id="modal-b-total">0</strong></div>
+            </div>
+
+            <div class="breakdown-col white-col" id="modal-col-p2">
+              <h3>⚪ White</h3>
+              <div class="score-row"><span>Territory:</span><strong id="modal-w-terr">0</strong></div>
+              <div class="score-row"><span>Prisoners:</span><strong id="modal-w-caps">0</strong></div>
+              <div class="score-row"><span>Komi:</span><strong id="modal-w-komi">+2.5</strong></div>
+              <div class="score-row total-row"><span>Total:</span><strong id="modal-w-total">2.5</strong></div>
+            </div>
+
+            <div class="breakdown-col green-col hidden" id="modal-col-p3">
+              <h3>🟢 Emerald</h3>
+              <div class="score-row"><span>Territory:</span><strong id="modal-g-terr">0</strong></div>
+              <div class="score-row"><span>Prisoners:</span><strong id="modal-g-caps">0</strong></div>
+              <div class="score-row"><span>Komi:</span><strong id="modal-g-komi">+4.5</strong></div>
+              <div class="score-row total-row"><span>Total:</span><strong id="modal-g-total">0</strong></div>
+            </div>
+
+            <div class="breakdown-col purple-col hidden" id="modal-col-p4">
+              <h3>🟣 Amethyst</h3>
+              <div class="score-row"><span>Territory:</span><strong id="modal-p-terr">0</strong></div>
+              <div class="score-row"><span>Prisoners:</span><strong id="modal-p-caps">0</strong></div>
+              <div class="score-row"><span>Komi:</span><strong id="modal-p-komi">+6.5</strong></div>
+              <div class="score-row total-row"><span>Total:</span><strong id="modal-p-total">0</strong></div>
+            </div>
+          </div>
+
+          <!-- ROGUELIKE REWARDS SECTION -->
+          <div id="modal-rogue-rewards-section" class="modal-rogue-rewards-section hidden">
+            <label class="setup-label" style="text-align: left; display: block; margin-bottom: 0.5rem;">
+              🎁 Choose 1 Reward for your Deck:
+            </label>
+            <div class="reward-cards-grid" id="modal-reward-cards-container">
+              <!-- Dynamically injected -->
+            </div>
+          </div>
+
+          <div class="modal-footer">
+            <button id="btn-modal-inspect" class="btn btn-modal-secondary">👁️ Inspect Board</button>
+            <button id="btn-modal-rematch" class="btn btn-modal-primary">New Match 🔄</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ================= MODAL: SHRINE / REST / SHOP EVENT ================= -->
+    <div id="rogue-event-modal" class="modal-backdrop hidden">
+      <div class="modal-card modal-event">
+        <div class="modal-header">
+          <h2 id="event-modal-title">⛩️ Sacred Shrine</h2>
+          <p id="event-modal-subtitle" class="modal-desc">A place of tranquility along your Go journey</p>
+        </div>
+
+        <div class="modal-body-scroll" id="event-body-content">
+          <!-- Injected dynamically -->
+        </div>
+
+        <div class="modal-footer">
+          <button id="btn-event-leave" class="btn btn-modal-secondary">Continue Path ➔</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ================= MODAL: EXPEDITION DECK & STATS ================= -->
+    <div id="rogue-deck-modal" class="modal-backdrop hidden">
+      <div class="modal-card modal-deck">
+        <div class="modal-header">
+          <h2>📜 Expedition Deck & Relics</h2>
+          <p class="modal-desc">Inspect spells, skills, and blessings active in your expedition.</p>
+        </div>
+
+        <div class="modal-body-scroll">
+          <div class="deck-hero-banner">
+            <img id="deck-hero-img" src="./heroes/tengu.png" alt="Champion" />
+            <div class="deck-hero-info">
+              <div class="deck-hero-header">
+                <span id="deck-hero-icon" class="deck-hero-icon">🦅</span>
+                <div>
+                  <strong id="deck-hero-name">Tengu</strong>
+                </div>
+              </div>
+              <div class="deck-skill-entry">
+                <span class="skill-tag active-tag">Active</span>
+                <strong id="deck-hero-active-name">Meteor Strike</strong>
+                <p id="deck-hero-active-desc"></p>
+              </div>
+              <div class="deck-skill-entry">
+                <span class="skill-tag passive-tag">Passive</span>
+                <strong id="deck-hero-passive-name">Stone Rain</strong>
+                <p id="deck-hero-passive-desc"></p>
+              </div>
+            </div>
+          </div>
+
+          <div class="deck-stats-row">
+            <div class="deck-stat-pill">
+              <span>💎 Permanent Komi:</span>
+              <strong id="deck-stat-komi">+0.0</strong>
+            </div>
+          </div>
+
+          <label class="setup-label">Magic Spell Scrolls in Deck:</label>
+          <div class="deck-spells-grid" id="deck-spells-container">
+            <!-- Dynamically injected -->
+          </div>
+        </div>
+
+        <div class="modal-footer">
+          <button id="btn-deck-close" class="btn btn-modal-primary">Return to Map 🗺️</button>
+        </div>
+      </div>
+    </div>

@@ -56,8 +56,10 @@ body {
 }
 
 #app {
-  width: 100vw;
-  height: 100vh;
+  width: calc(100vw / var(--ui-scale, 1));
+  height: calc(100vh / var(--ui-scale, 1));
+  transform: scale(var(--ui-scale, 1));
+  transform-origin: center center;
   position: relative;
   overflow: hidden;
 }

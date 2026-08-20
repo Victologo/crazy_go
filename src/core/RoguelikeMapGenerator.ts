@@ -50,7 +50,7 @@ export class RoguelikeMapGenerator {
         const nodesMap = new Map<string, MapNode>();
         const tiers: MapNode[][] = [];
 
-        const shapes: BoardShape[] = ['square', 'eroded', 'islands', 'triangle', 'hex', 'cross'];
+        const shapes: BoardShape[] = ['square', 'eroded', 'islands_v1', 'islands_v2', 'cross', 'hourglass', 'geode', 'spiral', 'rings', 'star_5', 'star_6', 'triangle', 'hex', 'procedural'];
         const sizes: BoardSize[] = [9, 13, 19];
 
         // Definición de la topología del grafo por niveles del Acto Único
@@ -142,7 +142,7 @@ export class RoguelikeMapGenerator {
                 return {
                     title: `Batalla de Go (Ronda ${tier + 1})`,
                     icon: '⚔️',
-                    description: 'Enfréntate a un rival de Go en un tablero asimétrico. Gana Magatamas y Hechizos.'
+                    description: 'Enfréntate a un rival de Go en un tablero asimétrico. Gana artefactos y pergaminos sagrados.'
                 };
             case 'shrine':
                 return {
@@ -154,13 +154,13 @@ export class RoguelikeMapGenerator {
                 return {
                     title: 'Zona de Meditación',
                     icon: '🏕️',
-                    description: 'Descansa para recuperar usos de hechizos o medita para ganar +1.5 Komi permanente.'
+                    description: 'Descansa para recuperar usos de hechizos o forja pergaminos y fichas poliminó.'
                 };
             case 'shop':
                 return {
                     title: 'Mercader de Go',
                     icon: '🛒',
-                    description: 'Intercambia tus Magatamas por hechizos (Meteoritos, Rebobinar, Escudos, Veneno).'
+                    description: 'Elige artefactos y pergaminos sagrados para potenciar tu expedición.'
                 };
             case 'boss':
                 return {
@@ -214,31 +214,31 @@ export class RoguelikeMapGenerator {
         if (type === 'boss') {
             goldReward += 100;
             size = difficulty === 'easy' ? 13 : 19;
-            shape = 'eroded';
+            shape = 'square';
         }
 
         const regularEnemies = [
             // 5 Sabios de la Niebla (Fondos transparentes integrados)
-            { name: 'Kenshin el Sabio', image: '/enemies/sage_1.png', icon: '📜' },
-            { name: 'Nobunaga el Sabio', image: '/enemies/sage_2.png', icon: '📜' },
-            { name: 'Masashi el Sabio', image: '/enemies/sage_3.png', icon: '📜' },
-            { name: 'Tetsuo el Sabio', image: '/enemies/sage_4.png', icon: '📜' },
-            { name: 'Genzaburo el Sabio', image: '/enemies/sage_5.png', icon: '📜' },
+            { name: 'Kenshin el Sabio', image: './enemies/sage_1.png', icon: '📜' },
+            { name: 'Nobunaga el Sabio', image: './enemies/sage_2.png', icon: '📜' },
+            { name: 'Masashi el Sabio', image: './enemies/sage_3.png', icon: '📜' },
+            { name: 'Tetsuo el Sabio', image: './enemies/sage_4.png', icon: '📜' },
+            { name: 'Genzaburo el Sabio', image: './enemies/sage_5.png', icon: '📜' },
             // 5 Monjes Jóvenes (Fondos transparentes integrados)
-            { name: 'Joven Ren', image: '/enemies/monk_1.png', icon: '🧘' },
-            { name: 'Joven Hiro', image: '/enemies/monk_2.png', icon: '🧘' },
-            { name: 'Joven Sora', image: '/enemies/monk_3.png', icon: '🧘' },
-            { name: 'Joven Daiki', image: '/enemies/monk_4.png', icon: '🧘' },
-            { name: 'Joven Kazuki', image: '/enemies/monk_5.png', icon: '🧘' }
+            { name: 'Joven Ren', image: './enemies/monk_1.png', icon: '🧘' },
+            { name: 'Joven Hiro', image: './enemies/monk_2.png', icon: '🧘' },
+            { name: 'Joven Sora', image: './enemies/monk_3.png', icon: '🧘' },
+            { name: 'Joven Daiki', image: './enemies/monk_4.png', icon: '🧘' },
+            { name: 'Joven Kazuki', image: './enemies/monk_5.png', icon: '🧘' }
         ];
 
         let enemyName = '';
-        let enemyImage = '/enemies/monk_1.png';
+        let enemyImage = './enemies/monk_1.png';
         let enemyIcon = '🧘';
 
         if (type === 'boss') {
             enemyName = '🐉 Gran Dragón Sabio Gris';
-            enemyImage = '/enemies/boss.png';
+            enemyImage = './enemies/boss.png';
             enemyIcon = '🐉';
         } else {
             // Elección totalmente equiprobable y aleatoria en cada casilla de batalla

@@ -1,7 +1,7 @@
-// controllers/OnlineController.ts - Orquestador de Multijugador Online P2P (WebRTC 2P y 4P, Salas y Sincronización)
 import type { 
     BoardShape, 
     BoardSize, 
+    BoardBackground,
     PlayerId, 
     HeroId,
     OnlineGameConfig 
@@ -12,6 +12,7 @@ import { ScreenManager } from '../ui/ScreenManager';
 import { ModalManager } from '../ui/ModalManager';
 import { HUDController } from '../ui/HUDController';
 import { GameController } from './GameController';
+import { getLanguage } from '../i18n/i18n';
 
 export class OnlineController {
     public static onlinePlayerCount: 2 | 4 = 2;
@@ -19,7 +20,9 @@ export class OnlineController {
     public static onlineGameType: 'standard' | 'coop_rogue' = 'standard';
     public static onlineShape: BoardShape = 'square';
     public static onlineSize: BoardSize = 9;
+    public static onlineSeed: number = Math.floor(Math.random() * 9999999);
     public static onlineKomi: number = 6.5;
+    public static onlineBackground: BoardBackground = 'combat';
     public static onlineHostHero: HeroId | null = null;
     public static onlineGuestHero: HeroId | null = null;
     public static currentShareUrl: string = '';
@@ -55,11 +58,16 @@ export class OnlineController {
         GameController.setOnlineCallbacks(
             (nodeId) => NetworkManager.sendMove(nodeId),
             () => NetworkManager.sendPass(),
-            (skillType, targetNodeId) => NetworkManager.sendSkill(skillType, targetNodeId)
+            (skillType, targetNodeId) => NetworkManager.sendSkill(skillType, targetNodeId),
+            () => NetworkManager.sendUndoRewind()
         );
 
         NetworkManager.onSkillReceived = (skillType, targetNodeId, senderColor) => {
             GameController.handleRemoteSkill(skillType, targetNodeId, senderColor);
+        };
+
+        NetworkManager.onUndoReceived = (senderColor) => {
+            GameController.handleRemoteUndo(senderColor);
         };
 
         // Callbacks de NetworkManager
@@ -73,6 +81,7 @@ export class OnlineController {
                 : (NetworkManager.currentConfig?.guestHeroes ? NetworkManager.currentConfig.guestHeroes[assignedColor] : null) || this.onlineGuestHero;
 
             GameController.localOnlineColor = assignedColor;
+
             GameController.initGame({
                 gameMode: 'online',
                 ruleStyle: isCoop ? 'roguelite' : 'classic',
@@ -83,27 +92,38 @@ export class OnlineController {
                 komi: this.onlineKomi,
                 shape: this.onlineShape,
                 size: this.onlineSize,
+                seed: this.onlineSeed,
+                background: NetworkManager.currentConfig?.background || this.onlineBackground || 'combat',
                 heroId: myHero
             });
 
+            const isEn = getLanguage() === 'en';
             if (isCoop) {
-                const roleLabel = assignedColor === 1 ? 'Anfitrión (Turno 1)' : 'Compañero (Turno 2)';
-                HUDController.showAlert(`🤝 ¡Expedición Roguelike Cooperativa iniciada! Compartís el bando ⚫ Negras. Rol: ${roleLabel}.`);
+                const roleLabel = assignedColor === 1 ? (isEn ? 'Host (Turn 1)' : 'Anfitrión (Turno 1)') : (isEn ? 'Partner (Turn 2)' : 'Compañero (Turno 2)');
+                HUDController.showAlert(isEn ? `🤝 Co-op Roguelike Expedition started! Sharing ⚫ Black stones. Role: ${roleLabel}.` : `🤝 ¡Expedición Roguelike Cooperativa iniciada! Compartís el bando ⚫ Negras. Rol: ${roleLabel}.`);
             } else {
-                const colorNames: Record<PlayerId, string> = {
+                const colorNames: Record<PlayerId, string> = isEn ? {
+                    1: 'Black ⚫ (P1)',
+                    2: 'White ⚪ (P2)',
+                    3: 'Emerald 🟢 (P3)',
+                    4: 'Amethyst 🟣 (P4)'
+                } : {
                     1: 'Negras ⚫ (P1)',
                     2: 'Blancas ⚪ (P2)',
                     3: 'Esmeralda 🟢 (P3)',
                     4: 'Amatista 🟣 (P4)'
                 };
-                HUDController.showAlert(`🎮 ¡Partida en red iniciada (${playerCount}P)! Juegas como ${colorNames[assignedColor]}.`);
+                HUDController.showAlert(isEn ? `🎮 Online match started (${playerCount}P)! Playing as ${colorNames[assignedColor]}.` : `🎮 ¡Partida en red iniciada (${playerCount}P)! Juegas como ${colorNames[assignedColor]}.`);
             }
             SoundFX.playPlaceStone();
         };
 
         NetworkManager.onLobbyUpdated = (connectedCount: number, slots: PlayerSlotInfo[]) => {
+            const isEn = getLanguage() === 'en';
             const totalTarget = NetworkManager.currentConfig?.playerCount || this.onlinePlayerCount;
-            const statusText = `Sala abierta (${connectedCount}/${totalTarget} conectados). Comparte el código.`;
+            const statusText = isEn 
+                ? `Room open (${connectedCount}/${totalTarget} connected). Share the code.` 
+                : `Sala abierta (${connectedCount}/${totalTarget} conectados). Comparte el código.`;
             ModalManager.updateOnlineLobbyStatus(statusText, slots, NetworkManager.assignedColor);
         };
 
@@ -126,7 +146,8 @@ export class OnlineController {
         };
 
         NetworkManager.onPeerDisconnected = () => {
-            HUDController.showAlert("⚠️ Un jugador se ha desconectado de la partida.");
+            const isEn = getLanguage() === 'en';
+            HUDController.showAlert(isEn ? "⚠️ A player has disconnected from the match." : "⚠️ Un jugador se ha desconectado de la partida.");
         };
 
         NetworkManager.onError = (msg: string) => {
@@ -143,7 +164,8 @@ export class OnlineController {
             this.onlineSize, 
             this.onlineKomi, 
             this.onlinePlayerCount,
-            this.onlineHostHero
+            this.onlineHostHero,
+            this.onlineBackground
         );
         ModalManager.updateOnlineGuestHeroUI(this.onlineGuestHero);
         this.startHostingRoom();
@@ -162,7 +184,9 @@ export class OnlineController {
         const config: OnlineGameConfig = {
             shape: this.onlineShape,
             size: this.onlineSize,
+            seed: this.onlineSeed,
             komi: this.onlineKomi,
+            background: this.onlineBackground,
             hostColor: this.onlinePlayerCount === 4 ? 1 : this.onlineHostColor,
             playerCount: this.onlineGameType === 'coop_rogue' ? 2 : this.onlinePlayerCount,
             hostHero: this.onlineHostHero,
@@ -177,7 +201,10 @@ export class OnlineController {
                 const currentBase = window.location.origin;
                 this.currentShareUrl = `${currentBase}/?join=${roomCode}`;
 
-                const initialText = `Esperando a que se unan los jugadores a la sala... (1/${this.onlinePlayerCount})`;
+                const isEn = getLanguage() === 'en';
+                const initialText = isEn
+                    ? `Waiting for players to join the room... (1/${this.onlinePlayerCount})`
+                    : `Esperando a que se unan los jugadores a la sala... (1/${this.onlinePlayerCount})`;
                 if (statusText) {
                     statusText.innerText = initialText;
                 }
@@ -191,9 +218,10 @@ export class OnlineController {
     }
 
     public static joinOnlineRoom(roomCode: string) {
+        const isEn = getLanguage() === 'en';
         const cleanCode = this.sanitizeRoomCode(roomCode);
         if (!cleanCode) {
-            HUDController.showAlert("Introduce un código de sala válido (ej: GO-4821).");
+            HUDController.showAlert(isEn ? "Enter a valid room code (e.g., GO-4821)." : "Introduce un código de sala válido (ej: GO-4821).");
             return;
         }
 
@@ -201,7 +229,7 @@ export class OnlineController {
         const statusText = document.getElementById('join-status-text') || document.getElementById('online-status-text');
         if (statusBox && statusText) {
             statusBox.classList.remove('hidden');
-            statusText.innerText = `Conectando a la sala ${cleanCode}...`;
+            statusText.innerText = isEn ? `Connecting to room ${cleanCode}...` : `Conectando a la sala ${cleanCode}...`;
         }
 
         NetworkManager.joinRoom(
@@ -219,30 +247,39 @@ export class OnlineController {
 
                 GameController.initGame({
                     gameMode: 'online',
-                    ruleStyle: 'classic',
+                    ruleStyle: config.isCoopRogue ? 'roguelite' : 'classic',
+                    isCoopRogue: config.isCoopRogue,
+                    coopSubTurn: 1,
                     playerCount: playerCount,
                     humanColor: assignedColor,
                     komi: config.komi,
                     shape: config.shape,
                     size: config.size,
+                    seed: config.seed,
+                    background: config.background || 'combat',
                     heroId: myHero
                 });
 
-                const colorNames: Record<PlayerId, string> = {
+                const colorNames: Record<PlayerId, string> = isEn ? {
+                    1: 'Black ⚫ (P1)',
+                    2: 'White ⚪ (P2)',
+                    3: 'Emerald 🟢 (P3)',
+                    4: 'Amethyst 🟣 (P4)'
+                } : {
                     1: 'Negras ⚫ (P1)',
                     2: 'Blancas ⚪ (P2)',
                     3: 'Esmeralda 🟢 (P3)',
                     4: 'Amatista 🟣 (P4)'
                 };
 
-                HUDController.showAlert(`🎮 ¡Conectado a la sala (${playerCount}P)! Juegas como ${colorNames[assignedColor]}.`);
+                HUDController.showAlert(isEn ? `🎮 Connected to room (${playerCount}P)! Playing as ${colorNames[assignedColor]}.` : `🎮 ¡Conectado a la sala (${playerCount}P)! Juegas como ${colorNames[assignedColor]}.`);
                 SoundFX.playPlaceStone();
             },
             (errMsg) => {
                 if (statusText) {
                     statusText.innerText = `❌ ${errMsg}`;
                 }
-                HUDController.showAlert(`Error al unirse: ${errMsg}`);
+                HUDController.showAlert(isEn ? `Failed to join: ${errMsg}` : `Error al unirse: ${errMsg}`);
                 SoundFX.playIllegal();
             }
         );
@@ -254,18 +291,19 @@ export class OnlineController {
 
     public static copyRoomLink() {
         if (this.currentShareUrl) {
+            const isEn = getLanguage() === 'en';
             const onSuccess = () => {
                 const btn = document.getElementById('btn-copy-room-link');
-                if (btn) btn.innerHTML = '<span>¡Copiado! ✅</span>';
+                if (btn) btn.innerHTML = isEn ? '<span>Copied! ✅</span>' : '<span>¡Copiado! ✅</span>';
                 setTimeout(() => {
-                    if (btn) btn.innerHTML = '<span>📋 Copiar Enlace</span>';
+                    if (btn) btn.innerHTML = isEn ? '<span>📋 Copy Link</span>' : '<span>📋 Copiar Enlace</span>';
                 }, 2000);
-                HUDController.showAlert("Enlace copiado al portapapeles. ¡Pásaselo a tus amigos!");
+                HUDController.showAlert(isEn ? "Link copied to clipboard. Share it with your friends!" : "Enlace copiado al portapapeles. ¡Pásaselo a tus amigos!");
             };
 
             if (navigator.clipboard && navigator.clipboard.writeText) {
                 navigator.clipboard.writeText(this.currentShareUrl).then(onSuccess).catch(() => {
-                    HUDController.showAlert(`Código de sala: ${NetworkManager.currentRoomCode}`);
+                    HUDController.showAlert(isEn ? `Room code: ${NetworkManager.currentRoomCode}` : `Código de sala: ${NetworkManager.currentRoomCode}`);
                 });
             } else {
                 onSuccess();

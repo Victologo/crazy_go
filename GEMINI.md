@@ -8,7 +8,9 @@
 > 1. Lee el archivo `docs/ai_wiki/active_context.md` para saber exactamente en qué estado quedó el proyecto.
 > 2. Revisa `docs/ai_wiki/go_rules.md` para tener siempre presentes las reglas puras del Go (Komi, libertades, capturas, Ko, suicidio y territorio).
 > 3. Revisa `docs/ai_wiki/task.md` para entender el Roadmap global.
-> 4. Si necesitas contexto sobre reglas especiales de Crazy Go o decisiones arquitectónicas pasadas, busca en `docs/ai_wiki/game_design/rules.md` y la carpeta `docs/ai_wiki/ADRs/`.
+> 4. **Lee `docs/ai_wiki/codebase_map.md`** — es el índice completo del proyecto: qué hace cada archivo, sus responsabilidades y los flujos de jugada principales. Úsalo para navegar el código sin buscar a ciegas.
+> 5. Si necesitas contexto sobre reglas especiales de Crazy Go o decisiones arquitectónicas pasadas, busca en `docs/ai_wiki/game_design/rules.md` y la carpeta `docs/ai_wiki/ADRs/`.
 > 
 > **Tu tarea final en cada sesión grande:**
 > Antes de terminar tu trabajo, asegúrate de actualizar `active_context.md` y marcar las tareas en `task.md`.
+

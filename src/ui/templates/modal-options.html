@@ -1,0 +1,181 @@
+    <!-- ================= MODAL: SYSTEM OPTIONS ================= -->
+    <div id="options-modal" class="modal-backdrop hidden">
+      <div class="modal-card modal-options">
+        <div class="modal-header modal-header-with-close" style="display: flex; justify-content: space-between; align-items: flex-start;">
+          <div>
+            <h2 data-i18n="options.title">⚙️ Options</h2>
+            <p class="modal-desc" data-i18n="options.desc">Language, sound, music, and gameplay preferences</p>
+          </div>
+          <button id="btn-options-header-close" class="btn-modal-close-icon" title="Close options">✖</button>
+        </div>
+
+        <div class="modal-body-scroll modal-options-body">
+          <!-- Idioma / Language Selector -->
+          <div class="option-row">
+            <div class="option-info">
+              <strong data-i18n="options.language">Idioma / Language</strong>
+              <span data-i18n="options.language_desc">Select UI and dialogue language</span>
+            </div>
+            <div class="setup-grid grid-2" style="gap: 0.5rem;">
+              <button id="opt-lang-es" class="btn btn-choice" data-lang="es">🇪🇸 Español</button>
+              <button id="opt-lang-en" class="btn btn-choice" data-lang="en">🇬🇧 English</button>
+            </div>
+          </div>
+
+          <div class="option-row">
+            <div class="option-info">
+              <strong data-i18n="options.master_vol">Master Volume</strong>
+              <span data-i18n="options.master_vol_desc">Controls overall audio volume</span>
+            </div>
+            <div class="volume-control">
+              <input type="range" id="opt-vol-slider" min="0" max="100" value="80" class="slider" />
+              <span id="opt-vol-text" class="slider-val">80%</span>
+            </div>
+          </div>
+
+          <div class="option-row">
+            <div class="option-info">
+              <strong data-i18n="options.sfx">Sound Effects (SFX)</strong>
+            </div>
+            <button id="opt-sfx-toggle" class="btn btn-toggle active">Enabled</button>
+          </div>
+
+          <div class="option-row">
+            <div class="option-info">
+              <strong data-i18n="options.bgm">Background Music (BGM)</strong>
+            </div>
+            <button id="opt-bgm-toggle" class="btn btn-toggle active">Enabled</button>
+          </div>
+
+          <div class="option-row">
+            <div class="option-info">
+              <strong data-i18n="options.zoom_title">Escalado de Interfaz (Zoom UI)</strong>
+              <span data-i18n="options.zoom_desc">Ajusta el tamaño global de textos, botones y tableros (Atajos: Ctrl + / Ctrl - / Ctrl 0)</span>
+            </div>
+            <div class="volume-control">
+              <input type="range" id="opt-zoom-slider" min="10" max="200" step="10" value="100" class="slider" />
+              <span id="opt-zoom-text" class="slider-val">100%</span>
+              <button id="opt-zoom-reset" class="btn btn-sm btn-secondary" style="margin-left: 0.5rem; padding: 0.25rem 0.5rem;" title="Reset Zoom">🔄</button>
+            </div>
+          </div>
+
+          <div class="option-row">
+            <div class="option-info">
+              <strong data-i18n="options.dev_mode">🧪 Dev Mode (Sandbox + Debug)</strong>
+              <span data-i18n="options.dev_mode_desc">Activa Testing Lab en <em>cualquier</em> combate, Deshacer/Rehacer y herramientas de depuración</span>
+            </div>
+            <button id="opt-dev-toggle" class="btn btn-toggle inactive">Desactivado</button>
+          </div>
+
+          <div class="option-row">
+            <div class="option-info">
+              <strong data-i18n="options.fps_limit">Límite de FPS (Animaciones)</strong>
+              <span data-i18n="options.fps_desc">Reduce el framerate para ahorrar batería o mejorar el rendimiento.</span>
+            </div>
+            <div class="setup-grid grid-2" style="gap: 0.5rem;">
+              <button id="opt-fps-30" class="btn btn-choice">30 FPS</button>
+              <button id="opt-fps-60" class="btn btn-choice active">60 FPS</button>
+            </div>
+          </div>
+
+          <div class="option-row">
+            <div class="option-info">
+              <strong data-i18n="options.particles">Animaciones de Partículas</strong>
+              <span data-i18n="options.particles_desc">Activa/Desactiva los efectos de partículas y VFX.</span>
+            </div>
+            <button id="opt-particles-toggle" class="btn btn-toggle active">Activado</button>
+          </div>
+
+          <div class="option-row">
+            <div class="option-info">
+              <strong data-i18n="options.zen_mode">Modo Zen (Zen Mode)</strong>
+              <span data-i18n="options.zen_mode_desc">Oculta toda la UI periférica para una experiencia inmersiva</span>
+            </div>
+            <button id="opt-zen-toggle" class="btn btn-toggle inactive">Disabled</button>
+          </div>
+
+
+          <div class="options-shortcuts-section">
+            <h3 class="shortcuts-title" data-i18n="options.shortcuts_title">⌨️ Keyboard Shortcuts</h3>
+            <div class="shortcuts-grid">
+              <div class="shortcut-item">
+                <kbd class="key-badge">Space</kbd>
+                <span data-i18n="options.shortcut_pass">Pass Turn</span>
+              </div>
+              <div class="shortcut-item">
+                <kbd class="key-badge">H</kbd>
+                <span data-i18n="options.shortcut_zen">Toggle Zen Mode (Hide UI)</span>
+              </div>
+              <div class="shortcut-item">
+                <kbd class="key-badge">U</kbd>
+                <span data-i18n="options.shortcut_undo">Undo (Time Rewind)</span>
+              </div>
+              <div class="shortcut-item">
+                <kbd class="key-badge">R</kbd>
+                <span data-i18n="options.shortcut_rotate">Rotate Duplicity 2x1 [⇄/⇅] / Redo</span>
+              </div>
+              <div class="shortcut-item">
+                <kbd class="key-badge">1 - 4</kbd>
+                <span data-i18n="options.shortcut_spells">Spells (1: Rewind, 2: Meteor, 3: Shield, 4: Convert)</span>
+              </div>
+              <div class="shortcut-item">
+                <kbd class="key-badge">5 - 7</kbd>
+                <span data-i18n="options.shortcut_poly">Polyominoes (5/Z: Sprouting 🌿, 6/X: Duplicity 🀄, 7/V: Monolith 🧱)</span>
+              </div>
+              <div class="shortcut-item">
+                <kbd class="key-badge">C</kbd>
+                <span data-i18n="options.shortcut_champion">Champion Active Skill</span>
+              </div>
+              <div class="shortcut-item">
+                <kbd class="key-badge">Ctrl + / - / 0</kbd>
+                <span>Zoom In / Out / Reset</span>
+              </div>
+              <div class="shortcut-item">
+                <kbd class="key-badge">M / Esc</kbd>
+                <span data-i18n="options.shortcut_options">Options / Close Dialogs</span>
+              </div>
+              <div class="shortcut-item custom-shortcut-item">
+                <button id="btn-bind-feedback" class="btn-bind-key key-badge" data-key="F10">F10</button>
+                <span data-i18n="options.shortcut_feedback">Abrir Feedback (Clic para cambiar atajo)</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ================= MODAL: FEEDBACK ================= -->
+    <div id="feedback-modal" class="modal-backdrop hidden">
+      <div class="modal-card modal-feedback">
+        <div class="modal-header modal-header-with-close" style="display: flex; justify-content: space-between; align-items: flex-start;">
+          <div>
+            <h2 data-i18n="feedback.title">✉️ Enviar Sugerencia</h2>
+            <p class="modal-desc" data-i18n="feedback.desc">Ayúdanos a mejorar Crazy-Go con tu feedback</p>
+          </div>
+          <button id="btn-feedback-header-close" class="btn-modal-close-icon" title="Close feedback">✖</button>
+        </div>
+        <div class="modal-body-scroll">
+          <div class="feedback-form">
+            <div class="form-group">
+              <label for="fb-name" data-i18n="feedback.name">Nombre o Apodo (Opcional)</label>
+              <input type="text" id="fb-name" placeholder="Tu nombre..." data-i18n-placeholder="feedback.name_placeholder" />
+            </div>
+            <div class="form-group">
+              <label for="fb-subject" data-i18n="feedback.subject">Asunto</label>
+              <div class="input-with-prefix" style="display: flex; align-items: center; gap: 0.5rem;">
+                <span class="input-prefix" style="color: var(--text-muted); font-weight: bold;">Crazy-Go:</span>
+                <input type="text" id="fb-subject" placeholder="Ej. Bug en el boss final" data-i18n-placeholder="feedback.subject_placeholder" style="flex: 1;" required />
+              </div>
+            </div>
+            <div class="form-group" style="margin-top: 1rem;">
+              <label for="fb-message" data-i18n="feedback.message">Mensaje</label>
+              <textarea id="fb-message" rows="5" placeholder="Describe tu sugerencia o error..." data-i18n-placeholder="feedback.message_placeholder" required style="width: 100%; resize: vertical; padding: 0.5rem;"></textarea>
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer" style="justify-content: flex-end; padding-top: 1rem; display: flex; gap: 1rem;">
+          <button id="btn-feedback-cancel" class="btn btn-secondary" data-i18n="feedback.cancel">Cancelar</button>
+          <button id="btn-feedback-send" class="btn btn-primary" data-i18n="feedback.send">Enviar Feedback</button>
+        </div>
+      </div>
+    </div>

@@ -1,0 +1,46 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" width="128" height="128">
+  <defs>
+    <radialGradient id="sproutGlow" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#10b981" stop-opacity="0.85"/>
+      <stop offset="60%" stop-color="#059669" stop-opacity="0.3"/>
+      <stop offset="100%" stop-color="#064e3b" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="leafGrad" x1="0%" y1="100%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#059669"/>
+      <stop offset="50%" stop-color="#10b981"/>
+      <stop offset="100%" stop-color="#6ee7b7"/>
+    </linearGradient>
+    <radialGradient id="sacredSeed" cx="35%" cy="35%" r="65%">
+      <stop offset="0%" stop-color="#334155"/>
+      <stop offset="60%" stop-color="#0f172a"/>
+      <stop offset="100%" stop-color="#020617"/>
+    </radialGradient>
+    <filter id="sproutShadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="6" stdDeviation="6" flood-color="#059669" flood-opacity="0.7"/>
+    </filter>
+  </defs>
+  <!-- Background Glow -->
+  <circle cx="64" cy="64" r="54" fill="url(#sproutGlow)" />
+  <circle cx="64" cy="74" r="42" fill="none" stroke="#34d399" stroke-width="1.5" stroke-dasharray="4 6" opacity="0.6"/>
+  
+  <!-- Sprouting Stone Tile -->
+  <g filter="url(#sproutShadow)">
+    <!-- Base Go Stone (Seed) -->
+    <ellipse cx="64" cy="84" rx="26" ry="18" fill="url(#sacredSeed)" stroke="#10b981" stroke-width="2"/>
+    <ellipse cx="60" cy="80" rx="6" ry="3" fill="#ffffff" opacity="0.3"/>
+
+    <!-- Botanical Stem -->
+    <path d="M 64 80 Q 64 54 62 38" fill="none" stroke="#10b981" stroke-width="4" stroke-linecap="round"/>
+    <path d="M 64 68 Q 50 62 40 64 Q 46 76 62 70" fill="url(#leafGrad)"/>
+    <path d="M 64 54 Q 78 48 88 50 Q 82 62 64 56" fill="url(#leafGrad)"/>
+
+    <!-- Top Blooming Lotus Leaves -->
+    <path d="M 62 38 C 50 24 58 14 62 14 C 66 14 74 24 62 38 Z" fill="url(#leafGrad)" stroke="#a7f3d0" stroke-width="1"/>
+    <circle cx="62" cy="18" r="3" fill="#fef08a"/>
+
+    <!-- Floating Spores / Qi Energy -->
+    <circle cx="42" cy="38" r="2.5" fill="#34d399"/>
+    <circle cx="84" cy="34" r="2" fill="#6ee7b7"/>
+    <circle cx="78" cy="78" r="2" fill="#a7f3d0"/>
+  </g>
+</svg>

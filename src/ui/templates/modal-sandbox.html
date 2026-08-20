@@ -1,0 +1,271 @@
+    <!-- ================= MODAL: TESTING LAB & TROUBLESHOOTER ================= -->
+    <div id="modal-sandbox" class="modal-backdrop hidden">
+      <div class="modal-card modal-sandbox-panel">
+        <div class="modal-header sandbox-header">
+          <div class="sandbox-title-group">
+            <h2>🧪 Testing Lab & Troubleshooter</h2>
+            <p class="modal-desc">Live board editor, situation simulator, canonical rule tests & debugging</p>
+          </div>
+          <button id="btn-toggle-sandbox-brush" class="btn-sandbox-brush-toggle active">
+            🖌️ Free Brush Enabled
+          </button>
+        </div>
+
+        <div class="sandbox-tabs-nav">
+          <button class="sandbox-tab-btn active" data-tab="tab-sandbox-brushes">🖌️ Brushes</button>
+          <button class="sandbox-tab-btn" data-tab="tab-sandbox-topology">🗺️ Topology & Size</button>
+          <button class="sandbox-tab-btn" data-tab="tab-sandbox-presets">🎯 Preset Scenarios</button>
+          <button class="sandbox-tab-btn" data-tab="tab-sandbox-cheats">⚡ Spells & Champions</button>
+        </div>
+
+        <div class="modal-body-scroll sandbox-body">
+          <div id="tab-sandbox-brushes" class="sandbox-tab-pane active">
+            <div class="sandbox-section">
+              <label class="setup-label">Stone Brushes (Direct click placement)</label>
+              <div class="sandbox-brush-grid">
+                <button class="btn-sandbox-brush active" data-brush="stone_black" title="Place Black Stone">
+                  <span class="mini-stone black-mini"></span>
+                  <span>⚫ Black P1</span>
+                </button>
+                <button class="btn-sandbox-brush" data-brush="stone_white" title="Place White Stone">
+                  <span class="mini-stone white-mini"></span>
+                  <span>⚪ White P2</span>
+                </button>
+                <button class="btn-sandbox-brush" data-brush="stone_green" title="Place Emerald Stone">
+                  <span class="mini-stone green-mini"></span>
+                  <span>🟢 Emerald P3</span>
+                </button>
+                <button class="btn-sandbox-brush" data-brush="stone_purple" title="Place Amethyst Stone">
+                  <span class="mini-stone purple-mini"></span>
+                  <span>🟣 Amethyst P4</span>
+                </button>
+                <button class="btn-sandbox-brush" data-brush="stone_sacred" title="Place Sacred Indestructible Stone">
+                  <span class="brush-icon">🛡️</span>
+                  <span>Sacred Stone</span>
+                </button>
+              </div>
+            </div>
+
+            <div class="sandbox-section">
+              <label class="setup-label">Polyomino Stones</label>
+              <div class="sandbox-brush-grid">
+                <button class="btn-sandbox-brush" data-brush="poly_sprouting" title="Place Sprouting Stone (Sprouts every 2 turns)">
+                  <span class="brush-icon">🌿</span>
+                  <span>Sprouting 1x1</span>
+                </button>
+                <button class="btn-sandbox-brush" data-brush="poly_domino" title="Place Duplicity Stone 2x1">
+                  <span class="brush-icon">🀄</span>
+                  <span>Duplicity 2x1</span>
+                </button>
+                <button class="btn-sandbox-brush" data-brush="poly_monolith" title="Place Monolith 2x2">
+                  <span class="brush-icon">🧱</span>
+                  <span>Monolith 2x2</span>
+                </button>
+              </div>
+            </div>
+
+            <div class="sandbox-section">
+              <label class="setup-label">Special Terrains & Tools</label>
+              <div class="sandbox-brush-grid">
+                <button class="btn-sandbox-brush" data-brush="terrain_portal" title="Convert node to Spatial Portal">
+                  <span class="brush-icon">🌌</span>
+                  <span>Portal</span>
+                </button>
+                <button class="btn-sandbox-brush" data-brush="terrain_vortex" title="Convert node to Dimensional Vortex">
+                  <span class="brush-icon">🌀</span>
+                  <span>Vortex</span>
+                </button>
+                <button class="btn-sandbox-brush" data-brush="terrain_sanctuary" title="Convert node to Sanctuary">
+                  <span class="brush-icon">⛩️</span>
+                  <span>Sanctuary</span>
+                </button>
+                <button class="btn-sandbox-brush" data-brush="terrain_destroyed" title="Destroy intersection (Void Hole)">
+                  <span class="brush-icon">🪨</span>
+                  <span>Destroyed</span>
+                </button>
+                <button class="btn-sandbox-brush" data-brush="terrain_normal" title="Restore intersection to Normal">
+                  <span class="brush-icon">⏹️</span>
+                  <span>Normal</span>
+                </button>
+                <button class="btn-sandbox-brush btn-eraser-brush" data-brush="eraser" title="Erase stone & reset node">
+                  <span class="brush-icon">🧹</span>
+                  <span>Eraser</span>
+                </button>
+              </div>
+            </div>
+
+            <div class="sandbox-actions-row">
+              <button id="btn-sandbox-clear-board" class="btn btn-choice btn-sandbox-action">
+                <span>🧹 Clear Entire Board</span>
+              </button>
+            </div>
+          </div>
+
+          <div id="tab-sandbox-topology" class="sandbox-tab-pane">
+            <div class="sandbox-section">
+              <label class="setup-label">Live Board Shape</label>
+              <div class="setup-grid grid-4">
+                <button class="btn btn-choice btn-sandbox-shape active" data-shape="square">⏹️ Square</button>
+                <button class="btn btn-choice btn-sandbox-shape" data-shape="eroded">🪨 Eroded</button>
+                <button class="btn btn-choice btn-sandbox-shape" data-shape="islands">🕳️ Islands / Abysses</button>
+                <button class="btn btn-choice btn-sandbox-shape" data-shape="cross">➕ Cross / Diamond</button>
+                <button class="btn btn-choice btn-sandbox-shape" data-shape="triangle">🔺 Triangular</button>
+                <div class="procedural-choice-container">
+                  <button class="btn btn-choice btn-sandbox-shape btn-procedural-main" data-shape="procedural">🎲 Procedural</button>
+                  <button id="sandbox-shape-procedural-reroll" class="btn btn-choice btn-reroll-icon" title="Regenerar Topología Procedural (Reroll)" aria-label="Reroll procedural board">🔄</button>
+                </div>
+              </div>
+            </div>
+
+            <div class="sandbox-section">
+              <label class="setup-label">Grid Size</label>
+              <div class="setup-grid grid-3">
+                <button class="btn btn-choice btn-sandbox-size active" data-size="9">9x9 (Fast)</button>
+                <button class="btn btn-choice btn-sandbox-size" data-size="13">13x13 (Medium)</button>
+                <button class="btn btn-choice btn-sandbox-size" data-size="19">19x19 (Official)</button>
+              </div>
+            </div>
+
+            <button id="btn-sandbox-apply-topology" class="btn btn-modal-primary" style="margin-top:0.5rem;">
+              <span>🔄 Re-generate Board</span>
+            </button>
+          </div>
+
+          <div id="tab-sandbox-presets" class="sandbox-tab-pane">
+            <p class="sandbox-help-text">Load prepared situations to test and debug canonical rules and effects:</p>
+            <div class="sandbox-presets-list">
+              <button class="sandbox-preset-card" data-preset="ko_test">
+                <div class="preset-icon">🔄</div>
+                <div class="preset-info">
+                  <strong>Ko Rule Test</strong>
+                  <span>Sets up simple Ko. Play at (4,4) to capture and verify immediate recapture is blocked.</span>
+                </div>
+              </button>
+
+              <button class="sandbox-preset-card" data-preset="atari_chain">
+                <div class="preset-icon">💥</div>
+                <div class="preset-info">
+                  <strong>Multiple Atari Test</strong>
+                  <span>Chain of 4 stones in Atari with 1 open liberty to test cascading captures.</span>
+                </div>
+              </button>
+
+              <button class="sandbox-preset-card" data-preset="sacred_test">
+                <div class="preset-icon">🛡️</div>
+                <div class="preset-info">
+                  <strong>Sacred Stone Test</strong>
+                  <span>Golden Sacred Stone with 0 liberties that cannot be captured by the opponent.</span>
+                </div>
+              </button>
+
+              <button class="sandbox-preset-card" data-preset="two_eyes_alive">
+                <div class="preset-icon">🏰</div>
+                <div class="preset-info">
+                  <strong>Two Living Eyes & Territory Test</strong>
+                  <span>Unconditionally alive group to test Japanese scoring flood-fill algorithm.</span>
+                </div>
+              </button>
+
+              <button class="sandbox-preset-card" data-preset="islands_sprout">
+                <div class="preset-icon">🌿</div>
+                <div class="preset-info">
+                  <strong>Islands & Sprouting Test</strong>
+                  <span>Board with interior abysses and a Sprouting Stone budding across narrow bridges.</span>
+                </div>
+              </button>
+
+              <button class="sandbox-preset-card" data-preset="ronin_slash_demo">
+                <div class="preset-icon">🗡️</div>
+                <div class="preset-info">
+                  <strong>Ronin Katana Slash Demonstration</strong>
+                  <span>Populates test enemy stones and allows immediate firing of Ronin's giant Katana Slash VFX & sound.</span>
+                </div>
+              </button>
+            </div>
+          </div>
+
+          <div id="tab-sandbox-cheats" class="sandbox-tab-pane">
+            <div class="sandbox-section">
+              <label class="setup-label">Live Champion Swap</label>
+              <div class="sandbox-brush-grid">
+                <button class="btn btn-choice btn-sandbox-hero active" data-hero="normal">👤 Normal Apprentice</button>
+                <button class="btn btn-choice btn-sandbox-hero" data-hero="tengu">🦅 Tengu</button>
+                <button class="btn btn-choice btn-sandbox-hero" data-hero="himiko">🌧️ Himiko</button>
+                <button class="btn btn-choice btn-sandbox-hero" data-hero="kitsune">🦊 Kitsune</button>
+                <button class="btn btn-choice btn-sandbox-hero" data-hero="ronin">⚡ Ronin</button>
+                <button class="btn btn-choice btn-sandbox-hero" data-hero="ryujin">🐲 Ryūjin</button>
+                <button class="btn btn-choice btn-sandbox-hero" data-hero="grey_dragon_boss">🐉 Grey Wise Dragon</button>
+              </div>
+            </div>
+
+            <div class="sandbox-section">
+              <label class="setup-label">⚡ Trigger Skills at Will (Infinite Uses)</label>
+              <div class="sandbox-actions-grid" style="display:grid; grid-template-columns: repeat(2, 1fr); gap: 0.65rem;">
+                <button id="btn-sandbox-trigger-active" class="btn btn-hero" style="font-size:0.9rem; padding:0.75rem 0.6rem;">
+                  <span>⚔️ Trigger Active Skill</span>
+                </button>
+                <button id="btn-sandbox-trigger-passive" class="btn btn-choice" style="font-size:0.9rem; padding:0.75rem 0.6rem; background:rgba(139,92,246,0.15); border-color:rgba(139,92,246,0.4); color:#c4b5fd; font-weight:700;">
+                  <span>✨ Force Trigger Passive</span>
+                </button>
+              </div>
+            </div>
+
+            <div class="sandbox-section">
+              <label class="setup-label">🔥 Instant Champion Spells & Powers</label>
+              <div class="sandbox-brush-grid">
+                <button id="btn-sandbox-force-ronin-slash" class="btn btn-choice" style="font-size:0.82rem; padding:0.6rem; border-color:#38bdf8; background:rgba(56,189,248,0.18); color:#7dd3fc; font-weight:700;">
+                  <span>🗡️ Ronin Katana Wind Slash</span>
+                </button>
+                <button id="btn-sandbox-force-stone-rain" class="btn btn-choice" style="font-size:0.82rem; padding:0.6rem;">
+                  <span>🌧️ Himiko Celestial Stone Rain</span>
+                </button>
+                <button id="btn-sandbox-force-dragon-burn" class="btn btn-choice" style="font-size:0.82rem; padding:0.6rem;">
+                  <span>🐉 Dragon Corner Incineration (25%)</span>
+                </button>
+                <button id="btn-sandbox-force-shield" class="btn btn-choice" style="font-size:0.82rem; padding:0.6rem;">
+                  <span>🛡️ Divine Sacred Shield</span>
+                </button>
+                <button id="btn-sandbox-force-convert" class="btn btn-choice" style="font-size:0.82rem; padding:0.6rem;">
+                  <span>🌪️ Chromatic Inversion Transmutation</span>
+                </button>
+              </div>
+            </div>
+
+            <div class="sandbox-section">
+              <label class="setup-label">Resources & Charges</label>
+              <button id="btn-sandbox-infinite-spells" class="btn btn-hero" style="width:100%; font-size:0.9rem;">
+                <span>⚡ Grant 99 Charges to All Spells, Polyominoes & Champion</span>
+              </button>
+            </div>
+
+            <div class="sandbox-section">
+              <label class="setup-label">Developer Hacks</label>
+              <div class="sandbox-actions-grid" style="display:grid; grid-template-columns: repeat(2, 1fr); gap: 0.65rem;">
+                <button id="btn-sandbox-instant-win" class="btn btn-hero" style="font-size:0.9rem; padding:0.75rem 0.6rem; border-color:#f59e0b; color:#fbbf24;">
+                  <span>🏆 Instant Win (Trigger Victory)</span>
+                </button>
+                <button id="btn-sandbox-unlock-map" class="btn btn-choice" style="font-size:0.9rem; padding:0.75rem 0.6rem; border-color:#10b981; color:#34d399;">
+                  <span>🗺️ Free Map Travel (God Mode)</span>
+                </button>
+              </div>
+            </div>
+
+            <div class="sandbox-section">
+              <label class="setup-label">Force Turn to Player</label>
+              <div class="setup-grid grid-4">
+                <button class="btn btn-choice btn-sandbox-turn" data-turn="1">⚫ Player 1</button>
+                <button class="btn btn-choice btn-sandbox-turn" data-turn="2">⚪ Player 2</button>
+                <button class="btn btn-choice btn-sandbox-turn" data-turn="3">🟢 Player 3</button>
+                <button class="btn btn-choice btn-sandbox-turn" data-turn="4">🟣 Player 4</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="modal-footer">
+          <button id="btn-sandbox-close" class="btn btn-modal-primary">
+            <span>✅ Close Panel & Return to Board</span>
+          </button>
+        </div>
+      </div>
+    </div>

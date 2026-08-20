@@ -4,7 +4,7 @@
 #main-menu-screen {
   justify-content: center;
   align-items: center;
-  background-image: url('/bg_menu.jpg');
+  background-image: url('../bg_menu.jpg');
   background-size: cover;
   background-position: center;
   background-repeat: no-repeat;
@@ -72,10 +72,19 @@ body[data-theme="light"] .main-title {
 }
 
 .menu-actions {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 0.9rem;
+  display: flex;
+  justify-content: center;
   width: 100%;
+  margin-bottom: 1rem;
+}
+
+.menu-grid {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.85rem;
+  width: 100%;
+  max-width: 600px; /* Limits width so it breaks cleanly into rows */
 }
 
 .menu-actions .btn {
@@ -113,6 +122,8 @@ body[data-theme="light"] .main-title {
   box-shadow: 0 4px 20px rgba(245, 158, 11, 0.4);
   border: 1px solid rgba(255, 255, 255, 0.3);
   text-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+  width: 100%;
+  max-width: 320px;
 }
 
 .btn-hero:hover {
@@ -183,6 +194,20 @@ body[data-theme="light"] .btn-menu-classic:hover {
   color: #ffffff !important;
   transform: translateY(-2px);
   box-shadow: 0 6px 22px rgba(2, 132, 199, 0.6);
+}
+
+.btn-feedback {
+  background: var(--bg-card);
+  border: 2px solid var(--accent-cyan);
+  color: var(--text-primary) !important;
+  width: 100%;
+  max-width: 320px;
+}
+
+.btn-feedback:hover {
+  background: var(--accent-cyan);
+  color: #000 !important;
+  transform: translateY(-2px);
 }
 
 body[data-theme="light"] .btn-menu-online {
@@ -266,6 +291,29 @@ body[data-theme="light"] .btn-menu-story:hover {
   box-shadow: 0 6px 20px rgba(217, 119, 6, 0.35);
 }
 
+.badge-menu-wip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  background: rgba(239, 68, 68, 0.25);
+  border: 1px solid rgba(239, 68, 68, 0.6);
+  color: #fca5a5;
+  font-size: 0.72rem;
+  font-weight: 700;
+  padding: 0.2rem 0.55rem;
+  border-radius: 9999px;
+  margin-left: 0.6rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  vertical-align: middle;
+}
+
+body[data-theme="light"] .badge-menu-wip {
+  background: rgba(220, 38, 38, 0.15);
+  border-color: rgba(220, 38, 38, 0.45);
+  color: #b91c1c;
+}
+
 /* 6. Botón Opciones */
 .btn-menu-secondary {
   background: var(--bg-card-sub);
@@ -302,4 +350,39 @@ body[data-theme="light"] .btn-menu-secondary:hover {
   margin-top: 2rem;
   font-size: 0.75rem;
   color: var(--text-muted);
+}
+
+/* Procedural Choice Container & Reroll Button */
+.procedural-choice-container {
+  display: flex;
+  align-items: stretch;
+  gap: 0.35rem;
+  width: 100%;
+}
+
+.btn-procedural-main {
+  flex: 1;
+}
+
+.btn-reroll-icon {
+  width: 42px;
+  min-width: 42px;
+  padding: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.05rem;
+  cursor: pointer;
+  border-radius: var(--radius-md);
+  transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1), background-color 0.2s ease, border-color 0.2s ease;
+}
+
+.btn-reroll-icon:hover {
+  background: rgba(245, 158, 11, 0.22) !important;
+  border-color: var(--accent-gold) !important;
+  transform: scale(1.08);
+}
+
+.btn-reroll-icon.spin-anim {
+  transform: rotate(360deg) scale(1.12);
 }

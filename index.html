@@ -27,6 +27,8 @@
               <span class="btn-icon">⚔️</span>
               <span class="btn-text" data-i18n="menu.expedition">Roguelike Expedition</span>
             </button>
+          </div>
+          <div class="menu-grid">
             <button id="btn-menu-free" class="btn btn-menu-classic">
               <span class="btn-icon">📜</span>
               <span class="btn-text" data-i18n="menu.custom">Custom Match / Local</span>
@@ -38,18 +40,23 @@
             <button id="btn-menu-story" class="btn btn-menu-story" title="Goban Chronicles & Tactical Rescue Missions">
               <span class="btn-icon">📖</span>
               <span class="btn-text" data-i18n="menu.story">Story Mode</span>
+              <span class="badge-menu-wip" data-i18n="menu.story_wip">⚠️ En Desarrollo</span>
             </button>
             <button id="btn-menu-dojo" class="btn btn-menu-dojo" title="Learn to play, master rules, and special skills">
               <span class="btn-icon">🥋</span>
               <span class="btn-text" data-i18n="menu.tutorial">Tutorial Dojo</span>
             </button>
-            <button id="btn-menu-sandbox" class="btn btn-menu-sandbox" title="Test Lab, Board Editor & Situation Troubleshooter">
-              <span class="btn-icon">🧪</span>
-              <span class="btn-text" data-i18n="menu.sandbox">Testing Lab</span>
-            </button>
+
             <button id="btn-menu-options" class="btn btn-menu-secondary">
               <span class="btn-icon">⚙️</span>
               <span class="btn-text" data-i18n="menu.options">Options</span>
+            </button>
+          </div>
+
+          <div class="menu-actions" style="margin-top: 0.85rem;">
+            <button id="btn-menu-feedback" class="btn btn-menu-secondary btn-feedback">
+              <span class="btn-icon">✉️</span>
+              <span class="btn-text" data-i18n="menu.feedback">Feedback & Bugs</span>
             </button>
           </div>
         </div>
@@ -117,15 +124,26 @@
                 <strong id="ui-purple-captures">0</strong>
               </div>
             </div>
+
+            <!-- Real-Time AI Win Rate % Bar -->
+            <div id="ui-winrate-container" class="hud-winrate-container" title="Estimated Win Probability (Go Tactical Engine)">
+              <span class="winrate-label winrate-black" id="ui-wr-black-val">50%</span>
+              <div class="winrate-bar-track">
+                <div class="winrate-bar-fill-black" id="ui-wr-bar-black" style="width: 50%;"></div>
+              </div>
+              <span class="winrate-label winrate-white" id="ui-wr-white-val">50%</span>
+            </div>
           </div>
 
-          <!-- Right Group: Tactical Actions and Theme Switcher -->
+          <!-- Right Group: Sandbox, Return to Results and Theme Switcher -->
           <div class="topbar-group topbar-right">
-            <button id="btn-game-sandbox" class="btn btn-topbar btn-sandbox-topbar" title="Test Lab & Troubleshooter (Modify any board or situation)">
-              <span>🧪 Sandbox</span>
+            <button id="floating-inspect-btn" class="btn btn-topbar btn-return-topbar hidden" title="Return to Match Results" style="background: var(--accent-cyan); color: #000;">
+              <span>📊 Back to Victory Results</span>
             </button>
-            <button id="btn-pass" class="btn btn-action-pass" title="Pass turn to opponent">
-              <span>⏭️ Pass Turn</span>
+            <button id="btn-game-sandbox" class="btn btn-topbar btn-sandbox-topbar" title="Testing Lab & Troubleshooter — Edita cualquier situación del tablero en tiempo real">
+              <span class="sandbox-btn-icon">🧪</span>
+              <span class="sandbox-btn-label">Sandbox</span>
+              <span class="sandbox-dev-badge">DEV</span>
             </button>
             <button id="btn-game-theme" class="btn-theme-toggle btn-theme-topbar" title="Toggle Light / Dark Mode">
               <span class="theme-icon">☀️</span>
@@ -138,7 +156,7 @@
           <!-- Left Duelist: Player / Chosen Champion -->
           <div id="duel-player-card" class="duel-character-standee duel-standee-player">
             <div class="duel-standee-figure">
-              <img id="duel-player-img" src="/heroes/ronin.png" alt="Champion" />
+              <img id="duel-player-img" src="./heroes/ronin.png" alt="Champion" />
               <div class="duel-standee-ground-shadow"></div>
             </div>
             <div class="duel-standee-plate">
@@ -162,17 +180,13 @@
           </div>
 
           <div id="board-container">
-            <div class="board-corner corner-tl"></div>
-            <div class="board-corner corner-tr"></div>
-            <div class="board-corner corner-bl"></div>
-            <div class="board-corner corner-br"></div>
             <svg id="game-svg" xmlns="http://www.w3.org/2000/svg"></svg>
           </div>
 
           <!-- Right Duelist: Rival / Unique Enemy (1v1) -->
           <div id="duel-enemy-card" class="duel-character-standee duel-standee-enemy">
             <div class="duel-standee-figure">
-              <img id="duel-enemy-img" src="/enemies/monk.png" alt="Rival" />
+              <img id="duel-enemy-img" src="./enemies/monk.png" alt="Rival" />
               <div class="duel-standee-ground-shadow"></div>
             </div>
             <div class="duel-standee-plate">
@@ -184,6 +198,10 @@
                 </div>
               </div>
               <small id="duel-enemy-rank" class="duel-plate-sub">30 Kyu • Easy AI</small>
+              <div id="duel-enemy-skill-badge" class="duel-enemy-skill-pill hidden">
+                <span id="duel-enemy-skill-icon">🐉</span>
+                <span id="duel-enemy-skill-text">Calcinating Breath</span>
+              </div>
               <div id="duel-enemy-timer" class="duel-timer-badge hidden">
                 <span class="timer-icon">⏱️</span>
                 <span id="duel-enemy-timer-digits" class="timer-digits">00:30</span>
@@ -193,7 +211,55 @@
 
           <!-- Right Multiple Duelists (4 Players: 1v3 AI or 4P Local) -->
           <div id="duel-multi-enemies-card" class="duel-multi-standees hidden">
-            <!-- Dynamic rendering of 3 opponents -->
+            
+            <!-- P2 Standee (White) -->
+            <div id="duel-p2-card" class="duel-character-standee duel-standee-enemy multi-standee-card multi-standee-p2">
+              <div class="duel-standee-figure">
+                <img id="duel-p2-img" src="./heroes/normal.png" alt="Rival" />
+                <div class="duel-standee-ground-shadow"></div>
+              </div>
+              <div class="duel-standee-plate">
+                <div class="duel-plate-header">
+                  <div class="duel-plate-title-group">
+                    <span class="duel-role-tag enemy-tag">P2 ⚪</span>
+                    <strong id="duel-p2-name">Rival</strong>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- P3 Standee (Green) -->
+            <div id="duel-p3-card" class="duel-character-standee duel-standee-enemy multi-standee-card multi-standee-p3">
+              <div class="duel-standee-figure">
+                <img id="duel-p3-img" src="./heroes/normal.png" alt="Rival" />
+                <div class="duel-standee-ground-shadow"></div>
+              </div>
+              <div class="duel-standee-plate">
+                <div class="duel-plate-header">
+                  <div class="duel-plate-title-group">
+                    <span class="duel-role-tag enemy-tag" style="color: #4CAF50;">P3 🟢</span>
+                    <strong id="duel-p3-name">Rival</strong>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- P4 Standee (Purple) -->
+            <div id="duel-p4-card" class="duel-character-standee duel-standee-enemy multi-standee-card multi-standee-p4">
+              <div class="duel-standee-figure">
+                <img id="duel-p4-img" src="./heroes/normal.png" alt="Rival" />
+                <div class="duel-standee-ground-shadow"></div>
+              </div>
+              <div class="duel-standee-plate">
+                <div class="duel-plate-header">
+                  <div class="duel-plate-title-group">
+                    <span class="duel-role-tag enemy-tag" style="color: #9C27B0;">P4 🟣</span>
+                    <strong id="duel-p4-name">Rival</strong>
+                  </div>
+                </div>
+              </div>
+            </div>
+
           </div>
         </main>
 
@@ -233,6 +299,13 @@
                 </button>
               </div>
             </div>
+
+            <!-- Botón Pasar Turno -->
+            <div class="spellbar-divider" id="spellbar-pass-divider"></div>
+            <button id="btn-pass" class="btn-poly-card btn-pass-turn" title="Pass your turn (P Key)" id="btn-pass">
+              <span class="poly-icon">⏭️</span>
+              <span class="poly-name" data-i18n="hud.pass_turn">Pass Turn</span>
+            </button>
           </div>
         </footer>
 
@@ -253,10 +326,7 @@
         <!-- Floating Toast Notification -->
         <div id="ui-alert" class="ui-toast hidden"></div>
 
-        <!-- Floating Button to Reopen Results after Board Inspection -->
-        <button id="floating-inspect-btn" class="floating-inspect-btn hidden" title="Return to Match Results">
-          <span>📊 Back to Victory Results</span>
-        </button>
+        <!-- Element deleted (moved to topbar) -->
       </section>
 
       <!-- ================= SCREEN 3: PROCEDURAL ROGUELIKE MAP ================= -->
@@ -295,1534 +365,9 @@
 
     </div>
 
-    <!-- ================= MODAL: DOJO / TUTORIAL ================= -->
-    <div id="dojo-modal" class="modal-backdrop hidden">
-      <div class="modal-card modal-dojo">
-        <div class="modal-header">
-          <h2>🥋 Dojo (Tutorial & Guides)</h2>
-          <p class="modal-desc">Learn Go rules and Crazy Go mechanics</p>
-        </div>
-        <div class="modal-body-scroll">
-          <div class="setup-grid grid-1" id="dojo-chapter-list">
-            <!-- Chapters generated dynamically here -->
-          </div>
-        </div>
-        <div class="modal-footer">
-          <button class="btn btn-secondary" id="btn-cancel-dojo">Close</button>
-        </div>
-      </div>
-    </div>
+      <!-- ================= MODALS CONTAINER (Loaded dynamically by UITemplateLoader) ================= -->
+      <div id="modals-container"></div>
 
-    <!-- ================= MODAL: TUTORIAL LESSON COMPLETED ================= -->
-    <div id="modal-tutorial-complete" class="modal-backdrop hidden">
-      <div class="modal-card modal-tutorial-complete-card">
-        <div class="modal-header tutorial-complete-header">
-          <div class="tutorial-complete-badge">🎉</div>
-          <h2 id="tutorial-complete-title">Lesson Completed!</h2>
-          <p id="tutorial-complete-subtitle" class="modal-desc">You have assimilated the core concepts of this lesson.</p>
-        </div>
-        <div class="tutorial-complete-body">
-          <div id="tutorial-next-preview" class="tutorial-next-preview">
-            <span class="next-label">Next Lesson:</span>
-            <strong id="tutorial-next-title">2. Capturing & Atari</strong>
-          </div>
-        </div>
-        <div class="modal-footer tutorial-complete-footer">
-          <button id="btn-tutorial-replay" class="btn btn-secondary">🔁 Replay</button>
-          <button id="btn-tutorial-list" class="btn btn-secondary">📜 Lesson List</button>
-          <button id="btn-tutorial-next" class="btn btn-primary btn-cta">▶ Next Lesson</button>
-        </div>
-      </div>
-    </div>
-
-    <!-- ================= MODAL: ONLINE MULTIPLAYER (P2P 2 & 4 PLAYERS) ================= -->
-    <div id="online-modal" class="modal-backdrop hidden">
-      <div class="modal-card modal-online">
-        <div class="modal-header">
-          <h2>🌐 Online Multiplayer (P2P WebRTC)</h2>
-          <p class="modal-desc">Play 2 or 4 player real-time matches by sharing a code or direct link</p>
-        </div>
-
-        <div class="modal-tabs">
-          <button id="tab-btn-create-room" class="btn-tab active">Create Room (Host)</button>
-          <button id="tab-btn-join-room" class="btn-tab">Join Room (Guest)</button>
-        </div>
-
-        <div class="modal-body-scroll">
-          <!-- VIEW 1: CREATE ROOM (HOST) -->
-          <div id="view-create-room" class="tab-content">
-            <!-- Room Code & Link Sharing -->
-            <div class="room-code-banner">
-              <div class="code-info">
-                <span class="code-label">ROOM CODE</span>
-                <strong id="display-room-code" class="code-value">GO-....</strong>
-              </div>
-              <button id="btn-copy-room-link" class="btn btn-copy" title="Copy shareable link">
-                <span>📋 Copy Link</span>
-              </button>
-            </div>
-
-            <div class="host-settings">
-              <!-- 0. Online Game Mode -->
-              <div class="setup-section">
-                <label class="setup-label">Online Game Mode</label>
-                <div class="setup-grid grid-2">
-                  <button id="online-mode-standard" class="btn btn-choice active" data-online-mode="standard">
-                    <span class="choice-icon">⚔️</span>
-                    <span class="choice-title">Classic Duel (1v1 / 4P)</span>
-                    <small style="display:block;font-size:0.75rem;opacity:0.8;">Competitive canonical Go match</small>
-                  </button>
-                  <button id="online-mode-coop" class="btn btn-choice" data-online-mode="coop_rogue">
-                    <span class="choice-icon">🤝</span>
-                    <span class="choice-title">Co-op Roguelike (2P)</span>
-                    <small style="display:block;font-size:0.75rem;opacity:0.8;">Play alternate turns together vs AI</small>
-                  </button>
-                </div>
-              </div>
-
-              <!-- 0b. Player Count -->
-              <div class="setup-section" id="online-players-count-section">
-                <label class="setup-label">Player Count</label>
-                <div class="setup-grid grid-2">
-                  <button id="online-players-2" class="btn btn-choice active" data-players="2">
-                    <span class="choice-icon">👥</span>
-                    <span class="choice-title">2 Players (1v1 Duel)</span>
-                    <small style="display:block;font-size:0.75rem;opacity:0.8;">⚫ Black vs ⚪ White</small>
-                  </button>
-                  <button id="online-players-4" class="btn btn-choice" data-players="4">
-                    <span class="choice-icon">👥👥</span>
-                    <span class="choice-title">4 Players (4P FFA Go)</span>
-                    <small style="display:block;font-size:0.75rem;opacity:0.8;">⚫ Black • ⚪ White • 🟢 Emerald • 🟣 Amethyst</small>
-                  </button>
-                </div>
-              </div>
-
-              <!-- 1. Host Color -->
-              <div class="setup-section" id="online-host-color-section">
-                <label class="setup-label">Your Color (Host)</label>
-                <div class="setup-grid grid-2">
-                  <button id="online-color-black" class="btn btn-choice active">
-                    <span class="mini-stone black-mini"></span>
-                    <span>Black ⚫ (First turn)</span>
-                  </button>
-                  <button id="online-color-white" class="btn btn-choice">
-                    <span class="mini-stone white-mini"></span>
-                    <span>White ⚪ (Guest starts)</span>
-                  </button>
-                </div>
-              </div>
-
-              <!-- 2. Board Shape -->
-              <div class="setup-section">
-                <label class="setup-label">Board Shape</label>
-                <div class="setup-grid grid-4">
-                  <button id="online-shape-square" class="btn btn-choice active">⏹️ Square</button>
-                  <button id="online-shape-eroded" class="btn btn-choice">🪨 Eroded</button>
-                  <button id="online-shape-islands" class="btn btn-choice">🕳️ Islands / Abysses</button>
-                  <button id="online-shape-cross" class="btn btn-choice">➕ Cross / Diamond</button>
-                  <button id="online-shape-triangle" class="btn btn-choice">🔺 Triangular</button>
-                  <button id="online-shape-hex" class="btn btn-choice">⬡ Hexagonal</button>
-                  <button id="online-shape-procedural" class="btn btn-choice">🎲 Procedural (Infinite)</button>
-                </div>
-              </div>
-
-              <!-- 3. Board Size -->
-              <div class="setup-section">
-                <label class="setup-label">Board Size</label>
-                <div class="setup-grid grid-3">
-                  <button id="online-size-9" class="btn btn-choice active">9x9</button>
-                  <button id="online-size-13" class="btn btn-choice">13x13</button>
-                  <button id="online-size-19" class="btn btn-choice">19x19</button>
-                </div>
-              </div>
-
-              <!-- 4. Komi -->
-              <div class="setup-section">
-                <div class="setup-label-row">
-                  <label class="setup-label">Komi (Advantage points for White)</label>
-                  <strong id="online-komi-display" class="highlight-text">6.5 pts</strong>
-                </div>
-                <div class="setup-grid grid-4 komi-presets-grid">
-                  <button class="btn btn-choice btn-online-komi" data-komi="0.5">0.5</button>
-                  <button class="btn btn-choice btn-online-komi" data-komi="5.5">5.5</button>
-                  <button class="btn btn-choice btn-online-komi active" data-komi="6.5">6.5 (Default)</button>
-                  <button class="btn btn-choice btn-online-komi" data-komi="7.5">7.5</button>
-                </div>
-                <div class="komi-custom-wrapper">
-                  <span class="komi-custom-label">Or custom free value:</span>
-                  <div class="komi-input-box">
-                    <input type="number" id="online-komi-input" step="0.5" min="0" max="100" value="6.5" class="komi-num-field" />
-                    <span class="komi-unit">pts</span>
-                  </div>
-                </div>
-              </div>
-
-              <!-- 5. Host Champion Selection -->
-              <div class="setup-section">
-                <label class="setup-label">Your Mystic Champion (Host)</label>
-
-                <div class="rogue-hero-panoramic-box setup-hero-panoramic-box">
-                  <button id="btn-online-host-hero-prev" class="btn-hero-nav" title="Previous Champion">◀</button>
-
-                  <div class="hero-showcase-card" id="online-host-hero-showcase-card">
-                    <div class="hero-portrait-wrapper">
-                      <img id="online-host-hero-showcase-img" src="/heroes/normal_face.jpg" alt="Normal Apprentice" class="hero-showcase-img" />
-                    </div>
-
-                    <div class="hero-details">
-                      <div class="hero-header-row">
-                        <div class="hero-titles-col">
-                          <h3 id="online-host-hero-showcase-name" class="hero-title">Normal Apprentice</h3>
-                          <span id="online-host-hero-showcase-subtitle" class="hero-subtitle">Master of Canonical Go</span>
-                        </div>
-                      </div>
-
-                      <div class="hero-skills-grid">
-                        <div class="hero-skill-box active-skill-box online-host-hero-active-box" style="display: none;">
-                          <div class="skill-box-header">
-                            <span class="skill-type-tag active-tag">💥 ACTIVE SKILL</span>
-                            <strong id="online-host-hero-active-name" class="skill-name">Active Skill</strong>
-                          </div>
-                          <p id="online-host-hero-active-desc" class="skill-desc">Description of active skill.</p>
-                        </div>
-
-                        <div class="hero-skill-box passive-skill-box online-host-hero-passive-box">
-                          <div class="skill-box-header">
-                            <span class="skill-type-tag passive-tag" id="online-host-hero-passive-tag">📜 PURE RULES</span>
-                            <strong id="online-host-hero-passive-name" class="skill-name">Japanese Canonical Rules</strong>
-                          </div>
-                          <p id="online-host-hero-passive-desc" class="skill-desc">Pure Go strategy: liberties, unconditional life, Ko and territory without gimmicks.</p>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-
-                  <button id="btn-online-host-hero-next" class="btn-hero-nav" title="Next Champion">▶</button>
-                </div>
-
-                <div class="hero-thumb-strip" id="online-host-hero-thumb-strip">
-                  <button class="hero-thumb-btn active" data-hero="normal">
-                    <img src="/heroes/normal_face.jpg" alt="Normal" />
-                    <span>Normal</span>
-                  </button>
-                  <button class="hero-thumb-btn" data-hero="tengu">
-                    <img src="/heroes/tengu_face.jpg" alt="Tengu" />
-                    <span>Tengu</span>
-                  </button>
-                  <button class="hero-thumb-btn" data-hero="himiko">
-                    <img src="/heroes/himiko_face.jpg" alt="Himiko" />
-                    <span>Himiko</span>
-                  </button>
-                  <button class="hero-thumb-btn" data-hero="kitsune">
-                    <img src="/heroes/kitsune_face.jpg" alt="Kitsune" />
-                    <span>Kitsune</span>
-                  </button>
-                  <button class="hero-thumb-btn" data-hero="ronin">
-                    <img src="/heroes/ronin_face.jpg" alt="Ronin" />
-                    <span>Ronin</span>
-                  </button>
-                  <button class="hero-thumb-btn" data-hero="alchemist">
-                    <img src="/heroes/alchemist_face.jpg" alt="Alchemist" />
-                    <span>Alchemist</span>
-                  </button>
-                  <button class="hero-thumb-btn" data-hero="ryujin">
-                    <img src="/heroes/ryujin_face.jpg" alt="Ryūjin" />
-                    <span>Ryūjin</span>
-                  </button>
-                </div>
-              </div>
-            </div>
-
-            <!-- Waiting Status & Lobby -->
-            <div id="host-waiting-status" class="waiting-box">
-              <div class="spinner"></div>
-              <div class="lobby-status-content">
-                <span id="online-lobby-status-text">Waiting for peer to join room... (1/2)</span>
-                <div id="online-lobby-slots-grid" class="online-slots-grid"></div>
-              </div>
-            </div>
-
-            <div id="host-action-bar" class="host-action-bar hidden" style="margin-top: 1rem; text-align: center;">
-              <button id="btn-online-force-start" class="btn btn-modal-primary" style="padding: 0.75rem 2rem; font-size: 1rem;">
-                <span>▶️ Start Match Immediately</span>
-              </button>
-            </div>
-          </div>
-
-          <!-- VIEW 2: JOIN ROOM (GUEST) -->
-          <div id="view-join-room" class="tab-content hidden">
-            <div class="join-box">
-              <label class="setup-label">Enter Room Code</label>
-              <div class="join-input-group">
-                <input type="text" id="input-join-room-code" placeholder="E.g. GO-4821 or paste invite URL" maxlength="150" autocomplete="off" spellcheck="false" />
-                <button id="btn-submit-join-room" class="btn btn-modal-primary">
-                  <span>Connect 🚀</span>
-                </button>
-              </div>
-              <p class="join-help">Ask the room creator for the room code or direct invitation URL.</p>
-
-              <!-- Guest Champion Selection -->
-              <div class="setup-section" style="margin-top: 1rem;">
-                <label class="setup-label">Your Mystic Champion (Guest)</label>
-
-                <div class="rogue-hero-panoramic-box setup-hero-panoramic-box">
-                  <button id="btn-online-guest-hero-prev" class="btn-hero-nav" title="Previous Champion">◀</button>
-
-                  <div class="hero-showcase-card" id="online-guest-hero-showcase-card">
-                    <div class="hero-portrait-wrapper">
-                      <img id="online-guest-hero-showcase-img" src="/heroes/normal_face.jpg" alt="Normal Apprentice" class="hero-showcase-img" />
-                    </div>
-
-                    <div class="hero-details">
-                      <div class="hero-header-row">
-                        <div class="hero-titles-col">
-                          <h3 id="online-guest-hero-showcase-name" class="hero-title">Normal Apprentice</h3>
-                        </div>
-                      </div>
-
-                      <div class="hero-skills-grid">
-                        <div class="hero-skill-box active-skill-box online-guest-hero-active-box" style="display: none;">
-                          <div class="skill-box-header">
-                            <span class="skill-type-tag active-tag">💥 ACTIVE SKILL</span>
-                            <strong id="online-guest-hero-active-name" class="skill-name">Active Skill</strong>
-                          </div>
-                          <p id="online-guest-hero-active-desc" class="skill-desc">Description of active skill.</p>
-                        </div>
-
-                        <div class="hero-skill-box passive-skill-box online-guest-hero-passive-box">
-                          <div class="skill-box-header">
-                            <span class="skill-type-tag passive-tag" id="online-guest-hero-passive-tag">📜 PURE RULES</span>
-                            <strong id="online-guest-hero-passive-name" class="skill-name">Japanese Canonical Rules</strong>
-                          </div>
-                          <p id="online-guest-hero-passive-desc" class="skill-desc">Pure Go strategy: liberties, unconditional life, Ko and territory without gimmicks.</p>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-
-                  <button id="btn-online-guest-hero-next" class="btn-hero-nav" title="Next Champion">▶</button>
-                </div>
-
-                <div class="hero-thumb-strip" id="online-guest-hero-thumb-strip">
-                  <button class="hero-thumb-btn active" data-hero="normal">
-                    <img src="/heroes/normal_face.jpg" alt="Normal" />
-                    <span>Normal</span>
-                  </button>
-                  <button class="hero-thumb-btn" data-hero="tengu">
-                    <img src="/heroes/tengu_face.jpg" alt="Tengu" />
-                    <span>Tengu</span>
-                  </button>
-                  <button class="hero-thumb-btn" data-hero="himiko">
-                    <img src="/heroes/himiko_face.jpg" alt="Himiko" />
-                    <span>Himiko</span>
-                  </button>
-                  <button class="hero-thumb-btn" data-hero="kitsune">
-                    <img src="/heroes/kitsune_face.jpg" alt="Kitsune" />
-                    <span>Kitsune</span>
-                  </button>
-                  <button class="hero-thumb-btn" data-hero="ronin">
-                    <img src="/heroes/ronin_face.jpg" alt="Ronin" />
-                    <span>Ronin</span>
-                  </button>
-                  <button class="hero-thumb-btn" data-hero="alchemist">
-                    <img src="/heroes/alchemist_face.jpg" alt="Alchemist" />
-                    <span>Alchemist</span>
-                  </button>
-                  <button class="hero-thumb-btn" data-hero="ryujin">
-                    <img src="/heroes/ryujin_face.jpg" alt="Ryūjin" />
-                    <span>Ryūjin</span>
-                  </button>
-                </div>
-              </div>
-
-              <!-- Connection Status -->
-              <div id="join-status-box" class="waiting-box hidden">
-                <div class="spinner"></div>
-                <div class="lobby-status-content">
-                  <span id="join-status-text">Connecting to P2P room...</span>
-                  <div id="join-lobby-slots-grid" class="online-slots-grid"></div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <div class="modal-footer" style="display: flex; justify-content: space-between; align-items: center;">
-          <button id="btn-online-cancel" class="btn btn-modal-secondary">Cancel</button>
-          <button id="btn-online-modal-start" class="btn btn-modal-primary hidden" style="font-weight: 700; padding: 0.75rem 2rem; animation: pulse 2s infinite;">
-            <span>⚔️ Start Match!</span>
-          </button>
-        </div>
-      </div>
-    </div>
-
-    <!-- ================= MODAL: ROGUELIKE EXPEDITION ================= -->
-    <div id="roguelike-setup-modal" class="modal-backdrop hidden">
-      <div class="modal-card modal-rogue-panoramic">
-        <div class="modal-header rogue-header-panoramic">
-          <div>
-            <h2>⚔️ Roguelike Expedition</h2>
-            <p class="modal-desc">Select your journey difficulty and Mystic Champion to begin</p>
-          </div>
-        </div>
-
-        <div class="modal-body-scroll rogue-body-panoramic">
-          <!-- Expedition Difficulty -->
-          <div class="setup-section rogue-diff-section">
-            <label class="setup-label">Expedition Difficulty</label>
-            <div class="setup-grid grid-4 rogue-diff-grid">
-              <button id="rogue-diff-easy" class="btn btn-choice active" data-diff="easy">
-                <span class="choice-icon">🟢</span>
-                <span class="choice-title">Easy</span>
-                <small class="diff-sub">Beginner</small>
-              </button>
-              <button id="rogue-diff-normal" class="btn btn-choice" data-diff="normal">
-                <span class="choice-icon">🟡</span>
-                <span class="choice-title">Normal</span>
-                <small class="diff-sub">Warrior</small>
-              </button>
-              <button id="rogue-diff-hard" class="btn btn-choice" data-diff="hard">
-                <span class="choice-icon">🔴</span>
-                <span class="choice-title">Hard</span>
-                <small class="diff-sub">Master</small>
-              </button>
-              <button id="rogue-diff-extreme" class="btn btn-choice btn-dan" data-diff="extreme">
-                <span class="choice-icon">🟣</span>
-                <span class="choice-title">Grandmaster</span>
-                <small class="diff-sub">Supreme Dan</small>
-              </button>
-            </div>
-          </div>
-
-          <!-- Champion Showcase Card -->
-          <div class="rogue-hero-panoramic-box">
-            <button id="btn-hero-prev" class="btn-hero-nav" title="Previous Champion">◀</button>
-
-            <div class="hero-showcase-card" id="rogue-hero-showcase-card">
-              <div class="hero-portrait-wrapper">
-                <img id="rogue-hero-showcase-img" src="/heroes/tengu_face.jpg" alt="Champion" class="hero-showcase-img" />
-              </div>
-
-              <div class="hero-details">
-                <div class="hero-header-row">
-                  <div class="hero-titles-col">
-                    <h3 id="rogue-hero-showcase-name" class="hero-title">Tengu</h3>
-                  </div>
-                </div>
-
-                <div class="hero-skills-grid">
-                  <div class="hero-skill-box active-skill-box rogue-hero-active-box">
-                    <div class="skill-box-header">
-                      <span class="skill-type-tag active-tag">💥 ACTIVE SKILL</span>
-                      <strong id="rogue-hero-active-name" class="skill-name">☄️ Meteor Strike (1 use)</strong>
-                    </div>
-                    <p id="rogue-hero-active-desc" class="skill-desc">Select an area: unleashes falling meteors destroying unprotected stones.</p>
-                  </div>
-
-                  <div class="hero-skill-box passive-skill-box rogue-hero-passive-box" style="display: none;">
-                    <div class="skill-box-header">
-                      <span class="skill-type-tag passive-tag" id="rogue-hero-passive-tag">✨ PASSIVE SKILL</span>
-                      <strong id="rogue-hero-passive-name" class="skill-name">🌧️ Celestial Stone Rain</strong>
-                    </div>
-                    <p id="rogue-hero-passive-desc" class="skill-desc">At the end of personal turn 15, allied stones rain down onto empty intersections.</p>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <button id="btn-hero-next" class="btn-hero-nav" title="Next Champion">▶</button>
-          </div>
-
-          <!-- Thumbnail Strip -->
-          <div class="hero-thumb-strip" id="rogue-hero-thumb-strip">
-            <button class="hero-thumb-btn active" data-hero="normal">
-              <img src="/heroes/normal_face.jpg" alt="Normal" />
-              <span>Normal</span>
-            </button>
-            <button class="hero-thumb-btn" data-hero="tengu">
-              <img src="/heroes/tengu_face.jpg" alt="Tengu" />
-              <span>Tengu</span>
-            </button>
-            <button class="hero-thumb-btn" data-hero="himiko">
-              <img src="/heroes/himiko_face.jpg" alt="Himiko" />
-              <span>Himiko</span>
-            </button>
-            <button class="hero-thumb-btn" data-hero="kitsune">
-              <img src="/heroes/kitsune_face.jpg" alt="Kitsune" />
-              <span>Kitsune</span>
-            </button>
-            <button class="hero-thumb-btn" data-hero="ronin">
-              <img src="/heroes/ronin_face.jpg" alt="Ronin" />
-              <span>Ronin</span>
-            </button>
-            <button class="hero-thumb-btn" data-hero="alchemist">
-              <img src="/heroes/alchemist_face.jpg" alt="Alchemist" />
-              <span>Alchemist</span>
-            </button>
-            <button class="hero-thumb-btn" data-hero="ryujin">
-              <img src="/heroes/ryujin_face.jpg" alt="Ryūjin" />
-              <span>Ryūjin</span>
-            </button>
-          </div>
-        </div>
-
-        <div class="modal-footer rogue-footer-panoramic">
-          <button id="btn-rogue-cancel" class="btn btn-modal-secondary">Back</button>
-          <button id="btn-rogue-start" class="btn btn-hero btn-rogue-cta">
-            <span>▶️ Begin Expedition</span>
-          </button>
-        </div>
-      </div>
-    </div>
-
-    <!-- ================= MODAL: ACTIVE ROGUELIKE CHOICE ================= -->
-    <div id="modal-rogue-choice" class="modal-backdrop hidden">
-      <div class="modal-card modal-choice-dialog">
-        <div class="modal-header">
-          <h2>⚔️ Active Roguelike Expedition</h2>
-          <p class="modal-desc">You have a saved journey recorded along the spiritual Goban path.</p>
-        </div>
-
-        <div class="modal-body-scroll">
-          <div class="saved-run-card" id="saved-run-info-box">
-            <img id="saved-run-hero-img" src="/heroes/tengu_face.jpg" alt="Champion" />
-            <div class="saved-run-details">
-              <strong id="saved-run-hero-name">Tengu</strong>
-              <div class="saved-run-meta">
-                <span id="saved-run-diff" class="pill-badge">Normal Difficulty</span>
-              </div>
-              <small id="saved-run-progress">📍 Expedition ready to resume</small>
-            </div>
-          </div>
-
-          <div class="choice-actions-container">
-            <button id="btn-rogue-resume-active" class="btn btn-choice-large btn-resume-run">
-              <div class="choice-large-icon">▶️</div>
-              <div class="choice-large-text">
-                <strong>Continue Expedition</strong>
-                <span>Resume match exactly where you left off</span>
-              </div>
-            </button>
-
-            <button id="btn-rogue-start-fresh" class="btn btn-choice-large btn-fresh-run">
-              <div class="choice-large-icon">🔄</div>
-              <div class="choice-large-text">
-                <strong>Start New Expedition</strong>
-                <span>Discard current run and choose a fresh champion</span>
-              </div>
-            </button>
-          </div>
-        </div>
-
-        <div class="modal-footer">
-          <button id="btn-rogue-choice-cancel" class="btn btn-modal-secondary">Return to Menu</button>
-        </div>
-      </div>
-    </div>
-
-    <!-- ================= MODAL: LOCAL MATCH SETUP WIZARD ================= -->
-    <div id="new-game-modal" class="modal-backdrop hidden">
-      <div class="modal-card modal-setup wizard-modal-card">
-        <div class="modal-header wizard-modal-header">
-          <div class="wizard-header-top">
-            <h2 id="setup-modal-title">📜 Match Setup</h2>
-            <span id="wizard-step-counter" class="wizard-step-pill">Step 1 of 5</span>
-          </div>
-          
-          <!-- Stepper -->
-          <div class="wizard-stepper" id="wizard-stepper">
-            <button class="wizard-step-node active" data-step="1" title="1. Players">
-              <span class="step-num">1</span>
-              <span class="step-label">Players</span>
-            </button>
-            <div class="wizard-line"></div>
-            <button class="wizard-step-node" data-step="2" title="2. Mode">
-              <span class="step-num">2</span>
-              <span class="step-label">Mode</span>
-            </button>
-            <div class="wizard-line"></div>
-            <button class="wizard-step-node" data-step="3" title="3. Board">
-              <span class="step-num">3</span>
-              <span class="step-label">Board</span>
-            </button>
-            <div class="wizard-line"></div>
-            <button class="wizard-step-node" data-step="4" title="4. Champion">
-              <span class="step-num">4</span>
-              <span class="step-label">Champion</span>
-            </button>
-            <div class="wizard-line"></div>
-            <button class="wizard-step-node" data-step="5" title="5. Settings">
-              <span class="step-num">5</span>
-              <span class="step-label">Settings</span>
-            </button>
-          </div>
-        </div>
-
-        <div class="modal-body-scroll wizard-body-container">
-          <!-- STEP 1: PLAYERS COUNT -->
-          <div id="wizard-step-1" class="wizard-step-panel active">
-            <div class="wizard-step-hero">
-              <h3 class="wizard-step-title">👥 How many players?</h3>
-              <p class="wizard-step-subtitle">Choose between a head-to-head duel or a 4-player free-for-all</p>
-            </div>
-            <div class="setup-grid grid-2 wizard-big-grid">
-              <button id="setup-players-2" class="btn btn-choice-card active" data-players="2">
-                <span class="choice-card-icon">👥</span>
-                <strong class="choice-card-title">2 Players (1v1 Duel)</strong>
-                <span class="choice-card-desc">Traditional duel: ⚫ Black vs ⚪ White</span>
-              </button>
-              <button id="setup-players-4" class="btn btn-choice-card" data-players="4">
-                <span class="choice-card-icon">👥👥</span>
-                <strong class="choice-card-title">4 Players (4P FFA Go)</strong>
-                <span class="choice-card-desc">Free for all: ⚫ Black • ⚪ White • 🟢 Emerald • 🟣 Amethyst</span>
-              </button>
-            </div>
-          </div>
-
-          <!-- STEP 2: GAME MODE -->
-          <div id="wizard-step-2" class="wizard-step-panel hidden">
-            <div class="wizard-step-hero">
-              <h3 class="wizard-step-title">🎮 Choose Opponent Type</h3>
-              <p class="wizard-step-subtitle">Select your opponents for this match</p>
-            </div>
-            <div class="setup-grid grid-2 wizard-big-grid">
-              <button id="setup-mode-1via" class="btn btn-choice-card active">
-                <span class="choice-card-icon">🤖</span>
-                <strong class="choice-card-title" id="label-mode-ai">Human vs AI</strong>
-                <span class="choice-card-desc">Compete solo against the intelligent KataGo engine</span>
-              </button>
-              <button id="setup-mode-1v1" class="btn btn-choice-card">
-                <span class="choice-card-icon">🎮</span>
-                <strong class="choice-card-title" id="label-mode-local">Local Mode (Pass & Play)</strong>
-                <span class="choice-card-desc">Multiple players taking turns on the same screen</span>
-              </button>
-            </div>
-          </div>
-
-          <!-- STEP 3: BOARD SIZE AND TOPOLOGY -->
-          <div id="wizard-step-3" class="wizard-step-panel hidden">
-            <div class="wizard-step-hero">
-              <h3 class="wizard-step-title">📐 Select Board & Topology</h3>
-              <p class="wizard-step-subtitle">Configure dimensions and geometry of the playing field</p>
-            </div>
-
-            <div class="wizard-subgroup">
-              <label class="setup-label">Grid Size</label>
-              <div class="setup-grid grid-3">
-                <button id="setup-size-9" class="btn btn-choice active">
-                  <strong>9x9</strong>
-                  <small style="display:block;font-size:0.75rem;opacity:0.8;">Fast & Tactical</small>
-                </button>
-                <button id="setup-size-13" class="btn btn-choice">
-                  <strong>13x13</strong>
-                  <small style="display:block;font-size:0.75rem;opacity:0.8;">Balanced</small>
-                </button>
-                <button id="setup-size-19" class="btn btn-choice">
-                  <strong>19x19</strong>
-                  <small style="display:block;font-size:0.75rem;opacity:0.8;">Official Pro</small>
-                </button>
-              </div>
-            </div>
-
-            <div class="wizard-subgroup" style="margin-top: 1rem;">
-              <label class="setup-label">Board Shape</label>
-              <div class="setup-grid grid-4">
-                <button id="setup-shape-square" class="btn btn-choice active">⏹️ Square</button>
-                <button id="setup-shape-eroded" class="btn btn-choice">🪨 Eroded</button>
-                <button id="setup-shape-islands" class="btn btn-choice">🕳️ Islands / Abysses</button>
-                <button id="setup-shape-cross" class="btn btn-choice">➕ Cross / Diamond</button>
-                <button id="setup-shape-triangle" class="btn btn-choice">🔺 Triangular</button>
-                <button id="setup-shape-hex" class="btn btn-choice">⬡ Hexagonal</button>
-                <button id="setup-shape-procedural" class="btn btn-choice">🎲 Procedural (Infinite)</button>
-              </div>
-            </div>
-
-            <!-- Scenery / Background Selection -->
-            <div class="wizard-subgroup" style="margin-top: 1rem;">
-              <label class="setup-label">🌄 Scenery & Environment (Background)</label>
-              <div class="setup-grid grid-4">
-                <button id="setup-bg-combat" class="btn btn-choice btn-setup-bg active" data-bg="combat">
-                  <span>⚔️ Traditional Dojo</span>
-                  <small style="display:block;font-size:0.7rem;opacity:0.75;">Classic Arena</small>
-                </button>
-                <button id="setup-bg-meadow" class="btn btn-choice btn-setup-bg" data-bg="meadow">
-                  <span>🌿 Emerald Meadow</span>
-                  <small style="display:block;font-size:0.7rem;opacity:0.75;">Bamboo & Grassland</small>
-                </button>
-                <button id="setup-bg-sunset" class="btn btn-choice btn-setup-bg" data-bg="sunset">
-                  <span>🌅 Mountain Sunset</span>
-                  <small style="display:block;font-size:0.7rem;opacity:0.75;">Peak & Pagoda</small>
-                </button>
-                <button id="setup-bg-night" class="btn btn-choice btn-setup-bg" data-bg="night">
-                  <span>🌙 Moonlit Lake</span>
-                  <small style="display:block;font-size:0.7rem;opacity:0.75;">Torii & Wisteria</small>
-                </button>
-                <button id="setup-bg-story" class="btn btn-choice btn-setup-bg" data-bg="story">
-                  <span>🌌 Astral Void</span>
-                  <small style="display:block;font-size:0.7rem;opacity:0.75;">Floating Tatami</small>
-                </button>
-                <button id="setup-bg-tutorial" class="btn btn-choice btn-setup-bg" data-bg="tutorial">
-                  <span>🌸 Zen Garden</span>
-                  <small style="display:block;font-size:0.7rem;opacity:0.75;">Shoji & Sakura</small>
-                </button>
-                <button id="setup-bg-boss" class="btn btn-choice btn-setup-bg" data-bg="boss">
-                  <span>🌋 Dragon Lair</span>
-                  <small style="display:block;font-size:0.7rem;opacity:0.75;">Volcano & Lightning</small>
-                </button>
-              </div>
-            </div>
-          </div>
-
-          <!-- STEP 4: CHAMPION SELECTION -->
-          <div id="wizard-step-4" class="wizard-step-panel hidden">
-            <div class="wizard-step-hero">
-              <h3 class="wizard-step-title">🧙‍♂️ Choose Mystic Champion or Pure Go</h3>
-              <p class="wizard-step-subtitle">Wield legendary powers or play pure canonical Japanese Go</p>
-            </div>
-
-            <div class="rogue-hero-panoramic-box setup-hero-panoramic-box">
-              <button id="btn-setup-hero-prev" class="btn-hero-nav" title="Previous Champion">◀</button>
-
-              <div class="hero-showcase-card" id="setup-hero-showcase-card">
-                <div class="hero-portrait-wrapper">
-                  <img id="setup-hero-showcase-img" src="/heroes/normal_face.jpg" alt="Normal Apprentice" class="hero-showcase-img" />
-                </div>
-
-                <div class="hero-details">
-                  <div class="hero-header-row">
-                    <div class="hero-titles-col">
-                      <h3 id="setup-hero-showcase-name" class="hero-title">Normal Apprentice</h3>
-                    </div>
-                  </div>
-
-                  <div class="hero-skills-grid">
-                    <div class="hero-skill-box active-skill-box setup-hero-active-box" style="display: none;">
-                      <div class="skill-box-header">
-                        <span class="skill-type-tag active-tag">💥 ACTIVE SKILL</span>
-                        <strong id="setup-hero-active-name" class="skill-name">Active Skill</strong>
-                      </div>
-                      <p id="setup-hero-active-desc" class="skill-desc">Description of active skill.</p>
-                    </div>
-
-                    <div class="hero-skill-box passive-skill-box setup-hero-passive-box">
-                      <div class="skill-box-header">
-                        <span class="skill-type-tag passive-tag" id="setup-hero-passive-tag">📜 PURE RULES</span>
-                        <strong id="setup-hero-passive-name" class="skill-name">Japanese Canonical Rules</strong>
-                      </div>
-                      <p id="setup-hero-passive-desc" class="skill-desc">Pure Go strategy: liberties, unconditional life, Ko and territory without gimmicks.</p>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              <button id="btn-setup-hero-next" class="btn-hero-nav" title="Next Champion">▶</button>
-            </div>
-
-            <div class="hero-thumb-strip" id="setup-hero-thumb-strip">
-              <button class="hero-thumb-btn active" data-hero="normal">
-                <img src="/heroes/normal_face.jpg" alt="Normal" />
-                <span>Normal</span>
-              </button>
-              <button class="hero-thumb-btn" data-hero="tengu">
-                <img src="/heroes/tengu_face.jpg" alt="Tengu" />
-                <span>Tengu</span>
-              </button>
-              <button class="hero-thumb-btn" data-hero="himiko">
-                <img src="/heroes/himiko_face.jpg" alt="Himiko" />
-                <span>Himiko</span>
-              </button>
-              <button class="hero-thumb-btn" data-hero="kitsune">
-                <img src="/heroes/kitsune_face.jpg" alt="Kitsune" />
-                <span>Kitsune</span>
-              </button>
-              <button class="hero-thumb-btn" data-hero="ronin">
-                <img src="/heroes/ronin_face.jpg" alt="Ronin" />
-                <span>Ronin</span>
-              </button>
-              <button class="hero-thumb-btn" data-hero="alchemist">
-                <img src="/heroes/alchemist_face.jpg" alt="Alchemist" />
-                <span>Alchemist</span>
-              </button>
-              <button class="hero-thumb-btn" data-hero="ryujin">
-                <img src="/heroes/ryujin_face.jpg" alt="Ryūjin" />
-                <span>Ryūjin</span>
-              </button>
-            </div>
-          </div>
-
-          <!-- STEP 5: FINAL ADJUSTMENTS AND SUMMARY -->
-          <div id="wizard-step-5" class="wizard-step-panel hidden">
-            <div class="wizard-step-hero">
-              <h3 class="wizard-step-title">⚔️ Final Adjustments & Summary</h3>
-              <p class="wizard-step-subtitle">Review parameters and prepare to enter the Goban</p>
-            </div>
-
-            <!-- Summary Card -->
-            <div class="wizard-summary-card">
-              <div class="summary-hero-avatar-box">
-                <img id="wizard-summary-hero-img" src="/heroes/normal_face.jpg" alt="Champion" />
-              </div>
-              <div class="summary-details">
-                <strong id="wizard-summary-title">1v1 Duel • Human vs AI</strong>
-                <span id="wizard-summary-desc">19x19 Square Board • Normal Apprentice • Medium AI • Komi 6.5</span>
-              </div>
-            </div>
-
-            <!-- AI Options -->
-            <div id="setup-ai-options" class="setup-section setup-subbox">
-              <label class="setup-label">Your Side (Stone Color)</label>
-              <div class="setup-grid grid-2">
-                <button id="setup-color-black" class="btn btn-choice active">
-                  <span class="mini-stone black-mini"></span>
-                  <span>Black ⚫ (First turn)</span>
-                </button>
-                <button id="setup-color-white" class="btn btn-choice">
-                  <span class="mini-stone white-mini"></span>
-                  <span>White ⚪ (AI plays first)</span>
-                </button>
-              </div>
-
-              <label class="setup-label" style="margin-top: 0.75rem;">AI Difficulty (Calibrated KataGo Engine)</label>
-              <div class="setup-grid grid-4">
-                <button id="setup-diff-easy" class="btn btn-choice" title="Beginner (25-28 Kyu)">
-                  <span>🟢 Easy</span>
-                  <small style="display:block;font-size:0.7rem;opacity:0.75;">25 Kyu</small>
-                </button>
-                <button id="setup-diff-medium" class="btn btn-choice active" title="Intermediate (16 Kyu)">
-                  <span>🟡 Medium</span>
-                  <small style="display:block;font-size:0.7rem;opacity:0.75;">16 Kyu</small>
-                </button>
-                <button id="setup-diff-hard" class="btn btn-choice" title="Advanced (4 Kyu)">
-                  <span>🔴 Hard</span>
-                  <small style="display:block;font-size:0.7rem;opacity:0.75;">4 Kyu</small>
-                </button>
-                <button id="setup-diff-dan" class="btn btn-choice btn-dan" title="Master (2 Dan)">
-                  <span>🟣 Extreme</span>
-                  <small style="display:block;font-size:0.7rem;opacity:0.75;">2 Dan</small>
-                </button>
-              </div>
-            </div>
-
-            <!-- Special Polyomino Stones -->
-            <div class="setup-section special-stones-setup-box" style="margin-top: 0.75rem;">
-              <div class="setup-label-row">
-                <label class="setup-label">🌿 Special Polyomino Stones</label>
-                <button type="button" id="btn-toggle-special-stones" class="btn btn-switch" data-enabled="false">
-                  <span id="label-toggle-special">Disabled ❌</span>
-                </button>
-              </div>
-
-              <div id="special-stones-controls" class="special-stones-controls hidden">
-                <div class="poly-config-group">
-                  <span class="poly-config-heading">Your Special Stones:</span>
-                  <div class="poly-counters-grid">
-                    <div class="poly-counter-item">
-                      <span class="poly-counter-label">🌿 Sprouting (1x1)</span>
-                      <div class="counter-input-group">
-                        <button type="button" class="btn btn-counter-adj" data-target="playerSprouting" data-delta="-1">-</button>
-                        <span id="display-poly-player-sprouting" class="counter-val">2</span>
-                        <button type="button" class="btn btn-counter-adj" data-target="playerSprouting" data-delta="1">+</button>
-                      </div>
-                    </div>
-                    <div class="poly-counter-item">
-                      <span class="poly-counter-label">🀄 Duplicity (2x1)</span>
-                      <div class="counter-input-group">
-                        <button type="button" class="btn btn-counter-adj" data-target="playerDomino" data-delta="-1">-</button>
-                        <span id="display-poly-player-domino" class="counter-val">2</span>
-                        <button type="button" class="btn btn-counter-adj" data-target="playerDomino" data-delta="1">+</button>
-                      </div>
-                    </div>
-                    <div class="poly-counter-item">
-                      <span class="poly-counter-label">🧱 Monolith (2x2)</span>
-                      <div class="counter-input-group">
-                        <button type="button" class="btn btn-counter-adj" data-target="playerMonolith" data-delta="-1">-</button>
-                        <span id="display-poly-player-monolith" class="counter-val">1</span>
-                        <button type="button" class="btn btn-counter-adj" data-target="playerMonolith" data-delta="1">+</button>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                <div id="special-stones-ai-box" class="poly-config-group" style="margin-top: 0.75rem;">
-                  <div class="setup-label-row" style="margin-bottom: 0.35rem;">
-                    <span class="poly-config-heading">Enable special stones for AI?</span>
-                    <button type="button" id="btn-toggle-ai-special" class="btn btn-switch" data-enabled="false">
-                      <span id="label-toggle-ai-special">AI: Disabled ❌</span>
-                    </button>
-                  </div>
-                  <div id="ai-poly-counters" class="poly-counters-grid hidden">
-                    <div class="poly-counter-item">
-                      <span class="poly-counter-label">🌿 AI Sprouting</span>
-                      <div class="counter-input-group">
-                        <button type="button" class="btn btn-counter-adj" data-target="aiSprouting" data-delta="-1">-</button>
-                        <span id="display-poly-ai-sprouting" class="counter-val">2</span>
-                        <button type="button" class="btn btn-counter-adj" data-target="aiSprouting" data-delta="1">+</button>
-                      </div>
-                    </div>
-                    <div class="poly-counter-item">
-                      <span class="poly-counter-label">🀄 AI Duplicity</span>
-                      <div class="counter-input-group">
-                        <button type="button" class="btn btn-counter-adj" data-target="aiDomino" data-delta="-1">-</button>
-                        <span id="display-poly-ai-domino" class="counter-val">2</span>
-                        <button type="button" class="btn btn-counter-adj" data-target="aiDomino" data-delta="1">+</button>
-                      </div>
-                    </div>
-                    <div class="poly-counter-item">
-                      <span class="poly-counter-label">🧱 AI Monolith</span>
-                      <div class="counter-input-group">
-                        <button type="button" class="btn btn-counter-adj" data-target="aiMonolith" data-delta="-1">-</button>
-                        <span id="display-poly-ai-monolith" class="counter-val">1</span>
-                        <button type="button" class="btn btn-counter-adj" data-target="aiMonolith" data-delta="1">+</button>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <!-- Komi -->
-            <div class="setup-section" style="margin-top: 0.75rem;">
-              <div class="setup-label-row">
-                <label class="setup-label">Komi (Advantage points for White)</label>
-                <strong id="setup-komi-display" class="highlight-text">6.5 pts</strong>
-              </div>
-              <div class="setup-grid grid-4 komi-presets-grid">
-                <button class="btn btn-choice btn-setup-komi" data-komi="0.5">0.5</button>
-                <button class="btn btn-choice btn-setup-komi" data-komi="5.5">5.5</button>
-                <button class="btn btn-choice btn-setup-komi active" data-komi="6.5">6.5 (Default)</button>
-                <button class="btn btn-choice btn-setup-komi" data-komi="7.5">7.5</button>
-              </div>
-              <div class="komi-custom-wrapper">
-                <span class="komi-custom-label">Or custom free value:</span>
-                <div class="komi-input-box">
-                  <input type="number" id="setup-komi-input" step="0.5" min="0" max="100" value="6.5" class="komi-num-field" />
-                  <span class="komi-unit">pts</span>
-                </div>
-              </div>
-            </div>
-
-            <!-- Time Controls -->
-            <div class="setup-section timer-setup-box" style="margin-top: 0.75rem;">
-              <div class="setup-label-row">
-                <label class="setup-label">⏱️ Time Control (Go Clock)</label>
-                <button type="button" id="btn-toggle-timer" class="btn btn-switch" data-enabled="false">
-                  <span id="label-toggle-timer">No Limit ❌</span>
-                </button>
-              </div>
-
-              <div id="timer-controls" class="timer-controls hidden">
-                <label class="setup-label" style="font-size: 0.8rem; margin-top: 0.35rem;">Clock Mode:</label>
-                <div class="setup-grid grid-3">
-                  <button type="button" class="btn btn-choice btn-timer-mode active" data-mode="per_move">
-                    <span>⚡ Per Move</span>
-                    <small style="display:block;font-size:0.7rem;opacity:0.8;">Fixed time per turn</small>
-                  </button>
-                  <button type="button" class="btn btn-choice btn-timer-mode" data-mode="absolute">
-                    <span>⏳ Absolute</span>
-                    <small style="display:block;font-size:0.7rem;opacity:0.8;">Total bank time</small>
-                  </button>
-                  <button type="button" class="btn btn-choice btn-timer-mode" data-mode="fischer">
-                    <span>⏱️ Fischer</span>
-                    <small style="display:block;font-size:0.7rem;opacity:0.8;">Base + Increment</small>
-                  </button>
-                </div>
-
-                <div id="timer-options-per-move" class="timer-sub-options" style="margin-top: 0.5rem;">
-                  <label class="setup-label" style="font-size: 0.78rem;">Seconds per Move:</label>
-                  <div class="setup-grid grid-5">
-                    <button type="button" class="btn btn-choice btn-timer-val" data-val="10">10s</button>
-                    <button type="button" class="btn btn-choice btn-timer-val" data-val="15">15s</button>
-                    <button type="button" class="btn btn-choice btn-timer-val active" data-val="30">30s</button>
-                    <button type="button" class="btn btn-choice btn-timer-val" data-val="45">45s</button>
-                    <button type="button" class="btn btn-choice btn-timer-val" data-val="60">60s</button>
-                  </div>
-                </div>
-
-                <div id="timer-options-absolute" class="timer-sub-options hidden" style="margin-top: 0.5rem;">
-                  <label class="setup-label" style="font-size: 0.78rem;">Main Bank Time:</label>
-                  <div class="setup-grid grid-5">
-                    <button type="button" class="btn btn-choice btn-timer-val" data-val="60">1 min</button>
-                    <button type="button" class="btn btn-choice btn-timer-val" data-val="180">3 min</button>
-                    <button type="button" class="btn btn-choice btn-timer-val active" data-val="300">5 min</button>
-                    <button type="button" class="btn btn-choice btn-timer-val" data-val="600">10 min</button>
-                    <button type="button" class="btn btn-choice btn-timer-val" data-val="900">15 min</button>
-                  </div>
-                </div>
-
-                <div id="timer-options-fischer" class="timer-sub-options hidden" style="margin-top: 0.5rem;">
-                  <label class="setup-label" style="font-size: 0.78rem;">Base Time + Increment:</label>
-                  <div class="setup-grid grid-3">
-                    <button type="button" class="btn btn-choice btn-timer-val active" data-val="180" data-inc="5">3m + 5s</button>
-                    <button type="button" class="btn btn-choice btn-timer-val" data-val="300" data-inc="5">5m + 5s</button>
-                    <button type="button" class="btn btn-choice btn-timer-val" data-val="600" data-inc="10">10m + 10s</button>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <div class="modal-footer wizard-modal-footer">
-          <button id="btn-wizard-prev" class="btn btn-modal-secondary">Cancel</button>
-          <div class="wizard-footer-right">
-            <button id="btn-wizard-next" class="btn btn-modal-primary">
-              <span>Next ➔</span>
-            </button>
-            <button id="btn-setup-start" class="btn btn-hero btn-wizard-cta hidden">
-              <span>⚔️ Start Match!</span>
-            </button>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- ================= MODAL: SYSTEM OPTIONS ================= -->
-    <div id="options-modal" class="modal-backdrop hidden">
-      <div class="modal-card modal-options">
-        <div class="modal-header modal-header-with-close" style="display: flex; justify-content: space-between; align-items: flex-start;">
-          <div>
-            <h2 data-i18n="options.title">⚙️ Options</h2>
-            <p class="modal-desc" data-i18n="options.desc">Language, sound, music, and gameplay preferences</p>
-          </div>
-          <button id="btn-options-header-close" class="btn-modal-close-icon" title="Close options">✖</button>
-        </div>
-
-        <div class="modal-body">
-          <!-- Idioma / Language Selector -->
-          <div class="option-row">
-            <div class="option-info">
-              <strong data-i18n="options.language">Idioma / Language</strong>
-              <span data-i18n="options.language_desc">Select UI and dialogue language</span>
-            </div>
-            <div class="setup-grid grid-2" style="gap: 0.5rem;">
-              <button id="opt-lang-es" class="btn btn-choice" data-lang="es">🇪🇸 Español</button>
-              <button id="opt-lang-en" class="btn btn-choice" data-lang="en">🇬🇧 English</button>
-            </div>
-          </div>
-
-          <div class="option-row">
-            <div class="option-info">
-              <strong data-i18n="options.master_vol">Master Volume</strong>
-              <span data-i18n="options.master_vol_desc">Controls overall audio volume</span>
-            </div>
-            <div class="volume-control">
-              <input type="range" id="opt-vol-slider" min="0" max="100" value="80" class="slider" />
-              <span id="opt-vol-text" class="slider-val">80%</span>
-            </div>
-          </div>
-
-          <div class="option-row">
-            <div class="option-info">
-              <strong data-i18n="options.sfx">Sound Effects (SFX)</strong>
-              <span data-i18n="options.sfx_desc">Procedural stone placement and capture sounds</span>
-            </div>
-            <button id="opt-sfx-toggle" class="btn btn-toggle active">Enabled</button>
-          </div>
-
-          <div class="option-row">
-            <div class="option-info">
-              <strong data-i18n="options.bgm">Background Music (BGM)</strong>
-              <span data-i18n="options.bgm_desc">Ambient zen focus music</span>
-            </div>
-            <button id="opt-bgm-toggle" class="btn btn-toggle active">Enabled</button>
-          </div>
-
-          <div class="option-row">
-            <div class="option-info">
-              <strong data-i18n="options.dev_mode">Developer Mode</strong>
-              <span data-i18n="options.dev_mode_desc">Enables Undo, Redo, and Debug Sandbox across all game modes</span>
-            </div>
-            <button id="opt-dev-toggle" class="btn btn-toggle inactive">Disabled</button>
-          </div>
-
-          <div class="options-shortcuts-section">
-            <h3 class="shortcuts-title" data-i18n="options.shortcuts_title">⌨️ Keyboard Shortcuts</h3>
-            <div class="shortcuts-grid">
-              <div class="shortcut-item">
-                <kbd class="key-badge">Space</kbd>
-                <span data-i18n="options.shortcut_pass">Pass Turn</span>
-              </div>
-              <div class="shortcut-item">
-                <kbd class="key-badge">U</kbd>
-                <span data-i18n="options.shortcut_undo">Undo (Time Rewind)</span>
-              </div>
-              <div class="shortcut-item">
-                <kbd class="key-badge">R</kbd>
-                <span data-i18n="options.shortcut_rotate">Rotate Duplicity 2x1 [⇄/⇅] / Redo</span>
-              </div>
-              <div class="shortcut-item">
-                <kbd class="key-badge">1 - 4</kbd>
-                <span data-i18n="options.shortcut_spells">Spells (1: Rewind, 2: Meteor, 3: Shield, 4: Convert)</span>
-              </div>
-              <div class="shortcut-item">
-                <kbd class="key-badge">5 - 7</kbd>
-                <span data-i18n="options.shortcut_poly">Polyominoes (5/Z: Sprouting 🌿, 6/X: Duplicity 🀄, 7/V: Monolith 🧱)</span>
-              </div>
-              <div class="shortcut-item">
-                <kbd class="key-badge">C</kbd>
-                <span data-i18n="options.shortcut_champion">Champion Active Skill</span>
-              </div>
-              <div class="shortcut-item">
-                <kbd class="key-badge">M / Esc</kbd>
-                <span data-i18n="options.shortcut_options">Options / Close Dialogs</span>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- ================= MODAL: FINAL SCORING & VICTORY ================= -->
-    <div id="score-modal" class="modal-backdrop hidden">
-      <div class="modal-card modal-score modal-victory-unified" id="modal-score-card">
-        <img id="modal-victory-hero-art" src="/heroes/tengu.png" alt="Champion" class="modal-victory-hero-bg hidden" />
-
-        <div class="modal-score-content">
-          <div class="victory-gold-title-row" id="modal-victory-title-row">
-            <span class="victory-star left-star hidden" id="modal-star-left">⭐</span>
-            <h2 id="modal-winner-title">Victory for Black! ⚫</h2>
-            <span class="victory-star right-star hidden" id="modal-star-right">⭐</span>
-          </div>
-          <p id="modal-margin-subtitle" class="modal-subtitle">Margin: +5.5 points</p>
-
-          <div id="modal-score-breakdown-grid" class="score-breakdown-grid">
-            <div class="breakdown-col black-col" id="modal-col-p1">
-              <h3>⚫ Black</h3>
-              <div class="score-row"><span>Territory:</span><strong id="modal-b-terr">0</strong></div>
-              <div class="score-row"><span>Prisoners:</span><strong id="modal-b-caps">0</strong></div>
-              <div class="score-row total-row"><span>Total:</span><strong id="modal-b-total">0</strong></div>
-            </div>
-
-            <div class="breakdown-col white-col" id="modal-col-p2">
-              <h3>⚪ White</h3>
-              <div class="score-row"><span>Territory:</span><strong id="modal-w-terr">0</strong></div>
-              <div class="score-row"><span>Prisoners:</span><strong id="modal-w-caps">0</strong></div>
-              <div class="score-row"><span>Komi:</span><strong id="modal-w-komi">+2.5</strong></div>
-              <div class="score-row total-row"><span>Total:</span><strong id="modal-w-total">2.5</strong></div>
-            </div>
-
-            <div class="breakdown-col green-col hidden" id="modal-col-p3">
-              <h3>🟢 Emerald</h3>
-              <div class="score-row"><span>Territory:</span><strong id="modal-g-terr">0</strong></div>
-              <div class="score-row"><span>Prisoners:</span><strong id="modal-g-caps">0</strong></div>
-              <div class="score-row total-row"><span>Total:</span><strong id="modal-g-total">0</strong></div>
-            </div>
-
-            <div class="breakdown-col purple-col hidden" id="modal-col-p4">
-              <h3>🟣 Amethyst</h3>
-              <div class="score-row"><span>Territory:</span><strong id="modal-p-terr">0</strong></div>
-              <div class="score-row"><span>Prisoners:</span><strong id="modal-p-caps">0</strong></div>
-              <div class="score-row total-row"><span>Total:</span><strong id="modal-p-total">0</strong></div>
-            </div>
-          </div>
-
-          <!-- ROGUELIKE REWARDS SECTION -->
-          <div id="modal-rogue-rewards-section" class="modal-rogue-rewards-section hidden">
-            <label class="setup-label" style="text-align: left; display: block; margin-bottom: 0.5rem;">
-              🎁 Choose 1 Reward for your Deck:
-            </label>
-            <div class="reward-cards-grid" id="modal-reward-cards-container">
-              <!-- Dynamically injected -->
-            </div>
-          </div>
-
-          <div class="modal-footer">
-            <button id="btn-modal-inspect" class="btn btn-modal-secondary">👁️ Inspect Board</button>
-            <button id="btn-modal-rematch" class="btn btn-modal-primary">New Match 🔄</button>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- ================= MODAL: SHRINE / REST / SHOP EVENT ================= -->
-    <div id="rogue-event-modal" class="modal-backdrop hidden">
-      <div class="modal-card modal-event">
-        <div class="modal-header">
-          <h2 id="event-modal-title">⛩️ Sacred Shrine</h2>
-          <p id="event-modal-subtitle" class="modal-desc">A place of tranquility along your Go journey</p>
-        </div>
-
-        <div class="modal-body-scroll" id="event-body-content">
-          <!-- Injected dynamically -->
-        </div>
-
-        <div class="modal-footer">
-          <button id="btn-event-leave" class="btn btn-modal-secondary">Continue Path ➔</button>
-        </div>
-      </div>
-    </div>
-
-    <!-- ================= MODAL: EXPEDITION DECK & STATS ================= -->
-    <div id="rogue-deck-modal" class="modal-backdrop hidden">
-      <div class="modal-card modal-deck">
-        <div class="modal-header">
-          <h2>📜 Expedition Deck & Relics</h2>
-          <p class="modal-desc">Inspect spells, skills, and blessings active in your expedition.</p>
-        </div>
-
-        <div class="modal-body-scroll">
-          <div class="deck-hero-banner">
-            <img id="deck-hero-img" src="/heroes/tengu.png" alt="Champion" />
-            <div class="deck-hero-info">
-              <div class="deck-hero-header">
-                <span id="deck-hero-icon" class="deck-hero-icon">🦅</span>
-                <div>
-                  <strong id="deck-hero-name">Tengu</strong>
-                </div>
-              </div>
-              <div class="deck-skill-entry">
-                <span class="skill-tag active-tag">Active</span>
-                <strong id="deck-hero-active-name">Meteor Strike</strong>
-                <p id="deck-hero-active-desc"></p>
-              </div>
-              <div class="deck-skill-entry">
-                <span class="skill-tag passive-tag">Passive</span>
-                <strong id="deck-hero-passive-name">Stone Rain</strong>
-                <p id="deck-hero-passive-desc"></p>
-              </div>
-            </div>
-          </div>
-
-          <div class="deck-stats-row">
-            <div class="deck-stat-pill">
-              <span>💎 Permanent Komi:</span>
-              <strong id="deck-stat-komi">+0.0</strong>
-            </div>
-          </div>
-
-          <label class="setup-label">Magic Spell Scrolls in Deck:</label>
-          <div class="deck-spells-grid" id="deck-spells-container">
-            <!-- Dynamically injected -->
-          </div>
-        </div>
-
-        <div class="modal-footer">
-          <button id="btn-deck-close" class="btn btn-modal-primary">Return to Map 🗺️</button>
-        </div>
-      </div>
-    </div>
-
-    <!-- ================= MODAL: TESTING LAB & TROUBLESHOOTER ================= -->
-    <div id="modal-sandbox" class="modal-backdrop hidden">
-      <div class="modal-card modal-sandbox-panel">
-        <div class="modal-header sandbox-header">
-          <div class="sandbox-title-group">
-            <h2>🧪 Testing Lab & Troubleshooter</h2>
-            <p class="modal-desc">Live board editor, situation simulator, canonical rule tests & debugging</p>
-          </div>
-          <button id="btn-toggle-sandbox-brush" class="btn-sandbox-brush-toggle active">
-            🖌️ Free Brush Enabled
-          </button>
-        </div>
-
-        <div class="sandbox-tabs-nav">
-          <button class="sandbox-tab-btn active" data-tab="tab-sandbox-brushes">🖌️ Brushes</button>
-          <button class="sandbox-tab-btn" data-tab="tab-sandbox-topology">🗺️ Topology & Size</button>
-          <button class="sandbox-tab-btn" data-tab="tab-sandbox-presets">🎯 Preset Scenarios</button>
-          <button class="sandbox-tab-btn" data-tab="tab-sandbox-cheats">⚡ Spells & Champions</button>
-        </div>
-
-        <div class="modal-body-scroll sandbox-body">
-          <div id="tab-sandbox-brushes" class="sandbox-tab-pane active">
-            <div class="sandbox-section">
-              <label class="setup-label">Stone Brushes (Direct click placement)</label>
-              <div class="sandbox-brush-grid">
-                <button class="btn-sandbox-brush active" data-brush="stone_black" title="Place Black Stone">
-                  <span class="mini-stone black-mini"></span>
-                  <span>⚫ Black P1</span>
-                </button>
-                <button class="btn-sandbox-brush" data-brush="stone_white" title="Place White Stone">
-                  <span class="mini-stone white-mini"></span>
-                  <span>⚪ White P2</span>
-                </button>
-                <button class="btn-sandbox-brush" data-brush="stone_green" title="Place Emerald Stone">
-                  <span class="mini-stone green-mini"></span>
-                  <span>🟢 Emerald P3</span>
-                </button>
-                <button class="btn-sandbox-brush" data-brush="stone_purple" title="Place Amethyst Stone">
-                  <span class="mini-stone purple-mini"></span>
-                  <span>🟣 Amethyst P4</span>
-                </button>
-                <button class="btn-sandbox-brush" data-brush="stone_sacred" title="Place Sacred Indestructible Stone">
-                  <span class="brush-icon">🛡️</span>
-                  <span>Sacred Stone</span>
-                </button>
-              </div>
-            </div>
-
-            <div class="sandbox-section">
-              <label class="setup-label">Polyomino Stones</label>
-              <div class="sandbox-brush-grid">
-                <button class="btn-sandbox-brush" data-brush="poly_sprouting" title="Place Sprouting Stone (Sprouts every 2 turns)">
-                  <span class="brush-icon">🌿</span>
-                  <span>Sprouting 1x1</span>
-                </button>
-                <button class="btn-sandbox-brush" data-brush="poly_domino" title="Place Duplicity Stone 2x1">
-                  <span class="brush-icon">🀄</span>
-                  <span>Duplicity 2x1</span>
-                </button>
-                <button class="btn-sandbox-brush" data-brush="poly_monolith" title="Place Monolith 2x2">
-                  <span class="brush-icon">🧱</span>
-                  <span>Monolith 2x2</span>
-                </button>
-              </div>
-            </div>
-
-            <div class="sandbox-section">
-              <label class="setup-label">Special Terrains & Tools</label>
-              <div class="sandbox-brush-grid">
-                <button class="btn-sandbox-brush" data-brush="terrain_portal" title="Convert node to Spatial Portal">
-                  <span class="brush-icon">🌌</span>
-                  <span>Portal</span>
-                </button>
-                <button class="btn-sandbox-brush" data-brush="terrain_vortex" title="Convert node to Dimensional Vortex">
-                  <span class="brush-icon">🌀</span>
-                  <span>Vortex</span>
-                </button>
-                <button class="btn-sandbox-brush" data-brush="terrain_sanctuary" title="Convert node to Sanctuary">
-                  <span class="brush-icon">⛩️</span>
-                  <span>Sanctuary</span>
-                </button>
-                <button class="btn-sandbox-brush" data-brush="terrain_destroyed" title="Destroy intersection (Void Hole)">
-                  <span class="brush-icon">🪨</span>
-                  <span>Destroyed</span>
-                </button>
-                <button class="btn-sandbox-brush" data-brush="terrain_normal" title="Restore intersection to Normal">
-                  <span class="brush-icon">⏹️</span>
-                  <span>Normal</span>
-                </button>
-                <button class="btn-sandbox-brush btn-eraser-brush" data-brush="eraser" title="Erase stone & reset node">
-                  <span class="brush-icon">🧹</span>
-                  <span>Eraser</span>
-                </button>
-              </div>
-            </div>
-
-            <div class="sandbox-actions-row">
-              <button id="btn-sandbox-clear-board" class="btn btn-choice btn-sandbox-action">
-                <span>🧹 Clear Entire Board</span>
-              </button>
-            </div>
-          </div>
-
-          <div id="tab-sandbox-topology" class="sandbox-tab-pane">
-            <div class="sandbox-section">
-              <label class="setup-label">Live Board Shape</label>
-              <div class="setup-grid grid-4">
-                <button class="btn btn-choice btn-sandbox-shape active" data-shape="square">⏹️ Square</button>
-                <button class="btn btn-choice btn-sandbox-shape" data-shape="eroded">🪨 Eroded</button>
-                <button class="btn btn-choice btn-sandbox-shape" data-shape="islands">🕳️ Islands / Abysses</button>
-                <button class="btn btn-choice btn-sandbox-shape" data-shape="cross">➕ Cross / Diamond</button>
-                <button class="btn btn-choice btn-sandbox-shape" data-shape="triangle">🔺 Triangular</button>
-                <button class="btn btn-choice btn-sandbox-shape" data-shape="hex">⬡ Hexagonal</button>
-                <button class="btn btn-choice btn-sandbox-shape" data-shape="procedural">🎲 Procedural (Infinite)</button>
-              </div>
-            </div>
-
-            <div class="sandbox-section">
-              <label class="setup-label">Grid Size</label>
-              <div class="setup-grid grid-3">
-                <button class="btn btn-choice btn-sandbox-size active" data-size="9">9x9 (Fast)</button>
-                <button class="btn btn-choice btn-sandbox-size" data-size="13">13x13 (Medium)</button>
-                <button class="btn btn-choice btn-sandbox-size" data-size="19">19x19 (Official)</button>
-              </div>
-            </div>
-
-            <button id="btn-sandbox-apply-topology" class="btn btn-modal-primary" style="margin-top:0.5rem;">
-              <span>🔄 Re-generate Board</span>
-            </button>
-          </div>
-
-          <div id="tab-sandbox-presets" class="sandbox-tab-pane">
-            <p class="sandbox-help-text">Load prepared situations to test and debug canonical rules and effects:</p>
-            <div class="sandbox-presets-list">
-              <button class="sandbox-preset-card" data-preset="ko_test">
-                <div class="preset-icon">🔄</div>
-                <div class="preset-info">
-                  <strong>Ko Rule Test</strong>
-                  <span>Sets up simple Ko. Play at (4,4) to capture and verify immediate recapture is blocked.</span>
-                </div>
-              </button>
-
-              <button class="sandbox-preset-card" data-preset="atari_chain">
-                <div class="preset-icon">💥</div>
-                <div class="preset-info">
-                  <strong>Multiple Atari Test</strong>
-                  <span>Chain of 4 stones in Atari with 1 open liberty to test cascading captures.</span>
-                </div>
-              </button>
-
-              <button class="sandbox-preset-card" data-preset="sacred_test">
-                <div class="preset-icon">🛡️</div>
-                <div class="preset-info">
-                  <strong>Sacred Stone Test</strong>
-                  <span>Golden Sacred Stone with 0 liberties that cannot be captured by the opponent.</span>
-                </div>
-              </button>
-
-              <button class="sandbox-preset-card" data-preset="two_eyes_alive">
-                <div class="preset-icon">🏰</div>
-                <div class="preset-info">
-                  <strong>Two Living Eyes & Territory Test</strong>
-                  <span>Unconditionally alive group to test Japanese scoring flood-fill algorithm.</span>
-                </div>
-              </button>
-
-              <button class="sandbox-preset-card" data-preset="islands_sprout">
-                <div class="preset-icon">🌿</div>
-                <div class="preset-info">
-                  <strong>Islands & Sprouting Test</strong>
-                  <span>Board with interior abysses and a Sprouting Stone budding across narrow bridges.</span>
-                </div>
-              </button>
-
-              <button class="sandbox-preset-card" data-preset="ronin_slash_demo">
-                <div class="preset-icon">🗡️</div>
-                <div class="preset-info">
-                  <strong>Ronin Katana Slash Demonstration</strong>
-                  <span>Populates test enemy stones and allows immediate firing of Ronin's giant Katana Slash VFX & sound.</span>
-                </div>
-              </button>
-            </div>
-          </div>
-
-          <div id="tab-sandbox-cheats" class="sandbox-tab-pane">
-            <div class="sandbox-section">
-              <label class="setup-label">Live Champion Swap</label>
-              <div class="sandbox-brush-grid">
-                <button class="btn btn-choice btn-sandbox-hero active" data-hero="normal">👤 Normal Apprentice</button>
-                <button class="btn btn-choice btn-sandbox-hero" data-hero="tengu">🦅 Tengu</button>
-                <button class="btn btn-choice btn-sandbox-hero" data-hero="himiko">🌧️ Himiko</button>
-                <button class="btn btn-choice btn-sandbox-hero" data-hero="kitsune">🦊 Kitsune</button>
-                <button class="btn btn-choice btn-sandbox-hero" data-hero="ronin">⚡ Ronin</button>
-                <button class="btn btn-choice btn-sandbox-hero" data-hero="ryujin">🐲 Ryūjin</button>
-                <button class="btn btn-choice btn-sandbox-hero" data-hero="grey_dragon_boss">🐉 Grey Wise Dragon</button>
-              </div>
-            </div>
-
-            <div class="sandbox-section">
-              <label class="setup-label">⚡ Trigger Skills at Will (Infinite Uses)</label>
-              <div class="sandbox-actions-grid" style="display:grid; grid-template-columns: repeat(2, 1fr); gap: 0.65rem;">
-                <button id="btn-sandbox-trigger-active" class="btn btn-hero" style="font-size:0.9rem; padding:0.75rem 0.6rem;">
-                  <span>⚔️ Trigger Active Skill</span>
-                </button>
-                <button id="btn-sandbox-trigger-passive" class="btn btn-choice" style="font-size:0.9rem; padding:0.75rem 0.6rem; background:rgba(139,92,246,0.15); border-color:rgba(139,92,246,0.4); color:#c4b5fd; font-weight:700;">
-                  <span>✨ Force Trigger Passive</span>
-                </button>
-              </div>
-            </div>
-
-            <div class="sandbox-section">
-              <label class="setup-label">🔥 Instant Champion Spells & Powers</label>
-              <div class="sandbox-brush-grid">
-                <button id="btn-sandbox-force-ronin-slash" class="btn btn-choice" style="font-size:0.82rem; padding:0.6rem; border-color:#38bdf8; background:rgba(56,189,248,0.18); color:#7dd3fc; font-weight:700;">
-                  <span>🗡️ Ronin Katana Wind Slash</span>
-                </button>
-                <button id="btn-sandbox-force-stone-rain" class="btn btn-choice" style="font-size:0.82rem; padding:0.6rem;">
-                  <span>🌧️ Himiko Celestial Stone Rain</span>
-                </button>
-                <button id="btn-sandbox-force-dragon-burn" class="btn btn-choice" style="font-size:0.82rem; padding:0.6rem;">
-                  <span>🐉 Dragon Corner Incineration (25%)</span>
-                </button>
-                <button id="btn-sandbox-force-shield" class="btn btn-choice" style="font-size:0.82rem; padding:0.6rem;">
-                  <span>🛡️ Divine Sacred Shield</span>
-                </button>
-                <button id="btn-sandbox-force-convert" class="btn btn-choice" style="font-size:0.82rem; padding:0.6rem;">
-                  <span>🌪️ Chromatic Inversion Transmutation</span>
-                </button>
-              </div>
-            </div>
-
-            <div class="sandbox-section">
-              <label class="setup-label">Resources & Charges</label>
-              <button id="btn-sandbox-infinite-spells" class="btn btn-hero" style="width:100%; font-size:0.9rem;">
-                <span>⚡ Grant 99 Charges to All Spells, Polyominoes & Champion</span>
-              </button>
-            </div>
-
-            <div class="sandbox-section">
-              <label class="setup-label">Force Turn to Player</label>
-              <div class="setup-grid grid-4">
-                <button class="btn btn-choice btn-sandbox-turn" data-turn="1">⚫ Player 1</button>
-                <button class="btn btn-choice btn-sandbox-turn" data-turn="2">⚪ Player 2</button>
-                <button class="btn btn-choice btn-sandbox-turn" data-turn="3">🟢 Player 3</button>
-                <button class="btn btn-choice btn-sandbox-turn" data-turn="4">🟣 Player 4</button>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <div class="modal-footer">
-          <button id="btn-sandbox-close" class="btn btn-modal-primary">
-            <span>✅ Close Panel & Return to Board</span>
-          </button>
-        </div>
-      </div>
-    </div>
-
-    <!-- ================= MODAL: STORY MODE ================= -->
-    <div id="modal-story-mode" class="modal-backdrop hidden">
-      <div class="modal-content modal-story-dialog">
-        <div class="modal-header">
-          <div class="story-modal-title-group">
-            <span class="story-badge-dev">🚧 CHAPTER SELECT</span>
-            <h2 class="modal-title">📖 Story Mode: The Goban Chronicles</h2>
-          </div>
-          <button id="btn-story-modal-close-icon" class="btn-modal-close-icon" title="Close">✕</button>
-        </div>
-        <div class="modal-body story-modal-body">
-          <div class="story-concept-card">
-            <h3 class="story-section-title">🎯 Tactical Missions & Special Objectives</h3>
-            <p class="story-section-desc">Instead of standard territory scoring, each story chapter entrusts you with tactical battlefield missions:</p>
-            <div class="story-features-grid">
-              <div class="story-feature-item">
-                <span class="story-feature-icon">🧙</span>
-                <div class="story-feature-text">
-                  <strong>Hostage Rescue</strong>
-                  <span>Enclose the cardinal liberties of captive Wise Monks before rival clans consume them.</span>
-                </div>
-              </div>
-              <div class="story-feature-item">
-                <span class="story-feature-icon">🎁</span>
-                <div class="story-feature-text">
-                  <strong>Shrine Chests</strong>
-                  <span>Unlock golden chests by securing their surrounding perimeter to obtain relics.</span>
-                </div>
-              </div>
-              <div class="story-feature-item">
-                <span class="story-feature-icon">📜</span>
-                <div class="story-feature-text">
-                  <strong>Sacred Scrolls</strong>
-                  <span>Recover arcane scriptures in asymmetric arenas within strict turn limits.</span>
-                </div>
-              </div>
-              <div class="story-feature-item">
-                <span class="story-feature-icon">✨</span>
-                <div class="story-feature-text">
-                  <strong>Guardian Spirits</strong>
-                  <span>Purify ancestral altars by connecting living stone formations with two eyes.</span>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <div class="story-campaigns-preview">
-            <h3 class="story-section-title">⛩️ Champion Campaigns</h3>
-            <div class="story-chapters-list">
-              <div class="story-chapter-chip">🦅 Chap. I: The Flight of the Tengu (Wind & Meteors)</div>
-              <div class="story-chapter-chip">✨ Chap. II: Himiko's Sacred Light</div>
-              <div class="story-chapter-chip">⚡ Chap. III: Vengeance of the Exiled Ronin</div>
-              <div class="story-chapter-chip">⚗️ Chap. IV: The Alchemist's Magnum Opus</div>
-              <div class="story-chapter-chip">🐉 Chap. V: Awakening of Ryūjin</div>
-            </div>
-          </div>
-        </div>
-        <div class="modal-footer">
-          <button id="btn-story-modal-close" class="btn btn-modal-primary">
-            <span>⚔️ Understood! Return to Menu</span>
-          </button>
-        </div>
-      </div>
     </div>
 
     <script type="module" src="/src/main.ts"></script>

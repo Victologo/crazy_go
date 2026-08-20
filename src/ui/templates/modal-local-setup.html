@@ -1,0 +1,783 @@
+<!-- ================= MODAL: LOCAL MATCH SETUP WIZARD ================= -->
+<div id="new-game-modal" class="modal-backdrop hidden">
+  <div class="modal-card modal-setup wizard-modal-card">
+    <div class="modal-header wizard-modal-header">
+      <div class="wizard-header-top">
+        <h2 id="setup-modal-title" data-i18n="wizard.setup_title">📜 Configuración de Partida</h2>
+        <span id="wizard-step-counter" class="wizard-step-pill">Paso 1 de 7</span>
+      </div>
+      
+      <!-- Stepper -->
+      <div class="wizard-stepper" id="wizard-stepper">
+        <button class="wizard-step-node active" data-step="1" title="1. Players">
+          <span class="step-num">1</span>
+          <span class="step-label" data-i18n="wizard.step_players">Jugadores</span>
+        </button>
+        <div class="wizard-line"></div>
+        <button class="wizard-step-node" data-step="2" title="2. Mode">
+          <span class="step-num">2</span>
+          <span class="step-label" data-i18n="wizard.step_mode">Modo</span>
+        </button>
+        <div class="wizard-line"></div>
+        <button class="wizard-step-node" data-step="3" title="3. Board">
+          <span class="step-num">3</span>
+          <span class="step-label" data-i18n="wizard.step_board">Tablero</span>
+        </button>
+        <div class="wizard-line"></div>
+        <button class="wizard-step-node" data-step="4" title="4. Champion">
+          <span class="step-num">4</span>
+          <span class="step-label" data-i18n="wizard.step_champion">Campeón</span>
+        </button>
+        <div class="wizard-line"></div>
+        <button class="wizard-step-node" data-step="5" title="5. Scenery">
+          <span class="step-num">5</span>
+          <span class="step-label" data-i18n="wizard.step_scenery">Escenario</span>
+        </button>
+        <div class="wizard-line"></div>
+        <button class="wizard-step-node" data-step="6" title="6. Opponent">
+          <span class="step-num">6</span>
+          <span class="step-label" data-i18n="wizard.step_opponent">Oponente</span>
+        </button>
+        <div class="wizard-line"></div>
+        <button class="wizard-step-node" data-step="7" title="7. Settings">
+          <span class="step-num">7</span>
+          <span class="step-label" data-i18n="wizard.step_settings">Ajustes</span>
+        </button>
+      </div>
+    </div>
+
+    <div class="modal-body-scroll wizard-body-container">
+      <!-- STEP 1: PLAYERS COUNT -->
+      <div id="wizard-step-1" class="wizard-step-panel active">
+        <div class="wizard-step-hero">
+          <h3 class="wizard-step-title" data-i18n="wizard.q_players">👥 ¿Cuántos jugadores participarán?</h3>
+          <p class="wizard-step-subtitle" data-i18n="wizard.sub_players">Elige entre un duelo directo o una batalla campal de 4 bandos</p>
+        </div>
+        <div class="setup-grid grid-2 wizard-big-grid">
+          <button id="setup-players-2" class="btn btn-choice-card active" data-players="2">
+            <span class="choice-card-icon">👥</span>
+            <strong class="choice-card-title" data-i18n="wizard.players_2_title">2 Jugadores (Duelo 1v1)</strong>
+            <span class="choice-card-desc" data-i18n="wizard.players_2_desc">Duelo tradicional: ⚫ Negras vs ⚪ Blancas</span>
+          </button>
+          <button id="setup-players-4" class="btn btn-choice-card" data-players="4">
+            <span class="choice-card-icon">👥👥</span>
+            <strong class="choice-card-title" data-i18n="wizard.players_4_title">4 Jugadores (FFA Cuádruple)</strong>
+            <span class="choice-card-desc" data-i18n="wizard.players_4_desc">Batalla campal: ⚫ Negras • ⚪ Blancas • 🟢 Esmeralda • 🟣 Amatista</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- STEP 2: GAME MODE -->
+      <div id="wizard-step-2" class="wizard-step-panel hidden">
+        <div class="wizard-step-hero">
+          <h3 class="wizard-step-title" data-i18n="wizard.q_mode">🎮 Elige el Modo de Juego</h3>
+          <p class="wizard-step-subtitle" data-i18n="wizard.sub_mode">Selecciona el modo y estilo de partida</p>
+        </div>
+        <div class="setup-grid grid-2 wizard-big-grid">
+          <button id="setup-mode-1via" class="btn btn-choice-card active">
+            <span class="choice-card-icon">🤖</span>
+            <strong class="choice-card-title" id="label-mode-ai" data-i18n="wizard.mode_ai_title">Humano vs IA</strong>
+            <span class="choice-card-desc" data-i18n="wizard.mode_ai_desc">Compite en solitario contra el motor inteligente KataGo</span>
+          </button>
+          <button id="setup-mode-1v1" class="btn btn-choice-card">
+            <span class="choice-card-icon">🎮</span>
+            <strong class="choice-card-title" id="label-mode-local" data-i18n="wizard.mode_local_title">Modo Local (Pasa y Juega)</strong>
+            <span class="choice-card-desc" data-i18n="wizard.mode_local_desc">Varios jugadores por turnos en la misma pantalla</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- STEP 3: BOARD SIZE, TOPOLOGY WITH LIVE PREVIEW -->
+      <div id="wizard-step-3" class="wizard-step-panel hidden">
+        <div class="wizard-step-hero">
+          <h3 class="wizard-step-title" data-i18n="wizard.q_board">📐 Select Board & Topology</h3>
+          <p class="wizard-step-subtitle" data-i18n="wizard.sub_board">Configure dimensions and geometry of the playing field</p>
+        </div>
+
+        <div class="wizard-board-preview-layout">
+          <!-- Left Column: Controls -->
+          <div class="wizard-board-controls">
+            <div class="wizard-subgroup">
+              <label class="setup-label" data-i18n="wizard.grid_size">Grid Size</label>
+              <div class="setup-grid grid-3">
+                <button id="setup-size-9" class="btn btn-choice active" data-size="9">
+                  <strong>9x9</strong>
+                  <small style="display:block;font-size:0.75rem;opacity:0.8;">Fast & Tactical</small>
+                </button>
+                <button id="setup-size-13" class="btn btn-choice" data-size="13">
+                  <strong>13x13</strong>
+                  <small style="display:block;font-size:0.75rem;opacity:0.8;">Balanced</small>
+                </button>
+                <button id="setup-size-19" class="btn btn-choice" data-size="19">
+                  <strong>19x19</strong>
+                  <small style="display:block;font-size:0.75rem;opacity:0.8;">Official Pro</small>
+                </button>
+              </div>
+            </div>
+
+            <div class="wizard-subgroup" style="margin-top: 0.85rem;">
+              <label class="setup-label" data-i18n="wizard.board_shape">Board Shape</label>
+              <div class="setup-grid grid-4" id="setup-shapes-grid">
+                <button id="setup-shape-square" class="btn btn-choice active" data-shape="square">⏹️ Square</button>
+                <button id="setup-shape-eroded" class="btn btn-choice" data-shape="eroded">🪨 Eroded</button>
+                <button id="setup-shape-islands_v1" class="btn btn-choice" data-shape="islands_v1">🏝️ Islands v1</button>
+                <button id="setup-shape-islands_v2" class="btn btn-choice" data-shape="islands_v2">🏝️ Islands v2</button>
+                <button id="setup-shape-cross" class="btn btn-choice" data-shape="cross">➕ Cross</button>
+                <button id="setup-shape-hourglass" class="btn btn-choice" data-shape="hourglass">⏳ Hourglass</button>
+                <button id="setup-shape-geode" class="btn btn-choice" data-shape="geode">💎 Geode</button>
+                <button id="setup-shape-spiral" class="btn btn-choice" data-shape="spiral">🌀 Spiral</button>
+                <button id="setup-shape-rings" class="btn btn-choice" data-shape="rings">⭕ Rings</button>
+                <button id="setup-shape-star_5" class="btn btn-choice" data-shape="star_5">⭐ Star (5P)</button>
+                <button id="setup-shape-star_6" class="btn btn-choice" data-shape="star_6">✡️ Star of David</button>
+                <button id="setup-shape-triangle" class="btn btn-choice" data-shape="triangle">🔺 Triangle</button>
+                <button id="setup-shape-hex" class="btn btn-choice" data-shape="hex">⬡ Hexagon</button>
+                <div class="procedural-choice-container">
+                  <button id="setup-shape-procedural" class="btn btn-choice btn-procedural-main" data-shape="procedural">🎲 Procedural</button>
+                  <button id="setup-shape-procedural-reroll" class="btn btn-choice btn-reroll-icon" title="Regenerar Topología Procedural (Reroll)" aria-label="Reroll procedural board">🔄</button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Right Column: Live Interactive Visual Preview -->
+          <div class="wizard-board-preview-card">
+            <div id="wizard-board-preview-viewport" class="wizard-board-preview-viewport" style="background-image: url('./bg_combat.jpg');">
+              <svg id="wizard-board-preview-svg" class="wizard-board-preview-svg" viewBox="0 0 400 400"></svg>
+            </div>
+            <div class="wizard-board-preview-info">
+              <strong id="wizard-board-preview-title">9x9 Square Goban</strong>
+              <span id="wizard-board-preview-desc">81 Intersections</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- STEP 4: CHAMPION SELECTION -->
+      <div id="wizard-step-4" class="wizard-step-panel hidden">
+        <div class="wizard-step-hero">
+          <h3 class="wizard-step-title" data-i18n="wizard.q_champion">🧙‍♂️ Elige tu Campeón Místico o Reglas Puras</h3>
+          <p class="wizard-step-subtitle" data-i18n="wizard.sub_champion">Disfruta de poderes legendarios o compite bajo el Go japonés canónico clásico</p>
+        </div>
+
+        <div class="rogue-hero-panoramic-box setup-hero-panoramic-box">
+          <button id="btn-setup-hero-prev" class="btn-hero-nav" title="Previous Champion">◀</button>
+
+          <div class="hero-showcase-card" id="setup-hero-showcase-card">
+            <div class="hero-portrait-wrapper">
+              <img id="setup-hero-showcase-img" src="./heroes/normal_face.jpg" alt="Persona Normal" class="hero-showcase-img" />
+            </div>
+
+            <div class="hero-details">
+              <div class="hero-header-row">
+                <div class="hero-titles-col">
+                  <h3 id="setup-hero-showcase-name" class="hero-title">Persona Normal</h3>
+                </div>
+              </div>
+
+              <div class="hero-skills-grid">
+                <div class="hero-skill-box active-skill-box setup-hero-active-box" style="display: none;">
+                  <div class="skill-box-header">
+                    <span class="skill-type-tag active-tag" id="setup-hero-active-tag">💥 HABILIDAD ACTIVA</span>
+                    <strong id="setup-hero-active-name" class="skill-name">Habilidad Activa</strong>
+                  </div>
+                  <p id="setup-hero-active-desc" class="skill-desc">Descripción de la habilidad activa.</p>
+                </div>
+
+                <div class="hero-skill-box passive-skill-box setup-hero-passive-box">
+                  <div class="skill-box-header">
+                    <span class="skill-type-tag passive-tag" id="setup-hero-passive-tag">📜 REGLAS PURAS</span>
+                    <strong id="setup-hero-passive-name" class="skill-name">Reglas Canónicas Japonesas</strong>
+                  </div>
+                  <p id="setup-hero-passive-desc" class="skill-desc">Estrategia pura de Go: libertades, vida incondicional, Ko y territorio sin artificios.</p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <button id="btn-setup-hero-next" class="btn-hero-nav" title="Next Champion">▶</button>
+        </div>
+
+        <div class="hero-thumb-strip" id="setup-hero-thumb-strip">
+          <button class="hero-thumb-btn active" data-hero="normal">
+            <img src="./heroes/normal_face.jpg" alt="Persona Normal" />
+            <span>Persona Normal</span>
+          </button>
+          <button class="hero-thumb-btn" data-hero="tengu">
+            <img src="./heroes/tengu_face.jpg" alt="Tengu" />
+            <span>Tengu</span>
+          </button>
+          <button class="hero-thumb-btn" data-hero="himiko">
+            <img src="./heroes/himiko_face.jpg" alt="Himiko" />
+            <span>Himiko</span>
+          </button>
+          <button class="hero-thumb-btn" data-hero="kitsune">
+            <img src="./heroes/kitsune_face.jpg" alt="Kitsune" />
+            <span>Kitsune</span>
+          </button>
+          <button class="hero-thumb-btn" data-hero="ronin">
+            <img src="./heroes/ronin_face.jpg" alt="Ronin" />
+            <span>Ronin</span>
+          </button>
+          <button class="hero-thumb-btn" data-hero="alchemist">
+            <img src="./heroes/alchemist_face.jpg" alt="Alquimista" />
+            <span>Alquimista</span>
+          </button>
+          <button class="hero-thumb-btn" data-hero="ryujin">
+            <img src="./heroes/ryujin_face.jpg" alt="Ryūjin" />
+            <span>Ryūjin</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- STEP 5: SCENERY & ENVIRONMENT WITH LIVE COMBAT DUEL PREVIEW -->
+      <div id="wizard-step-5" class="wizard-step-panel hidden">
+        <div class="wizard-step-hero" style="margin-bottom: 0.3rem;">
+          <h3 class="wizard-step-title" data-i18n="wizard.q_scenery">🌄 Elige el Escenario y Entorno de Combate</h3>
+        </div>
+
+        <div class="wizard-scenery-stage-container">
+          <!-- Duel Visual Stage Viewport -->
+          <div class="wizard-duel-stage-viewport" id="wizard-scenery-stage-viewport" style="background-image: url('./bg_combat.jpg');">
+            <div class="wizard-duel-stage-overlay"></div>
+            
+            <!-- Left Combatant: Player Selected Champion -->
+            <div class="duel-stage-combatant duel-stage-player">
+              <div class="duel-standee-box">
+                <img id="wizard-stage-player-img" src="./heroes/normal.png" alt="Tu Campeón" class="duel-standee-img" />
+              </div>
+              <div class="duel-combatant-tag">
+                <strong id="wizard-stage-player-name">Persona Normal</strong>
+                <span class="duel-combatant-badge" data-i18n="wizard.you_player">TÚ (P1)</span>
+              </div>
+            </div>
+
+            <!-- Center: Floating Goban -->
+            <div class="duel-stage-center-board">
+              <svg id="wizard-stage-board-svg" class="wizard-stage-board-svg" viewBox="0 0 400 400"></svg>
+              <div class="duel-stage-board-pill">
+                <span id="wizard-stage-board-info">9x9 Cuadrado • 81 Pts</span>
+              </div>
+            </div>
+
+            <!-- Right Combatant: Rival (Mystery Box or Selected Champion) -->
+            <div class="duel-stage-combatant duel-stage-rival" id="wizard-stage-rival-combatant" title="Click to cycle Rival Champion">
+              <div class="duel-standee-box duel-mystery-box" id="wizard-stage-rival-box">
+                <img id="wizard-stage-rival-img" src="./heroes/tengu.png" alt="Rival Champion" class="duel-standee-img hidden" />
+                <div class="duel-mystery-silhouette" id="wizard-stage-rival-mystery">
+                  <span class="duel-mystery-question">❓</span>
+                </div>
+              </div>
+              <div class="duel-combatant-tag">
+                <strong id="wizard-stage-rival-name" data-i18n="wizard.unknown_rival">Rival Aleatorio 🎲</strong>
+                <span class="duel-combatant-badge rival-badge" data-i18n="wizard.mystery_rival">OPONENTE</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Scenery Grid Selector -->
+          <div class="wizard-subgroup" style="margin-top: 0.25rem;">
+            <div class="setup-label-row">
+              <label class="setup-label" data-i18n="wizard.scenery_atmosphere">🌄 Entorno de Batalla</label>
+            </div>
+            <div class="setup-grid grid-7" id="setup-bgs-grid">
+              <button id="setup-bg-combat" class="btn btn-choice btn-setup-bg active" data-bg="combat">
+                <span data-i18n="wizard.bg_dojo">⚔️ Dojo</span>
+              </button>
+              <button id="setup-bg-meadow" class="btn btn-choice btn-setup-bg" data-bg="meadow">
+                <span data-i18n="wizard.bg_meadow">🌿 Prado</span>
+              </button>
+              <button id="setup-bg-sunset" class="btn btn-choice btn-setup-bg" data-bg="sunset">
+                <span data-i18n="wizard.bg_sunset">🌅 Ocaso</span>
+              </button>
+              <button id="setup-bg-night" class="btn btn-choice btn-setup-bg" data-bg="night">
+                <span data-i18n="wizard.bg_night">🌙 Noche</span>
+              </button>
+              <button id="setup-bg-story" class="btn btn-choice btn-setup-bg" data-bg="story">
+                <span data-i18n="wizard.bg_void">🌌 Vacío</span>
+              </button>
+              <button id="setup-bg-tutorial" class="btn btn-choice btn-setup-bg" data-bg="tutorial">
+                <span data-i18n="wizard.bg_zen">🌸 Zen</span>
+              </button>
+              <button id="setup-bg-boss" class="btn btn-choice btn-setup-bg" data-bg="boss">
+                <span data-i18n="wizard.bg_volcano">🌋 Volcán</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- STEP 6: OPPONENT SELECTION -->
+      <!-- STEP 6: OPPONENT SELECTION -->
+      <div id="wizard-step-6" class="wizard-step-panel hidden">
+        <div class="wizard-step-hero" style="margin-bottom: 0.3rem;">
+          <h3 class="wizard-step-title" data-i18n="wizard.q_opponent">⚔️ Elige a tu Oponente</h3>
+        </div>
+
+        <!-- Duel Visual Stage Viewport (igual que paso 5, pero el rival se actualiza según selección) -->
+        <div class="wizard-scenery-stage-container">
+          <div class="wizard-duel-stage-viewport" id="wizard-rival-stage-viewport" style="background-image: url('./bg_combat.jpg');">
+            <div class="wizard-duel-stage-overlay"></div>
+
+            <!-- Left Combatant: Player -->
+            <div class="duel-stage-combatant duel-stage-player">
+              <div class="duel-standee-box">
+                <img id="wizard-rival-player-img" src="./heroes/normal.png" alt="Tu Campeón" class="duel-standee-img" />
+              </div>
+              <div class="duel-combatant-tag">
+                <strong id="wizard-rival-player-name">Persona Normal</strong>
+                <span class="duel-combatant-badge" data-i18n="wizard.you_player">TÚ (P1)</span>
+              </div>
+            </div>
+
+            <!-- Center: Board -->
+            <div class="duel-stage-center-board">
+              <svg id="wizard-rival-board-svg" class="wizard-stage-board-svg" viewBox="0 0 400 400"></svg>
+              <div class="duel-stage-board-pill">
+                <span id="wizard-rival-board-info">9x9 Cuadrado • 81 Pts</span>
+              </div>
+            </div>
+
+            <!-- Right Combatant: Rival(s) -->
+            <div class="duel-stage-combatant duel-stage-rival">
+              <div class="duel-standee-box duel-mystery-box" id="wizard-rival-box" style="display: flex; justify-content: center; align-items: flex-end;">
+                <!-- 1v1 Standee -->
+                <img id="wizard-rival-img" src="./heroes/normal.png" alt="Rival" class="duel-standee-img hidden" />
+                
+                <!-- 4P Standees -->
+                <div id="wizard-rival-multi-box" class="wizard-stage-4p-box hidden">
+                  <img id="wizard-rival-img-2" src="./heroes/normal.png" class="wizard-stage-4p-img stage-4p-left" alt="P2" />
+                  <img id="wizard-rival-img-3" src="./heroes/normal.png" class="wizard-stage-4p-img stage-4p-center" alt="P3" />
+                  <img id="wizard-rival-img-4" src="./heroes/normal.png" class="wizard-stage-4p-img stage-4p-right" alt="P4" />
+                </div>
+
+                <div class="duel-mystery-silhouette" id="wizard-rival-mystery">
+                  <span class="duel-mystery-question">❓</span>
+                </div>
+              </div>
+              <div class="duel-combatant-tag">
+                <strong id="wizard-rival-name" data-i18n="wizard.unknown_rival">Rival Aleatorio 🎲</strong>
+                <span id="wizard-rival-badge" class="duel-combatant-badge rival-badge" data-i18n="wizard.mystery_rival">OPONENTE</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Opponent Selector -->
+          <div class="wizard-subgroup" style="margin-top: 0.4rem;">
+            <div id="setup-rival-slots-container" class="setup-grid grid-3 hidden" style="margin-bottom: 0.5rem;">
+              <button type="button" class="btn btn-choice btn-rival-slot active" data-slot="2">⚪ P2</button>
+              <button type="button" class="btn btn-choice btn-rival-slot" data-slot="3">🟢 P3</button>
+              <button type="button" class="btn btn-choice btn-rival-slot" data-slot="4">🟣 P4</button>
+            </div>
+            <div class="setup-label-row">
+              <label class="setup-label" data-i18n="wizard.opponent_type">⚔️ Tipo de Oponente</label>
+              <span id="setup-rival-display-badge" class="highlight-text" style="font-size:0.75rem;">🎲 Azar (Cualquier)</span>
+            </div>
+            <!-- Grilla de rivales para modo 1vIA -->
+            <div class="setup-grid grid-5 rival-presets-grid" id="setup-rivals-grid" style="gap: 0.4rem;">
+              <button type="button" class="btn btn-choice btn-setup-rival active" data-rival="random" title="Cualquier rival al azar">
+                <span data-i18n="wizard.rival_random">🎲 Cualquiera</span>
+              </button>
+              <button type="button" class="btn btn-choice btn-setup-rival" data-rival="random_monk" title="Monje al azar (sin habilidades)" id="btn-rival-random-monk">
+                <span data-i18n="wizard.rival_monk">🧘 Monje</span>
+              </button>
+              <button type="button" class="btn btn-choice btn-setup-rival" data-rival="random_sage" title="Sabio al azar (sin habilidades)" id="btn-rival-random-sage">
+                <span data-i18n="wizard.rival_sage">🧙 Sabio</span>
+              </button>
+              <button type="button" class="btn btn-choice btn-setup-rival" data-rival="normal" title="Persona Normal (sin habilidades)">
+                <span data-i18n="champion.normal.name">👤 Normal</span>
+              </button>
+              <button type="button" class="btn btn-choice btn-setup-rival" data-rival="tengu" title="Tengu">
+                <span data-i18n="champion.tengu.name">🦅 Tengu</span>
+              </button>
+              <button type="button" class="btn btn-choice btn-setup-rival" data-rival="himiko" title="Himiko">
+                <span data-i18n="champion.himiko.name">🌸 Himiko</span>
+              </button>
+              <button type="button" class="btn btn-choice btn-setup-rival" data-rival="kitsune" title="Kitsune">
+                <span data-i18n="champion.kitsune.name">🦊 Kitsune</span>
+              </button>
+              <button type="button" class="btn btn-choice btn-setup-rival" data-rival="ronin" title="Ronin">
+                <span data-i18n="champion.ronin.name">⚔️ Ronin</span>
+              </button>
+              <button type="button" class="btn btn-choice btn-setup-rival" data-rival="alchemist" title="Alquimista">
+                <span data-i18n="champion.alchemist.name">⚗️ Alquimista</span>
+              </button>
+              <button type="button" class="btn btn-choice btn-setup-rival" data-rival="ryujin" title="Ryūjin">
+                <span data-i18n="champion.ryujin.name">🐉 Ryūjin</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- STEP 7: FINAL ADJUSTMENTS AND SUMMARY -->
+      <div id="wizard-step-7" class="wizard-step-panel hidden">
+        <div class="wizard-step-hero">
+          <h3 class="wizard-step-title">⚔️ Final Adjustments & Summary</h3>
+          <p class="wizard-step-subtitle">Review parameters and prepare to enter the Goban</p>
+        </div>
+
+        <!-- Summary Card -->
+        <div class="wizard-summary-card">
+          <div class="summary-hero-avatar-box">
+            <img id="wizard-summary-hero-img" src="./heroes/normal_face.jpg" alt="Champion" />
+          </div>
+          <div class="summary-details">
+            <strong id="wizard-summary-title">1v1 Duel • Human vs AI</strong>
+            <span id="wizard-summary-desc">19x19 Square Board • Normal Apprentice • Medium AI • Komi 6.5</span>
+          </div>
+        </div>
+
+        <!-- AI Options -->
+        <div id="setup-ai-options" class="setup-section setup-subbox">
+          <label class="setup-label">Your Side (Stone Color)</label>
+          <div class="setup-grid grid-2">
+            <button id="setup-color-black" class="btn btn-choice active">
+              <span class="mini-stone black-mini"></span>
+              <span>Black ⚫ (First turn)</span>
+            </button>
+            <button id="setup-color-white" class="btn btn-choice">
+              <span class="mini-stone white-mini"></span>
+              <span>White ⚪ (AI plays first)</span>
+            </button>
+          </div>
+
+          <label class="setup-label" style="margin-top: 0.75rem;">AI Difficulty (Calibrated KataGo Engine)</label>
+          <div class="setup-grid grid-4">
+            <button id="setup-diff-easy" class="btn btn-choice" title="Beginner (25-28 Kyu)">
+              <span>🟢 Easy</span>
+              <small style="display:block;font-size:0.7rem;opacity:0.75;">25 Kyu</small>
+            </button>
+            <button id="setup-diff-medium" class="btn btn-choice active" title="Intermediate (16 Kyu)">
+              <span>🟡 Medium</span>
+              <small style="display:block;font-size:0.7rem;opacity:0.75;">16 Kyu</small>
+            </button>
+            <button id="setup-diff-hard" class="btn btn-choice" title="Advanced (4 Kyu)">
+              <span>🔴 Hard</span>
+              <small style="display:block;font-size:0.7rem;opacity:0.75;">4 Kyu</small>
+            </button>
+            <button id="setup-diff-dan" class="btn btn-choice btn-dan" title="Master (2 Dan)">
+              <span>🟣 Extreme</span>
+              <small style="display:block;font-size:0.7rem;opacity:0.75;">2 Dan</small>
+            </button>
+          </div>
+        </div>
+
+        <!-- Special Polyomino Stones -->
+        <div class="setup-section special-stones-setup-box" style="margin-top: 0.5rem;">
+          <div class="setup-label-row">
+            <label class="setup-label" data-i18n="wizard.special_poly">🌿 Special Polyomino Stones</label>
+            <button type="button" id="btn-toggle-special-stones" class="btn btn-switch" data-enabled="false">
+              <span id="label-toggle-special">Disabled ❌</span>
+            </button>
+          </div>
+
+          <div id="special-stones-controls" class="special-stones-controls hidden">
+            <div class="poly-config-group">
+              <span class="poly-config-heading">Your Special Stones:</span>
+              <div class="poly-counters-grid">
+                <div class="poly-counter-item">
+                  <span class="poly-counter-label">🌿 Sprouting (1x1)</span>
+                  <div class="counter-input-group">
+                    <button type="button" class="btn btn-counter-adj" data-target="playerSprouting" data-delta="-1">-</button>
+                    <span id="display-poly-player-sprouting" class="counter-val">2</span>
+                    <button type="button" class="btn btn-counter-adj" data-target="playerSprouting" data-delta="1">+</button>
+                  </div>
+                </div>
+                <div class="poly-counter-item">
+                  <span class="poly-counter-label">🀄 Duplicity (2x1)</span>
+                  <div class="counter-input-group">
+                    <button type="button" class="btn btn-counter-adj" data-target="playerDomino" data-delta="-1">-</button>
+                    <span id="display-poly-player-domino" class="counter-val">2</span>
+                    <button type="button" class="btn btn-counter-adj" data-target="playerDomino" data-delta="1">+</button>
+                  </div>
+                </div>
+                <div class="poly-counter-item">
+                  <span class="poly-counter-label">🧱 Monolith (2x2)</span>
+                  <div class="counter-input-group">
+                    <button type="button" class="btn btn-counter-adj" data-target="playerMonolith" data-delta="-1">-</button>
+                    <span id="display-poly-player-monolith" class="counter-val">1</span>
+                    <button type="button" class="btn btn-counter-adj" data-target="playerMonolith" data-delta="1">+</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div id="special-stones-ai-box" class="poly-config-group" style="margin-top: 0.5rem;">
+              <div class="setup-label-row" style="margin-bottom: 0.25rem;">
+                <span class="poly-config-heading" data-i18n="wizard.ai_special_poly">Enable special stones for AI?</span>
+                <button type="button" id="btn-toggle-ai-special" class="btn btn-switch" data-enabled="false">
+                  <span id="label-toggle-ai-special">AI: Disabled ❌</span>
+                </button>
+              </div>
+              <div id="ai-poly-counters" class="poly-counters-grid hidden">
+                <div class="poly-counter-item">
+                  <span class="poly-counter-label">🌿 AI Sprouting</span>
+                  <div class="counter-input-group">
+                    <button type="button" class="btn btn-counter-adj" data-target="aiSprouting" data-delta="-1">-</button>
+                    <span id="display-poly-ai-sprouting" class="counter-val">2</span>
+                    <button type="button" class="btn btn-counter-adj" data-target="aiSprouting" data-delta="1">+</button>
+                  </div>
+                </div>
+                <div class="poly-counter-item">
+                  <span class="poly-counter-label">🀄 AI Duplicity</span>
+                  <div class="counter-input-group">
+                    <button type="button" class="btn btn-counter-adj" data-target="aiDomino" data-delta="-1">-</button>
+                    <span id="display-poly-ai-domino" class="counter-val">2</span>
+                    <button type="button" class="btn btn-counter-adj" data-target="aiDomino" data-delta="1">+</button>
+                  </div>
+                </div>
+                <div class="poly-counter-item">
+                  <span class="poly-counter-label">🧱 AI Monolith</span>
+                  <div class="counter-input-group">
+                    <button type="button" class="btn btn-counter-adj" data-target="aiMonolith" data-delta="-1">-</button>
+                    <span id="display-poly-ai-monolith" class="counter-val">1</span>
+                    <button type="button" class="btn btn-counter-adj" data-target="aiMonolith" data-delta="1">+</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Handicap Stones -->
+        <div class="setup-section" style="margin-top: 0.5rem;">
+          <div class="setup-label-row">
+            <label class="setup-label" data-i18n="wizard.handicap_title">Handicap Stones</label>
+            <strong id="setup-handicap-display" class="highlight-text">0 (Even Game)</strong>
+          </div>
+          <div class="setup-inline-row handicap-single-row" id="handicap-presets-container">
+            <button class="btn btn-choice btn-setup-handicap active" data-handicap="0">0 (Even)</button>
+            <button class="btn btn-choice btn-setup-handicap" data-handicap="2">2</button>
+            <button class="btn btn-choice btn-setup-handicap" data-handicap="3">3</button>
+            <button class="btn btn-choice btn-setup-handicap" data-handicap="4">4</button>
+            <button class="btn btn-choice btn-setup-handicap" data-handicap="5">5</button>
+            <button class="btn btn-choice btn-setup-handicap" data-handicap="6">6</button>
+            <div class="inline-custom-box">
+              <span class="custom-icon">✍️</span>
+              <input type="number" id="setup-handicap-input" min="0" max="50" step="1" value="0" class="custom-num-field" />
+              <span class="custom-unit">stones</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Komi -->
+        <div class="setup-section" style="margin-top: 0.5rem;" id="setup-komi-section">
+          <!-- 2P Komi Box (visible when playerCount === 2) -->
+          <div id="setup-komi-2p-box">
+            <div class="setup-label-row">
+              <label class="setup-label" data-i18n="wizard.komi_title">Komi (Advantage points for White)</label>
+              <strong id="setup-komi-display" class="highlight-text">6.5 pts</strong>
+            </div>
+            <div class="setup-inline-row komi-single-row">
+              <button type="button" class="btn btn-choice btn-setup-komi" data-komi="0.5">0.5</button>
+              <button type="button" class="btn btn-choice btn-setup-komi" data-komi="5.5">5.5</button>
+              <button type="button" class="btn btn-choice btn-setup-komi active" data-komi="6.5">6.5 (Default)</button>
+              <button type="button" class="btn btn-choice btn-setup-komi" data-komi="7.5">7.5</button>
+              <div class="inline-custom-box">
+                <span class="custom-icon">✍️</span>
+                <input type="number" id="setup-komi-input" step="0.5" min="0" max="100" value="6.5" class="custom-num-field" />
+                <span class="custom-unit">pts</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- 4P Komi Box (visible when playerCount === 4) -->
+          <div id="setup-komi-4p-box" class="hidden">
+            <div class="setup-label-row" style="margin-bottom: 0.4rem;">
+              <label class="setup-label" data-i18n="wizard.komi_4p_title">Komi por Turno (Compensación 4 Jugadores)</label>
+            </div>
+            <div class="setup-komi-4p-grid">
+              <!-- P2 White -->
+              <div class="komi-4p-row">
+                <div class="komi-4p-header">
+                  <span class="komi-4p-tag">⚪ Blancas (P2 • 2º Turno)</span>
+                  <strong id="setup-komi-p2-display" class="highlight-text">2.5 pts</strong>
+                </div>
+                <div class="setup-inline-row komi-single-row">
+                  <button type="button" class="btn btn-choice btn-setup-komi-p2" data-komi="0.5">0.5</button>
+                  <button type="button" class="btn btn-choice btn-setup-komi-p2" data-komi="1.5">1.5</button>
+                  <button type="button" class="btn btn-choice btn-setup-komi-p2 active" data-komi="2.5">2.5 (Default)</button>
+                  <button type="button" class="btn btn-choice btn-setup-komi-p2" data-komi="3.5">3.5</button>
+                  <div class="inline-custom-box">
+                    <span class="custom-icon">✍️</span>
+                    <input type="number" id="setup-komi-p2-input" step="0.5" min="0" max="100" value="2.5" class="custom-num-field" />
+                    <span class="custom-unit">pts</span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- P3 Emerald -->
+              <div class="komi-4p-row" style="margin-top: 0.45rem;">
+                <div class="komi-4p-header">
+                  <span class="komi-4p-tag">🟢 Esmeralda (P3 • 3º Turno)</span>
+                  <strong id="setup-komi-p3-display" class="highlight-text">4.5 pts</strong>
+                </div>
+                <div class="setup-inline-row komi-single-row">
+                  <button type="button" class="btn btn-choice btn-setup-komi-p3" data-komi="2.5">2.5</button>
+                  <button type="button" class="btn btn-choice btn-setup-komi-p3" data-komi="3.5">3.5</button>
+                  <button type="button" class="btn btn-choice btn-setup-komi-p3 active" data-komi="4.5">4.5 (Default)</button>
+                  <button type="button" class="btn btn-choice btn-setup-komi-p3" data-komi="5.5">5.5</button>
+                  <div class="inline-custom-box">
+                    <span class="custom-icon">✍️</span>
+                    <input type="number" id="setup-komi-p3-input" step="0.5" min="0" max="100" value="4.5" class="custom-num-field" />
+                    <span class="custom-unit">pts</span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- P4 Amethyst -->
+              <div class="komi-4p-row" style="margin-top: 0.45rem;">
+                <div class="komi-4p-header">
+                  <span class="komi-4p-tag">🟣 Amatista (P4 • 4º Turno)</span>
+                  <strong id="setup-komi-p4-display" class="highlight-text">6.5 pts</strong>
+                </div>
+                <div class="setup-inline-row komi-single-row">
+                  <button type="button" class="btn btn-choice btn-setup-komi-p4" data-komi="4.5">4.5</button>
+                  <button type="button" class="btn btn-choice btn-setup-komi-p4" data-komi="5.5">5.5</button>
+                  <button type="button" class="btn btn-choice btn-setup-komi-p4 active" data-komi="6.5">6.5 (Default)</button>
+                  <button type="button" class="btn btn-choice btn-setup-komi-p4" data-komi="7.5">7.5</button>
+                  <div class="inline-custom-box">
+                    <span class="custom-icon">✍️</span>
+                    <input type="number" id="setup-komi-p4-input" step="0.5" min="0" max="100" value="6.5" class="custom-num-field" />
+                    <span class="custom-unit">pts</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Time Controls -->
+        <div class="setup-section timer-setup-box" style="margin-top: 0.75rem;">
+          <div class="setup-label-row">
+            <label class="setup-label">⏱️ Control de Tiempo (Reloj de Go / Byo-yomi)</label>
+            <button type="button" id="btn-toggle-timer" class="btn btn-switch" data-enabled="false">
+              <span id="label-toggle-timer">Sin Límite ❌</span>
+            </button>
+          </div>
+
+          <div id="timer-controls" class="timer-controls hidden">
+            <label class="setup-label" style="font-size: 0.8rem; margin-top: 0.35rem;">Modo de Reloj:</label>
+            <div class="setup-grid grid-4" style="grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));">
+              <button type="button" class="btn btn-choice btn-timer-mode active" data-mode="per_move">
+                <span>⚡ Por Jugada</span>
+                <small style="display:block;font-size:0.7rem;opacity:0.8;">Byo-yomi Puro</small>
+              </button>
+              <button type="button" class="btn btn-choice btn-timer-mode" data-mode="japanese">
+                <span>🏯 Japonés</span>
+                <small style="display:block;font-size:0.7rem;opacity:0.8;">Principal + Periodos</small>
+              </button>
+              <button type="button" class="btn btn-choice btn-timer-mode" data-mode="fischer">
+                <span>⏱️ Fischer</span>
+                <small style="display:block;font-size:0.7rem;opacity:0.8;">Base + Incremento</small>
+              </button>
+              <button type="button" class="btn btn-choice btn-timer-mode" data-mode="absolute">
+                <span>⏳ Absoluto</span>
+                <small style="display:block;font-size:0.7rem;opacity:0.8;">Banco Total</small>
+              </button>
+            </div>
+
+            <!-- 1. Por Jugada (Byo-yomi puro) -->
+            <div id="timer-options-per-move" class="timer-sub-options" style="margin-top: 0.6rem;">
+              <label class="setup-label" style="font-size: 0.78rem;">Segundos por Jugada (Byo-yomi):</label>
+              <div class="setup-inline-row" style="display:flex;flex-wrap:wrap;gap:0.4rem;align-items:center;">
+                <button type="button" class="btn btn-choice btn-timer-val" data-val="5">5s</button>
+                <button type="button" class="btn btn-choice btn-timer-val" data-val="10">10s</button>
+                <button type="button" class="btn btn-choice btn-timer-val" data-val="15">15s</button>
+                <button type="button" class="btn btn-choice btn-timer-val" data-val="20">20s</button>
+                <button type="button" class="btn btn-choice btn-timer-val active" data-val="30">30s</button>
+                <button type="button" class="btn btn-choice btn-timer-val" data-val="45">45s</button>
+                <button type="button" class="btn btn-choice btn-timer-val" data-val="60">60s</button>
+                <div class="inline-custom-box">
+                  <span class="custom-icon">✍️</span>
+                  <input type="number" id="setup-timer-byoyomi-input" step="1" min="1" max="600" value="30" class="custom-num-field" />
+                  <span class="custom-unit">seg</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- 2. Byo-yomi Japonés -->
+            <div id="timer-options-japanese" class="timer-sub-options hidden" style="margin-top: 0.6rem;">
+              <label class="setup-label" style="font-size: 0.78rem;">Tiempo Principal + Periodos Byo-yomi:</label>
+              <div class="setup-inline-row" style="display:flex;flex-wrap:wrap;gap:0.4rem;align-items:center;margin-bottom:0.4rem;">
+                <button type="button" class="btn btn-choice btn-timer-val active" data-val="300" data-byo="30" data-periods="3">5m + 3×30s</button>
+                <button type="button" class="btn btn-choice btn-timer-val" data-val="600" data-byo="30" data-periods="5">10m + 5×30s</button>
+                <button type="button" class="btn btn-choice btn-timer-val" data-val="900" data-byo="45" data-periods="5">15m + 5×45s</button>
+                <button type="button" class="btn btn-choice btn-timer-val" data-val="180" data-byo="15" data-periods="3">3m + 3×15s (Blitz)</button>
+              </div>
+              <div class="setup-inline-row" style="display:flex;flex-wrap:wrap;gap:0.6rem;align-items:center;">
+                <div class="inline-custom-box">
+                  <span class="custom-label-small">Base:</span>
+                  <input type="number" id="setup-timer-japanese-main-input" step="1" min="1" max="120" value="5" class="custom-num-field" />
+                  <span class="custom-unit">min</span>
+                </div>
+                <div class="inline-custom-box">
+                  <span class="custom-label-small">Periodos:</span>
+                  <input type="number" id="setup-timer-japanese-periods-input" step="1" min="1" max="10" value="3" class="custom-num-field" />
+                  <span class="custom-unit">×</span>
+                </div>
+                <div class="inline-custom-box">
+                  <input type="number" id="setup-timer-japanese-byo-input" step="1" min="5" max="300" value="30" class="custom-num-field" />
+                  <span class="custom-unit">seg</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- 3. Fischer -->
+            <div id="timer-options-fischer" class="timer-sub-options hidden" style="margin-top: 0.6rem;">
+              <label class="setup-label" style="font-size: 0.78rem;">Tiempo Base + Incremento Fischer:</label>
+              <div class="setup-inline-row" style="display:flex;flex-wrap:wrap;gap:0.4rem;align-items:center;margin-bottom:0.4rem;">
+                <button type="button" class="btn btn-choice btn-timer-val active" data-val="180" data-inc="5">3m + 5s</button>
+                <button type="button" class="btn btn-choice btn-timer-val" data-val="300" data-inc="5">5m + 5s</button>
+                <button type="button" class="btn btn-choice btn-timer-val" data-val="600" data-inc="10">10m + 10s</button>
+                <button type="button" class="btn btn-choice btn-timer-val" data-val="60" data-inc="2">1m + 2s (Bullet)</button>
+              </div>
+              <div class="setup-inline-row" style="display:flex;flex-wrap:wrap;gap:0.6rem;align-items:center;">
+                <div class="inline-custom-box">
+                  <span class="custom-label-small">Base:</span>
+                  <input type="number" id="setup-timer-fischer-main-input" step="1" min="1" max="120" value="3" class="custom-num-field" />
+                  <span class="custom-unit">min</span>
+                </div>
+                <div class="inline-custom-box">
+                  <span class="custom-label-small">+ Incr:</span>
+                  <input type="number" id="setup-timer-fischer-inc-input" step="1" min="1" max="60" value="5" class="custom-num-field" />
+                  <span class="custom-unit">seg</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- 4. Absoluto -->
+            <div id="timer-options-absolute" class="timer-sub-options hidden" style="margin-top: 0.6rem;">
+              <label class="setup-label" style="font-size: 0.78rem;">Tiempo Total de Banco:</label>
+              <div class="setup-inline-row" style="display:flex;flex-wrap:wrap;gap:0.4rem;align-items:center;">
+                <button type="button" class="btn btn-choice btn-timer-val" data-val="60">1 min</button>
+                <button type="button" class="btn btn-choice btn-timer-val" data-val="180">3 min</button>
+                <button type="button" class="btn btn-choice btn-timer-val active" data-val="300">5 min</button>
+                <button type="button" class="btn btn-choice btn-timer-val" data-val="600">10 min</button>
+                <button type="button" class="btn btn-choice btn-timer-val" data-val="900">15 min</button>
+                <button type="button" class="btn btn-choice btn-timer-val" data-val="1800">30 min</button>
+                <div class="inline-custom-box">
+                  <span class="custom-icon">✍️</span>
+                  <input type="number" id="setup-timer-absolute-input" step="1" min="1" max="180" value="5" class="custom-num-field" />
+                  <span class="custom-unit">min</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="modal-footer wizard-modal-footer">
+      <button id="btn-wizard-prev" class="btn btn-modal-secondary">Cancel</button>
+      <div class="wizard-footer-right">
+        <button id="btn-wizard-next" class="btn btn-modal-primary">
+          <span>Next ➔</span>
+        </button>
+        <button id="btn-setup-start" class="btn btn-hero btn-wizard-cta hidden">
+          <span>⚔️ Start Match!</span>
+        </button>
+      </div>
+    </div>
+  </div>
+</div>

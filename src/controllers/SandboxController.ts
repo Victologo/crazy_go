@@ -677,6 +677,14 @@ export class SandboxController {
             toggleBtn.innerText = this.isBrushActive ? "🖌️ Desactivar Pincel (Volver a Juego)" : "🖌️ Activar Pincel Libre";
             toggleBtn.classList.toggle('active', this.isBrushActive);
         }
+
+        // Sincronizar badge visual del botón sandbox en el topbar
+        const topbarSandboxBtn = document.getElementById('btn-game-sandbox');
+        if (topbarSandboxBtn) {
+            topbarSandboxBtn.classList.toggle('brush-on', this.isBrushActive);
+            const badge = topbarSandboxBtn.querySelector('.sandbox-dev-badge');
+            if (badge) badge.textContent = this.isBrushActive ? '●' : 'DEV';
+        }
     }
 
     private static getBrushName(brush: SandboxBrush): string {

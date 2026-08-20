@@ -76,18 +76,18 @@ export const STORY_CAMPAIGN_ES: StoryChapter[] = [
                 trigger: 'pre_battle',
                 dialogues: [
                     { speakerName: 'Voz del Vacío', speakerImage: '', text: 'Tu conciencia despierta en el abismo. El Goban primordial... se ha quebrado.', position: 'center' },
-                    { speakerName: 'Espíritu Guardián', speakerImage: '/enemies/spirit_1.png', text: 'Viajero... mi esencia se apaga. ¡Ancla mi espíritu antes de que me disperse!', position: 'right' },
-                    { speakerName: 'Hombre Normal', speakerImage: '/heroes/normal_face.jpg', text: '¿Cómo? Solo tengo estas piedras negras de Go...', position: 'left' },
-                    { speakerName: 'Espíritu Guardián', speakerImage: '/enemies/spirit_1.png', text: 'Son condensaciones de tu propio Qi. Sella las 4 libertades cardinales a mi alrededor (arriba, abajo, izquierda, derecha). ¡Ciérralas todas y sálvame!', position: 'right' }
+                    { speakerName: 'Espíritu Guardián', speakerImage: './enemies/spirit_1.png', text: 'Viajero... mi esencia se apaga. ¡Ancla mi espíritu antes de que me disperse!', position: 'right' },
+                    { speakerName: 'Persona Normal', speakerImage: './heroes/normal_face.jpg', text: '¿Cómo? Solo tengo estas piedras negras de Go...', position: 'left' },
+                    { speakerName: 'Espíritu Guardián', speakerImage: './enemies/spirit_1.png', text: 'Son condensaciones de tu propio Qi. Sella las 4 libertades cardinales a mi alrededor (arriba, abajo, izquierda, derecha). ¡Ciérralas todas y sálvame!', position: 'right' }
                 ]
             },
             {
                 trigger: 'on_capture',
                 targetId: 'spirit_target',
                 dialogues: [
-                    { speakerName: 'Espíritu Guardián', speakerImage: '/enemies/spirit_1.png', text: '¡El sello está completo! Mi esencia se ha estabilizado.', position: 'right' },
-                    { speakerName: 'Hombre Normal', speakerImage: '/heroes/normal_face.jpg', text: 'Ahora lo entiendo. Rodear no solo captura enemigos, sino que purifica y asegura reliquias espirituales.', position: 'left' },
-                    { speakerName: 'Espíritu Guardián', speakerImage: '/enemies/spirit_1.png', text: 'Así es. Pero cuidado, la Niebla Blanca intentará consumir las reliquias de los otros mundos. ¡Avancemos al siguiente fragmento!', position: 'right' }
+                    { speakerName: 'Espíritu Guardián', speakerImage: './enemies/spirit_1.png', text: '¡El sello está completo! Mi esencia se ha estabilizado.', position: 'right' },
+                    { speakerName: 'Persona Normal', speakerImage: './heroes/normal_face.jpg', text: 'Ahora lo entiendo. Rodear no solo captura enemigos, sino que purifica y asegura reliquias espirituales.', position: 'left' },
+                    { speakerName: 'Espíritu Guardián', speakerImage: './enemies/spirit_1.png', text: 'Así es. Pero cuidado, la Niebla Blanca intentará consumir las reliquias de los otros mundos. ¡Avancemos al siguiente fragmento!', position: 'right' }
                 ]
             }
         ],
@@ -96,13 +96,13 @@ export const STORY_CAMPAIGN_ES: StoryChapter[] = [
     },
     {
         id: 'cap_2_the_fog',
-        title: 'Capítulo 2: La Niebla Invasora',
-        description: 'La Niebla Blanca busca corromper el Pergamino Sagrado. Ciérralo y asegúralo antes que ellos.',
+        title: 'Capítulo 2: La Niebla y la Transmutación Alquímica',
+        description: 'El Maestro Alquimista de la Niebla busca corromper el Pergamino Sagrado usando Inversión Cromática. Rodéalo y asegúralo con tu Qi antes de que su alquimia lo consuma.',
         boardShape: 'eroded',
         boardSize: 9,
         heroId: 'normal',
-        enemyHeroId: 'kitsune',
-        komi: 6.5,
+        enemyHeroId: 'alchemist',
+        komi: 0,
         initialStones: [
             { x: 2, y: 2, player: 2 },
             { x: 6, y: 6, player: 2 }
@@ -115,7 +115,7 @@ export const STORY_CAMPAIGN_ES: StoryChapter[] = [
                 x: 4,
                 y: 4,
                 icon: '📜',
-                description: 'Un pergamino sagrado en peligro inminente de corrupción.',
+                description: 'Un pergamino sagrado en peligro inminente de corrupción alquímica.',
                 rewardType: 'spell',
                 rewardValue: 'meteor'
             }
@@ -124,8 +124,9 @@ export const STORY_CAMPAIGN_ES: StoryChapter[] = [
             {
                 trigger: 'pre_battle',
                 dialogues: [
-                    { speakerName: 'Sabio de la Niebla', speakerImage: '/heroes/kitsune_face.jpg', text: 'Jejeje... Llegas tarde. Mis piedras blancas ya dominan esta tierra rota.', position: 'right' },
-                    { speakerName: 'Hombre Normal', speakerImage: '/heroes/normal_face.jpg', text: 'Ese pergamino... debo rodear sus libertades con mi Qi antes de que la corrupción lo consuma.', position: 'left' }
+                    { speakerName: 'Maestro Alquimista', speakerImage: './heroes/alchemist_face.jpg', text: '¡Necio! He dominado el arte prohibido de la Inversión Cromática. Con mi alquimia puedo transmutar la polaridad de tus piedras negras para volverlas blancas y consumir el Pergamino Sagrado.', position: 'right' },
+                    { speakerName: 'Persona Normal', speakerImage: './heroes/normal_face.jpg', text: '¡Tu alquimia corrompe la armonía natural del Go! Rodearé las 4 libertades cardinales del Pergamino con mi Qi antes de que tu niebla lo asedie.', position: 'left' },
+                    { speakerName: 'Maestro Alquimista', speakerImage: './heroes/alchemist_face.jpg', text: '¡Pruébalo si te atreves! ¡Mis transmutaciones cambiarán el color de tus piedras y quebrarán tu avance!', position: 'right' }
                 ]
             },
             {
@@ -134,10 +135,18 @@ export const STORY_CAMPAIGN_ES: StoryChapter[] = [
                 shatterBoard: true,
                 offerPowerDraft: true,
                 dialogues: [
-                    { speakerName: 'Sabio de la Niebla', speakerImage: '/heroes/kitsune_face.jpg', text: '¡Imposible! ¡Has sellado el Pergamino Sagrado y purificado la niebla!', position: 'right' },
-                    { speakerName: 'Hombre Normal', speakerImage: '/heroes/normal_face.jpg', text: 'El Qi primordial está despertando... ¡La reliquia resuena con una fuerza colosal!', position: 'left' },
-                    { speakerName: 'Sabio de la Niebla', speakerImage: '/heroes/kitsune_face.jpg', text: '¡Cuidado! ¡La sobrecarga de Qi va a quebrar el Goban en mil pedazos!', position: 'right' },
-                    { speakerName: 'Voz del Vacío', speakerImage: '', text: 'El pergamino se disuelve en tu espíritu. Las piedras se destruyen... ¡Elige el poder que guiará tu destino!', position: 'center' }
+                    { speakerName: 'Maestro Alquimista', speakerImage: './heroes/alchemist_face.jpg', text: '¡Maldición! ¡El Qi primordial del Pergamino ha sobrecargado mi matriz de transmutación!', position: 'right' },
+                    { speakerName: 'Persona Normal', speakerImage: './heroes/normal_face.jpg', text: 'El Pergamino Sagrado resuena con la sabiduría de los Grandes Campeones... ¡La energía purificadora colapsa la niebla!', position: 'left' },
+                    { speakerName: 'Maestro Alquimista', speakerImage: './heroes/alchemist_face.jpg', text: '¡La sobrecarga de Qi va a quebrar el Goban en mil pedazos!', position: 'right' },
+                    { speakerName: 'Voz del Vacío', speakerImage: '', text: 'El pergamino se funde en tu espíritu. Las piedras corrompidas se desvanecen... ¡Elige el poder místico de Campeón que guiará tu destino!', position: 'center' }
+                ]
+            },
+            {
+                trigger: 'on_enemy_capture',
+                targetId: 'scroll_target',
+                dialogues: [
+                    { speakerName: 'Maestro Alquimista', speakerImage: './heroes/alchemist_face.jpg', text: '¡Jajaja! ¡La alquimia triunfa! Mis piedras blancas han rodeado el Pergamino Sagrado y su poder me pertenece.', position: 'right' },
+                    { speakerName: 'Persona Normal', speakerImage: './heroes/normal_face.jpg', text: 'La corrupción ha triunfado en este fragmento. Debo reiniciar el capítulo y asegurar el Pergamino primero.', position: 'left' }
                 ]
             }
         ],
@@ -152,7 +161,7 @@ export const STORY_CAMPAIGN_ES: StoryChapter[] = [
         boardSize: 13,
         heroId: 'normal',
         enemyHeroId: 'ronin',
-        komi: 6.5,
+        komi: 0,
         initialStones: [
             { x: 3, y: 3, player: 2 },
             { x: 9, y: 3, player: 2 },
@@ -163,16 +172,16 @@ export const STORY_CAMPAIGN_ES: StoryChapter[] = [
             {
                 trigger: 'pre_battle',
                 dialogues: [
-                    { speakerName: 'Maestro del Vacío', speakerImage: '/heroes/ronin_face.jpg', text: 'Veo que has absorbido el Qi del Pergamino... Pero este Goban Asimétrico de 13x13 no perdona errores tácticos.', position: 'right' },
-                    { speakerName: 'Tú (Campeón)', speakerImage: '/heroes/normal_face.jpg', text: 'Mi poder místico y la pureza del Go decidirán el destino de este reino.', position: 'left' },
-                    { speakerName: 'Maestro del Vacío', speakerImage: '/heroes/ronin_face.jpg', text: '¡Demuéstralo! ¡Lucha por el control absoluto del territorio!', position: 'right' }
+                    { speakerName: 'Maestro del Vacío', speakerImage: './heroes/ronin_face.jpg', text: 'Veo que has absorbido el Qi del Pergamino... Pero este Goban Asimétrico de 13x13 no perdona errores tácticos.', position: 'right' },
+                    { speakerName: 'Tú (Campeón)', speakerImage: './heroes/normal_face.jpg', text: 'Mi poder místico y la pureza del Go decidirán el destino de este reino.', position: 'left' },
+                    { speakerName: 'Maestro del Vacío', speakerImage: './heroes/ronin_face.jpg', text: '¡Demuéstralo! ¡Lucha por el control absoluto del territorio!', position: 'right' }
                 ]
             },
             {
                 trigger: 'post_battle',
                 dialogues: [
-                    { speakerName: 'Maestro del Vacío', speakerImage: '/heroes/ronin_face.jpg', text: 'Increíble... Tu lectura táctica y la maestría de tu poder han dominado el Goban.', position: 'right' },
-                    { speakerName: 'Tú (Campeón)', speakerImage: '/heroes/normal_face.jpg', text: 'El territorio ha sido pacificado. Pero aún siento perturbaciones más adelante...', position: 'left' }
+                    { speakerName: 'Maestro del Vacío', speakerImage: './heroes/ronin_face.jpg', text: 'Increíble... Tu lectura táctica y la maestría de tu poder han dominado el Goban.', position: 'right' },
+                    { speakerName: 'Tú (Campeón)', speakerImage: './heroes/normal_face.jpg', text: 'El territorio ha sido pacificado. Pero aún siento perturbaciones más adelante...', position: 'left' }
                 ]
             }
         ],
@@ -186,7 +195,7 @@ export const STORY_CAMPAIGN_ES: StoryChapter[] = [
         boardSize: 13,
         heroId: 'normal',
         enemyHeroId: 'kitsune',
-        komi: 5.5,
+        komi: 0,
         initialStones: [
             { x: 2, y: 6, player: 2 },
             { x: 10, y: 6, player: 2 }
@@ -222,7 +231,7 @@ export const STORY_CAMPAIGN_ES: StoryChapter[] = [
                 x: 9,
                 y: 3,
                 icon: '🛡️',
-                description: 'Pilar espiritual que bendice con +3.0 puntos de Komi territorial a quien lo selle.',
+                description: 'Pilar espiritual que bendice con +3.0 puntos territoriales a quien lo selle.',
                 rewardType: 'komi',
                 rewardValue: 3.0
             }
@@ -231,39 +240,39 @@ export const STORY_CAMPAIGN_ES: StoryChapter[] = [
             {
                 trigger: 'pre_battle',
                 dialogues: [
-                    { speakerName: 'Hechicera de las Sombras', speakerImage: '/heroes/kitsune_face.jpg', text: 'Observa este santuario. Hay 3 relicarios místicos en el Goban, ¡incluido el colosal Monolito de Qi de 2 casillas!', position: 'right' },
-                    { speakerName: 'Tú (Campeón)', speakerImage: '/heroes/normal_face.jpg', text: 'Debo rodearlos con mis piedras negras para canalizar sus bendiciones.', position: 'left' },
-                    { speakerName: 'Hechicera de las Sombras', speakerImage: '/heroes/kitsune_face.jpg', text: '¡Si mis piedras blancas los asedian primero, absorberé sus reliquias y te arrebataré su poder!', position: 'right' }
+                    { speakerName: 'Hechicera de las Sombras', speakerImage: './heroes/kitsune_face.jpg', text: 'Observa este santuario. Hay 3 relicarios místicos en el Goban, ¡incluido el colosal Monolito de Qi de 2 casillas!', position: 'right' },
+                    { speakerName: 'Tú (Campeón)', speakerImage: './heroes/normal_face.jpg', text: 'Debo rodearlos con mis piedras negras para canalizar sus bendiciones.', position: 'left' },
+                    { speakerName: 'Hechicera de las Sombras', speakerImage: './heroes/kitsune_face.jpg', text: '¡Si mis piedras blancas los asedian primero, absorberé sus reliquias y te arrebataré su poder!', position: 'right' }
                 ]
             },
             {
                 trigger: 'on_capture',
                 targetId: 'monolith_qi',
                 dialogues: [
-                    { speakerName: 'Tú (Campeón)', speakerImage: '/heroes/normal_face.jpg', text: '¡He sellado el Monolito de 2 casillas! ¡El Qi de los Titanes potencia mi arsenal!', position: 'left' },
-                    { speakerName: 'Hechicera de las Sombras', speakerImage: '/heroes/kitsune_face.jpg', text: '¡Maldición! ¡Llegué demasiado tarde a su perímetro exterior!', position: 'right' }
+                    { speakerName: 'Tú (Campeón)', speakerImage: './heroes/normal_face.jpg', text: '¡He sellado el Monolito de 2 casillas! ¡El Qi de los Titanes potencia mi arsenal!', position: 'left' },
+                    { speakerName: 'Hechicera de las Sombras', speakerImage: './heroes/kitsune_face.jpg', text: '¡Maldición! ¡Llegué demasiado tarde a su perímetro exterior!', position: 'right' }
                 ]
             },
             {
                 trigger: 'on_enemy_capture',
                 targetId: 'monolith_qi',
                 dialogues: [
-                    { speakerName: 'Hechicera de las Sombras', speakerImage: '/heroes/kitsune_face.jpg', text: '¡Jajaja! ¡Mis piedras blancas han rodeado el Monolito! ¡Su poder ahora me pertenece!', position: 'right' },
-                    { speakerName: 'Tú (Campeón)', speakerImage: '/heroes/normal_face.jpg', text: '¡Ha consumido el Monolito! Debo asegurar las reliquias restantes antes de que gane más ventaja.', position: 'left' }
+                    { speakerName: 'Hechicera de las Sombras', speakerImage: './heroes/kitsune_face.jpg', text: '¡Jajaja! ¡Mis piedras blancas han rodeado el Monolito! ¡Su poder ahora me pertenece!', position: 'right' },
+                    { speakerName: 'Tú (Campeón)', speakerImage: './heroes/normal_face.jpg', text: '¡Ha consumido el Monolito! Debo asegurar las reliquias restantes antes de que gane más ventaja.', position: 'left' }
                 ]
             },
             {
                 trigger: 'on_capture',
                 targetId: 'thunder_orb',
                 dialogues: [
-                    { speakerName: 'Tú (Campeón)', speakerImage: '/heroes/normal_face.jpg', text: '¡Orbe de Fuego asegurado! ¡La energía destructiva responde a mi llamada!', position: 'left' }
+                    { speakerName: 'Tú (Campeón)', speakerImage: './heroes/normal_face.jpg', text: '¡Orbe de Fuego asegurado! ¡La energía destructiva responde a mi llamada!', position: 'left' }
                 ]
             },
             {
                 trigger: 'on_capture',
                 targetId: 'sacred_totem',
                 dialogues: [
-                    { speakerName: 'Tú (Campeón)', speakerImage: '/heroes/normal_face.jpg', text: '¡Tótem purificado! Una barrera sagrada de armonía refuerza nuestro territorio.', position: 'left' }
+                    { speakerName: 'Tú (Campeón)', speakerImage: './heroes/normal_face.jpg', text: '¡Tótem purificado! Una barrera sagrada de armonía refuerza nuestro territorio.', position: 'left' }
                 ]
             }
         ],
@@ -300,18 +309,18 @@ export const STORY_CAMPAIGN_EN: StoryChapter[] = [
                 trigger: 'pre_battle',
                 dialogues: [
                     { speakerName: 'Voice of the Void', speakerImage: '', text: 'Your consciousness awakens in the abyss. The primordial Goban... has shattered.', position: 'center' },
-                    { speakerName: 'Guardian Spirit', speakerImage: '/enemies/spirit_1.png', text: 'Traveler... my essence is fading. Anchor my spirit before I disperse!', position: 'right' },
-                    { speakerName: 'Normal Apprentice', speakerImage: '/heroes/normal_face.jpg', text: 'How? I only hold these black Go stones...', position: 'left' },
-                    { speakerName: 'Guardian Spirit', speakerImage: '/enemies/spirit_1.png', text: 'They are condensations of your own Qi. Seal the 4 cardinal liberties around me (top, bottom, left, right). Enclose them all and save me!', position: 'right' }
+                    { speakerName: 'Guardian Spirit', speakerImage: './enemies/spirit_1.png', text: 'Traveler... my essence is fading. Anchor my spirit before I disperse!', position: 'right' },
+                    { speakerName: 'Normal Person', speakerImage: './heroes/normal_face.jpg', text: 'How? I only hold these black Go stones...', position: 'left' },
+                    { speakerName: 'Guardian Spirit', speakerImage: './enemies/spirit_1.png', text: 'They are condensations of your own Qi. Seal the 4 cardinal liberties around me (top, bottom, left, right). Enclose them all and save me!', position: 'right' }
                 ]
             },
             {
                 trigger: 'on_capture',
                 targetId: 'spirit_target',
                 dialogues: [
-                    { speakerName: 'Guardian Spirit', speakerImage: '/enemies/spirit_1.png', text: 'The seal is complete! My essence has stabilized.', position: 'right' },
-                    { speakerName: 'Normal Apprentice', speakerImage: '/heroes/normal_face.jpg', text: 'I understand now. Surrounding does not just capture foes—it also purifies and anchors spiritual relics.', position: 'left' },
-                    { speakerName: 'Guardian Spirit', speakerImage: '/enemies/spirit_1.png', text: 'Indeed. But beware, the White Mist seeks to consume all relics across the realms. Let us advance to the next realm fragment!', position: 'right' }
+                    { speakerName: 'Guardian Spirit', speakerImage: './enemies/spirit_1.png', text: 'The seal is complete! My essence has stabilized.', position: 'right' },
+                    { speakerName: 'Normal Person', speakerImage: './heroes/normal_face.jpg', text: 'I understand now. Surrounding does not just capture foes—it also purifies and anchors spiritual relics.', position: 'left' },
+                    { speakerName: 'Guardian Spirit', speakerImage: './enemies/spirit_1.png', text: 'Indeed. But beware, the White Mist seeks to consume all relics across the realms. Let us advance to the next realm fragment!', position: 'right' }
                 ]
             }
         ],
@@ -320,13 +329,13 @@ export const STORY_CAMPAIGN_EN: StoryChapter[] = [
     },
     {
         id: 'cap_2_the_fog',
-        title: 'Chapter 2: The Invading Mist',
-        description: 'The White Mist seeks to corrupt the Sacred Scroll. Seal and secure it before they do.',
+        title: 'Chapter 2: The Mist and Alchemical Transmutation',
+        description: 'The Mist Alchemist Master seeks to corrupt the Sacred Scroll using Chromatic Inversion. Enclose and secure it with your Qi before his alchemy consumes it.',
         boardShape: 'eroded',
         boardSize: 9,
         heroId: 'normal',
-        enemyHeroId: 'kitsune',
-        komi: 6.5,
+        enemyHeroId: 'alchemist',
+        komi: 0,
         initialStones: [
             { x: 2, y: 2, player: 2 },
             { x: 6, y: 6, player: 2 }
@@ -339,7 +348,7 @@ export const STORY_CAMPAIGN_EN: StoryChapter[] = [
                 x: 4,
                 y: 4,
                 icon: '📜',
-                description: 'A holy scroll in imminent danger of corruption.',
+                description: 'A holy scroll in imminent danger of alchemical corruption.',
                 rewardType: 'spell',
                 rewardValue: 'meteor'
             }
@@ -348,8 +357,9 @@ export const STORY_CAMPAIGN_EN: StoryChapter[] = [
             {
                 trigger: 'pre_battle',
                 dialogues: [
-                    { speakerName: 'Sage of the Mist', speakerImage: '/heroes/kitsune_face.jpg', text: 'Hehehe... You are too late. My white stones already sprawl across this fractured land.', position: 'right' },
-                    { speakerName: 'Normal Apprentice', speakerImage: '/heroes/normal_face.jpg', text: 'That sacred scroll... I must seal its surrounding liberties with Qi before corruption engulfs it completely.', position: 'left' }
+                    { speakerName: 'Mist Alchemist', speakerImage: './heroes/alchemist_face.jpg', text: 'Fool! I have mastered the forbidden art of Chromatic Inversion. With my alchemy, I will invert the polarity of your black stones into white mist and consume the Sacred Scroll.', position: 'right' },
+                    { speakerName: 'Normal Person', speakerImage: './heroes/normal_face.jpg', text: 'Your dark alchemy defies the sacred harmony of Go! I will surround the 4 cardinal liberties of the Scroll with my Qi before your mist engulfs it.', position: 'left' },
+                    { speakerName: 'Mist Alchemist', speakerImage: './heroes/alchemist_face.jpg', text: 'Try it if you dare! My transmutations will flip your stones and shatter your advance!', position: 'right' }
                 ]
             },
             {
@@ -358,10 +368,18 @@ export const STORY_CAMPAIGN_EN: StoryChapter[] = [
                 shatterBoard: true,
                 offerPowerDraft: true,
                 dialogues: [
-                    { speakerName: 'Sage of the Mist', speakerImage: '/heroes/kitsune_face.jpg', text: 'Impossible! You anchored the Sacred Scroll and repelled my mist!', position: 'right' },
-                    { speakerName: 'Normal Apprentice', speakerImage: '/heroes/normal_face.jpg', text: 'The primordial Qi is awakening... The relic resonates with colossal force!', position: 'left' },
-                    { speakerName: 'Sage of the Mist', speakerImage: '/heroes/kitsune_face.jpg', text: 'Watch out! The Qi overload is about to shatter the Goban into a thousand pieces!', position: 'right' },
-                    { speakerName: 'Voice of the Void', speakerImage: '', text: 'The scroll dissolves into your soul. The stones shatter... Choose the Champion power that will guide your destiny!', position: 'center' }
+                    { speakerName: 'Mist Alchemist', speakerImage: './heroes/alchemist_face.jpg', text: 'Curse you! The Primordial Qi of the Sacred Scroll has overloaded my transmutation matrix!', position: 'right' },
+                    { speakerName: 'Normal Person', speakerImage: './heroes/normal_face.jpg', text: 'The Sacred Scroll resonates with the power of the Grand Champions... The purifying surge collapses the mist!', position: 'left' },
+                    { speakerName: 'Mist Alchemist', speakerImage: './heroes/alchemist_face.jpg', text: 'The Qi overload is about to shatter the Goban into a thousand pieces!', position: 'right' },
+                    { speakerName: 'Voice of the Void', speakerImage: '', text: 'The scroll dissolves into your soul. The corrupted stones vanish... Choose the Champion power that will guide your destiny!', position: 'center' }
+                ]
+            },
+            {
+                trigger: 'on_enemy_capture',
+                targetId: 'scroll_target',
+                dialogues: [
+                    { speakerName: 'Mist Alchemist', speakerImage: './heroes/alchemist_face.jpg', text: 'Hahaha! Alchemy prevails! My white stones have enclosed the Sacred Scroll and its power is mine!', position: 'right' },
+                    { speakerName: 'Normal Person', speakerImage: './heroes/normal_face.jpg', text: 'The corruption has overtaken this realm fragment. I must retry the chapter and secure the Scroll first.', position: 'left' }
                 ]
             }
         ],
@@ -376,7 +394,7 @@ export const STORY_CAMPAIGN_EN: StoryChapter[] = [
         boardSize: 13,
         heroId: 'normal',
         enemyHeroId: 'ronin',
-        komi: 6.5,
+        komi: 0,
         initialStones: [
             { x: 3, y: 3, player: 2 },
             { x: 9, y: 3, player: 2 },
@@ -387,16 +405,16 @@ export const STORY_CAMPAIGN_EN: StoryChapter[] = [
             {
                 trigger: 'pre_battle',
                 dialogues: [
-                    { speakerName: 'Void Master', speakerImage: '/heroes/ronin_face.jpg', text: 'I see you absorbed the Sacred Scroll Qi... But this 13x13 Asymmetric Goban forgives no tactical blunders.', position: 'right' },
-                    { speakerName: 'You (Champion)', speakerImage: '/heroes/normal_face.jpg', text: 'My mystic power and canonical Go mastery will decide the fate of this realm.', position: 'left' },
-                    { speakerName: 'Void Master', speakerImage: '/heroes/ronin_face.jpg', text: 'Prove it! Fight for total territorial dominion!', position: 'right' }
+                    { speakerName: 'Void Master', speakerImage: './heroes/ronin_face.jpg', text: 'I see you absorbed the Sacred Scroll Qi... But this 13x13 Asymmetric Goban forgives no tactical blunders.', position: 'right' },
+                    { speakerName: 'You (Champion)', speakerImage: './heroes/normal_face.jpg', text: 'My mystic power and canonical Go mastery will decide the fate of this realm.', position: 'left' },
+                    { speakerName: 'Void Master', speakerImage: './heroes/ronin_face.jpg', text: 'Prove it! Fight for total territorial dominion!', position: 'right' }
                 ]
             },
             {
                 trigger: 'post_battle',
                 dialogues: [
-                    { speakerName: 'Void Master', speakerImage: '/heroes/ronin_face.jpg', text: 'Remarkable... Your tactical reading and power mastery have conquered the Goban.', position: 'right' },
-                    { speakerName: 'You (Champion)', speakerImage: '/heroes/normal_face.jpg', text: 'The territory is safe. Yet I sense deeper cosmic disturbances ahead...', position: 'left' }
+                    { speakerName: 'Void Master', speakerImage: './heroes/ronin_face.jpg', text: 'Remarkable... Your tactical reading and power mastery have conquered the Goban.', position: 'right' },
+                    { speakerName: 'You (Champion)', speakerImage: './heroes/normal_face.jpg', text: 'The territory is safe. Yet I sense deeper cosmic disturbances ahead...', position: 'left' }
                 ]
             }
         ],
@@ -410,7 +428,7 @@ export const STORY_CAMPAIGN_EN: StoryChapter[] = [
         boardSize: 13,
         heroId: 'normal',
         enemyHeroId: 'kitsune',
-        komi: 5.5,
+        komi: 0,
         initialStones: [
             { x: 2, y: 6, player: 2 },
             { x: 10, y: 6, player: 2 }
@@ -446,7 +464,7 @@ export const STORY_CAMPAIGN_EN: StoryChapter[] = [
                 x: 9,
                 y: 3,
                 icon: '🛡️',
-                description: 'Spiritual pillar granting +3.0 permanent Komi to whoever encloses it.',
+                description: 'Spiritual pillar granting +3.0 permanent territory points to whoever encloses it.',
                 rewardType: 'komi',
                 rewardValue: 3.0
             }
@@ -455,39 +473,39 @@ export const STORY_CAMPAIGN_EN: StoryChapter[] = [
             {
                 trigger: 'pre_battle',
                 dialogues: [
-                    { speakerName: 'Shadow Sorceress', speakerImage: '/heroes/kitsune_face.jpg', text: 'Behold this sanctuary. Three mystical relics rest on the Goban, including the colossal 2-cell Monolith!', position: 'right' },
-                    { speakerName: 'You (Champion)', speakerImage: '/heroes/normal_face.jpg', text: 'I must seal them with my black stones to channel their blessings.', position: 'left' },
-                    { speakerName: 'Shadow Sorceress', speakerImage: '/heroes/kitsune_face.jpg', text: 'If my white stones enclose them first, I shall absorb their relics and seize their power from you!', position: 'right' }
+                    { speakerName: 'Shadow Sorceress', speakerImage: './heroes/kitsune_face.jpg', text: 'Behold this sanctuary. Three mystical relics rest on the Goban, including the colossal 2-cell Monolith!', position: 'right' },
+                    { speakerName: 'You (Champion)', speakerImage: './heroes/normal_face.jpg', text: 'I must seal them with my black stones to channel their blessings.', position: 'left' },
+                    { speakerName: 'Shadow Sorceress', speakerImage: './heroes/kitsune_face.jpg', text: 'If my white stones enclose them first, I shall absorb their relics and seize their power from you!', position: 'right' }
                 ]
             },
             {
                 trigger: 'on_capture',
                 targetId: 'monolith_qi',
                 dialogues: [
-                    { speakerName: 'You (Champion)', speakerImage: '/heroes/normal_face.jpg', text: 'I have sealed the 2-cell Monolith! The Titan Qi supercharges my tactical arsenal!', position: 'left' },
-                    { speakerName: 'Shadow Sorceress', speakerImage: '/heroes/kitsune_face.jpg', text: 'Curse you! I arrived too late to its outer perimeter!', position: 'right' }
+                    { speakerName: 'You (Champion)', speakerImage: './heroes/normal_face.jpg', text: 'I have sealed the 2-cell Monolith! The Titan Qi supercharges my tactical arsenal!', position: 'left' },
+                    { speakerName: 'Shadow Sorceress', speakerImage: './heroes/kitsune_face.jpg', text: 'Curse you! I arrived too late to its outer perimeter!', position: 'right' }
                 ]
             },
             {
                 trigger: 'on_enemy_capture',
                 targetId: 'monolith_qi',
                 dialogues: [
-                    { speakerName: 'Shadow Sorceress', speakerImage: '/heroes/kitsune_face.jpg', text: 'Hahaha! My white stones enclosed the Monolith! Its power belongs to the mist now!', position: 'right' },
-                    { speakerName: 'You (Champion)', speakerImage: '/heroes/normal_face.jpg', text: 'She consumed the Monolith! I must secure the remaining relics before she gains total dominion.', position: 'left' }
+                    { speakerName: 'Shadow Sorceress', speakerImage: './heroes/kitsune_face.jpg', text: 'Hahaha! My white stones enclosed the Monolith! Its power belongs to the mist now!', position: 'right' },
+                    { speakerName: 'You (Champion)', speakerImage: './heroes/normal_face.jpg', text: 'She consumed the Monolith! I must secure the remaining relics before she gains total dominion.', position: 'left' }
                 ]
             },
             {
                 trigger: 'on_capture',
                 targetId: 'thunder_orb',
                 dialogues: [
-                    { speakerName: 'You (Champion)', speakerImage: '/heroes/normal_face.jpg', text: 'Fire Orb secured! Astral power answers my command!', position: 'left' }
+                    { speakerName: 'You (Champion)', speakerImage: './heroes/normal_face.jpg', text: 'Fire Orb secured! Astral power answers my command!', position: 'left' }
                 ]
             },
             {
                 trigger: 'on_capture',
                 targetId: 'sacred_totem',
                 dialogues: [
-                    { speakerName: 'You (Champion)', speakerImage: '/heroes/normal_face.jpg', text: 'Totem purified! A divine barrier reinforces our territory.', position: 'left' }
+                    { speakerName: 'You (Champion)', speakerImage: './heroes/normal_face.jpg', text: 'Totem purified! A divine barrier reinforces our territory.', position: 'left' }
                 ]
             }
         ],

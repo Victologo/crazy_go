@@ -22,8 +22,8 @@ export class RoninChampion {
         // Turnos personales acumulados del jugador con el campeón Ronin
         const playerTurns = state.getPlayerTurnCount(playerId);
 
-        // Se activa exactamente cada 25 turnos (Turno 25, 50, 75...)
-        if (playerTurns === 0 || playerTurns % 25 !== 0) {
+        // Se activa exactamente cada 17 turnos (Turno 17, 34, 51...)
+        if (playerTurns === 0 || playerTurns % 17 !== 0) {
             return false;
         }
 
@@ -48,9 +48,9 @@ export class RoninChampion {
         setTimeout(() => {
             if (!targetNode || !targetNode.stone) return;
 
-            // Eliminar la piedra enemiga y sumar captura al jugador Ronin
-            targetNode.stone = null;
-            state.addCaptures(playerId, 1);
+            // Eliminar la piedra enemiga y sumar capturas al jugador Ronin
+            const removedIds = RulesEngine.destroyStoneAndPolyGroup(board, state, targetNode.id);
+            state.addCaptures(playerId, removedIds.length);
 
             // Evaluar si la eliminación rompió libertades y causó capturas en cadena
             const extraCaptured = RulesEngine.resolveBoardCaptures(board, state, playerId);
@@ -61,17 +61,23 @@ export class RoninChampion {
                 onBoardUpdated();
             }
 
-            // Disparar animación visual de tajo de katana único y centrado
+            // Disparar animación visual de tajo de katana en todas las casillas de la pieza
             if (svgElement) {
-                RoninVFX.triggerWindSlash({ x: target.x, y: target.y }, svgElement);
+                for (const nid of removedIds) {
+                    const n = board.nodes.get(nid);
+                    if (n) {
+                        RoninVFX.triggerWindSlash({ x: n.x, y: n.y }, svgElement);
+                    }
+                }
             }
 
+            const totalCut = removedIds.length;
             const extraMsg = extraCaptured > 0 ? ` (+${extraCaptured})` : '';
             const msg = t('champion.ronin.passive_trigger_msg', {
                 turn: playerTurns.toString(),
                 nodeId: target.id,
                 extra: extraMsg
-            }) || `🗡️💨 ¡Filo del Samurai (Turno ${playerTurns})! El Ronin desenvainó su katana y rebanó 1 piedra enemiga en [${target.id}].${extraMsg}`;
+            }) || `🗡️💨 ¡Filo del Samurai (Turno ${playerTurns})! El Ronin desenvainó su katana y rebanó ${totalCut > 1 ? `la ficha entera (${totalCut} casillas)` : '1 piedra enemiga'} en [${target.id}].${extraMsg}`;
 
             onTrigger(msg);
         }, 220);

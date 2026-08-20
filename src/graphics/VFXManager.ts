@@ -85,6 +85,20 @@ export class VFXManager {
     }
 
     /**
+     * Animación: Concesión de Escudo Divino Sagrado (Kitsune)
+     */
+    public static triggerDivineShieldAura(coord: { x: number; y: number }, svgElement: SVGSVGElement) {
+        KitsuneVFX.triggerDivineShieldAura(coord, svgElement);
+    }
+
+    /**
+     * Animación: Rotura del Escudo Divino (Kitsune)
+     */
+    public static triggerDivineShieldShatter(coord: { x: number; y: number }, svgElement: SVGSVGElement) {
+        KitsuneVFX.triggerDivineShieldShatter(coord, svgElement);
+    }
+
+    /**
      * Animación: Aliento de Llamas Sagradas y Ceniza de Ryūjin (Furia del Dragón)
      */
     public static triggerDragonFlame(coord: { x: number; y: number }, svgElement: SVGSVGElement, onComplete?: () => void) {

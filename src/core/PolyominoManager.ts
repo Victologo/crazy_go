@@ -113,7 +113,7 @@ export class PolyominoManager {
         const inv = this.playerInventories.get(playerId);
         for (const [id, card] of this.polyominoCards.entries()) {
             card.usesLeft = inv?.get(id) ?? 0;
-            card.orientation = 'horizontal';
+            card.orientation = this.orientation;
         }
     }
 
@@ -121,6 +121,52 @@ export class PolyominoManager {
         const inv = this.playerInventories.get(playerId);
         if (!inv) return false;
         return (inv.get('sprouting') || 0) > 0 || (inv.get('domino') || 0) > 0 || (inv.get('monolith') || 0) > 0;
+    }
+
+    public static getSnapshot(): {
+        cards: Record<PolyominoType, number>;
+        inventories: Record<number, Record<PolyominoType, number>>;
+    } {
+        const cards: Record<string, number> = {};
+        for (const [id, card] of this.polyominoCards.entries()) {
+            cards[id] = card.usesLeft;
+        }
+        const inventories: Record<number, Record<string, number>> = {};
+        for (const [pid, inv] of this.playerInventories.entries()) {
+            inventories[pid] = {};
+            for (const [type, count] of inv.entries()) {
+                inventories[pid][type] = count;
+            }
+        }
+        return { 
+            cards: cards as Record<PolyominoType, number>, 
+            inventories: inventories as Record<number, Record<PolyominoType, number>> 
+        };
+    }
+
+    public static restoreSnapshot(snapshot: {
+        cards: Record<PolyominoType, number>;
+        inventories: Record<number, Record<PolyominoType, number>>;
+    }) {
+        if (!snapshot) return;
+        this.activePolyomino = null;
+        if (snapshot.cards) {
+            for (const [id, count] of Object.entries(snapshot.cards)) {
+                const card = this.polyominoCards.get(id as PolyominoType);
+                if (card) card.usesLeft = count;
+            }
+        }
+        if (snapshot.inventories) {
+            this.playerInventories.clear();
+            for (const [pidStr, invObj] of Object.entries(snapshot.inventories)) {
+                const pid = parseInt(pidStr, 10) as PlayerId;
+                const inv = new Map<PolyominoType, number>();
+                for (const [type, count] of Object.entries(invObj)) {
+                    inv.set(type as PolyominoType, count);
+                }
+                this.playerInventories.set(pid, inv);
+            }
+        }
     }
 
     public static selectPolyomino(type: PolyominoType | null) {
@@ -140,7 +186,7 @@ export class PolyominoManager {
         if (dominoCard) {
             dominoCard.orientation = this.orientation;
         }
-        SoundFX.playPlaceStone();
+        SoundFX.playRotate();
         return this.orientation;
     }
 

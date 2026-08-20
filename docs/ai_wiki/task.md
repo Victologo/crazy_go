@@ -144,6 +144,7 @@
 - [x] **Tarea 114**: Ocultación Automática de Hechizos con 0 Usos en Runs Roguelike (`src/ui/HUDController.ts`, `index.html`: Filtrado dinámico de cartas de hechizos para mostrar únicamente aquellos que el jugador posee con `usesLeft > 0`, ocultando la sección mágica y el dock inferior si no se poseen hechizos ni poliminós).
 - [x] **Tarea 115**: Reconocimiento Matemático de Doble Ojo en Topologías Irregulares y Bordes Erosionados (`src/core/GraphBoard.ts`: Corregida la comprobación estricta de cadena única que descartaba ojos defendidos por cadenas mutuas en cortes/bordes del tablero, e integrado el Teorema de Vida Incondicional de Benson para conjuntos de cadenas que defienden conjuntamente cavidades en bordes de cualquier grafo irregular).
 - [x] **Tarea 116**: Unificación de Pantalla de Victoria Roguelike, Fondo Translúcido del Campeón, Inspección de Tablero y Economía Gratuita sin Magatamas (`index.html`, `src/style.css`, `ScoreModalRenderer.ts`, `RoguelikeController.ts`, `GameController.ts`, `AppEventBinder.ts`: Fusión completa de desglose territorial y 3 cartas de recompensas en un único modal panorámico `.modal-victory-unified` con silueta translúcida del héroe de fondo; corrección del nombre real y rango del rival derrotado con Komi dinámico real; botón funcional de "Inspeccionar Tablero" con botón flotante `#floating-inspect-btn` para retornar; eliminación universal de Magatamas y reconversión del Mercader en selección gratuita de hasta 2 objetos de entre 4 opciones y bendición sagrada de poliminós en santuarios).
+- [x] **Tarea 117**: Efecto VFX de Rotura de Escudo de Kitsune, Limpieza Visual Flat UI de Victoria y Herramientas Sandbox de Desarrollador (`GameState.ts`, `SVGRenderer.ts`, `KitsuneVFX.ts`, `index.html`, `hud.css`, `events.css`, `AppEventBinder.ts`, `RoguelikeRunManager.ts`: Sincronización de expiración de turnos del Escudo Divino para detonar una animación visual dinámica de fragmentación (0.6s) directamente en el SVG; rediseño de contenedores de puntuación y recompensas en el modal de victoria removiendo fondos y bordes para maximizar la inmersión panorámica; refinado del título de victoria a una única estrella dinámica; e integración de botones de hack de desarrollador "Instant Win" y "Free Map Travel" en el panel Sandbox).
 
 
 ## Fase 19: Modo Historia y Campañas de Rescate (Completada)
@@ -217,5 +218,249 @@
 - [x] **Tarea 148**: Localización Dinámica de Campeones y Entidades (`RoguelikeRunManager.ts`, `TerritoryScorer.ts`: Nombres, títulos, citas y descripciones de habilidades activas/pasivas traducidas reactivamente).
 - [x] **Tarea 149**: Tutorial Dojo y Modo Historia Bilingüe (`TutorialSteps.ts`, `TutorialManager.ts`, `StoryCampaign.ts`: Traducción completa en inglés y español para todos los 9 capítulos pedagógicos del Sensei y campañas narrativas).
 - [x] **Tarea 150**: Empaquetado y Compilación TypeScript (`npm run build`: 0 errores de compilación, generación de bundles finales y actualización de `.zip` descargables para Itch.io y Web).
-- [x] **Tarea 151**: Calibración de Kitsune (5 Cargas en 19x19) y Fórmula Sublineal Suave de Himiko (`KitsuneChampion.ts`, `HimikoChampion.ts`, `ChampionManager.ts`, `translations.ts`: Kitsune ajustado a 5 cargas en 19x19; Himiko adaptada con fórmula sublineal de rendimientos decrecientes $\operatorname{round}\left(4 \times (N/81)^{0.7885}\right)$, resultando exactamente en 4 piedras en 9x9, 7 piedras en 13x13 y 13 piedras en 19x19, escalable a cualquier dimensión futura).
+## Fase 22: Rediseño de Opciones, Mercader Flotante, Previsualizador Local y Limpieza de Interfaz (Completada)
+- [x] **Tarea 152**: Corrección de Modo Desarrollador y Bloqueo en Roguelike / Historia (`DevModeManager.ts`: Desactivación estricta de Sandbox y Deshacer/Rehacer en partidas roguelike e historia cuando el modo desarrollador está inactivo).
+- [x] **Tarea 153**: Rediseño del Panel de Opciones con Scroll y Menos Verboso (`index.html`, `options.css`: Eliminación de descripciones redundantes de SFX y BGM, contenedor con scroll vertical `modal-body-scroll`, switches de palanca dinámicos `.btn-toggle` con indicadores luminosos).
+- [x] **Tarea 154**: Supresión de Komi en Modo Historia (`GameController.ts`, `StoryCampaign.ts`: Eliminación del cartel cinematográfico de Komi en capítulos de historia y fijación de `komi: 0` en todas las misiones).
+- [x] **Tarea 155**: Mercader Flotante con Arte Vectorial Transparente y Sin Etiquetas de Precio (`RoguelikeController.ts`, `RogueModalRenderer.ts`, `events.css`, `public/items/`: Generación de 7 iconos SVG transparentes de alta definición para pergaminos y poliminós, renderizado como objetos flotantes clicables con animación de levitación y eliminación total de "(Gratis)" o etiquetas de coste).
+- [x] **Tarea 156**: Estética 'Ghost' y Menús Despejados (`setup.css`, `options.css`, `events.css`, `base.css`: Eliminación de contenedores pesados y anidados; reemplazo por fondos traslúcidos con bordes sutiles y padding optimizado).
+- [x] **Tarea 157**: Calibración Universal de Himiko (Proporcional 4 en 9x9, 8 en 13x13, 18 en 19x19) y Kitsune (5 cargas en 19x19) (`HimikoChampion.ts`, `KitsuneChampion.ts`, `translations.ts`: Implementación de fórmula proporcional universal $\operatorname{round}(N \times 4 / 81)$ para la Lluvia Pétrea de Himiko y confirmación de 5 cargas para el Escudo de Kitsune en 19x19).
+- [x] **Tarea 158**: Previsualizador de Tablero y Escenario en Vivo en Modo Local Paso 3 (`index.html`, `ModalManager.ts`, `setup.css`: Estructura en 2 columnas en el Paso 3 del Wizard; selección de dimensiones, geometría y escenario con renderizado SVG interactivo del Goban en tiempo real sobre el fondo seleccionado).
+- [x] **Tarea 159**: Generación de Ejecutable Nativo Portable Windows y Paquete Itch.io (`CREAR_PAQUETE_EXE.bat`, `Launcher.cs`, `CrazyGo_Portable.zip`, `CrazyGo.exe`, `CrazyGo_v1.0_Windows.zip`: Compilación automatizada de la app de escritorio nativa con servidor HTTP embebido persistente, perfil aislado de usuario y ventana app dedicada sin navegador ni dependencias externas, listo para subir a Itch.io).
+
+## Fase 23: Auditoría Integral y Erradicación de Filtraciones de Idioma (Español en Modo Inglés) (Completada)
+- [x] **Tarea 160**: Auditoría y Paridad de Diccionarios i18n (`translations.ts`, `i18n.ts`: Validación de paridad 1:1 entre claves en `es` y `en` con 319 claves perfectamente sincronizadas).
+- [x] **Tarea 161**: Localización de Alertas y Notificaciones Dinámicas de Partida (`GameController.ts`: Eliminación de todos los textos duros en español en avisos de banderas de tiempo por jugada, alertas de rescate de rehenes/cofres, avisos de habilidades y pasivas de IA rival, notificaciones de pase de turno, alertas de deshacer/rehacer y banner cinematográfico de Komi inicial).
+- [x] **Tarea 162**: Localización de Textos Dinámicos del Asistente Wizard y Previsualizador (`ModalManager.ts`: Traducción reactiva de contadores de pasos "Step X of 5", descripciones de resumen del tablero, selector de dimensiones, geometrías, dificultad de IA y nombres de escenarios temáticos).
+- [x] **Tarea 163**: Localización de HUD, Tooltips de Habilidades y Puntuación (`HUDController.ts`, `ScoreModalRenderer.ts`: Traducción bilingüe de descripciones emergentes de Duplicidad 2x1 y Lluvia Meteórica, rótulos de victorias 4P / Jigo y badges de dificultad).
+- [x] **Tarea 164**: Localización de Eventos y Tienda del Mercader (`RoguelikeController.ts`, `RogueModalRenderer.ts`: Traducción bilingüe de todos los títulos, subtítulos, botones de reclamo, opciones de santuarios/descansos y catálogo flotante del mercader).
+- [x] **Tarea 165**: Localización de Modo Online y Multijugador (`OnlineController.ts`, `NetworkManager.ts`: Mensajes de creación y unión de salas, estados del lobby, slots de jugadores y botón de copiar enlace bilingües).
+- [x] **Tarea 166**: Recompilación Limpia y Regeneración de Binarios (.exe y .zip) (`CREAR_PAQUETE_EXE.bat`, `CrazyGo_Portable.zip`, `CrazyGo.exe`: Verificación TypeScript sin errores y actualización del paquete portable nativo listo para itch.io).
+- [x] **Tarea 167**: Limpieza de Barra de Ítems en Lección 7 del Tutorial (`TutorialManager.ts`: Desactivación de fichas poliminó y hechizos en el capítulo de campeones, manteniendo la barra inferior oculta y enfocada al 100% en la habilidad de Tengu).
+
+## Fase 24: Herramientas Tácticas Profesionales de Go (Conquest of Go Style) y Hándicap Universal (Completada)
+- [x] **Tarea 168**: Restauración Total de Deshacer / Rebobinar (`GameState.ts`, `ChampionManager.ts`, `RogueliteManager.ts`, `PolyominoManager.ts`: Guardado y restauración de habilidades activas, pergaminos de hechizos e inventarios poliminó en cada snapshot de turno).
+- [x] **Tarea 169**: Pasiva Innata del "Hombre Normal" (Sensei) (`ChampionManager.ts`, `RoguelikeRunManager.ts`, `translations.ts`: Inicia cada combate con 2 cargas gratuitas de Rebobinar ⏳ y descripción temática "Retrospectiva del Sensei").
+- [x] **Tarea 170**: Gestor Universal de Piedras de Hándicap Canónicas (`HandicapManager.ts`, `GameController.ts`: Algoritmo canónico de puntos Hoshi para 9x9, 13x13 y 19x19, y algoritmo de dispersión de centralidad en grafos asimétricos; cesión del turno 1 a Blancas y Komi 0.5).
+- [x] **Tarea 171**: Selector de Hándicap (0 a 9) en Wizard y Modos de Juego (`index.html`, `ModalManager.ts`, `AppEventBinder.ts`, `setup.css`: Selector visual de 0 a 9 piedras con ajuste automático de Komi y actualización de resumen).
+- [x] **Tarea 172**: "El Ojo del Maestro" y "Proyección Astral" (`AnalysisEngine.ts`, `SVGRenderer.ts`, `GameController.ts`, `HUDController.ts`, `KeyboardController.ts`: Sugerencia de jugada óptima calculada por IA Dan con halo dorado pulsante, atajo `H`, justificación táctica y visualización proyectada de la secuencia 1-2-3).
+- [x] **Tarea 173**: Barra de Probabilidad de Victoria en Tiempo Real (Win Rate % Bar) (`AnalysisEngine.ts`, `HUDController.ts`, `index.html`, `hud.css`: Estimación sigmoide logística continua en base a territorio, prisioneros y komi con barra animada en el HUD).
+- [x] **Tarea 174**: Recompilación, Empaquetado y Pruebas (`CREAR_PAQUETE_EXE.bat`, `CrazyGo_Portable.zip`: Verificación con 0 errores y binarios actualizados).
+- [x] **Tarea 175**: Disponibilidad Universal de Rebobinares del Hombre Normal y Sincronización Online P2P (`GameController.ts`, `OnlineController.ts`, `NetworkManager.ts`, `HUDController.ts`: El Hombre Normal dispone de sus 2 cargas de Rebobinar ⏳ en Local 1v1, 1vIA, Multijugador Online y Roguelike con sincronización bidireccional P2P vía mensaje `UNDO_REWIND` y renderizado activo del dock de hechizos).
+- [x] **Tarea 176**: Animación Cinematográfica de Retorno Celestial de Fichas (`SVGRenderer.ts`, `vfx.css`: Animación con halo azul cian portal, levitación/rotación ascendente de la ficha y disolución en destellos celestiales al deshacer o rebobinar).
+- [x] **Tarea 177**: Goban Geométrico Adaptativo en Previsualizador de Asistente (`ModalManager.ts`: Sustitución de contenedor rectangular genérico por cálculo de Convex Hull poligonal con bisel y sombra adaptada al contorno exacto en tableros triangulares, hexagonales, en cruz, erosionados y cuadrados).
+- [x] **Tarea 178**: Reestructuración del Asistente Wizard a 6 Pasos con Escenario y Molde de Duelo (`index.html`, `ModalManager.ts`, `setup.css`, `translations.ts`, `KeyboardController.ts`: Desacoplamiento del selector de escenarios al nuevo Paso 5 independiente tras la elección de campeón; viewport panorámico cinemático con standee de campeón propio a la izquierda, Goban geométrico en el centro y silueta de rival desconocido con `❓` resplandeciente a la derecha).
+- [x] **Tarea 179**: Asistente Wizard de 5 Pasos para Multijugador Online (Host) con Código/Semilla Persistente y Escena de Duelo en Vivo (`index.html`, `ModalManager.ts`, `OnlineController.ts`, `AppEventBinder.ts`, `KeyboardController.ts`, `types/index.ts`, `translations.ts`, `online.css`: Reestructuración del flujo de creación de sala online en 5 pasos interactivos con stepper y navegación bidireccional libre sin alterar el código de sala generado desde el paso 1; previsualización cinemática de duelo en paso 4 con standee de anfitrión, Goban adaptativo y caja misteriosa de invitado; y selección de fondo de combate con sincronización en la partida).
+- [x] **Tarea 180**: Recompilación, Empaquetado y Pruebas del Paquete Portable Nativo (`CREAR_PAQUETE_EXE.bat`, `CrazyGo_Portable.zip`, `CrazyGo.exe`: Compilación TypeScript/Vite con 0 errores y binarios Windows de escritorio actualizados).
+- [x] **Tarea 181**: Calibración Cinemática de Standees (+60% Campeón, -10% Rival) y Erradicación del Scroll Vertical (`setup.css`, `options.css`, `base.css`, `index.html`: Incremento del 60% en el tamaño del standee del campeón izquierdo, reducción del 10% en la caja misteriosa derecha con interrogación resplandeciente, eliminación del subtítulo redundante y optimización milimétrica de márgenes y paddings para un encuadre 100% libre de scroll vertical).
+- [x] **Tarea 182**: Controles Compactos en Fila Única para Hándicap, Komi y Poliminós Especiales (`index.html`, `setup.css`, `translations.ts`, `ModalManager.ts`, `AppEventBinder.ts`: Agrupación de piedras poliminó especiales de Jugador e IA en una cuadrícula horizontal de 3 columnas por bando; simplificación del título de Hándicap a "Handicap Stones" y unificación de presets (0 a 6) más campo numérico libre en una sola fila; y disposición de Komi (0.5, 5.5, 6.5, 7.5 + valor libre) en una única fila horizontal en Local y Online).
+- [x] **Tarea 183**: Selector de Campeón Rival y Standee Dinámico en Paso 5 (`index.html`, `setup.css`, `ModalManager.ts`, `AppEventBinder.ts`, `GameController.ts`, `DuelistRenderer.ts`, `HUDController.ts`: Selector horizontal de 8 opciones (`🎲 Random`, `👤 Sensei`, `🦅 Tengu`, `🌸 Himiko`, `🦊 Kitsune`, `⚔️ Ronin`, `🧪 Alchemist`, `🐉 Ryūjin`), standee dinámico con `❓` o ilustración del campeón, etiquetas de combatiente en fila única elevadas +10px y configuración táctica de IA in-game con HUD personalizado).
+- [x] **Tarea 184**: Topologías Procedurales Orgánicas con Semilla Persistente y 8 Arquetipos Asimétricos (`BoardGenerators.ts`, `ModalManager.ts`, `AppEventBinder.ts`, `OnlineController.ts`, `GameController.ts`, `types/index.ts`: Persistencia de semilla al navegar entre pasos o cambiar opciones; re-generación exclusiva al pulsar 'Procedural'; e incorporación de 8 estilos asimétricos: Anillos Concéntricos con Puentes Radiales, Galaxia Espiral Doble, Reloj de Arena Cuántico, Tridente / Ypsilon Sagrada, Diamante Fracturado con Geoda Hueca, Archipiélago de Atolones Flotantes, Cañón Asimétrico Zig-Zag y Costa Orgánica Perlin Caótica).
+- [x] **Tarea 185**: Recompilación, Empaquetado y Pruebas del Paquete Portable Nativo (`CREAR_PAQUETE_EXE.bat`, `CrazyGo_Portable.zip`, `CrazyGo.exe`: Compilación TypeScript/Vite con 0 errores y binarios Windows de escritorio actualizados).
+
+## Fase 25: Calibración Visual, Fixes de Campeones, Rutas Relativas y Despliegue en Itch.io (Completada)
+- [x] **Tarea 186**: Corrección de Habilidades de Campeones (Ronin e Himiko) (`GameController.ts`, `HimikoChampion.ts`, `HimikoVFX.ts`, `translations.ts`: Pasiva de Ronin configurada a cada 20 turnos sin doble disparo vinculada a `heroOwnerId`; fijación de la capa de cometas de Himiko a `#vfx-live-container` para sobrevivir a los re-renderizados del Goban; y eliminación de emojis duplicados en traducciones).
+- [x] **Tarea 187**: Calibración Óptica de Tableros Geométricos y Standees (`SVGRenderer.ts`, `board.css`, `champions.css`, `DuelistRenderer.ts`: Elevación de +50px y zoom-in de +15% específico para tableros triangulares; reducción global del -8% en escala base del tablero; y ajuste del standee de Ronin con +8% de escala y -10px a la izquierda).
+- [x] **Tarea 188**: Conversión Universal de Assets a Rutas Relativas (`index.html`, `src/`: Reemplazo global de `/heroes/`, `/enemies/`, `/audio/`, `/img/` por rutas relativas `./heroes/`, etc. para compatibilidad con iframes y subdirectorios de Itch.io).
+- [x] **Tarea 189**: Generación de Builds Web y Empaquetado Itch.io (`crazy_go_itchio_v4.zip`: Compilación TypeScript/Vite y compresión de paquete ZIP optimizado para ejecución HTML5 en navegador).
+- [x] **Tarea 190**: Generación de Cover Art 2D y Redacción de Campaña para Comunidades (`r/roguelites`, `r/baduk`, `r/aigamedev`: Generación de miniatura oficial 2D anime-pixel art y redacción de posts promocionales y técnicos).
+
+## Fase 26: Desbloqueo de 1ª Línea de Tablero e Internacionalización Integral (ES / EN) (Completada)
+- [x] **Tarea 191**: Desbloqueo de Interacción y Clics en la 1ª Línea del Goban (`champions.css`, `board.css`, `SVGRenderer.ts`: Desactivado `pointer-events: none` en siluetas y contenedores visuales de standees para impedir que el escalado de figuras bloquee las casillas periféricas del tablero; fijado `z-index: 20` y `pointer-events: auto` en `#board-container`).
+- [x] **Tarea 192**: Internacionalización Integral de Alertas, Modales y Textos de Sensei (`SVGRenderer.ts`, `RoguelikeController.ts`, `RoguelikeMapRenderer.ts`, `ModalManager.ts`, `TutorialManager.ts`, `RogueModalRenderer.ts`: Localización dinámica en inglés y español de mensajes de error de Go [Suicidio, Ko, Casilla Ocupada], recompensas roguelike, tooltips del mapa, dojo y modales online).
+
+## Fase 27: Purga de Assets Huérfanos, Optimización de Peso Web y Renovación Artística Unificada (Completada)
+- [x] **Tarea 193**: Purga y Limpieza de 29 Archivos Huérfanos en `public/` (Eliminación de 23.46 MB de duplicados JPG y PNGs obsoletos no referenciados).
+- [x] **Tarea 194**: Corrección Universal de Rutas de Texturas y Fondos (`base.css`, `layout.css`, `SVGDefs.ts`: Corrección de rutas absolutas `/bg_*.jpg` y `/wood_kaya.jpg` a rutas relativas `./` para compatibilidad de iframes en Itch.io).
+- [x] **Tarea 195**: Generación de Roster de 7 Campeones con Estilo Artístico Unificado Ukiyo-e Cel-Shaded (`normal`, `tengu`, `himiko`, `kitsune`, `ronin`, `alchemist`, `ryujin`: Generación de standees de cuerpo entero con máscara alfa transparente limpia y retratos de primer plano 1:1 consistentes).
+- [x] **Tarea 196**: Optimización y Compresión de Assets PNG y JPG (Compresión de fondos de 9.3 MB a 2.3 MB y optimización de siluetas de enemigos y campeones).
+- [x] **Tarea 197**: Empaquetado Web Oficial Ligero (`crazy_go_itchio_v5.zip`: Compilación de paquete HTML5/JS/CSS de 38.2 MB listo para subir a Itch.io).
+
+## Fase 28: Topologías Legendarias, Islas v1-v3, Zoom Global, Capas de Placas e IA Asimétrica (Completada)
+- [x] **Tarea 198**: Integración de Escenarios Legendarios e Islas (`BoardGenerators.ts`, `types/index.ts`, `translations.ts`: Implementación de *Reloj de Arena Cuántico*, *Diamante Geoda*, *Galaxia Espiral*, *Anillos Concéntricos* e *Islas v1/v2/v3* como opciones fijas y en la generación de mapas Roguelike).
+- [x] **Tarea 199**: Sistema de Zoom y Escalado Visual Configurable (`ModalManager.ts`, `KeyboardController.ts`, `index.html`: Atajos `Ctrl + +`, `Ctrl + -`, `Ctrl + 0`, slider en menú de opciones y persistencia en `localStorage`).
+- [x] **Tarea 200**: Capa Frontal de Placas de Campeones (`champions.css`: `z-index: 50 !important` y desenfoque `blur(16px)` para asegurar que nombres y botones nunca sean eclipsados por la ilustración flotante).
+- [x] **Tarea 201**: Orientación Óptica al Goban (`champions.css`, `DuelistRenderer.ts`: Ajuste de `scaleX` y `data-hero` para que ambos contendientes miren fijamente al centro del tablero).
+- [x] **Tarea 202**: IA Táctica Topológica en Terrenos Asimétricos (`GoAI.ts`: Penalización de nodos trampa $\le 2$ libertades en apertura y bonificación de cuellos de botella/puentes estratégicos).
+- [x] **Tarea 203**: Empaquetado Dual Oficial (`crazy_go_itchio_v6.zip` y `CrazyGo_Portable.zip` / `CrazyGo.exe`).
+
+## Fase 29: Transparencia Total de Enemigos, Aviso Modo Historia y Tableros de Estrella (Completada)
+- [x] **Tarea 204**: Purga y Transparencia Alfa de Enemigos (`public/enemies/`: Eliminación de 12 archivos duplicados `.webp` y `.jpg`, procesamiento de siluetas de monjes, sabios, jefe y espíritu con canal alfa limpio y formato único `.png`).
+- [x] **Tarea 205**: Insignia 'En Desarrollo / In Development' en Modo Historia (`index.html`, `base.css`, `translations.ts`: Añadido badge `⚠️ En Desarrollo` bilingüe dinámico en el menú principal).
+- [x] **Tarea 206**: Tableros de Estrella de 5 y 6 Puntas (`types/index.ts`, `BoardGenerators.ts`, `translations.ts`, `index.html`, `ModalManager.ts`, `AppEventBinder.ts`: Implementación de *Estrella de 5 Puntas / Pentagrama* y *Estrella de 6 Puntas / Estrella de David*).
+- [x] **Tarea 207**: Empaquetado Dual Oficial Actualizado (`crazy_go_itchio_v7.zip` de 37.35 MB y `CrazyGo_Portable.zip` / `CrazyGo.exe`).
+
+## Fase 30: Renovación de 'Persona Normal' (Sin Rostro) y Renombramiento Universal (Completada)
+- [x] **Tarea 208**: Renombramiento Global a 'Persona Normal' / 'Normal Person' (`translations.ts`, `NormalChampion.ts`, `ModalManager.ts`, `StoryCampaign.ts`: Cambio universal de Hombre Normal / Normal Apprentice a Persona Normal / Normal Person).
+- [x] **Tarea 209**: Ilustración y Retrato 100% Sin Rostro (`public/heroes/normal.png` y `public/heroes/normal_face.jpg`: Eliminación completa de ojos, cejas, nariz y boca conservando tonos de piel suaves, silueta ukiyo-e, transparencia limpia y fondo de papiro japonés).
+- [x] **Tarea 210**: Empaquetado Dual Oficial Actualizado (`crazy_go_itchio_v7.zip` y `CrazyGo_Portable.zip` / `CrazyGo.exe`).
+
+## Fase 31: Balance de Habilidades, Internacionalización 100%, Alineación de Escenario y Asistente Panorámico (Completada)
+- [x] **Tarea 211**: Balance de Habilidades de Himiko y Ronin (`ChampionManager.ts`, `HimikoChampion.ts`, `RoninChampion.ts`, `translations.ts`: Himiko activa pasiva en Turno 20 y Ronin corta piedra cada 17 turnos).
+- [x] **Tarea 212**: Internacionalización 100% en Asistente y Modales (`index.html`, `ModalManager.ts`, `translations.ts`: Eliminación de mezcla de idiomas en títulos, botones, tarjetas de habilidades y etiquetas de rivales/escenarios).
+- [x] **Tarea 213**: Alineación Vertical en la Tarima de Duelo del Escenario (`setup.css`: Asentamiento del rival y del jugador en la misma línea base inferior sobre el tatami).
+- [x] **Tarea 214**: Rediseño Panorámico del Asistente (`setup.css`, `options.css`: Ampliación a `max-width: 1160px` y `min-height: 580px` para aprovechar toda la pantalla).
+- [x] **Tarea 215**: Empaquetado Dual Oficial Actualizado (`crazy_go_itchio_v8.zip` y `CrazyGo_Portable.zip` / `CrazyGo.exe`).
+
+## Fase 32: Asentamiento Vertical y Escalado Majestuoso de Standees (Completada)
+- [x] **Tarea 216**: Asentamiento y Ampliación de Figuras de Combate (`champions.css`: Descenso a `translateY(92px)` / `translateY(105px)` y aumento de escala a `scale(1.50)` para evitar que coronas/tocados altos como los de Himiko o cuernos de Ryūjin se corten con el borde superior).
+- [x] **Tarea 217**: Empaquetado Dual Oficial Actualizado (`crazy_go_itchio_v8.zip` y `CrazyGo_Portable.zip` / `CrazyGo.exe`).
+
+## Fase 33: Archipiélago Híbrido Tri-Geométrico (Cuadrado + Triángulo + Hexágono) (Completada)
+- [x] **Tarea 218**: Generador de Archipiélago Híbrido Tri-Geométrico (`BoardGenerators.ts`: `islands_v1` genera una gran Isla Cuadrada central superior, una Isla Triangular inferior izquierda y una Isla Hexagonal inferior derecha conectadas por puentes tácticos diagonales).
+- [x] **Tarea 219**: Variantes de Archipiélago Mixto Dual (`BoardGenerators.ts`: `islands_v2` Cuadrado + Dual Triangular e `islands_v3` Cuadrado + Dual Hexagonal con puentes tácticos).
+- [x] **Tarea 220**: Localización y Empaquetado Dual (`translations.ts`, `ModalManager.ts`: Actualizados nombres bilingües y empaquetados oficiales `crazy_go_itchio_v8.zip` y `CrazyGo_Portable.zip` / `CrazyGo.exe`).
+
+## Fase 34: Archipiélago Cruz Cuadrada (5 Islas Cuadradas con Puentes Cardinales) (Completada)
+- [x] **Tarea 221**: Generador de Archipiélago Cruz Cuadrada (`BoardGenerators.ts`, `types/index.ts`: Implementación de `islands_v4` con 1 Gran Isla Cuadrada central conectada ortogonalmente a 4 Islas Cuadradas satélites Norte, Sur, Este y Oeste mediante puentes cardinales).
+- [x] **Tarea 222**: Integración UI e Internacionalización Bilingüe (`index.html`, `ModalManager.ts`, `AppEventBinder.ts`, `translations.ts`: Selector y botones integrados en partida local y online con etiquetas bilingües dinámicas).
+- [x] **Tarea 223**: Empaquetado Dual Oficial Actualizado (`crazy_go_itchio_v8.zip` y `CrazyGo_Portable.zip` / `CrazyGo.exe`).
+
+## Fase 35: Reconstrucción Artística de 'Persona Normal' (Sin Rostro Puro) y Primer Plano de Ryūjin (Completada)
+- [x] **Tarea 224**: Reconstrucción Pura de Rostro Sin Rasgos de 'Persona Normal' (`public/heroes/normal_face.jpg` y `public/heroes/normal.png`: Eliminado el parche circular de difuminado; reconstruida la superficie facial con degradado suave y radiante de tono de piel natural, preservando cabello oscuro, cintas, contorno mandibular y silueta con canal alfa limpio).
+- [x] **Tarea 225**: Primer Plano Épico de Ryūjin (`public/heroes/ryujin_face.jpg`: Retrato en primer plano del Emperador Dragón sobre fondo de pergamino washi japonés y viñeta de tinta, a juego con el resto de campeones místicos).
+- [x] **Tarea 226**: Empaquetado Dual Oficial Actualizado (`crazy_go_itchio_v8.zip` y `CrazyGo_Portable.zip` / `CrazyGo.exe`).
+
+## Fase 36: Corrección de Carga de Fondos Web/Roguelike y Fórmulas Concisa de Combate (Completada)
+- [x] **Tarea 227**: Resolución de Rutas de Fondos Temáticos en Web/Roguelike (`layout.css`, `base.css`, `HUDController.ts`: Corregidas las rutas relativas de CSS y añadido refresco dinámico explícito de fondo en `setBoardBackground` para asegurar la carga inmediata de `bg_combat.jpg`, `bg_boss.jpg`, etc., en navegadores e iframe de Itch.io).
+- [x] **Tarea 228**: Fórmulas Sintéticas de Habilidades en Combate (`translations.ts`, `HUDController.ts`, `champions.css`: Añadidas fórmulas concisas con flechas limpias `→`, eliminado el icono gris que ocupaba espacio horizontal y ampliada la tarjeta de combate un 7% a 235px para lectura óptima).
+- [x] **Tarea 229**: Empaquetado Dual Oficial Actualizado (`crazy_go_itchio_v8.zip` y `CrazyGo_Portable.zip` / `CrazyGo.exe`).
+
+## Fase 37: Rediseño Integral de Archipiélagos con Paseos Anchos y Reorganización v1, v2, v3 (Completada)
+- [x] **Tarea 230**: Reorganización de Topologías de Islas (`types/index.ts`, `BoardGenerators.ts`, `ModalManager.ts`, `AppEventBinder.ts`, `RoguelikeMapGenerator.ts`, `index.html`: Eliminada la antigua `islands_v2` dual triangular; `islands_v2` es ahora Cuadrado + Dual Hexagonal; `islands_v3` es ahora Cruz Cardinal de 5 Islas Cuadradas; eliminada `islands_v4`).
+- [x] **Tarea 231**: Rediseño Geométrico con Islas Amplias y Paseos Anchos de 2-3 Carriles (`BoardGenerators.ts`: Centro y satélites ampliados sustancialmente; las conexiones ya no son una línea simple inclinada sino avenidas/paseos de 2 a 3 carriles de ancho con interconexiones completas).
+- [x] **Tarea 232**: Localización Bilingüe y Empaquetado Oficial (`translations.ts`, `crazy_go_itchio_v8.zip` y `CrazyGo_Portable.zip` / `CrazyGo.exe`).
+
+## Fase 38: Reconstrucción Artística 100% Sin Rostro de Persona Normal y Primer Plano de Ryūjin (Completada)
+- [x] **Tarea 233**: Rostro 100% Sin Rasgos en Retrato de Persona Normal (`public/heroes/normal_face.jpg`: Cobertura milimétrica de ojos, cejas, pestañas, nariz y boca con textura de piel suave y radiante sin ninguna línea residual sobre fondo washi japonés tradicional).
+- [x] **Tarea 234**: Standee Transparente de Persona Normal 100% Sin Rasgos (`public/heroes/normal.png`: Reconstruido desde el asset original de alta resolución con canal alfa limpio y superficie facial libre de ojos, cejas, nariz y boca, preservando peinado, cintas y oreja).
+- [x] **Tarea 235**: Retrato en Primer Plano Auténtico de Ryūjin (`public/heroes/ryujin_face.jpg`: Encuadre de busto en primer plano con cuernos de dragón, ojos celestiales, orbe de agua y fondo de pergamino washi zen con viñeta de tinta).
+- [x] **Tarea 236**: Empaquetado Dual Oficial Actualizado (`crazy_go_itchio_v8.zip` y `CrazyGo_Portable.zip` / `CrazyGo.exe`).
+
+## Fase 39: Topologías Isométricas Triangulares (Estrellas de 5 y 6 Puntas) y Archipiélago Dual (Completada)
+- [x] **Tarea 237**: Rediseño de `islands_v1` como Archipiélago Dual (`BoardGenerators.ts`: Eliminado el cuadrado central; ahora son 2 grandes islas de igual escala: 1 Hexágono + 1 Triángulo, ambas sobre la misma cuadrícula isométrica triangular y conectadas por un paseo ancho continuo de celdas triangulares/hexagonales).
+- [x] **Tarea 238**: Reorganización de Archipiélagos (`types/index.ts`, `BoardGenerators.ts`, `ModalManager.ts`, `AppEventBinder.ts`, `RoguelikeMapGenerator.ts`, `translations.ts`, `index.html`: `islands_v2` es ahora la Cruz Cardinal de 5 Islas Cuadradas con avenidas anchas ortogonales de 2-3 carriles; eliminada la antigua `islands_v3`).
+- [x] **Tarea 239**: Rediseño de Estrellas de 5 y 6 Puntas con Malla Triangular Pura (`BoardGenerators.ts`: `star_5` y `star_6` reconstruidas usando cuadrícula isométrica triangular pura de 6 direcciones en lugar de cuadrículas cuadradas ortogonales).
+- [x] **Tarea 240**: Empaquetado Dual Oficial Actualizado (`crazy_go_itchio_v9.zip` de 37.78 MB y `CrazyGo_Portable.zip` / `CrazyGo.exe`).
+
+## Fase 40: Corrección de Turnos y Escalado de Habilidades de Ryūjin (Completada)
+- [x] **Tarea 241**: Corrección del Bug de Colocación de Ficha Rival tras Calcinación (`SVGRenderer.ts`, `ChampionManager.ts`, `GameController.ts`: Bloqueo inmediato de interacción al terminar de calcinar, sincronización adecuada del turno de la IA y protección de turno local).
+- [x] **Tarea 242**: Restricción Canónica de Piedras Enemigas (`RyujinChampion.ts`: Verificación de `centerNode.stone.playerId !== playerId` para asegurar que solo se calcinan piedras del rival).
+- [x] **Tarea 243**: Nuevas Reglas de Escalado de Furia del Dragón (`RyujinChampion.ts`, `GameController.ts`, `translations.ts`: 9x9 con 2 ojos quema 2 piedras enemigas; 13x13 con 3+ ojos quema 4 piedras enemigas; 19x19 otorga 1 quema por grupo vivo de 2 ojos y +1 quema por cada ojo adicional expandido).
+- [x] **Tarea 244**: Algoritmo Canónico de Benson (1976) y Eliminación de Ojos Falsos (`GraphBoard.ts`: Poda iterativa de subregiones saludables y verificación diagonal de esquinas para descartar ojos falsos).
+- [x] **Tarea 245**: Empaquetado Oficial Actualizado (`crazy_go_itchio_v9.zip` y `CrazyGo_Portable.zip` / `CrazyGo.exe`).
+
+
+
+## Fase 41: Corrección de Bugs Críticos, Mejoras de IA, Nuevas Mecánicas y Pulido (Sesión 100+)
+
+### Bugs Críticos (Alta Prioridad)
+- [x] **Tarea 246**: Corrección del Bug de Ryūjin — Furia del Dragón Rota: tras quemar las piedras el cursor obliga a poner una piedra del color rival y bloquea el sistema de turnos; eliminar cualquier llamada a `onMovePlaced`/`onNodeClicked` con `isLocal=true` desde el flujo de calcinación y garantizar que `onPassiveBurnCompleted` sea el único punto de salida del callback de Ryūjin. Verificar también que `checkAITurn` y `renderer.isInteractive` se restauren correctamente en todos los modos (1vIA, 1v1, online).
+- [x] **Tarea 247**: Corrección de Capturas en Tableros Irregulares — Pseudo-intersecciones Fantasmas: grupos que no tienen libertades visibles no se capturan. Revisar `GraphBoard.getLiberties` para asegurarse de que nodos con `terrain === 'DESTROYED'` o `terrain === 'OBSTACLE'` jamás cuentan como libertad, y eliminar adyacencias a nodos fuera-de-tablero que se añaden erróneamente durante la generación de topologías asimétricas en `BoardGenerators.ts`.
+- [x] **Tarea 248**: Bug de IA en Itch.io Embebido — Sonido pero sin Piedra: la IA reproduce el sonido pero no coloca la piedra (posible condición de carrera entre el timeout de la IA y el render del iframe). Refactorizar `checkAITurn` para garantizar que `handleNodeClick` complete síncronamente su efecto antes de llamar al siguiente timeout; añadir un guard `isAIProcessing` para evitar llamadas solapadas.
+- [x] **Tarea 249**: Bug de Fin de Partida No Detectado (Game Never Ends): la IA no pasa turno cuando debería, el tablero se llena, la última piedra captura todo el territorio del humano. Corrección triple: (1) `opponentJustPassed` en `GoAI.ts` debe usar **solo** `consecutivePasses >= 1` eliminando el `|| lastMoveNodeId === null` incorrecto; (2) el fallback doble-pase en `GameController.ts` L766-771 debe protegerse con un guard; (3) `consecutivePasses` debe resetearse a 0 explícitamente al colocar una piedra real en `RulesEngine.tryPlaceStone`.
+- [x] **Tarea 250**: Corrección del Sistema de Turnos Múltiples: a veces el mismo jugador/IA juega varios turnos seguidos. Añadir mutex `isAITurnRunning` en `GameController` que impida que `checkAITurn` sea invocado concurrentemente; limpiar todos los `setTimeout` pendientes antes de iniciar un nuevo turno de IA.
+- [x] **Tarea 251**: Modo Historia — Primer Combate Sin Botón de Pasar Turno y sin Fin de Partida: en modo historia `isCurrentChapterSolo()` puede forzar `currentPlayer = 1` bloqueando el paso de turno. Añadir botón de paso de turno visible en modo historia cuando `!isCurrentChapterSolo()`, y asegurarse de que la condición de victoria del capítulo se evalúa correctamente tras cada jugada.
+- [x] **Tarea 252**: Ala de Tengu Cortada en el Standee: el asset `tengu.png` muestra el ala derecha recortada. Regenerar la ilustración con el ala completa visible, o ajustar el CSS `object-fit`/`object-position` del standee para que no recorte el ala; revisar también la restricción de altura en `.duel-standee`.
+
+### Mejoras de Jugabilidad y UX
+- [x] **Tarea 253**: Marcador de Última Jugada Universal: en todos los modos de juego, la última intersección donde se colocó una piedra debe quedar marcada con un pequeño círculo/halo de color contrastante (blanco para piedra negra, negro para blanca) persistente hasta el siguiente turno, visible también durante el turno de la IA.
+- [x] **Tarea 254**: Demora Natural Adaptativa de la IA: reemplazar el delay fijo de la IA (250-450ms) por una demora aleatoria entre 0.7s y 1.5s que varía según la fase de la partida (apertura más rápida, endgame más lento) y la complejidad estimada de la jugada (número de candidatos evaluados); usar `Math.random()` con función cuadrática de progreso del turno.
+- [x] InteractionManager, GameEventBus y refactorización de eventos completados.
+
+## Fase 46: Fix Multijugador Online (Host Wizard) y Actualización de Versión
+- [x] **Tarea 266**: **Corrección de la Navegación y Botón de Inicio en el Wizard del Host Online:**
+  - Resuelto el problema por el cual el anfitrión no podía seleccionar opciones ni cambiar de paso al crear una sala online (OnlineModalRenderer.setOnlineWizardStep usaba una clase CSS inexistente).
+  - Actualizado log_crazy_go.md con un separador explícito para la nueva versión (v11) a partir de este punto.
+  - Solucionado el fallo de sincronización de configuración entre host y cliente (Guest) al iniciar la partida: se añadieron las propiedades faltantes (`seed`, `background`, `isCoopRogue`, `coopSubTurn`, y `ruleStyle`) en las llamadas a `GameController.initGame` dentro de `OnlineController.ts`, garantizando que tanto anfitrión como invitados generen exactamente el mismo tablero procedural y vean el mismo escenario.
+
+## Fase 50: Rebobinares para Persona Normal, SFX Bong de Pase de Turno y Corrección de IA con Alquimista
+- [x] **Tarea 272**: **Rebobinares Universales para Persona Normal:**
+  - Configurados 2 Rebobinares tácticos gratuitos (⏳) para el campeón Persona Normal en todos los modos no roguelike (Local 1v1, 1vIA, 4P, Online P2P y Sandbox).
+  - Escalado por dificultad preservado en modo Roguelike (Fácil 4, Media 2, Difícil 1, Extrema 0).
+  - Actualizadas las descripciones y fórmulas de combate en `translations.ts` (español e inglés) y habilitada la visibilidad en `HUDController.ts`.
+- [x] **Tarea 273**: **Efecto de Sonido "Bong" de Pase de Turno:**
+  - Re-sintetizado `SoundFX.playPass()` mediante Web Audio API con un auténtico golpe suave de mazo y resonancia de campana zen / gong budista tradicional ("Bong" en Sol / 196Hz con armónicos ricos de 0.85s).
+  - Corregidos `GameController.handlePass` y `GameController.checkAITurn` para reproducir `SoundFX.playPass()` al pasar turno en lugar del impacto de piedra.
+- [x] **Tarea 274**: **Corrección de Pase Prematuro de IA con Alquimista:**
+  - Ajustadas las condiciones heurísticas de fin de partida en `GoAI.ts` eliminando el disparador prematuro `score <= 150` en tableros abiertos.
+  - La IA ahora calcula y coloca su piedra real en el Goban tras la Inversión Cromática del Alquimista antes de finalizar su turno.
+
+## Fase 51: Fix Definitivo del Alquimista e IA (Pase de Turno Limpio)
+- [x] **Tarea 275**: **Avance de Turno Limpio para Inversión Cromática (`advanceTurn`):**
+  - Sustituido `state.passTurn()` por `state.advanceTurn()` en `ChampionManager.executeTargetedSkill()`.
+  - Se evita el incremento indeseado de `state.consecutivePasses`, impidiendo que la IA lo interprete como un pase voluntario del jugador rival y garantizando que siempre responda colocando una piedra de su color en el Goban.
+
+## Fase 52: Komi Individual 4 Jugadores (P2 2.5, P3 4.5, P4 6.5) y Anuncio de Inicio en Partida Local
+- [x] **Tarea 276**: **Komi Escalonado 4P y Activación Universal de Anuncio de Inicio:**
+  - Configuración independiente de Komi en el Paso 7 del Asistente para 4 Jugadores: Blancas (P2: 2.5), Esmeralda (P3: 4.5) y Amatista (P4: 6.5) con presets y campo libre.
+  - Sincronización en `GameState`, `TerritoryScorer`, pills de captura del HUD in-game y modal de puntuación.
+- [x] **Tarea 277**: **Generación y Empaquetado Dual Oficial (v12):**
+  - Generado `crazy_go_itchio_v12_browser.zip` (37.86 MB) con estándar estricto UNIX (`/`) para subir a Itch.io como juego HTML5 de navegador.
+  - Generado `crazy_go_windows_v12.zip` (37.86 MB) como único paquete ejecutable portable de Windows con `CrazyGo.exe`.
+
+## Fase 53: Conteo Canónico de Territorio con Detección y Captura de Piedras Muertas
+- [x] **Tarea 278**: **Algoritmo de Recintos Topológicos, Vida/Muerte y Territorio Puro:**
+  - Implementada en `TerritoryScorer.ts` la detección canónica de grupos enemigos atrapados sin dos ojos independientes.
+  - Conversión de piedras muertas en capturas (+1 prisionero por piedra) y territorio para el jugador que las encierra.
+  - Inundación BFS sobre el tablero libre de piedras muertas y representación visual con marcadores `✕` en `SVGRenderer.ts`.
+
+## Fase 54: Motor de Detección de Piedras Muertas y Seki (Vida Mutua)
+- [x] **Tarea 279**: **Algoritmo de Seki en 3 Capas y Detección de Recintos 100%:**
+  - Detección canónica de vida mutua (Seki) en `TerritoryScorer.ts` con overlay visual triangular morado `S` en `SVGRenderer.ts`.
+  - Eliminación de umbrales anticipados y detección rigurosa de recintos enemigos sellados.
+
+## Fase 55: Pulido de UX, Rotación Táctica, Escalado Dinámico de Goban, Localización y Animaciones
+- [x] **Tarea 280**: **Atajo de Rotación 'R' y SFX Táctico de Duplicidad:**
+  - `SoundFX.playRotate()` con barrido suave de madera mineral.
+  - Selección inteligente al pulsar 'R' si la ficha no estaba activa y actualización instantánea de preview hover ghost sin reconstruir el DOM.
+- [x] **Tarea 281**: **Algoritmo Dinámico de Escalado, Elevación Zenital (-22px) y Optimización de Espacio del Goban (+15% a +35%):**
+  - Elevación global de 22 px hacia arriba (`transform: translateY(-22px)`) en todos los tableros para alineación perfecta y holgura ergonómica respecto a la barra inferior.
+  - Ampliación de límites en `#board-container` a `max-width: min(calc((100vh - 135px) * 2.2), clamp(380px, 66vw, 1080px))` y `max-height: min(calc(100vh - 135px), clamp(380px, 60vw, 840px))`.
+  - Rediseño de padding de madera y `viewBox` compacto en `SVGRenderer.ts` (`padding = stoneRadius * 1.08`, `safetyMargin = padding + 4`): archipiélagos anchos/duales (`islands_v1`) y topologías picudas (`triangle`) crecen entre un +15% y +35% llenando el espacio disponible sin solapar personajes ni recortar sombras.
+- [x] **Tarea 282**: **Localización de P3/P4 y Compactación del HUD de Turno:**
+  - Traducción de `hud.player_green` ("Esmeralda"/"Emerald") y `hud.player_purple` ("Amatista"/"Amethyst").
+  - Formato conciso en topbar y traducción del badge de pensamiento `🤖 Pensando...`.
+- [x] **Tarea 283**: **Standee Frontal Rival en 4 Jugadores durante Turno Propio:**
+  - Posicionamiento frontal pero 10% más pequeño (`scale(1.12)`), con máscara gris al 50% de los de atrás y sin blur cuando es el turno del jugador humano P1.
+- [x] **Tarea 284**: **Animación Cinemática de Desvanecimiento para Piedras Muertas:**
+  - Animación CSS `@keyframes deadStoneFade` y `@keyframes deadCrossFadeIn` de 1.2s en `.stone-dead-captured`.
+- [x] **Tarea 285**: **Soporte y Validación de Rotación [R] en Tutorial Lección 8:**
+  - Sincronización íntegra de `playerInventories`, rotación táctica natural con `SoundFX.playRotate()` y validación guiada de Sensei.
+
+## Fase 56: Recompensas Roguelike sin Komi, Piedras Especiales Unificadas, Precisión VFX de Ronin, IA Boss Dragon y Biblia de Prompts
+- [x] **Tarea 286**: **Eliminación Total de Recompensas de Komi y Reestructuración Roguelike:**
+  - Eliminados todos los bonos de Komi en el mapa, santuarios, descanso/meditación y rescates de rehenes en `RoguelikeController.ts`, `RoguelikeMapGenerator.ts`, `RoguelikeMapRenderer.ts` y `GameController.ts`.
+  - Santuario: Añadido *Pacto Espiritual* para tomar prestado cualquier campeón para el próximo combate de Go, además de bendición de habilidad y lotes de pergaminos/poliminós.
+  - Zona de Descanso: Añadidos *Estudio Arcano* (+1 Meteorito y +1 Inversión Yin-Yang) y *Forja Táctica* (+1 Monolito 2x2 y +1 Dominó 2x1).
+  - Rescate de Rehenes: Monje otorga +1 Carga de Habilidad y +1 Escudo Divino; Espíritu Guardián otorga +1 Monolito 2x2 y +1 Inversión Yin-Yang.
+- [x] **Tarea 287**: **Precisión Milimétrica del Tajo de Ronin:**
+  - `transform-origin: center; transform-box: fill-box;` en `vfx.css` y retícula de corte cyan en cruz `(coord.x, coord.y)` en `RoninVFX.ts`.
+- [x] **Tarea 288**: **Rediseño Visual de Piedras Especiales y Poliminós Unificados + Tooltip Interactivo:**
+  - Duplicidad (2x1) como cápsula unificada cyan con grabado `🀄`.
+  - Monolito (2x2) como losa titánica cuadrangular ámbar/dorada con relieve `🧱`.
+  - Germinante (1x1) con brote vivo `🌿`.
+  - Tooltip flotante interactivo al pasar el cursor sobre cualquier piedra especial en el Goban explicando sus propiedades tácticas.
+- [x] **Tarea 289**: **IA, Animación Cinemática del Jefe Final (Gran Dragón Sabio Gris) y Placa de Habilidad del Rival:**
+  - Conexión de `BossManager.checkAIBossTrigger()` en `AITurnManager.ts` para que el Dragón Jefe ejecute su Aliento Calcinante del 25% del tablero con sacudida de pantalla y VFX cinemático.
+  - Placa de habilidad única del rival (`#duel-enemy-skill-badge`) en el HUD que describe las técnicas de cada oponente.
+  - Orientación espejada del Dragón Jefe (`scaleX(-1)`) mirando hacia el Goban y el jugador.
+- [x] **Tarea 290**: **Biblia Maestra de Prompts de Arte y Estilo Visual:**
+  - Creado `docs/ai_wiki/game_design/art_prompts_bible.md` con las directrices de estilo Sumi-e/anime, transparencia alfa y la biblioteca completa de prompts para personajes, enemigos, jefes, artefactos y fondos.
+- [x] **Tarea 291**: **Compilación y Empaquetado Dual Oficial v13:**
+  - Generados `crazy_go_itchio_v13_browser.zip` (37.86 MB) y `crazy_go_windows_v13.zip` (37.87 MB).
+
+## Fase 57: Fichas Especiales Indivisibles y Refinado del Sistema de Tiempo Byo-Yomi
+- [x] **Tarea 292**: **Fichas Especiales Indivisibles con Destrucción y Transmutación en Bloque:**
+  - `RulesEngine.destroyStoneAndPolyGroup()` y `RulesEngine.transmuteStoneAndPolyGroup()` implementados en `RulesEngine.ts`.
+  - Destrucción y transmutación en bloque conectadas en Tengu, Ryūjin, Ronin, Alquimista, Dragón Jefe, Pergaminos de Hechizo, IA y controlador central.
+- [x] **Tarea 293**: **Refinado Integral de Modos de Tiempo (Byo-yomi, Japonés, Fischer, Absoluto):**
+  - Wizard de Partida Local con 4 modos de reloj, presets de 5s a 60s y campos numéricos personalizados para segundos, minutos y periodos.
+  - Pulso acústico de cuenta atrás tensa `SoundFX.playClockTick()` en $\le 5$ segundos y clase visual `.timer-urgent`.
+- [x] **Tarea 294**: **Compilación y Empaquetado Dual Oficial v13 Actualizado:**
+  - Generados `crazy_go_itchio_v13_browser.zip` (37.86 MB) y `crazy_go_windows_v13.zip` (37.87 MB).
+
+
+
+
 

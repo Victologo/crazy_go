@@ -1,4 +1,3 @@
-// graphics/vfx/HimikoVFX.ts - Animación de Lluvia Pétrea Celestial de Himiko
 import { SoundFX } from '../../audio/SoundFX';
 
 export class HimikoVFX {
@@ -14,7 +13,8 @@ export class HimikoVFX {
     ) {
         const vfxLayer = document.createElementNS('http://www.w3.org/2000/svg', 'g');
         vfxLayer.setAttribute('class', 'vfx-stone-rain-layer');
-        svgElement.appendChild(vfxLayer);
+        const liveContainer = svgElement.querySelector('#vfx-live-container') || svgElement;
+        liveContainer.appendChild(vfxLayer);
 
         coords.forEach((coord, idx) => {
             const delayMs = idx * 240;

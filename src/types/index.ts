@@ -25,6 +25,7 @@ export interface StoneInfo {
     sproutBirthTurn?: number;
     isShielded?: boolean;
     isRooted?: boolean;
+    polyGroupId?: string;
 }
 
 export interface BoardNode {
@@ -38,26 +39,46 @@ export interface BoardNode {
 }
 
 // 2. Modos, Topologías y Configuración de Partida
-export type BoardShape = 'square' | 'triangle' | 'hex' | 'eroded' | 'islands' | 'cross' | 'procedural';
+export type BoardShape = 
+    | 'square' 
+    | 'triangle' 
+    | 'hex' 
+    | 'hexagon'
+    | 'irregular' 
+    | 'eroded'
+    | 'islands' 
+    | 'islands_v1' 
+    | 'islands_v2' 
+    | 'cross' 
+    | 'hourglass' 
+    | 'geode' 
+    | 'spiral' 
+    | 'rings' 
+    | 'star_5'
+    | 'star_6'
+    | 'procedural';
 export type BoardSize = 5 | 9 | 13 | 19;
-export type GameMode = '1v1' | '1via' | 'online' | 'story';
+export type GameMode = '1v1' | '1via' | 'coop' | 'online' | 'story';
 export type RuleStyle = 'classic' | 'roguelite';
 export type AIDifficulty = 'easy' | 'medium' | 'hard' | 'dan';
 export type AppTheme = 'dark' | 'light';
 
-export type TimerMode = 'none' | 'per_move' | 'absolute' | 'fischer';
+export type TimerMode = 'none' | 'per_move' | 'absolute' | 'fischer' | 'japanese';
 
 export interface TimerConfig {
     mode: TimerMode;
     mainTimeSeconds: number; // e.g. 60, 180, 300, 600, 900
     incrementSeconds: number; // e.g. 5, 10
-    byoYomiSeconds: number; // e.g. 10, 15, 30, 45, 60
+    byoYomiSeconds: number; // e.g. 10, 15, 20, 30, 45, 60
+    byoYomiPeriods?: number; // e.g. 3, 5
 }
 
 export interface PlayerTimerState {
     timeRemainingSeconds: number;
     movesCount: number;
     isFlagFallen: boolean;
+    byoYomiPeriodsLeft?: number;
+    isInByoYomi?: boolean;
 }
 
 export type CaptiveType = 'chest' | 'hostage' | 'scroll_relic' | 'spirit';
@@ -94,14 +115,20 @@ export interface GameSetupConfig {
     humanColor: PlayerId;
     difficulty: AIDifficulty;
     komi: number;
+    handicap?: number; // 0, 2..9 piedras de hándicap
     shape: BoardShape;
     size: BoardSize;
+    seed?: number;
     background?: BoardBackground;
     heroId?: HeroId | null;
-    enemyHeroId?: HeroId | null;
+    enemyHeroId?: EnemyHeroId | 'random' | 'random_monk' | 'random_sage' | null;
+    enemyHeroIds?: Record<number, EnemyHeroId | 'random' | 'random_monk' | 'random_sage' | null>;
+
     specialStones?: SpecialStonesConfig;
+    playerKomis?: Record<number, number>; // Komi individual para 4P (e.g. { 2: 2.5, 3: 4.5, 4: 6.5 })
     timer?: TimerConfig;
     isCoopRogue?: boolean;
+    isRoguelikeMatch?: boolean;
     coopSubTurn?: 1 | 2; // 1 = J1 Host, 2 = J2 Guest
 }
 
@@ -109,6 +136,7 @@ export type BoardBackground = 'combat' | 'story' | 'tutorial' | 'boss' | 'meadow
 
 // 3. Sistema de Héroes y Hechizos Roguelite
 export type HeroId = 'tengu' | 'himiko' | 'kitsune' | 'ronin' | 'alchemist' | 'ryujin' | 'normal';
+export type EnemyHeroId = HeroId | 'boss';
 export type SpellId = 'rewind' | 'meteor' | 'shield' | 'convert';
 export type TargetingMode = 'none' | 'meteor_5x5' | 'shield_target' | 'convert_enemy' | 'dragon_burn_2';
 
@@ -163,6 +191,7 @@ export interface BattleConfig {
 export interface OnlineGameConfig {
     shape: BoardShape;
     size: BoardSize;
+    seed?: number;
     komi: number;
     hostColor: PlayerId;
     playerCount?: 2 | 4;
@@ -171,6 +200,7 @@ export interface OnlineGameConfig {
     guestHeroes?: Partial<Record<PlayerId, HeroId | null>>;
     timer?: TimerConfig;
     isCoopRogue?: boolean;
+    background?: BoardBackground;
 }
 
 export interface MapNode {
@@ -230,8 +260,12 @@ export interface ScoreReport {
     winnerPlayerId: PlayerId | null;
     margin: number;
     territoryMap?: Map<string, PlayerId | 0>;
+    deadStones?: Map<string, PlayerId>;
+    deadStonesCount?: Record<PlayerId, number>;
+    sekiMap?: Set<string>;   // Nodos en Seki (vida mutua — no cuentan como territorio)
     dameCount?: number;
 }
+
 
 export interface PlayerMeta {
     id: PlayerId;

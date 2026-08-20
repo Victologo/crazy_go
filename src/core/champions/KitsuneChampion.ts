@@ -3,6 +3,7 @@ import type { ChampionActiveSkill } from './types';
 import type { GraphBoard, PlayerId } from '../GraphBoard';
 import type { BoardSize } from '../../types';
 import { SoundFX } from '../../audio/SoundFX';
+import { getLanguage } from '../../i18n/i18n';
 
 export const KitsuneActiveSkill: ChampionActiveSkill = {
     name: 'Divine Shield',
@@ -42,31 +43,35 @@ export class KitsuneChampion {
         playerId: PlayerId,
         activeChargesLeft: number,
         onSuccess: (msg: string) => void,
-        onError: (msg: string) => void,
-        onComplete: () => void
+        onError: (msg: string) => void
     ): boolean {
         const centerNode = board.nodes.get(targetNodeId);
         if (!centerNode) return false;
 
+        const isEn = getLanguage() === 'en';
+
         if (!centerNode.stone || centerNode.stone.playerId !== playerId) {
             SoundFX.playIllegal();
-            onError('You must select your own stone to bless with the Divine Shield.');
+            onError(isEn ? 'You must select your own stone to bless with the Divine Shield.' : 'Debes seleccionar una piedra aliada para bendecirla con el Escudo Divino.');
             return false;
         }
 
         if (centerNode.stone.isIndestructible) {
             SoundFX.playIllegal();
-            onError('This stone is already consecrated with a Divine Shield and its Golden Aura is active.');
+            onError(isEn ? 'This stone is already consecrated with a Divine Shield and its Golden Aura is active.' : 'Esta piedra ya está consagrada con un Escudo Divino y su Aura Dorada está activa.');
             return false;
         }
 
         centerNode.stone.isIndestructible = true;
-        centerNode.stone.shieldTurnsLeft = 2;
+        centerNode.stone.shieldTurnsLeft = 3;
 
         const remaining = Math.max(0, activeChargesLeft - 1);
-        const remainingText = remaining > 0 ? `(${remaining} charge left)` : `(Charges depleted)`;
-        onSuccess(`🛡️✨ Sacred Stone consecrated with Golden Aura! It is indestructible and immune to capture for 2 turns. ${remainingText}`);
-        onComplete();
+        const remainingText = remaining > 0 
+            ? (isEn ? `(${remaining} charge(s) left)` : `(${remaining} carga(s) restante(s))`) 
+            : (isEn ? `(Charges depleted)` : `(Cargas agotadas)`);
+        onSuccess(isEn
+            ? `🛡️✨ Sacred Stone consecrated with Golden Aura! It is indestructible and immune to capture for 2 turns. ${remainingText}`
+            : `🛡️✨ ¡Piedra Sagrada consagrada con Aura Dorada! Es indestructible e inmune a capturas durante 2 turnos. ${remainingText}`);
         return true;
     }
 }
