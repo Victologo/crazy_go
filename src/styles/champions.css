@@ -18,6 +18,8 @@
 
 /* Silueta del Jugador Principal (Posicionado con suficiente margen inferior para que los personajes altos no se corten arriba) */
 .duel-standee-player {
+  position: relative;
+  left: 60px; /* Acercado al Goban */
   width: clamp(285px, 23vw, 400px);
   transform: translateY(6%) scale(1.3);
   transform-origin: bottom center;
@@ -108,6 +110,8 @@
 
 /* Silueta de Enemigos y Rivales IA (Derecha) */
 .duel-standee-enemy {
+  position: relative;
+  right: 60px; /* Acercado al Goban */
   width: clamp(290px, 24vw, 410px);
   transform: translateY(6%);
   pointer-events: none;
@@ -284,6 +288,7 @@
 /* Panel Multi-Contrincantes para 4 Jugadores (FFA 1v3 IA o 4P Local) */
 .duel-multi-standees {
   position: relative;
+  right: 90px;
   display: flex;
   justify-content: center;
   align-items: flex-end;

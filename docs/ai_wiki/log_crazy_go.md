@@ -15,6 +15,7 @@ Este registro cronológico documenta los avances diarios en el desarrollo del ju
 >
 > ### **2. UI Scaling & Clarity**
 > - **Larger Player Presence:** We increased the size of the player's standee and info card by 30%. Your hero now stands taller and prouder on the left side of the screen!
+> - **Closer to the Action:** We shifted both the player standee (60px to the right) and the enemy standees (up to 90px to the left) so they are much closer to the Goban, eliminating the awkward empty space.
 > - **Compact Gobans:** We slightly shrunk the Go board globally to prevent it from overlapping with the spell ribbon at the bottom of the screen.
 > - **4-Player Optimized Space:** In 4-player matches, the board shrinks an additional 15% dynamically, ensuring you always have a perfect view of all 4 character standees and their timers.
 >
