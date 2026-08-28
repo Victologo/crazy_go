@@ -1,0 +1,808 @@
+Created At: 2026-08-23T12:15:12+02:00
+Completed At: 2026-08-23T12:15:12+02:00
+File Path: `file:///c:/Users/VICTOR/Desktop/crazy_go/src/graphics/SVGRenderer.ts`
+Total Lines: 1521
+Total Bytes: 75076
+Showing lines 1 to 800
+The following code has been modified to include a line number before every line, in the format: <line_number>: <original_line>. Please note that any changes targeting the original code should remove the line number, colon, and leading space.
+1: // graphics/SVGRenderer.ts - Motor Principal de Renderizado SVG para Goban y Topologías de Crazy Go
+2: import { GraphBoard, type BoardNode } from '../core/GraphBoard';
+3: import { GameState } from '../core/GameState';
+4: import { RulesEngine } from '../core/RulesEngine';
+5: import { SoundFX } from '../audio/SoundFX';
+6: import { ChampionManager } from '../core/ChampionManager';
+7: import { PolyominoManager } from '../core/PolyominoManager';
+8: import { SandboxController } from '../controllers/SandboxController';
+9: import { HUDController } from '../ui/HUDController';
+10: import { SVGDefs } from './SVGDefs';
+11: import { SVGGhostPreview } from './SVGGhostPreview';
+12: import { TutorialManager } from '../tutorial/TutorialManager';
+13: import { StoryController } from '../story/StoryController';
+14: import { getLanguage } from '../i18n/i18n';
+15: import { DevModeManager } from '../core/DevModeManager';
+16: import { VFXManager } from './VFXManager';
+17: import { CombatLogManager } from '../core/CombatLogManager';
+18: import { StageHazardManager } from '../core/StageHazardManager';
+19: import type { BoardBackground } from '../types';
+20: 
+21: 
+22: export class SVGRenderer {
+23:     public svgElement: SVGSVGElement;
+24:     public background?: BoardBackground;
+25:     private board: GraphBoard;
+26:     private state: GameState;
+27:     private onUIUpdate: () => void;
+28:     private onIllegalMove: (msg: string) => void;
+29:     private onMovePlaced?: (nodeId: string, isLocal: boolean) => void;
+30:     public onSkillPlaced?: (skillType: string, targetNodeId: string) => void;
+31:     public onCaptiveDevClick?: (captive: any, capturerId: number) => void;
+32:     private isTurnAllowedCallback?: () => boolean;
+33:     private getLocalPlayerColorCallback?: () => import('../core/GraphBoard').PlayerId;
+34:     public onPassiveBurnCompleted?: () => void;
+35:     public isInteractive: boolean = true;
+36:     public lastHoveredNode: BoardNode | null = null;
+37:     public currentStoneRadius: number = 18;
+38:     public activeHintNodeId: string | null = null;
+39:     public activeContinuation: Array<{ nodeId: string; playerId: import('../core/GraphBoard').PlayerId; step: number }> | null = null;
+40: 
+41:     constructor(
+42:         svgElementId: string, 
+43:         board: GraphBoard, 
+44:         state: GameState, 
+45:         onUIUpdate: () => void,
+46:         onIllegalMove: (msg: string) => void,
+47:         onMovePlaced?: (nodeId: string, isLocal: boolean) => void,
+48:         onSkillPlaced?: (skillType: string, nodeId: string) => void,
+49:         isTurnAllowed?: () => boolean,
+50:         getLocalPlayerColor?: () => import('../core/GraphBoard').PlayerId
+51:     ) {
+52:         this.svgElement = document.getElementById(svgElementId) as unknown as SVGSVGElement;
+53:         this.board = board;
+54:         this.state = state;
+55:         this.onUIUpdate = onUIUpdate;
+56:         this.onIllegalMove = onIllegalMove;
+57:         this.onMovePlaced = onMovePlaced;
+58:         this.onSkillPlaced = onSkillPlaced;
+59:         this.isTurnAllowedCallback = isTurnAllowed;
+60:         this.getLocalPlayerColorCallback = getLocalPlayerColor;
+61: 
+62:         if (!this.svgElement) {
+63:             console.error(`Element with id ${svgElementId} not found`);
+64:         }
+65:     }
+66: 
+67:     render() {
+68:         if (!this.svgElement) return;
+69: 
+70:         // 1. Guardar capas de animación activas en vivo (para no cortar llamaradas de fuego ni cenizas flotantes)
+71:         const liveVfxContainer = this.svgElement.querySelector('#vfx-live-container');
+72:         const activeLiveVfx = liveVfxContainer ? Array.from(liveVfxContainer.children) : [];
+73: 
+74:         // Limpiar el SVG
+75:         this.svgElement.innerHTML = '';
+76: 
+77:         const nodes = Array.from(this.board.nodes.values());
+78:         if (nodes.length === 0) return;
+79: 
+80:         // 2. Calcular límites (Bounding Box) exactos para centrado perfecto
+81:         let minX = Infinity, maxX = -Infinity, minY = Infinity, maxY = -Infinity;
+82:         for (const node of nodes) {
+83:             if (node.x < minX) minX = node.x;
+84:             if (node.x > maxX) maxX = node.x;
+85:             if (node.y < minY) minY = node.y;
+86:             if (node.y > maxY) maxY = node.y;
+87:         }
+88: 
+89:         // Calcular radio óptimo de piedra según la distancia mínima entre nodos
+90:         let minNeighborDistance = Infinity;
+91:         for (const node of nodes) {
+92:             for (const nId of node.neighbors) {
+93:                 const neighbor = this.board.nodes.get(nId);
+94:                 if (neighbor) {
+95:                     const dist = Math.hypot(node.x - neighbor.x, node.y - neighbor.y);
+96:                     if (dist > 0 && dist < minNeighborDistance) {
+97:                         minNeighborDistance = dist;
+98:                     }
+99:                 }
+100:             }
+101:         }
+102: 
+103:         const stoneRadius = isFinite(minNeighborDistance)
+104:             ? Math.max(10, Math.min(25, minNeighborDistance * 0.475))
+105:             : 18;
+106:         this.currentStoneRadius = stoneRadius;
+107: 
+108:         // Margen compacto y óptimo para todas las topologías (picudas, duales, anchas o estándar)
+109:         // La madera sobresale exactamente alrededor de las piedras periféricas sin desperdiciar espacio en el viewBox
+110:         const padding = stoneRadius * 1.08;
+111:         const safetyMargin = this.board.shape === 'volcano' ? (padding * 1.55 + 8) : (padding + 4);
+112:         const finalWidth = (maxX - minX) + safetyMargin * 2;
+113:         const finalHeight = (maxY - minY) + safetyMargin * 2;
+114:         const finalMinX = minX - safetyMargin;
+115:         const finalMinY = minY - safetyMargin;
+116: 
+117:         this.svgElement.setAttribute('viewBox', `${finalMinX} ${finalMinY} ${finalWidth} ${finalHeight}`);
+118:         this.svgElement.setAttribute('preserveAspectRatio', 'xMidYMid meet');
+119: 
+120:         // 3. Inyectar Definiciones (Defs) de Sombras, Gradientes y Efectos de forma global (solo una vez)
+121:         if (!document.getElementById('global-svg-defs')) {
+122:             const globalDefsSvg = document.createElementNS("http://www.w3.org/2000/svg", "svg") as SVGSVGElement;
+123:             globalDefsSvg.setAttribute('id', 'global-svg-defs');
+124:             // Importante: No usar display: none porque rompería los patrones en Firefox/Safari
+125:             globalDefsSvg.setAttribute("style", "position: absolute; width: 0; height: 0; overflow: hidden; pointer-events: none;");
+126:             globalDefsSvg.appendChild(SVGDefs.createDefinitions());
+127:             document.body.appendChild(globalDefsSvg);
+128:         }
+129: 
+130:         // 3.5. Generar Fondo de Madera Dinámico (Forma Convex Hull)
+131:         this.renderBoardBackground(nodes, padding);
+132: 
+133:         // 3.6. Decoraciones Estéticas de Cráteres Volcánicos en las 4 Esquinas
+134:         this.renderVolcanoCornerDecorations(nodes, padding);
+135: 
+136:         // 4. Dibujar Líneas de la Red (Grid Lines / Urushi Ink)
+137:         this.renderGridLines(nodes);
+138: 
+139:         // 5. Dibujar Puntos Estrella (Hoshi) si existen
+140:         this.renderStarPoints(nodes, stoneRadius);
+141: 
+142:         // 6. Superposición de Territorio (Si la partida ha terminado)
+143:         this.renderTerritoryOverlay(stoneRadius);
+144: 
+145:         // 6b. Superposición de Seki (vida mutua — no puntúan para nadie)
+146:         this.renderSekiOverlay(stoneRadius);
+147: 
+148:         // 6b. Renderizar Objetos y Rehenes Capturables
+149:         this.renderCaptives(stoneRadius);
+150: 
+151:         // 7. Dibujar Piedras Colocadas y Efectos de Estado
+152:         this.renderStones(nodes, stoneRadius);
+153: 
+154:         // 8. Capa Persistente de VFX en Vivo (Llamarada, humo y partículas de ceniza)
+155:         const newLiveVfxGroup = document.createElementNS("http://www.w3.org/2000/svg", "g");
+156:         newLiveVfxGroup.setAttribute("id", "vfx-live-container");
+157:         newLiveVfxGroup.style.pointerEvents = 'none';
+158:         activeLiveVfx.forEach(child => newLiveVfxGroup.appendChild(child));
+159:         this.svgElement.appendChild(newLiveVfxGroup);
+160: 
+161:         // 9. Capa Interactiva (Clicks y Ghost Hover)
+162:         this.renderInteractiveLayer(nodes, stoneRadius);
+163: 
+164:         // 10. Overlay de Apuntado de Habilidades
+165:         SVGGhostPreview.renderTargetingOverlay(this.svgElement, this.board, this.state.currentPlayer, stoneRadius);
+166: 
+167:         // 11. Capa de Ojo del Maestro y Proyección Astral (Secuencia 1-2-3)
+168:         this.renderHintAndContinuation(stoneRadius);
+169:     }
+170: 
+171:     private renderGridLines(nodes: BoardNode[]) {
+172:         const lineColor = "#2a180b";
+173:         const linesGroup = document.createElementNS("http://www.w3.org/2000/svg", "g");
+174:         linesGroup.setAttribute("class", "grid-lines");
+175: 
+176:         const drawnEdges = new Set<string>();
+177:         for (const node of nodes) {
+178:             for (const neighborId of node.neighbors) {
+179:                 const edgeKey = [node.id, neighborId].sort().join('--');
+180:                 if (!drawnEdges.has(edgeKey)) {
+181:                     drawnEdges.add(edgeKey);
+182:                     const neighbor = this.board.nodes.get(neighborId);
+183:                     if (neighbor) {
+184:                         const line = document.createElementNS("http://www.w3.org/2000/svg", "line");
+185:                         line.setAttribute("x1", node.x.toString());
+186:                         line.setAttribute("y1", node.y.toString());
+187:                         line.setAttribute("x2", neighbor.x.toString());
+188:                         line.setAttribute("y2", neighbor.y.toString());
+189:                         line.setAttribute("stroke", lineColor);
+190:                         line.setAttribute("stroke-width", "1.9");
+191:                         line.setAttribute("stroke-opacity", "0.92");
+192:                         line.setAttribute("stroke-linecap", "round");
+193:                         linesGroup.appendChild(line);
+194:                     }
+195:                 }
+196:             }
+197:         }
+198:         this.svgElement.appendChild(linesGroup);
+199:     }
+200: 
+201:     private renderBoardBackground(nodes: BoardNode[], padding: number) {
+202:         if (nodes.length < 3) return;
+203: 
+204:         // 1. Obtener todos los puntos (excluyendo destruidos para que el borde se contraiga si es en el perímetro)
+205:         const points = nodes.filter(n => n.terrain !== 'DESTROYED').map(n => ({ x: n.x, y: n.y }));
+206: 
+207:         // 2. Algoritmo de Graham Scan (Convex Hull)
+208:         points.sort((a, b) => a.y === b.y ? a.x - b.x : a.y - b.y);
+209:         
+210:         const crossProduct = (o: {x:number, y:number}, a: {x:number, y:number}, b: {x:number, y:number}) => {
+211:             return (a.x - o.x) * (b.y - o.y) - (a.y - o.y) * (b.x - o.x);
+212:         };
+213: 
+214:         const lower: {x:number, y:number}[] = [];
+215:         for (const p of points) {
+216:             while (lower.length >= 2 && crossProduct(lower[lower.length - 2], lower[lower.length - 1], p) <= 0) {
+217:                 lower.pop();
+218:             }
+219:             lower.push(p);
+220:         }
+221: 
+222:         const upper: {x:number, y:number}[] = [];
+223:         for (let i = points.length - 1; i >= 0; i--) {
+224:             const p = points[i];
+225:             while (upper.length >= 2 && crossProduct(upper[upper.length - 2], upper[upper.length - 1], p) <= 0) {
+226:                 upper.pop();
+227:             }
+228:             upper.push(p);
+229:         }
+230: 
+231:         upper.pop();
+232:         lower.pop();
+233:         const hull = lower.concat(upper);
+234: 
+235:         if (hull.length < 3) return;
+236: 
+237:         // 3. Crear el Polígono SVG (Usando borde grueso para expandir perfectamente simétrico)
+238:         const bgGroup = document.createElementNS("http://www.w3.org/2000/svg", "g");
+239:         bgGroup.setAttribute("class", "board-dynamic-background");
+240:         const polyPoints = hull.map(p => `${p.x},${p.y}`).join(" ");
+241: 
+242:         // Crear Máscara de Destrucción (Agujeros) - [Deshabilitado: el usuario prefiere no tener agujeros visuales]
+243:         // Ya no renderizamos la máscara transparente
+244:         
+245:         // Capa 1: Sombra y Borde exterior (Stroke más grueso)
+246:         const woodOutline = document.createElementNS("http://www.w3.org/2000/svg", "polygon");
+247:         woodOutline.setAttribute("points", polyPoints);
+248:         woodOutline.setAttribute("fill", "url(#wood-texture)");
+249:         woodOutline.setAttribute("stroke", "#cca162");
+250:         woodOutline.setAttribute("stroke-width", (padding * 2 + 6).toString());
+251:         woodOutline.setAttribute("stroke-linejoin", "round");
+252:         woodOutline.setAttribute("filter", "url(#board-shadow)");
+253:         // woodOutline.setAttribute("mask", `url(#${maskId})`);
+254: 
+255:         // Capa 2: Madera pura (Stroke exacto, cubre el borde interior y crea el padding perfecto)
+256:         const woodBase = document.createElementNS("http://www.w3.org/2000/svg", "polygon");
+257:         woodBase.setAttribute("points", polyPoints);
+258:         woodBase.setAttribute("fill", "url(#wood-texture)");
+259:         woodBase.setAttribute("stroke", "url(#wood-texture)");
+260:         woodBase.setAttribute("stroke-width", (padding * 2).toString());
+261:         woodBase.setAttribute("stroke-linejoin", "round");
+262:         // woodBase.setAttribute("mask", `url(#${maskId})`);
+263: 
+264:         // bgGroup.appendChild(mask);
+265:         bgGroup.appendChild(woodOutline);
+266:         bgGroup.appendChild(woodBase);
+267: 
+268:         this.svgElement.appendChild(bgGroup);
+269:     }
+270: 
+271:     private renderVolcanoCornerDecorations(nodes: BoardNode[], padding: number) {
+272:         if (this.board.shape !== 'volcano' || nodes.length < 4) return;
+273: 
+274:         const validNodes = nodes.filter(n => n.terrain !== 'DESTROYED');
+275:         if (validNodes.length === 0) return;
+276: 
+277:         let minX = Infinity, maxX = -Infinity, minY = Infinity, maxY = -Infinity;
+278:         for (const n of validNodes) {
+279:             if (n.x < minX) minX = n.x;
+280:             if (n.x > maxX) maxX = n.x;
+281:             if (n.y < minY) minY = n.y;
+282:             if (n.y > maxY) maxY = n.y;
+283:         }
+284: 
+285:         // 4 Esquinas en el marco exterior de madera del Goban
+286:         const offset = padding * 0.72;
+287:         const corners = [
+288:             { x: minX - offset, y: minY - offset, angle: 45 },   // Top-Left
+289:             { x: maxX + offset, y: minY - offset, angle: 135 },  // Top-Right
+290:             { x: maxX + offset, y: maxY + offset, angle: 225 },  // Bottom-Right
+291:             { x: minX - offset, y: maxY + offset, angle: 315 },  // Bottom-Left
+292:         ];
+293: 
+294:         const volcanoGroup = document.createElementNS("http://www.w3.org/2000/svg", "g");
+295:         volcanoGroup.setAttribute("class", "volcano-corners-decoration");
+296: 
+297:         const rOuter = Math.max(16, padding * 0.68);
+298:         const rCrater = rOuter * 0.58;
+299:         const rMagma = rOuter * 0.38;
+300: 
+301:         corners.forEach((c) => {
+302:             const vG = document.createElementNS("http://www.w3.org/2000/svg", "g");
+303:             vG.setAttribute("class", "volcano-corner-item");
+304:             vG.setAttribute("transform", `translate(${c.x}, ${c.y}) rotate(${c.angle})`);
+305: 
+306:             // Sombra del cono volcánico
+307:             const shadow = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+308:             shadow.setAttribute("cx", "0");
+309:             shadow.setAttribute("cy", "2");
+310:             shadow.setAttribute("r", (rOuter + 3).toString());
+311:             shadow.setAttribute("fill", "rgba(0,0,0,0.65)");
+312:             shadow.setAttribute("filter", "url(#stone-shadow)");
+313:             vG.appendChild(shadow);
+314: 
+315:             // 1. Base / Cono de roca basáltica volcánica
+316:             const cone = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+317:             cone.setAttribute("cx", "0");
+318:             cone.setAttribute("cy", "0");
+319:             cone.setAttribute("r", rOuter.toString());
+320:             cone.setAttribute("fill", "url(#volcano-rock-grad)");
+321:             cone.setAttribute("stroke", "#1c1917");
+322:             cone.setAttribute("stroke-width", "2");
+323:             vG.appendChild(cone);
+324: 
+325:             // Grietas de lava radiales en la ladera
+326:             for (let i = 0; i < 4; i++) {
+327:                 const crackAngle = (i * 90 + 25) * (Math.PI / 180);
+328:                 const x1 = Math.cos(crackAngle) * rCrater * 0.9;
+329:                 const y1 = Math.sin(crackAngle) * rCrater * 0.9;
+330:                 const x2 = Math.cos(crackAngle) * (rOuter * 0.9);
+331:                 const y2 = Math.sin(crackAngle) * (rOuter * 0.9);
+332: 
+333:                 const crack = document.createElementNS("http://www.w3.org/2000/svg", "line");
+334:                 crack.setAttribute("x1", x1.toFixed(1));
+335:                 crack.setAttribute("y1", y1.toFixed(1));
+336:                 crack.setAttribute("x2", x2.toFixed(1));
+337:                 crack.setAttribute("y2", y2.toFixed(1));
+338:                 crack.setAttribute("stroke", "#ea580c");
+339:                 crack.setAttribute("stroke-width", "1.5");
+340:                 crack.setAttribute("stroke-linecap", "round");
+341:                 crack.setAttribute("opacity", "0.85");
+342:                 vG.appendChild(crack);
+343:             }
+344: 
+345:             // 2. Borde del cráter oscuro
+346:             const craterRim = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+347:             craterRim.setAttribute("cx", "0");
+348:             craterRim.setAttribute("cy", "0");
+349:             craterRim.setAttribute("r", rCrater.toString());
+350:             craterRim.setAttribute("fill", "#0c0a09");
+351:             craterRim.setAttribute("stroke", "#7f1d1d");
+352:             craterRim.setAttribute("stroke-width", "1.5");
+353:             vG.appendChild(craterRim);
+354: 
+355:             // 3. Núcleo de Magma Incandescente
+356:             const magma = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+357:             magma.setAttribute("cx", "0");
+358:             magma.setAttribute("cy", "0");
+359:             magma.setAttribute("r", rMagma.toString());
+360:             magma.setAttribute("fill", "url(#volcano-magma-grad)");
+361:             magma.setAttribute("class", "volcano-core-glow");
+362:             vG.appendChild(magma);
+363: 
+364:             // 4. Fumarola / Penacho sutil de humo volcánico
+365:             const smoke = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+366:             smoke.setAttribute("cx", "0");
+367:             smoke.setAttribute("cy", "-2");
+368:             smoke.setAttribute("r", (rCrater * 0.85).toString());
+369:             smoke.setAttribute("fill", "url(#volcano-smoke-grad)");
+370:             smoke.setAttribute("class", "volcano-smoke-plume");
+371:             vG.appendChild(smoke);
+372: 
+373:             volcanoGroup.appendChild(vG);
+374:         });
+375: 
+376:         this.svgElement.appendChild(volcanoGroup);
+377:     }
+378: 
+379:     private renderStarPoints(nodes: BoardNode[], stoneRadius: number) {
+380:         const hoshiGroup = document.createElementNS("http://www.w3.org/2000/svg", "g");
+381:         hoshiGroup.setAttribute("class", "hoshi-points");
+382:         for (const node of nodes) {
+383:             if (node.isStarPoint && node.terrain !== 'DESTROYED') {
+384:                 const star = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+385:                 star.setAttribute("cx", node.x.toString());
+386:                 star.setAttribute("cy", node.y.toString());
+387:                 star.setAttribute("r", (stoneRadius * 0.22).toString());
+388:                 star.setAttribute("fill", "#221308");
+389:                 hoshiGroup.appendChild(star);
+390:             }
+391:         }
+392:         this.svgElement.appendChild(hoshiGroup);
+393:     }
+394: 
+395: 
+396: 
+397:     private renderTerritoryOverlay(stoneRadius: number) {
+398:         if (!this.state.isGameOver || !this.state.scoreReport) return;
+399: 
+400:         const territoryGroup = document.createElementNS("http://www.w3.org/2000/svg", "g");
+401:         territoryGroup.setAttribute("class", "territory-overlay");
+402: 
+403:         const assignments = this.state.scoreReport.territoryMap;
+404:         const deadStones = this.state.scoreReport.deadStones;
+405: 
+406:         for (const [nId, owner] of assignments.entries()) {
+407:             const targetNode = this.board.nodes.get(nId);
+408:             if (targetNode && (!targetNode.stone || deadStones?.has(nId))) {
+409:                 const rectSize = stoneRadius * 0.75;
+410:                 const terrSquare = document.createElementNS("http://www.w3.org/2000/svg", "rect");
+411:                 terrSquare.setAttribute("x", (targetNode.x - rectSize / 2).toString());
+412:                 terrSquare.setAttribute("y", (targetNode.y - rectSize / 2).toString());
+413:                 terrSquare.setAttribute("width", rectSize.toString());
+414:                 terrSquare.setAttribute("height", rectSize.toString());
+415:                 terrSquare.setAttribute("rx", "3");
+416: 
+417:                 if (owner === 1) {
+418:                     terrSquare.setAttribute("fill", "#000000");
+419:                     terrSquare.setAttribute("stroke", "#3b82f6");
+420:                     terrSquare.setAttribute("stroke-width", "1.5");
+421:                 } else if (owner === 2) {
+422:                     terrSquare.setAttribute("fill", "#ffffff");
+423:                     terrSquare.setAttribute("stroke", "#f59e0b");
+424:                     terrSquare.setAttribute("stroke-width", "1.5");
+425:                 } else if (owner === 3) {
+426:                     terrSquare.setAttribute("fill", "#10b981");
+427:                     terrSquare.setAttribute("stroke", "#34d399");
+428:                     terrSquare.setAttribute("stroke-width", "1.5");
+429:                 } else if (owner === 4) {
+430:                     terrSquare.setAttribute("fill", "#8b5cf6");
+431:                     terrSquare.setAttribute("stroke", "#a78bfa");
+432:                     terrSquare.setAttribute("stroke-width", "1.5");
+433:                 }
+434:                 territoryGroup.appendChild(terrSquare);
+435:             }
+436:         }
+437:         this.svgElement.appendChild(territoryGroup);
+438:     }
+439: 
+440:     /**
+441:      * Renderiza los nodos en Seki (vida mutua) con un marcador triangular neutro.
+442:      * Bajo reglas japonesas, las intersecciones de Seki no puntúan para nadie.
+443:      * Se renderizan con un triángulo gris translúcido para distinguirlos del dame
+444:      * y del territorio normal.
+445:      */
+446:     private renderSekiOverlay(stoneRadius: number) {
+447:         if (!this.state.isGameOver || !this.state.scoreReport) return;
+448:         const sekiMap = this.state.scoreReport.sekiMap;
+449:         if (!sekiMap || sekiMap.size === 0) return;
+450: 
+451:         const sekiGroup = document.createElementNS("http://www.w3.org/2000/svg", "g");
+452:         sekiGroup.setAttribute("class", "seki-overlay");
+453: 
+454:         for (const nodeId of sekiMap) {
+455:             const node = this.board.nodes.get(nodeId);
+456:             if (!node) continue;
+457: 
+458:             // Triángulo equilátero centrado en el nodo
+459:             const r = stoneRadius * 0.65;
+460:             const h = r * Math.sqrt(3) / 2;
+461:             const points = [
+462:                 `${node.x},${node.y - r}`,
+463:                 `${node.x - h},${node.y + r / 2}`,
+464:                 `${node.x + h},${node.y + r / 2}`
+465:             ].join(' ');
+466: 
+467:             const triangle = document.createElementNS("http://www.w3.org/2000/svg", "polygon");
+468:             triangle.setAttribute("points", points);
+469:             triangle.setAttribute("fill", "rgba(180,140,255,0.30)");
+470:             triangle.setAttribute("stroke", "#9d6ff0");
+471:             triangle.setAttribute("stroke-width", "1.5");
+472:             triangle.style.pointerEvents = 'none';
+473:             sekiGroup.appendChild(triangle);
+474: 
+475:             // Letra "S" pequeña en el centro
+476:             const label = document.createElementNS("http://www.w3.org/2000/svg", "text");
+477:             label.setAttribute("x", node.x.toString());
+478:             label.setAttribute("y", (node.y + r * 0.18).toString());
+479:             label.setAttribute("text-anchor", "middle");
+480:             label.setAttribute("dominant-baseline", "middle");
+481:             label.setAttribute("font-size", (stoneRadius * 0.55).toString());
+482:             label.setAttribute("font-weight", "bold");
+483:             label.setAttribute("fill", "#7c3aed");
+484:             label.setAttribute("font-family", "sans-serif");
+485:             label.style.pointerEvents = 'none';
+486:             label.textContent = "S";
+487:             sekiGroup.appendChild(label);
+488:         }
+489: 
+490:         this.svgElement.appendChild(sekiGroup);
+491:     }
+492: 
+493:     private renderCaptives(stoneRadius: number) {
+494:         if (!this.state.captives || this.state.captives.length === 0) return;
+495: 
+496:         const captivesGroup = document.createElementNS("http://www.w3.org/2000/svg", "g");
+497:         captivesGroup.setAttribute("class", "captives-layer");
+498: 
+499:         for (const captive of this.state.captives) {
+500:             if (captive.isCaptured) continue;
+501: 
+502:             const entityNodeIds = captive.nodeIds && captive.nodeIds.length > 0
+503:                 ? captive.nodeIds
+504:                 : [captive.nodeId];
+505:             
+506:             const nodes = entityNodeIds.map(id => this.board.nodes.get(id)).filter(n => !!n);
+507:             if (nodes.length === 0) continue;
+508: 
+509:             const cg = document.createElementNS("http://www.w3.org/2000/svg", "g");
+510:             cg.setAttribute("class", "captive-entity-group");
+511: 
+512:             const avgX = nodes.reduce((sum, n) => sum + n!.x, 0) / nodes.length;
+513:             const avgY = nodes.reduce((sum, n) => sum + n!.y, 0) / nodes.length;
+514: 
+515:             if (nodes.length > 1) {
+516:                 // Entidad Multi-Casilla (ej: Monolito 2x1)
+517:                 for (const node of nodes) {
+518:                     const cellBase = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+519:                     cellBase.setAttribute("cx", node!.x.toString());
+520:                     cellBase.setAttribute("cy", node!.y.toString());
+521:                     cellBase.setAttribute("r", (stoneRadius * 0.95).toString());
+522:                     cellBase.setAttribute("fill", "#1e293b");
+523:                     cellBase.setAttribute("stroke", "#fbbf24");
+524:                     cellBase.setAttribute("stroke-width", "2");
+525:                     cg.appendChild(cellBase);
+526: 
+527:                     const cellRing = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+528:                     cellRing.setAttribute("cx", node!.x.toString());
+529:                     cellRing.setAttribute("cy", node!.y.toString());
+530:                     cellRing.setAttribute("r", (stoneRadius * 1.25).toString());
+531:                     cellRing.setAttribute("fill", "rgba(245, 158, 11, 0.12)");
+532:                     cellRing.setAttribute("stroke", "#f59e0b");
+533:                     cellRing.setAttribute("stroke-width", "2");
+534:                     cellRing.setAttribute("stroke-dasharray", "4 2");
+535:                     cellRing.setAttribute("class", "captive-entity-ring");
+536:                     cg.appendChild(cellRing);
+537:                 }
+538: 
+539:                 // Icono Central Destacado
+540:                 const text = document.createElementNS("http://www.w3.org/2000/svg", "text");
+541:                 text.setAttribute("x", avgX.toString());
+542:                 text.setAttribute("y", (avgY + stoneRadius * 0.42).toString());
+543:                 text.setAttribute("text-anchor", "middle");
+544:                 text.setAttribute("font-size", (stoneRadius * 1.5).toString());
+545:                 text.textContent = captive.icon;
+546:                 cg.appendChild(text);
+547:             } else {
+548:                 // Entidad de 1 Casilla Estándar
+549:                 const node = nodes[0]!;
+550: 
+551:                 const ring = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+552:                 ring.setAttribute("cx", node.x.toString());
+553:                 ring.setAttribute("cy", node.y.toString());
+554:                 ring.setAttribute("r", (stoneRadius * 1.25).toString());
+555:                 ring.setAttribute("fill", "rgba(245, 158, 11, 0.15)");
+556:                 ring.setAttribute("stroke", "#f59e0b");
+557:                 ring.setAttribute("stroke-width", "2");
+558:                 ring.setAttribute("stroke-dasharray", "4 2");
+559:                 ring.setAttribute("class", "captive-entity-ring");
+560: 
+561:                 const base = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+562:                 base.setAttribute("cx", node.x.toString());
+563:                 base.setAttribute("cy", node.y.toString());
+564:                 base.setAttribute("r", (stoneRadius * 0.9).toString());
+565:                 base.setAttribute("fill", "#1e293b");
+566:                 base.setAttribute("stroke", "#fbbf24");
+567:                 base.setAttribute("stroke-width", "1.5");
+568: 
+569:                 const text = document.createElementNS("http://www.w3.org/2000/svg", "text");
+570:                 text.setAttribute("x", node.x.toString());
+571:                 text.setAttribute("y", (node.y + stoneRadius * 0.38).toString());
+572:                 text.setAttribute("text-anchor", "middle");
+573:                 text.setAttribute("font-size", (stoneRadius * 1.15).toString());
+574:                 text.textContent = captive.icon;
+575: 
+576:                 cg.appendChild(ring);
+577:                 cg.appendChild(base);
+578:                 cg.appendChild(text);
+579:             }
+580: 
+581:             const title = document.createElementNS("http://www.w3.org/2000/svg", "title");
+582:             title.textContent = `${captive.name}: ${captive.description} (¡Rodéalo con tus piedras para capturarlo!)`;
+583:             cg.appendChild(title);
+584: 
+585:             captivesGroup.appendChild(cg);
+586:         }
+587: 
+588:         this.svgElement.appendChild(captivesGroup);
+589:     }
+590: 
+591:     /**
+592:      * Dispara la animación cinematográfica de ruptura y colapso de todas las piedras del tablero
+593:      */
+594:     public triggerBoardShatterAnimation(): Promise<void> {
+595:         return new Promise((resolve) => {
+596:             const stoneElements = this.svgElement.querySelectorAll('.stone');
+597:             const boardContainer = document.getElementById('board-container');
+598:             if (boardContainer) {
+599:                 boardContainer.classList.add('vfx-screen-shake');
+600:                 setTimeout(() => boardContainer.classList.remove('vfx-screen-shake'), 600);
+601:             }
+602: 
+603:             // Onda de choque en el centro del SVG
+604:             const shockwave = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+605:             const bbox = this.svgElement.getBBox();
+606:             shockwave.setAttribute("cx", (bbox.x + bbox.width / 2).toString());
+607:             shockwave.setAttribute("cy", (bbox.y + bbox.height / 2).toString());
+608:             shockwave.setAttribute("class", "vfx-board-collapse-wave");
+609:             this.svgElement.appendChild(shockwave);
+610: 
+611:             SoundFX.playCapture();
+612: 
+613:             stoneElements.forEach((el, index) => {
+614:                 const htmlEl = el as HTMLElement;
+615:                 htmlEl.classList.add('vfx-stone-shatter');
+616:                 htmlEl.style.animationDelay = `${(index % 6) * 40}ms`;
+617:             });
+618: 
+619:             setTimeout(() => {
+620:                 shockwave.remove();
+621:                 // Limpiar todas las piedras del tablero lógico
+622:                 for (const node of this.board.nodes.values()) {
+623:                     node.stone = null;
+624:                 }
+625:                 this.state.historyStack = [];
+626:                 this.state.boardHistory = [];
+627:                 this.render();
+628:                 this.onUIUpdate();
+629:                 resolve();
+630:             }, 850);
+631:         });
+632:     }
+633: 
+634:     private renderStones(nodes: BoardNode[], stoneRadius: number) {
+635:         const stonesGroup = document.createElementNS("http://www.w3.org/2000/svg", "g");
+636:         stonesGroup.setAttribute("class", "stones-layer");
+637: 
+638:         // 1. Renderizar bases unificadas de Poliminós (Cápsulas de Dominó 2x1 y Losas de Monolito 2x2)
+639:         this.renderPolyominoBases(stonesGroup, nodes, stoneRadius);
+640: 
+641:         for (const node of nodes) {
+642:             if (node.stone) {
+643:                 const stoneG = document.createElementNS("http://www.w3.org/2000/svg", "g");
+644:                 stoneG.setAttribute("class", `stone stone-${node.stone.playerId}`);
+645:                 stoneG.style.pointerEvents = 'none';
+646: 
+647:                 const type = node.stone.stoneType || 'single';
+648:                 const isPolyShape = type === 'domino' || type === 'monolith';
+649:                 
+650:                 const pid = node.stone.playerId;
+651:                 const isDeadStone = this.state.isGameOver && !!this.state.scoreReport?.deadStones?.has(node.id);
+652: 
+653:                 if (isDeadStone) {
+654:                     stoneG.setAttribute("class", `stone stone-${pid} stone-dead-captured`);
+655:                 }
+656: 
+657:                 if (!isPolyShape) {
+658:                     const stoneVisual = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+659:                     stoneVisual.setAttribute("cx", node.x.toString());
+660:                     stoneVisual.setAttribute("cy", node.y.toString());
+661:                     stoneVisual.setAttribute("r", stoneRadius.toString());
+662:                     
+663:                     if (pid === 1) {
+664:                         stoneVisual.setAttribute("fill", "url(#black-stone-grad)");
+665:                     } else if (pid === 2) {
+666:                         stoneVisual.setAttribute("fill", "url(#white-stone-grad)");
+667:                         stoneVisual.setAttribute("stroke", "#b0a99c");
+668:                         stoneVisual.setAttribute("stroke-width", "0.75");
+669:                     } else if (pid === 3) {
+670:                         stoneVisual.setAttribute("fill", "url(#green-stone-grad)");
+671:                         stoneVisual.setAttribute("stroke", "#047857");
+672:                         stoneVisual.setAttribute("stroke-width", "0.75");
+673:                     } else if (pid === 4) {
+674:                         stoneVisual.setAttribute("fill", "url(#purple-stone-grad)");
+675:                         stoneVisual.setAttribute("stroke", "#6d28d9");
+676:                         stoneVisual.setAttribute("stroke-width", "0.75");
+677:                     }
+678:                     stoneVisual.setAttribute("filter", "url(#stone-shadow)");
+679:                     stoneG.appendChild(stoneVisual);
+680:                 }
+681: 
+682:                 // Emblema de Piedra Germinante (🌿)
+683:                 if (node.stone.stoneType === 'sprouting') {
+684:                     const sproutIcon = document.createElementNS("http://www.w3.org/2000/svg", "text");
+685:                     sproutIcon.setAttribute("x", node.x.toString());
+686:                     sproutIcon.setAttribute("y", (node.y + stoneRadius * 0.32).toString());
+687:                     sproutIcon.setAttribute("text-anchor", "middle");
+688:                     sproutIcon.setAttribute("font-size", (stoneRadius * 0.72).toString());
+689:                     sproutIcon.setAttribute("fill", "#10b981");
+690:                     sproutIcon.textContent = "🌿";
+691:                     stoneG.appendChild(sproutIcon);
+692:                 }
+693: 
+694:                 // Indicador visual de piedra muerta capturada al final de la partida
+695:                 if (isDeadStone) {
+696:                     const deadCross = document.createElementNS("http://www.w3.org/2000/svg", "text");
+697:                     deadCross.setAttribute("class", "dead-stone-cross");
+698:                     deadCross.setAttribute("x", node.x.toString());
+699:                     deadCross.setAttribute("y", (node.y + stoneRadius * 0.36).toString());
+700:                     deadCross.setAttribute("text-anchor", "middle");
+701:                     deadCross.setAttribute("font-size", (stoneRadius * 1.15).toString());
+702:                     deadCross.setAttribute("font-weight", "900");
+703:                     deadCross.setAttribute("fill", "#ef4444");
+704:                     deadCross.setAttribute("stroke", "#000000");
+705:                     deadCross.setAttribute("stroke-width", "0.6");
+706:                     deadCross.textContent = "✕";
+707:                     stoneG.appendChild(deadCross);
+708:                 }
+709: 
+710:                 // Marcador de Última Jugada: pequeño círculo contrastante visible en todos los modos
+711:                 if (node.id === this.state.lastMoveNodeId) {
+712:                     const markerColor = pid === 1 ? '#ffffff' : '#1a1a1a';
+713:                     const lastMoveMarker = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+714:                     lastMoveMarker.setAttribute("cx", node.x.toString());
+715:                     lastMoveMarker.setAttribute("cy", node.y.toString());
+716:                     lastMoveMarker.setAttribute("r", (stoneRadius * 0.32).toString());
+717:                     lastMoveMarker.setAttribute("fill", markerColor);
+718:                     lastMoveMarker.setAttribute("opacity", "0.88");
+719:                     lastMoveMarker.setAttribute("class", "last-move-marker");
+720:                     lastMoveMarker.style.pointerEvents = 'none';
+721:                     stoneG.appendChild(lastMoveMarker);
+722:                 }
+723: 
+724:                 if (node.stone.isIndestructible) {
+725:                     // 1. Resplandor radial de fondo pulsante
+726:                     const sacredGlowBg = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+727:                     sacredGlowBg.setAttribute("cx", node.x.toString());
+728:                     sacredGlowBg.setAttribute("cy", node.y.toString());
+729:                     sacredGlowBg.setAttribute("r", (stoneRadius * 1.55).toString());
+730:                     sacredGlowBg.setAttribute("fill", "url(#sacred-radial-glow)");
+731:                     sacredGlowBg.setAttribute("class", "vfx-sacred-aura-pulse");
+732:                     sacredGlowBg.style.pointerEvents = 'none';
+733:                     stoneG.appendChild(sacredGlowBg);
+734: 
+735:                     // 2. Anillo de energía divina dorada con rayos giratorios
+736:                     const sacredRing = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+737:                     sacredRing.setAttribute("cx", node.x.toString());
+738:                     sacredRing.setAttribute("cy", node.y.toString());
+739:                     sacredRing.setAttribute("r", (stoneRadius * 1.28).toString());
+740:                     sacredRing.setAttribute("fill", "none");
+741:                     sacredRing.setAttribute("stroke", "#f59e0b");
+742:                     sacredRing.setAttribute("stroke-width", "2.6");
+743:                     sacredRing.setAttribute("stroke-dasharray", "4,3");
+744:                     sacredRing.setAttribute("filter", "url(#sacred-glow)");
+745:                     sacredRing.setAttribute("class", "vfx-sacred-ring-spin");
+746:                     stoneG.appendChild(sacredRing);
+747: 
+748:                     // 3. Anillo perimetral dorado fino resplandeciente
+749:                     const sacredOuterRing = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+750:                     sacredOuterRing.setAttribute("cx", node.x.toString());
+751:                     sacredOuterRing.setAttribute("cy", node.y.toString());
+752:                     sacredOuterRing.setAttribute("r", (stoneRadius * 1.12).toString());
+753:                     sacredOuterRing.setAttribute("fill", "none");
+754:                     sacredOuterRing.setAttribute("stroke", "#fef08a");
+755:                     sacredOuterRing.setAttribute("stroke-width", "1.6");
+756:                     stoneG.appendChild(sacredOuterRing);
+757:                 }
+758: 
+759:                 stonesGroup.appendChild(stoneG);
+760:             }
+761:         }
+762:         this.svgElement.appendChild(stonesGroup);
+763:     }
+764: 
+765:     private renderPolyominoBases(stonesGroup: SVGGElement, nodes: BoardNode[], stoneRadius: number) {
+766:         const polyNodes = nodes.filter(n => n.stone && n.stone.stoneType && n.stone.stoneType !== 'single');
+767:         if (polyNodes.length === 0) return;
+768: 
+769:         const groups = new Map<string, BoardNode[]>();
+770:         const visited = new Set<string>();
+771: 
+772:         // Primero agrupar por polyGroupId explícito
+773:         for (const n of polyNodes) {
+774:             if (n.stone?.polyGroupId) {
+775:                 const gid = n.stone.polyGroupId;
+776:                 if (!groups.has(gid)) groups.set(gid, []);
+777:                 groups.get(gid)!.push(n);
+778:                 visited.add(n.id);
+779:             }
+780:         }
+781: 
+782:         // Para piedras sin polyGroupId (compatibilidad), agrupar por adyacencia
+783:         for (const n of polyNodes) {
+784:             if (visited.has(n.id)) continue;
+785:             const type = n.stone!.stoneType;
+786:             const pid = n.stone!.playerId;
+787:             const groupNodes: BoardNode[] = [];
+788:             const queue = [n];
+789:             visited.add(n.id);
+790: 
+791:             while (queue.length > 0) {
+792:                 const curr = queue.shift()!;
+793:                 groupNodes.push(curr);
+794:                 for (const neighborId of curr.neighbors) {
+795:                     if (!visited.has(neighborId)) {
+796:                         const neighbor = this.board.nodes.get(neighborId);
+797:                         if (neighbor && neighbor.stone && neighbor.stone.stoneType === type && neighbor.stone.playerId === pid) {
+798:                             visited.add(neighborId);
+799:                             queue.push(neighbor);
+800:                         }
+The above content does NOT show the entire file contents. If you need to view any lines of the file which were not shown to complete your task, call this tool again to view those lines.

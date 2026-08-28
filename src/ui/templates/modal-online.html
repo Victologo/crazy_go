@@ -10,6 +10,7 @@
           <button id="tab-btn-matchmaking" class="btn-tab" style="background: linear-gradient(135deg, rgba(16,185,129,0.15) 0%, rgba(52,211,153,0.1) 100%); border-color: #10b981;" data-i18n="online.tab_matchmaking">🔍 Buscar Partida</button>
           <button id="tab-btn-create-room" class="btn-tab active" data-i18n="online.tab_create">Create Room (Host)</button>
           <button id="tab-btn-join-room" class="btn-tab">Join Room (Guest)</button>
+          <button id="tab-btn-social" class="btn-tab" style="background: linear-gradient(135deg, rgba(251,113,133,0.15) 0%, rgba(225,29,72,0.1) 100%); border-color: #fb7185;">👥 Perfil y Amigos</button>
         </div>
 
         <div class="modal-body-scroll">
@@ -538,6 +539,34 @@
                 <span id="join-status-text">Connecting to P2P room...</span>
                 <div id="join-lobby-slots-grid" class="online-slots-grid"></div>
               </div>
+            </div>
+          </div>
+          
+          <!-- VIEW 3: SOCIAL & PROFILE -->
+          <div id="view-social" class="tab-content hidden">
+            <div class="wizard-step-hero">
+              <h3 class="wizard-step-title" style="color: #fb7185;">👥 Perfil y Lista de Amigos</h3>
+              <p class="wizard-step-subtitle">Añade amigos mediante Friend Code para invitarles rápidamente a jugar o espetar partidas</p>
+            </div>
+            
+            <div class="setup-grid grid-2 wizard-big-grid" style="margin-top:2rem;">
+              <button id="btn-social-profile" class="btn btn-choice-card">
+                <span class="choice-card-icon">🪪</span>
+                <strong class="choice-card-title">Mi Perfil (Friend Code)</strong>
+                <span class="choice-card-desc">Ver mis estadísticas y código para que me añadan</span>
+              </button>
+              
+              <button id="btn-social-add-friend" class="btn btn-choice-card">
+                <span class="choice-card-icon">➕</span>
+                <strong class="choice-card-title">Añadir Amigo</strong>
+                <span class="choice-card-desc">Introducir el código de un amigo para guardarlo</span>
+              </button>
+            </div>
+
+            <div style="margin-top: 2rem; background: rgba(0,0,0,0.5); padding: 1.5rem; border-radius: 12px; border: 1px solid rgba(251,113,133,0.3);">
+              <h4 style="color: #fb7185; font-size: 1.1rem; margin-bottom: 1rem; border-bottom: 1px solid rgba(251,113,133,0.3); padding-bottom: 0.5rem;">Lista de Amigos</h4>
+              <p style="opacity: 0.6; font-style: italic; text-align: center; padding: 1rem 0;">Aún no tienes amigos añadidos en la lista local.</p>
+              <!-- Aquí se renderizaría la lista dinámica en el futuro -->
             </div>
           </div>
         </div>

@@ -878,7 +878,7 @@ export class GameController {
                         this.state.passTurn();
                         this.updateInGameUI();
 
-                        if (!this.state.isGameOver && (this.isAISlot(this.state.currentPlayer) || (!this.config.slots && this.state.currentPlayer !== this.config.humanColor))) {
+                        if (!this.state.isGameOver && (this.config.gameMode === 'aivsai' || this.isAISlot(this.state.currentPlayer) || (!this.config.slots && this.state.currentPlayer !== this.config.humanColor))) {
                             this.checkAITurn();
                         } else {
                             this.renderer.isInteractive = this.isLocalPlayerTurn();
@@ -902,7 +902,7 @@ export class GameController {
 
                 if (this.state.isGameOver) {
                     this.showFinalScoreModal();
-                } else if (this.isAISlot(this.state.currentPlayer) || (!this.config.slots && this.state.currentPlayer !== this.config.humanColor)) {
+                } else if (this.config.gameMode === 'aivsai' || this.isAISlot(this.state.currentPlayer) || (!this.config.slots && this.state.currentPlayer !== this.config.humanColor)) {
                     this.checkAITurn();
                 } else {
                     this.renderer.isInteractive = this.isLocalPlayerTurn();
@@ -940,7 +940,7 @@ export class GameController {
                     }
                 });
 
-                if (!this.state.isGameOver && (this.isAISlot(this.state.currentPlayer) || (!this.config.slots && this.state.currentPlayer !== this.config.humanColor))) {
+                if (!this.state.isGameOver && (this.config.gameMode === 'aivsai' || this.isAISlot(this.state.currentPlayer) || (!this.config.slots && this.state.currentPlayer !== this.config.humanColor))) {
                     this.checkAITurn();
                 } else {
                     this.renderer.isInteractive = this.isLocalPlayerTurn();

@@ -73,24 +73,28 @@ export class OnlineModalRenderer {
         document.getElementById('online-modal')?.classList.add('hidden');
     }
 
-    public static switchOnlineTab(tab: 'create' | 'join' | 'matchmaking') {
+    public static switchOnlineTab(tab: 'create' | 'join' | 'matchmaking' | 'social') {
         const btnCreate = document.getElementById('tab-btn-create-room');
         const btnJoin = document.getElementById('tab-btn-join-room');
         const btnMatchmaking = document.getElementById('tab-btn-matchmaking');
+        const btnSocial = document.getElementById('tab-btn-social');
         
         const tabCreate = document.getElementById('view-create-room');
         const tabJoin = document.getElementById('view-join-room');
         const tabMatchmaking = document.getElementById('view-matchmaking');
+        const tabSocial = document.getElementById('view-social');
 
         btnCreate?.classList.toggle('active', tab === 'create');
         btnJoin?.classList.toggle('active', tab === 'join');
         btnMatchmaking?.classList.toggle('active', tab === 'matchmaking');
+        btnSocial?.classList.toggle('active', tab === 'social');
         
         tabCreate?.classList.toggle('hidden', tab !== 'create');
         tabJoin?.classList.toggle('hidden', tab !== 'join');
         tabMatchmaking?.classList.toggle('hidden', tab !== 'matchmaking');
+        tabSocial?.classList.toggle('hidden', tab !== 'social');
 
-        // En las pestañas de Join (Guest) y Matchmaking NO debe existir navegación de wizard (Next/Prev)
+        // En las pestañas de Join (Guest), Matchmaking y Social NO debe existir navegación de wizard (Next/Prev)
         const btnPrev = document.getElementById('btn-online-wizard-prev');
         const btnNext = document.getElementById('btn-online-wizard-next');
         const btnForceStart = document.getElementById('btn-online-force-start');

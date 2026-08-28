@@ -1,0 +1,42 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" width="128" height="128">
+  <defs>
+    <radialGradient id="meteorGlow" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#f97316" stop-opacity="0.85"/>
+      <stop offset="50%" stop-color="#ef4444" stop-opacity="0.4"/>
+      <stop offset="100%" stop-color="#991b1b" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="fireTrail" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#fef08a" stop-opacity="0.9"/>
+      <stop offset="40%" stop-color="#f97316" stop-opacity="0.7"/>
+      <stop offset="100%" stop-color="#ef4444" stop-opacity="0"/>
+    </linearGradient>
+    <linearGradient id="coreRock" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#ffedd5"/>
+      <stop offset="35%" stop-color="#ea580c"/>
+      <stop offset="75%" stop-color="#7c2d12"/>
+      <stop offset="100%" stop-color="#1c1917"/>
+    </linearGradient>
+    <filter id="meteorShadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="6" stdDeviation="7" flood-color="#ea580c" flood-opacity="0.75"/>
+    </filter>
+  </defs>
+  <!-- Background Glow -->
+  <circle cx="64" cy="64" r="54" fill="url(#meteorGlow)" />
+  
+  <!-- Cometary Flame Trails -->
+  <path d="M 20 18 Q 50 48 64 68 Q 62 44 28 14 Z" fill="url(#fireTrail)" opacity="0.85"/>
+  <path d="M 32 12 Q 56 42 74 62 Q 68 36 40 8 Z" fill="url(#fireTrail)" opacity="0.9"/>
+  <path d="M 12 28 Q 44 54 60 74 Q 52 50 18 22 Z" fill="url(#fireTrail)" opacity="0.75"/>
+
+  <!-- Meteor Core Asteroid -->
+  <g filter="url(#meteorShadow)">
+    <polygon points="68,48 88,44 104,58 108,80 94,100 72,106 54,94 48,72 58,56" fill="url(#coreRock)" stroke="#fed7aa" stroke-width="1.5"/>
+    <!-- Molten Fissures -->
+    <path d="M 68 48 L 76 66 L 94 70 L 108 80" fill="none" stroke="#fef08a" stroke-width="2" stroke-linecap="round"/>
+    <path d="M 76 66 L 66 84 L 72 106" fill="none" stroke="#fbbf24" stroke-width="1.8" stroke-linecap="round"/>
+    <path d="M 66 84 L 54 94" fill="none" stroke="#f97316" stroke-width="1.5" stroke-linecap="round"/>
+    <!-- Plasma Flares -->
+    <circle cx="76" cy="66" r="4" fill="#ffffff" opacity="0.9"/>
+    <circle cx="94" cy="70" r="3" fill="#fef08a" opacity="0.8"/>
+  </g>
+</svg>
