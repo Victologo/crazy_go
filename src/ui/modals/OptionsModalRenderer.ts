@@ -12,6 +12,17 @@ export class OptionsModalRenderer {
 
     public static closeOptionsModal() {
         document.getElementById('options-modal')?.classList.add('hidden');
+        // Si estamos en la pantalla de juego, asegurar que el tablero esté listo e interactivo
+        const gameScreen = document.getElementById('game-screen');
+        if (gameScreen && !gameScreen.classList.contains('hidden')) {
+            import('../../controllers/GameController').then(({ GameController }) => {
+                if (GameController.renderer) {
+                    GameController.renderer.isInteractive = GameController.isLocalPlayerTurn();
+                    GameController.renderer.render();
+                    GameController.updateInGameUI();
+                }
+            });
+        }
     }
 
     public static updateOptionsModalUI() {
@@ -77,46 +88,4 @@ export class OptionsModalRenderer {
         if (feedbackContainer) feedbackContainer.classList.add('hidden');
     }
 
-    // ==================== SISTEMA DE ZOOM Y ESCALADO GLOBAL ====================
-    public static currentZoom: number = 100;
-
-    public static setZoom(percent: number, showToast: boolean = true) {
-        let clamped = Math.max(50, Math.min(200, percent));
-        this.currentZoom = clamped;
-
-        document.documentElement.style.setProperty('--ui-scale', (clamped / 100).toString());
-
-        // We clean up any inline styles that might have been left over from previous methods.
-        document.body.style.zoom = '';
-        document.body.style.transform = '';
-        document.body.style.transformOrigin = '';
-        document.body.style.width = '';
-        document.body.style.height = '';
-
-        const zoomSlider = document.getElementById('opt-zoom-slider') as HTMLInputElement;
-        const zoomText = document.getElementById('opt-zoom-text');
-        if (zoomSlider) zoomSlider.value = clamped.toString();
-        if (zoomText) zoomText.innerText = `${clamped}%`;
-
-        if (showToast) {
-            let toast = document.getElementById('zoom-toast');
-            if (!toast) {
-                toast = document.createElement('div');
-                toast.id = 'zoom-toast';
-                toast.className = 'zoom-toast';
-                document.body.appendChild(toast);
-            }
-            toast.innerText = `🔍 Zoom: ${clamped}%`;
-            toast.classList.add('show');
-            setTimeout(() => {
-                if (toast && toast.innerText === `🔍 Zoom: ${clamped}%`) {
-                    toast.classList.remove('show');
-                }
-            }, 1500);
-        }
-    }
-
-    public static initZoom() {
-        this.setZoom(100, false);
-    }
 }

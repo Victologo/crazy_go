@@ -7,66 +7,87 @@
         </div>
 
         <div class="modal-tabs">
-          <button id="tab-btn-create-room" class="btn-tab active">Create Room (Host)</button>
+          <button id="tab-btn-matchmaking" class="btn-tab" style="background: linear-gradient(135deg, rgba(16,185,129,0.15) 0%, rgba(52,211,153,0.1) 100%); border-color: #10b981;" data-i18n="online.tab_matchmaking">🔍 Buscar Partida</button>
+          <button id="tab-btn-create-room" class="btn-tab active" data-i18n="online.tab_create">Create Room (Host)</button>
           <button id="tab-btn-join-room" class="btn-tab">Join Room (Guest)</button>
         </div>
 
         <div class="modal-body-scroll">
-          <!-- VIEW 1: CREATE ROOM (HOST WIZARD 5 STEPS) -->
-          <div id="view-create-room" class="tab-content">
-            <!-- Persistent Room Code & Link Sharing Banner at Top -->
-            <div class="room-code-banner">
-              <div class="code-info">
-                <span class="code-label" data-i18n="online.room_code">ROOM CODE / SEED</span>
-                <strong id="display-room-code" class="code-value">GO-....</strong>
-              </div>
-              <div class="room-code-actions">
-                <span id="online-host-badge" class="badge-online-live">🟢 P2P Active</span>
-                <button id="btn-copy-room-link" class="btn btn-copy" title="Copy shareable link">
-                  <span>📋 Copy Link</span>
-                </button>
-              </div>
+          <!-- VIEW 0: MATCHMAKING -->
+          <div id="view-matchmaking" class="tab-content hidden">
+            <div class="wizard-step-hero">
+              <h3 class="wizard-step-title" data-i18n="online.mm_title">🌐 Matchmaking Anónimo</h3>
+              <p class="wizard-step-subtitle" data-i18n="online.mm_subtitle">Encuentra oponentes aleatorios en todo el mundo sin compartir códigos.</p>
+            </div>
+            
+            <div class="setup-grid grid-2 wizard-big-grid" style="margin-top:2rem;">
+              <button id="btn-matchmaking-2p" class="btn btn-choice-card">
+                <span class="choice-card-icon">👥</span>
+                <strong class="choice-card-title" data-i18n="online.mm_2p_title">Buscar Duelo 1 vs 1</strong>
+                <span class="choice-card-desc" data-i18n="online.mm_2p_desc">Emparejamiento rápido para 2 jugadores</span>
+              </button>
+              
+              <button id="btn-matchmaking-4p" class="btn btn-choice-card">
+                <span class="choice-card-icon">👥👥</span>
+                <strong class="choice-card-title" data-i18n="online.mm_4p_title">Buscar Batalla de 4 Jugadores</strong>
+                <span class="choice-card-desc" data-i18n="online.mm_4p_desc">Todos contra todos (FFA)</span>
+              </button>
             </div>
 
+            <div id="matchmaking-status-box" class="hidden" style="margin-top: 2rem; text-align: center; background: rgba(0,0,0,0.5); padding: 2rem; border-radius: 12px; border: 1px solid rgba(16,185,129,0.3);">
+              <div class="spin-anim" style="font-size: 3rem; margin-bottom: 1rem; display: inline-block;">⏳</div>
+              <h4 id="matchmaking-status-text" style="color: #6ee7b7; font-size: 1.2rem;" data-i18n="online.mm_searching">Buscando oponente...</h4>
+              <p id="matchmaking-status-sub" style="opacity: 0.7; margin-bottom: 1.5rem;" data-i18n="online.mm_wait">Por favor espera.</p>
+              <button id="btn-cancel-matchmaking" class="btn btn-secondary" data-i18n="online.mm_cancel">Cancelar Búsqueda</button>
+            </div>
+          </div>
+
+          <!-- VIEW 1: CREATE ROOM (HOST WIZARD 6 STEPS) -->
+          <div id="view-create-room" class="tab-content">
             <!-- Host Stepper -->
             <div class="wizard-header-top" style="margin-bottom: 0.5rem;">
-              <span id="online-wizard-step-counter" class="wizard-step-pill">Step 1 of 5</span>
+              <span id="online-wizard-step-counter" class="wizard-step-pill">Step 1 of 6</span>
             </div>
             <div class="wizard-stepper" id="online-wizard-stepper">
               <button class="wizard-step-node active" data-step="1" title="1. Mode">
                 <span class="step-num">1</span>
                 <span class="step-label" data-i18n="online.step_mode">Mode</span>
               </button>
-              <div class="wizard-line"></div>
-              <button class="wizard-step-node" data-step="2" title="2. Board">
-                <span class="step-num">2</span>
+              <div class="wizard-line" id="online-wizard-line-players"></div>
+              <button class="wizard-step-node" id="online-wizard-node-players" data-step="2" title="2. Players">
+                <span class="step-num" id="online-step-num-players">2</span>
+                <span class="step-label" data-i18n="online.step_players">Players</span>
+              </button>
+              <div class="wizard-line" id="online-wizard-line-board"></div>
+              <button class="wizard-step-node" id="online-wizard-node-board" data-step="3" title="3. Board">
+                <span class="step-num" id="online-step-num-board">3</span>
                 <span class="step-label" data-i18n="online.step_board">Board</span>
               </button>
-              <div class="wizard-line"></div>
-              <button class="wizard-step-node" data-step="3" title="3. Champion">
-                <span class="step-num">3</span>
+              <div class="wizard-line" id="online-wizard-line-champion"></div>
+              <button class="wizard-step-node" id="online-wizard-node-champion" data-step="4" title="4. Champion">
+                <span class="step-num" id="online-step-num-champion">4</span>
                 <span class="step-label" data-i18n="online.step_champion">Champion</span>
               </button>
-              <div class="wizard-line"></div>
-              <button class="wizard-step-node" data-step="4" title="4. Scenery">
-                <span class="step-num">4</span>
+              <div class="wizard-line" id="online-wizard-line-scenery"></div>
+              <button class="wizard-step-node" id="online-wizard-node-scenery" data-step="5" title="5. Scenery">
+                <span class="step-num" id="online-step-num-scenery">5</span>
                 <span class="step-label" data-i18n="online.step_scenery">Scenery</span>
               </button>
-              <div class="wizard-line"></div>
-              <button class="wizard-step-node" data-step="5" title="5. Lobby">
-                <span class="step-num">5</span>
+              <div class="wizard-line" id="online-wizard-line-lobby"></div>
+              <button class="wizard-step-node" id="online-wizard-node-lobby" data-step="6" title="6. Lobby">
+                <span class="step-num" id="online-step-num-lobby">6</span>
                 <span class="step-label" data-i18n="online.step_lobby">Lobby</span>
               </button>
             </div>
 
             <div class="online-wizard-body" style="margin-top: 1rem;">
-              <!-- STEP 1: GAME MODE & PLAYER COUNT -->
+              <!-- STEP 1: GAME MODE -->
               <div id="online-host-step-1" class="wizard-step-panel active">
                 <div class="wizard-step-hero">
                   <h3 class="wizard-step-title" data-i18n="online.mode_label">Network Game Mode</h3>
                   <p class="wizard-step-subtitle" data-i18n="wizard.sub_mode">Select how you want to play with peers</p>
                 </div>
-                <div class="setup-grid grid-1 wizard-big-grid">
+                <div class="setup-grid grid-2 wizard-big-grid" style="margin-top: 1rem;">
                   <button id="online-mode-standard" class="btn btn-choice-card active" data-online-mode="standard">
                     <span class="choice-card-icon">⚔️</span>
                     <strong class="choice-card-title" data-i18n="online.mode_standard">Classic Duel (1v1 / 4P)</strong>
@@ -78,26 +99,30 @@
                     <span class="choice-card-desc">Play a run (Network Sync WIP)</span>
                   </button>
                 </div>
+              </div>
 
-                <div class="setup-section" id="online-players-count-section" style="margin-top: 1.25rem;">
-                  <label class="setup-label" data-i18n="online.players_label">Player Count</label>
-                  <div class="setup-grid grid-2">
-                    <button id="online-players-2" class="btn btn-choice active" data-players="2">
-                      <span class="choice-icon">👥</span>
-                      <strong class="choice-title" data-i18n="online.players_2">2 Players (1v1 Duel)</strong>
-                      <small style="display:block;font-size:0.75rem;opacity:0.8;" data-i18n="online.players_2_sub">⚫ Black vs ⚪ White</small>
-                    </button>
-                    <button id="online-players-4" class="btn btn-choice" data-players="4">
-                      <span class="choice-icon">👥👥</span>
-                      <strong class="choice-title" data-i18n="online.players_4">4 Players (4P FFA Go)</strong>
-                      <small style="display:block;font-size:0.75rem;opacity:0.8;" data-i18n="online.players_4_sub">⚫ Black • ⚪ White • 🟢 Emerald • 🟣 Amethyst</small>
-                    </button>
-                  </div>
+              <!-- STEP 2: PLAYER COUNT (CLASSIC DUEL ONLY) -->
+              <div id="online-host-step-2" class="wizard-step-panel hidden">
+                <div class="wizard-step-hero">
+                  <h3 class="wizard-step-title" data-i18n="wizard.q_players">👥 Select Player Count</h3>
+                  <p class="wizard-step-subtitle" data-i18n="wizard.sub_players">Choose between a direct duel or a 4-player battle</p>
+                </div>
+                <div class="setup-grid grid-2 wizard-big-grid" style="margin-top: 1rem;">
+                  <button id="online-players-2" class="btn btn-choice-card active" data-players="2">
+                    <span class="choice-card-icon">👥</span>
+                    <strong class="choice-card-title" data-i18n="online.players_2">2 Players (1v1 Duel)</strong>
+                    <span class="choice-card-desc" data-i18n="online.players_2_sub">⚫ Black vs ⚪ White</span>
+                  </button>
+                  <button id="online-players-4" class="btn btn-choice-card" data-players="4">
+                    <span class="choice-card-icon">👥👥</span>
+                    <strong class="choice-card-title" data-i18n="online.players_4">4 Players (4P FFA Go)</strong>
+                    <span class="choice-card-desc" data-i18n="online.players_4_sub">⚫ Black • ⚪ White • 🟢 Emerald • 🟣 Amethyst</span>
+                  </button>
                 </div>
               </div>
 
-              <!-- STEP 2: BOARD SIZE & TOPOLOGY WITH LIVE PREVIEW -->
-              <div id="online-host-step-2" class="wizard-step-panel hidden">
+              <!-- STEP 3: BOARD SIZE & TOPOLOGY WITH LIVE PREVIEW -->
+              <div id="online-host-step-3" class="wizard-step-panel hidden">
                 <div class="wizard-step-hero">
                   <h3 class="wizard-step-title" data-i18n="wizard.q_board">📐 Select Board & Topology</h3>
                   <p class="wizard-step-subtitle" data-i18n="wizard.sub_board">Configure dimensions and geometry</p>
@@ -125,6 +150,9 @@
                       <label class="setup-label" data-i18n="wizard.board_shape">Board Shape</label>
                       <div class="setup-grid grid-4" id="online-shapes-grid">
                         <button id="online-shape-square" class="btn btn-choice active" data-shape="square">⏹️ Square</button>
+                        <button id="online-shape-volcano" class="btn btn-choice" data-shape="volcano">🌋 Volcano</button>
+                        <button id="online-shape-sky" class="btn btn-choice" data-shape="sky">☁️ Sky</button>
+                        <button id="online-shape-oni" class="btn btn-choice" data-shape="oni">👹 Oni Mask</button>
                         <button id="online-shape-eroded" class="btn btn-choice" data-shape="eroded">🪨 Eroded</button>
                         <button id="online-shape-islands_v1" class="btn btn-choice" data-shape="islands_v1">🏝️ Islands v1</button>
                         <button id="online-shape-islands_v2" class="btn btn-choice" data-shape="islands_v2">🏝️ Islands v2</button>
@@ -144,20 +172,48 @@
                     </div>
                   </div>
                   <div class="wizard-board-preview-card">
-                    <div class="wizard-board-preview-viewport" id="online-board-preview-viewport" style="background-image: url('./bg_combat.jpg');">
+                    <div class="wizard-board-preview-viewport" id="online-board-preview-viewport" style="background-image: url('./bg_combat.jpg'); position: relative;">
                       <div class="wizard-board-preview-overlay"></div>
                       <svg id="online-board-preview-svg" class="wizard-board-preview-svg" viewBox="0 0 400 400"></svg>
+                      
+                      <!-- Centered Volcano Warning for Preview -->
+                      <div id="setup-volcano-info-online" class="setup-volcano-center-warning">
+                        <span class="volcano-emoji">🌋</span>
+                        <div class="volcano-custom-tooltip">
+                          <strong data-i18n="volcano.warning_title">¡CUIDADO! Tablero Volcánico</strong><br/>
+                          <span data-i18n="volcano.warning_desc">Cada 10 turnos por jugador, un meteorito destruirá una casilla aleatoria permanentemente.</span>
+                        </div>
+                      </div>
+
+                      <!-- Centered Sky Warning for Preview -->
+                      <div id="setup-sky-info-online" class="setup-sky-center-warning">
+                        <span class="sky-emoji">☁️</span>
+                        <div class="sky-custom-tooltip">
+                          <strong data-i18n="sky.warning_title">¡CUIDADO! Tablero del Cielo</strong><br/>
+                          <span data-i18n="sky.warning_desc">Cada 10 turnos por jugador (20 totales), 5 nuevos bloques cuadrados (2x2) caerán del cielo expandiendo el goban indefinidamente.</span>
+                        </div>
+                      </div>
+
+                      <!-- Centered Oni Warning for Preview -->
+                      <div id="setup-oni-info-online" class="setup-oni-center-warning">
+                        <span class="oni-emoji">👹</span>
+                        <div class="oni-custom-tooltip">
+                          <strong data-i18n="oni.warning_title">👹 Tablero Máscara Oni (Inhalación & Festín)</strong><br/>
+                          <span data-i18n="oni.warning_desc">🌪️ Inhalación (cada 20 turnos): El vórtice arrastra 1 casilla hacia abajo las piedras sueltas o parejas (1-2 piedras); las cadenas sólidas (3+ piedras) resisten. 🩸 Festín de Almas: Capturar 2+ piedras enemigas a la vez otorga un Turno Extra Consecutivo inmediato.</span>
+                        </div>
+                      </div>
                     </div>
                     <div class="wizard-board-preview-info">
                       <strong id="online-board-preview-title">9x9 Square Goban</strong>
                       <span id="online-board-preview-desc">81 Intersections</span>
+                      <div id="setup-board-hazard-banner-online" class="setup-board-hazard-banner hidden"></div>
                     </div>
                   </div>
                 </div>
               </div>
 
-              <!-- STEP 3: HOST CHAMPION SELECTION -->
-              <div id="online-host-step-3" class="wizard-step-panel hidden">
+              <!-- STEP 4: HOST CHAMPION SELECTION -->
+              <div id="online-host-step-4" class="wizard-step-panel hidden">
                 <div class="wizard-step-hero">
                   <h3 class="wizard-step-title" data-i18n="wizard.q_champion">🧙‍♂️ Choose Mystic Champion or Pure Go</h3>
                   <p class="wizard-step-subtitle" data-i18n="wizard.sub_champion">Wield legendary powers or play pure canonical Japanese Go</p>
@@ -198,37 +254,37 @@
                 <div class="hero-thumb-strip" id="online-host-hero-thumb-strip">
                   <button class="hero-thumb-btn active" data-hero="normal">
                     <img src="./heroes/normal_face.jpg" alt="Normal" />
-                    <span>Normal</span>
+                    <span data-i18n="champion.normal.name">Normal</span>
                   </button>
                   <button class="hero-thumb-btn" data-hero="tengu">
                     <img src="./heroes/tengu_face.jpg" alt="Tengu" />
-                    <span>Tengu</span>
+                    <span data-i18n="champion.tengu.name">Tengu</span>
                   </button>
                   <button class="hero-thumb-btn" data-hero="himiko">
                     <img src="./heroes/himiko_face.jpg" alt="Himiko" />
-                    <span>Himiko</span>
+                    <span data-i18n="champion.himiko.name">Himiko</span>
                   </button>
                   <button class="hero-thumb-btn" data-hero="kitsune">
                     <img src="./heroes/kitsune_face.jpg" alt="Kitsune" />
-                    <span>Kitsune</span>
+                    <span data-i18n="champion.kitsune.name">Kitsune</span>
                   </button>
                   <button class="hero-thumb-btn" data-hero="ronin">
                     <img src="./heroes/ronin_face.jpg" alt="Ronin" />
-                    <span>Ronin</span>
+                    <span data-i18n="champion.ronin.name">Ronin</span>
                   </button>
                   <button class="hero-thumb-btn" data-hero="alchemist">
                     <img src="./heroes/alchemist_face.jpg" alt="Alchemist" />
-                    <span>Alchemist</span>
+                    <span data-i18n="champion.alchemist.name">Alchemist</span>
                   </button>
                   <button class="hero-thumb-btn" data-hero="ryujin">
                     <img src="./heroes/ryujin_face.jpg" alt="Ryūjin" />
-                    <span>Ryūjin</span>
+                    <span data-i18n="champion.ryujin.name">Ryūjin</span>
                   </button>
                 </div>
               </div>
 
-              <!-- STEP 4: SCENERY & DUEL PREVIEW -->
-              <div id="online-host-step-4" class="wizard-step-panel hidden">
+              <!-- STEP 5: SCENERY & DUEL PREVIEW -->
+              <div id="online-host-step-5" class="wizard-step-panel hidden">
                 <div class="wizard-step-hero" style="margin-bottom: 0.4rem;">
                   <h3 class="wizard-step-title" data-i18n="wizard.q_scenery">🌄 Select Scenery & Battle Environment</h3>
                 </div>
@@ -240,17 +296,10 @@
                       <div class="duel-standee-box">
                         <img id="online-stage-player-img" src="./heroes/normal.png" alt="Your Champion" class="duel-standee-img" />
                       </div>
-                      <div class="duel-combatant-tag">
-                        <strong id="online-stage-player-name">Normal Apprentice</strong>
-                        <span class="duel-combatant-badge">HOST (P1)</span>
-                      </div>
                     </div>
                     <!-- Center: Floating Goban -->
                     <div class="duel-stage-center-board">
                       <svg id="online-stage-board-svg" class="wizard-stage-board-svg" viewBox="0 0 400 400"></svg>
-                      <div class="duel-stage-board-pill">
-                        <span id="online-stage-board-info">9x9 Square • 81 Pts</span>
-                      </div>
                     </div>
                     <!-- Right: Guest/Rival Standee -->
                     <div class="duel-stage-combatant duel-stage-rival">
@@ -259,14 +308,10 @@
                           <span class="duel-mystery-question">❓</span>
                         </div>
                       </div>
-                      <div class="duel-combatant-tag">
-                        <strong id="online-stage-rival-name">Online Guest</strong>
-                        <span class="duel-combatant-badge rival-badge">OPPONENT</span>
-                      </div>
                     </div>
                   </div>
                   <!-- Scenery Grid Selector -->
-                  <div class="wizard-subgroup" style="margin-top: 0.4rem;">
+                  <div class="wizard-subgroup" style="margin-top: 0.85rem;">
                     <div class="setup-grid grid-4" id="online-bgs-grid">
                       <button class="btn btn-choice btn-online-bg active" data-bg="combat"><span>⚔️ Dojo</span></button>
                       <button class="btn btn-choice btn-online-bg" data-bg="meadow"><span>🌿 Meadow</span></button>
@@ -280,12 +325,27 @@
                 </div>
               </div>
 
-              <!-- STEP 5: LOBBY, COLOR, KOMI & PLAYER SLOTS -->
-              <div id="online-host-step-5" class="wizard-step-panel hidden">
+              <!-- STEP 6: LOBBY, COLOR, KOMI & PLAYER SLOTS -->
+              <div id="online-host-step-6" class="wizard-step-panel hidden">
                 <div class="wizard-step-hero">
                   <h3 class="wizard-step-title">⚔️ Online Lobby & Final Settings</h3>
-                  <p class="wizard-step-subtitle">Configure rules and manage connected players</p>
+                  <p class="wizard-step-subtitle">Share your room code with peers and configure final match rules</p>
                 </div>
+
+                <!-- Persistent Room Code & Link Sharing Banner inside Step 5 -->
+                <div class="room-code-banner" style="margin-bottom: 1.25rem;">
+                  <div class="code-info">
+                    <span class="code-label" data-i18n="online.room_code">ROOM CODE / SEED</span>
+                    <strong id="display-room-code" class="code-value">GO-....</strong>
+                  </div>
+                  <div class="room-code-actions">
+                    <span id="online-host-badge" class="badge-online-live">🟢 P2P Active</span>
+                    <button id="btn-copy-room-link" class="btn btn-copy" title="Copy room code">
+                      <span>📋 Copy Code</span>
+                    </button>
+                  </div>
+                </div>
+
                 <!-- 1. Host Color -->
                 <div class="setup-section" id="online-host-color-section">
                   <label class="setup-label" data-i18n="online.host_color">Your Color (Host)</label>
@@ -301,7 +361,7 @@
                   </div>
                 </div>
                 <!-- 2. Komi -->
-                <div class="setup-section" style="margin-top: 0.75rem;">
+                <div class="setup-section" style="margin-top: 0.75rem;" id="online-komi-section">
                   <div class="setup-label-row">
                     <label class="setup-label" data-i18n="wizard.komi_title">Komi (Advantage points for White)</label>
                     <strong id="online-komi-display" class="highlight-text">6.5 pts</strong>
@@ -318,6 +378,54 @@
                     </div>
                   </div>
                 </div>
+                <!-- 2.5 AI Difficulty -->
+                <div class="setup-section setup-subbox" style="margin-top: 0.75rem;">
+                  <div class="setup-label-row">
+                    <label class="setup-label">AI Difficulty (CrazyGoNet Engine)</label>
+                    <button type="button" id="btn-toggle-online-ai-granular" class="btn btn-switch" data-enabled="false">
+                      <span id="label-toggle-online-ai-granular">Pack Mode 📦</span>
+                    </button>
+                  </div>
+
+                  <!-- Pack Mode Selector (Master) -->
+                  <div id="online-ai-pack-mode-box">
+                    <div class="setup-inline-row" style="margin-top: 0.5rem; justify-content: space-between; align-items: center; display: flex;">
+                      <input type="range" id="online-ai-master-slider" min="1" max="40" value="16" class="custom-slider" style="flex-grow: 1; margin-right: 1rem;" />
+                      <div class="inline-custom-box" style="min-width: 100px; justify-content: center;">
+                        <strong id="online-ai-master-display" class="highlight-text" style="font-size: 1.1rem;">15 Kyu</strong>
+                      </div>
+                    </div>
+                    <p style="font-size: 0.75rem; opacity: 0.7; margin-top: 0.25rem;">Nivel para los bots añadidos a la sala online. <br>30k-1k (Kyu - Principiante) • 1d-10d (Dan - Maestro)</p>
+                  </div>
+
+                  <!-- Granular / Individual Mode Selector -->
+                  <div id="online-ai-granular-mode-box" class="hidden" style="margin-top: 0.5rem;">
+                    <div class="setup-komi-4p-grid">
+                      <div class="komi-4p-row" id="online-ai-granular-p2-row">
+                        <div class="komi-4p-header">
+                          <span class="komi-4p-tag">⚪ P2 AI Bot</span>
+                          <strong id="online-ai-granular-p2-display" class="highlight-text">15 Kyu</strong>
+                        </div>
+                        <input type="range" id="online-ai-granular-p2-slider" min="1" max="40" value="16" class="custom-slider" style="width: 100%; margin-top: 0.5rem;" />
+                      </div>
+                      <div class="komi-4p-row" id="online-ai-granular-p3-row" style="margin-top: 0.45rem;">
+                        <div class="komi-4p-header">
+                          <span class="komi-4p-tag">🟢 P3 AI Bot</span>
+                          <strong id="online-ai-granular-p3-display" class="highlight-text">15 Kyu</strong>
+                        </div>
+                        <input type="range" id="online-ai-granular-p3-slider" min="1" max="40" value="16" class="custom-slider" style="width: 100%; margin-top: 0.5rem;" />
+                      </div>
+                      <div class="komi-4p-row" id="online-ai-granular-p4-row" style="margin-top: 0.45rem;">
+                        <div class="komi-4p-header">
+                          <span class="komi-4p-tag">🟣 P4 AI Bot</span>
+                          <strong id="online-ai-granular-p4-display" class="highlight-text">15 Kyu</strong>
+                        </div>
+                        <input type="range" id="online-ai-granular-p4-slider" min="1" max="40" value="16" class="custom-slider" style="width: 100%; margin-top: 0.5rem;" />
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                
                 <!-- 3. Waiting Status & Slots -->
                 <div id="host-waiting-status" class="waiting-box" style="margin-top: 1rem;">
                   <div class="spinner"></div>
@@ -332,97 +440,103 @@
 
           <!-- VIEW 2: JOIN ROOM (GUEST) -->
           <div id="view-join-room" class="tab-content hidden">
-            <div class="join-box">
-              <label class="setup-label">Enter Room Code</label>
+            <div class="wizard-step-hero" style="margin-bottom: 1rem;">
+              <h3 class="wizard-step-title">🧙‍♂️ Join Game: Choose Champion & Connect</h3>
+              <p class="wizard-step-subtitle">1. Select your mystic champion &nbsp;•&nbsp; 2. Enter room code and join</p>
+            </div>
+
+            <!-- Step 1: Guest Champion Selection -->
+            <div class="setup-section" style="margin-top: 0.5rem; margin-bottom: 1.5rem;">
+              <label class="setup-label">1. Choose Your Mystic Champion (Guest)</label>
+
+              <div class="rogue-hero-panoramic-box setup-hero-panoramic-box">
+                <button id="btn-online-guest-hero-prev" class="btn-hero-nav" title="Previous Champion">◀</button>
+
+                <div class="hero-showcase-card" id="online-guest-hero-showcase-card">
+                  <div class="hero-portrait-wrapper">
+                    <img id="online-guest-hero-showcase-img" src="./heroes/normal_face.jpg" alt="Normal Apprentice" class="hero-showcase-img" />
+                  </div>
+
+                  <div class="hero-details">
+                    <div class="hero-header-row">
+                      <div class="hero-titles-col">
+                        <h3 id="online-guest-hero-showcase-name" class="hero-title">Normal Apprentice</h3>
+                      </div>
+                    </div>
+
+                    <div class="hero-skills-grid">
+                      <div class="hero-skill-box active-skill-box online-guest-hero-active-box" style="display: none;">
+                        <div class="skill-box-header">
+                          <span class="skill-type-tag active-tag">💥 ACTIVE SKILL</span>
+                          <strong id="online-guest-hero-active-name" class="skill-name">Active Skill</strong>
+                        </div>
+                        <p id="online-guest-hero-active-desc" class="skill-desc">Description of active skill.</p>
+                      </div>
+
+                      <div class="hero-skill-box passive-skill-box online-guest-hero-passive-box">
+                        <div class="skill-box-header">
+                          <span class="skill-type-tag passive-tag" id="online-guest-hero-passive-tag">📜 PURE RULES</span>
+                          <strong id="online-guest-hero-passive-name" class="skill-name">Japanese Canonical Rules</strong>
+                        </div>
+                        <p id="online-guest-hero-passive-desc" class="skill-desc">Pure Go strategy: liberties, unconditional life, Ko and territory without gimmicks.</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <button id="btn-online-guest-hero-next" class="btn-hero-nav" title="Next Champion">▶</button>
+              </div>
+
+              <div class="hero-thumb-strip" id="online-guest-hero-thumb-strip">
+                <button class="hero-thumb-btn active" data-hero="normal">
+                  <img src="./heroes/normal_face.jpg" alt="Normal" />
+                  <span data-i18n="champion.normal.name">Normal</span>
+                </button>
+                <button class="hero-thumb-btn" data-hero="tengu">
+                  <img src="./heroes/tengu_face.jpg" alt="Tengu" />
+                  <span data-i18n="champion.tengu.name">Tengu</span>
+                </button>
+                <button class="hero-thumb-btn" data-hero="himiko">
+                  <img src="./heroes/himiko_face.jpg" alt="Himiko" />
+                  <span data-i18n="champion.himiko.name">Himiko</span>
+                </button>
+                <button class="hero-thumb-btn" data-hero="kitsune">
+                  <img src="./heroes/kitsune_face.jpg" alt="Kitsune" />
+                  <span data-i18n="champion.kitsune.name">Kitsune</span>
+                </button>
+                <button class="hero-thumb-btn" data-hero="ronin">
+                  <img src="./heroes/ronin_face.jpg" alt="Ronin" />
+                  <span data-i18n="champion.ronin.name">Ronin</span>
+                </button>
+                <button class="hero-thumb-btn" data-hero="alchemist">
+                  <img src="./heroes/alchemist_face.jpg" alt="Alchemist" />
+                  <span data-i18n="champion.alchemist.name">Alchemist</span>
+                </button>
+                <button class="hero-thumb-btn" data-hero="ryujin">
+                  <img src="./heroes/ryujin_face.jpg" alt="Ryūjin" />
+                  <span data-i18n="champion.ryujin.name">Ryūjin</span>
+                </button>
+              </div>
+            </div>
+
+            <!-- Step 2: Enter Room Code -->
+            <div class="setup-section" style="margin-top: 1rem;">
+              <label class="setup-label">2. Enter Room Code & Connect</label>
               <div class="join-input-group">
                 <input type="text" id="input-join-room-code" placeholder="E.g. GO-4821 or paste invite URL" maxlength="150" autocomplete="off" spellcheck="false" />
                 <button id="btn-submit-join-room" class="btn btn-modal-primary">
                   <span>Connect 🚀</span>
                 </button>
               </div>
-              <p class="join-help">Ask the room creator for the room code or direct invitation URL.</p>
+              <p class="join-help" style="margin-top: 0.5rem; opacity: 0.75;">Ask the room host for their <strong>GO-XXXX</strong> code generated in their Lobby.</p>
+            </div>
 
-              <!-- Guest Champion Selection -->
-              <div class="setup-section" style="margin-top: 1rem;">
-                <label class="setup-label">Your Mystic Champion (Guest)</label>
-
-                <div class="rogue-hero-panoramic-box setup-hero-panoramic-box">
-                  <button id="btn-online-guest-hero-prev" class="btn-hero-nav" title="Previous Champion">◀</button>
-
-                  <div class="hero-showcase-card" id="online-guest-hero-showcase-card">
-                    <div class="hero-portrait-wrapper">
-                      <img id="online-guest-hero-showcase-img" src="./heroes/normal_face.jpg" alt="Normal Apprentice" class="hero-showcase-img" />
-                    </div>
-
-                    <div class="hero-details">
-                      <div class="hero-header-row">
-                        <div class="hero-titles-col">
-                          <h3 id="online-guest-hero-showcase-name" class="hero-title">Normal Apprentice</h3>
-                        </div>
-                      </div>
-
-                      <div class="hero-skills-grid">
-                        <div class="hero-skill-box active-skill-box online-guest-hero-active-box" style="display: none;">
-                          <div class="skill-box-header">
-                            <span class="skill-type-tag active-tag">💥 ACTIVE SKILL</span>
-                            <strong id="online-guest-hero-active-name" class="skill-name">Active Skill</strong>
-                          </div>
-                          <p id="online-guest-hero-active-desc" class="skill-desc">Description of active skill.</p>
-                        </div>
-
-                        <div class="hero-skill-box passive-skill-box online-guest-hero-passive-box">
-                          <div class="skill-box-header">
-                            <span class="skill-type-tag passive-tag" id="online-guest-hero-passive-tag">📜 PURE RULES</span>
-                            <strong id="online-guest-hero-passive-name" class="skill-name">Japanese Canonical Rules</strong>
-                          </div>
-                          <p id="online-guest-hero-passive-desc" class="skill-desc">Pure Go strategy: liberties, unconditional life, Ko and territory without gimmicks.</p>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-
-                  <button id="btn-online-guest-hero-next" class="btn-hero-nav" title="Next Champion">▶</button>
-                </div>
-
-                <div class="hero-thumb-strip" id="online-guest-hero-thumb-strip">
-                  <button class="hero-thumb-btn active" data-hero="normal">
-                    <img src="./heroes/normal_face.jpg" alt="Normal" />
-                    <span>Normal</span>
-                  </button>
-                  <button class="hero-thumb-btn" data-hero="tengu">
-                    <img src="./heroes/tengu_face.jpg" alt="Tengu" />
-                    <span>Tengu</span>
-                  </button>
-                  <button class="hero-thumb-btn" data-hero="himiko">
-                    <img src="./heroes/himiko_face.jpg" alt="Himiko" />
-                    <span>Himiko</span>
-                  </button>
-                  <button class="hero-thumb-btn" data-hero="kitsune">
-                    <img src="./heroes/kitsune_face.jpg" alt="Kitsune" />
-                    <span>Kitsune</span>
-                  </button>
-                  <button class="hero-thumb-btn" data-hero="ronin">
-                    <img src="./heroes/ronin_face.jpg" alt="Ronin" />
-                    <span>Ronin</span>
-                  </button>
-                  <button class="hero-thumb-btn" data-hero="alchemist">
-                    <img src="./heroes/alchemist_face.jpg" alt="Alchemist" />
-                    <span>Alchemist</span>
-                  </button>
-                  <button class="hero-thumb-btn" data-hero="ryujin">
-                    <img src="./heroes/ryujin_face.jpg" alt="Ryūjin" />
-                    <span>Ryūjin</span>
-                  </button>
-                </div>
-              </div>
-
-              <!-- Connection Status -->
-              <div id="join-status-box" class="waiting-box hidden">
-                <div class="spinner"></div>
-                <div class="lobby-status-content">
-                  <span id="join-status-text">Connecting to P2P room...</span>
-                  <div id="join-lobby-slots-grid" class="online-slots-grid"></div>
-                </div>
+            <!-- Connection Status -->
+            <div id="join-status-box" class="waiting-box hidden" style="margin-top: 1.25rem;">
+              <div class="spinner"></div>
+              <div class="lobby-status-content">
+                <span id="join-status-text">Connecting to P2P room...</span>
+                <div id="join-lobby-slots-grid" class="online-slots-grid"></div>
               </div>
             </div>
           </div>

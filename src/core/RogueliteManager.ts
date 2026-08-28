@@ -3,6 +3,7 @@ import { GraphBoard, type PlayerId } from './GraphBoard';
 import { GameState } from './GameState';
 import { SoundFX } from '../audio/SoundFX';
 import { RulesEngine } from './RulesEngine';
+import { getLanguage } from '../i18n/i18n';
 
 export type SpellId = 'rewind' | 'meteor' | 'shield' | 'convert';
 
@@ -141,7 +142,7 @@ export class RogueliteManager {
         switch (spellId) {
             case 'rewind': {
                 if (!state.canUndo()) {
-                    onError('Not enough recorded turns to rewind.');
+                    onError(getLanguage() === 'en' ? 'Not enough recorded turns to rewind.' : 'No hay suficientes turnos registrados para rebobinar.');
                     SoundFX.playIllegal();
                     return false;
                 }
@@ -154,8 +155,9 @@ export class RogueliteManager {
                     }
                 }
 
-                // Deshacer el turno
-                const steps = (state.historyStack.length >= 2 && state.playerCount === 2) ? 2 : 1;
+                // En modo tutorial o si hay un único paso registrado, deshacer exactamente 1 paso
+                const isTutorial = typeof window !== 'undefined' && !!(window as any).__isTutorialActive;
+                const steps = isTutorial ? 1 : ((state.historyStack.length >= 2 && state.playerCount === 2) ? 2 : 1);
                 for (let s = 0; s < steps; s++) {
                     if (state.canUndo()) state.undo(board);
                 }
@@ -163,28 +165,36 @@ export class RogueliteManager {
                 card.usesLeft--;
                 SoundFX.playUndo();
 
-                // Identificar piedras que desaparecieron
-                const removedStones: Array<{ x: number; y: number; playerId: PlayerId }> = [];
+                // Identificar piedras afectadas por el rebobinado (piedras retiradas y piedras restauradas)
+                const affectedStones: Array<{ x: number; y: number; playerId: PlayerId }> = [];
                 for (const [id, data] of stonesBefore.entries()) {
                     const nodeAfter = board.nodes.get(id);
                     if (!nodeAfter || !nodeAfter.stone) {
-                        removedStones.push(data);
+                        affectedStones.push(data);
+                    }
+                }
+                for (const [id, node] of board.nodes.entries()) {
+                    if (node.stone && !stonesBefore.has(id)) {
+                        affectedStones.push({ x: node.x, y: node.y, playerId: node.stone.playerId });
                     }
                 }
 
-                onSuccess('⏳ Time Rewound! The previous board position has been faithfully restored.', removedStones);
+                const isEn = getLanguage() === 'en';
+                onSuccess(isEn 
+                    ? '⏳ Time Rewound! The previous board position has been faithfully restored.' 
+                    : '⏳ ¡Tiempo Rebobinado! La posición anterior del tablero ha sido restaurada fielmente.', 
+                    affectedStones
+                );
                 return true;
             }
 
             case 'meteor': {
-                // Find vulnerable stones
-                const enemyPlayerId: PlayerId = playerId === 1 ? 2 : 1;
                 const enemyNodes: string[] = [];
                 const alliedNodes: string[] = [];
 
                 for (const [nodeId, node] of board.nodes.entries()) {
                     if (node.stone && !node.stone.isIndestructible) {
-                        if (node.stone.playerId === enemyPlayerId) {
+                        if (node.stone.playerId !== playerId) {
                             enemyNodes.push(nodeId);
                         } else if (node.stone.playerId === playerId) {
                             alliedNodes.push(nodeId);
@@ -192,8 +202,16 @@ export class RogueliteManager {
                     }
                 }
 
-                // 80% enemy, 20% allied
-                const isAlly = Math.random() < 0.2;
+                // 80% enemy, 20% allied (soporte determinista para demostración de tutorial)
+                let isAlly = Math.random() < 0.2;
+                if (typeof window !== 'undefined') {
+                    if ((window as any).__tutorialForceMeteorAlly && alliedNodes.length > 0) {
+                        isAlly = true;
+                    } else if ((window as any).__tutorialForceMeteorEnemy && enemyNodes.length > 0) {
+                        isAlly = false;
+                    }
+                }
+
                 let targetNodes = isAlly ? alliedNodes : enemyNodes;
 
                 // Fallback if no targets of the chosen type
@@ -202,7 +220,7 @@ export class RogueliteManager {
                 }
 
                 if (targetNodes.length === 0) {
-                    onError('No vulnerable stones found on the board.');
+                    onError(getLanguage() === 'en' ? 'No vulnerable stones found on the board.' : 'No se encontraron piedras vulnerables en el tablero.');
                     SoundFX.playIllegal();
                     return false;
                 }
@@ -212,6 +230,7 @@ export class RogueliteManager {
                 const targetNode = board.nodes.get(targetNodeId);
                 const isFinalAlly = targetNode?.stone?.playerId === playerId;
                 
+                state.recordSnapshot(board);
                 card.usesLeft--;
                 
                 const completeMeteor = () => {
@@ -220,10 +239,18 @@ export class RogueliteManager {
                         const removed = RulesEngine.destroyStoneAndPolyGroup(board, state, targetNode.id);
                         destroyed = removed.length;
                     }
-                    SoundFX.playCapture();
-                    const msg = isFinalAlly 
-                        ? `☄️ Meteor Impact! Friendly fire! ${destroyed > 1 ? `An allied polyomino block (${destroyed} stones)` : 'An allied stone'} was obliterated.`
-                        : `☄️ Meteor Impact! ${destroyed > 1 ? `An enemy polyomino block (${destroyed} stones)` : 'An enemy stone'} was obliterated.`;
+                    SoundFX.playMeteorImpact();
+                    const isEn = getLanguage() === 'en';
+                    let msg = '';
+                    if (isFinalAlly) {
+                        msg = isEn 
+                            ? `☄️ Meteor Impact! Friendly fire! ${destroyed > 1 ? `An allied polyomino block (${destroyed} stones)` : 'An allied stone'} was obliterated.`
+                            : `☄️ ¡Impacto de Meteorito! ¡Fuego Amigo! ${destroyed > 1 ? `Un bloque poliminó aliado (${destroyed} piedras)` : 'Una piedra aliada'} ha sido destruida.`;
+                    } else {
+                        msg = isEn 
+                            ? `☄️ Meteor Impact! ${destroyed > 1 ? `An enemy polyomino block (${destroyed} stones)` : 'An enemy stone'} was obliterated.`
+                            : `☄️ ¡Impacto de Meteorito! ${destroyed > 1 ? `Un bloque poliminó enemigo (${destroyed} piedras)` : 'Una piedra enemiga'} ha sido destruida.`;
+                    }
                     onSuccess(msg);
                 };
 
@@ -239,17 +266,16 @@ export class RogueliteManager {
             case 'shield': {
                 this.nextStoneEffect = 'shield';
                 card.usesLeft--;
-                SoundFX.playPlaceStone();
+                SoundFX.playDivineShieldCast();
                 onSuccess('🛡️ Sacred Shield activated! Your next stone will be indestructible for 3 turns.');
                 return true;
             }
 
             case 'convert': {
-                const enemyPlayerId: PlayerId = playerId === 1 ? 2 : 1;
                 const candidateNodes: string[] = [];
 
                 for (const [nodeId, node] of board.nodes.entries()) {
-                    if (node.stone && node.stone.playerId === enemyPlayerId && !node.stone.isIndestructible) {
+                    if (node.stone && node.stone.playerId !== playerId && !node.stone.isIndestructible) {
                         candidateNodes.push(nodeId);
                     }
                 }
@@ -278,7 +304,7 @@ export class RogueliteManager {
                 }
 
                 card.usesLeft--;
-                SoundFX.playPlaceStone();
+                SoundFX.playAlchemicalTransmute();
                 const captureMsg = capturedCount > 0 ? ` And you captured ${capturedCount} enemy stone(s) stripped of liberties!` : '';
                 onSuccess(`☯️ Yin-Yang Inversion! ${transmutedCount > 1 ? `An enemy polyomino block (${transmutedCount} stones)` : 'An enemy stone'} was converted to your side.${captureMsg}`);
                 return true;

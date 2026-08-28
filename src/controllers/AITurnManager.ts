@@ -14,6 +14,7 @@ import { SoundFX } from '../audio/SoundFX';
 import { StoryController } from '../story/StoryController';
 import { TutorialManager } from '../tutorial/TutorialManager';
 import { getLanguage } from '../i18n/i18n';
+import { StageHazardManager } from '../core/StageHazardManager';
 import type { AIWorkerIncomingMessage, AIWorkerOutgoingMessage } from '../ai/GoAI.worker';
 import type { AIMoveChoice } from '../ai/GoAI';
 
@@ -141,7 +142,15 @@ export class AITurnManager {
         }
 
         const activePlayer = state.currentPlayer;
-        if (activePlayer === config.humanColor) {
+        
+        let isHuman = false;
+        if (config.slots && config.slots[activePlayer]) {
+            isHuman = config.slots[activePlayer].type === 'human_local' || config.slots[activePlayer].type === 'human_remote';
+        } else {
+            isHuman = activePlayer === config.humanColor;
+        }
+
+        if (isHuman) {
             renderer.isInteractive = true;
             HUDController.setAIBadge(false);
             return;
@@ -191,6 +200,13 @@ export class AITurnManager {
 
             // Función interna para continuar el turno tras resolver habilidades
             const executeCoreAITurn = async () => {
+                // Trigger passive devastation (no consume el turno)
+                BossManager.checkAIPassiveDevastation(board, state, activePlayer, svgElement, () => {
+                    // Se ejecuta de fondo asíncronamente o antes de calcular el movimiento
+                    renderer.render();
+                    onUIUpdate();
+                });
+
                 try {
                     const aiChoice = await this.calculateMoveAsync(board, activePlayer, config.difficulty, state.komi);
                     const meta = TerritoryScorer.PLAYER_META[activePlayer];
@@ -206,6 +222,17 @@ export class AITurnManager {
                             isEnNow
                                 ? `🤖 AI (${meta.name} ${meta.icon}) passed turn.`
                                 : `🤖 IA (${meta.name} ${meta.icon}) ha pasado turno.`
+                        );
+
+                        // Comprobar peligros ambientales (Erupción Volcánica o Caída Celestial)
+                        StageHazardManager.checkStageHazards(
+                            board,
+                            state,
+                            renderer?.svgElement || null,
+                            () => {
+                                renderer?.render();
+                                onUIUpdate();
+                            }
                         );
 
                         this.isRunning = false;
@@ -241,12 +268,14 @@ export class AITurnManager {
                         window.requestAnimationFrame(() => {
                             setTimeout(() => {
                                 this.isRunning = false;
-                                if (!state.isGameOver && state.currentPlayer !== config.humanColor) {
-                                    this.check(board, state, config, renderer, onUIUpdate, onAITurnFinished, onGameOver, isLocalPlayerTurn);
-                                } else {
-                                    renderer.isInteractive = isLocalPlayerTurn();
-                                    HUDController.setAIBadge(false);
-                                    onAITurnFinished();
+                                if (!StageHazardManager.isHazardInProgress) {
+                                    if (!state.isGameOver && state.currentPlayer !== config.humanColor) {
+                                        this.check(board, state, config, renderer, onUIUpdate, onAITurnFinished, onGameOver, isLocalPlayerTurn);
+                                    } else {
+                                        renderer.isInteractive = isLocalPlayerTurn();
+                                        HUDController.setAIBadge(false);
+                                        onAITurnFinished();
+                                    }
                                 }
                             }, 50);
                         });
@@ -329,13 +358,15 @@ export class AITurnManager {
                     const totalNodes = board.nodes.size;
                     let burnsToTrigger = 0;
 
-                    if (totalNodes <= 100) {
+                    const is19x19Scale = board.shape === 'oni' || totalNodes > 220;
+
+                    if (!is19x19Scale && totalNodes <= 100) {
                         if (livingGroups.length >= 1 && this.aiPassiveAvailable) {
                             this.aiPassiveAvailable = false;
                             HUDController.triggerStandeeSkillFX(aiPlayerId, false);
                             burnsToTrigger = 2;
                         }
-                    } else if (totalNodes <= 220) {
+                    } else if (!is19x19Scale && totalNodes <= 220) {
                         const has3Eyes = livingGroups.some(g => g.eyesCount >= 3);
                         if (has3Eyes && this.aiPassiveAvailable) {
                             this.aiPassiveAvailable = false;
@@ -489,7 +520,7 @@ export class AITurnManager {
                     if (humanStones.length > 0) {
                         this.aiActiveChargesLeft--;
                         HUDController.triggerStandeeSkillFX(aiPlayerId, false);
-                        const invertLimit = board.nodes.size > 200 ? 3 : (board.nodes.size > 100 ? 2 : 1);
+                        const invertLimit = (board.shape === 'oni' || board.nodes.size > 200) ? 4 : (board.nodes.size > 100 ? 2 : 1);
                         const chosenToInvert = humanStones.slice(0, invertLimit);
 
                         vfxIsPlaying = true;

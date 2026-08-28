@@ -206,22 +206,66 @@ export class PolyominoManager {
             return [baseNodeId];
         }
 
-        // Caso cuadrículas estándar / erosionadas / islas con formato de coordenadas "col,row"
+        // Caso cuadrículas estándar / erosionadas / islas / volcán con formato de coordenadas "col,row"
         if (baseNodeId.includes(',')) {
             const [c, r] = baseNodeId.split(',').map(Number);
             if (isNaN(c) || isNaN(r)) return [baseNodeId];
 
             if (polyType === 'domino') {
-                const secondId = orientation === 'horizontal' ? `${c + 1},${r}` : `${c},${r + 1}`;
-                return [baseNodeId, secondId];
+                if (orientation === 'horizontal') {
+                    const rightId = `${c + 1},${r}`;
+                    if (board.nodes.has(rightId)) {
+                        return [baseNodeId, rightId];
+                    }
+                    const leftId = `${c - 1},${r}`;
+                    if (board.nodes.has(leftId)) {
+                        return [leftId, baseNodeId];
+                    }
+                    return [baseNodeId, rightId];
+                } else {
+                    const downId = `${c},${r + 1}`;
+                    if (board.nodes.has(downId)) {
+                        return [baseNodeId, downId];
+                    }
+                    const upId = `${c},${r - 1}`;
+                    if (board.nodes.has(upId)) {
+                        return [upId, baseNodeId];
+                    }
+                    return [baseNodeId, downId];
+                }
             }
 
             if (polyType === 'monolith') {
+                // Auto-ajuste inteligente de bordes para que el 2x2 encaje siempre hacia el interior del tablero
+                let startC = c;
+                let startR = r;
+
+                const fitsAt = (sc: number, sr: number) => {
+                    return board.nodes.has(`${sc},${sr}`) &&
+                           board.nodes.has(`${sc + 1},${sr}`) &&
+                           board.nodes.has(`${sc},${sr + 1}`) &&
+                           board.nodes.has(`${sc + 1},${sr + 1}`);
+                };
+
+                if (fitsAt(c, r)) {
+                    startC = c;
+                    startR = r;
+                } else if (fitsAt(c - 1, r)) {
+                    startC = c - 1;
+                    startR = r;
+                } else if (fitsAt(c, r - 1)) {
+                    startC = c;
+                    startR = r - 1;
+                } else if (fitsAt(c - 1, r - 1)) {
+                    startC = c - 1;
+                    startR = r - 1;
+                }
+
                 return [
-                    `${c},${r}`,
-                    `${c + 1},${r}`,
-                    `${c},${r + 1}`,
-                    `${c + 1},${r + 1}`
+                    `${startC},${startR}`,
+                    `${startC + 1},${startR}`,
+                    `${startC},${startR + 1}`,
+                    `${startC + 1},${startR + 1}`
                 ];
             }
         }
@@ -280,15 +324,15 @@ export class PolyominoManager {
         playerId: PlayerId,
         onSuccess: (msg: string) => void,
         onError: (msg: string) => void
-    ): boolean {
+    ): { success: boolean; capturedCount: number; capturedNodeIds?: string[] } {
         const polyType = this.activePolyomino;
-        if (!polyType || polyType === 'single') return false;
+        if (!polyType || polyType === 'single') return { success: false, capturedCount: 0, capturedNodeIds: [] };
 
         const card = this.polyominoCards.get(polyType);
         if (!card || card.usesLeft <= 0) {
             onError(`No remaining ${card?.name || 'stones of this type'}!`);
             SoundFX.playIllegal();
-            return false;
+            return { success: false, capturedCount: 0, capturedNodeIds: [] };
         }
 
         const targetNodeIds = this.getPolyominoTargetNodes(board, baseNodeId, polyType, this.orientation);
@@ -296,7 +340,7 @@ export class PolyominoManager {
         if (!this.isValidPolyominoPlacement(board, targetNodeIds)) {
             onError(`Insufficient space or occupied intersection for ${card.name}!`);
             SoundFX.playIllegal();
-            return false;
+            return { success: false, capturedCount: 0, capturedNodeIds: [] };
         }
 
         let result;
@@ -314,7 +358,7 @@ export class PolyominoManager {
             else if (result.errorReason === 'INVALID_TERRAIN') msg = 'The piece exceeds the board boundaries!';
             onError(msg);
             SoundFX.playIllegal();
-            return false;
+            return { success: false, capturedCount: 0, capturedNodeIds: [] };
         }
 
         const inv = this.playerInventories.get(playerId);
@@ -341,7 +385,7 @@ export class PolyominoManager {
             onSuccess(`${card.name} deployed onto the Goban!`);
         }
 
-        return true;
+        return { success: true, capturedCount: result.capturedCount, capturedNodeIds: result.capturedNodeIds || [] };
     }
 
     /**

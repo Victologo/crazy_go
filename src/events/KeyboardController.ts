@@ -1,7 +1,9 @@
 // events/KeyboardController.ts - Navegación y Selección Universal con Teclado
 import type { HeroId, RogueliteDifficulty } from '../types';
 import { InteractionManager } from '../controllers/InteractionManager';
-import { ScreenManager } from '../ui/ScreenManager';
+import { ChampionManager } from '../core/ChampionManager';
+import { PolyominoManager } from '../core/PolyominoManager';
+import { HUDController } from '../ui/HUDController';
 import { ModalManager } from '../ui/ModalManager';
 import { GameController } from '../controllers/GameController';
 import { RoguelikeController } from '../controllers/RoguelikeController';
@@ -9,9 +11,15 @@ import { TutorialManager } from '../tutorial/TutorialManager';
 import { StoryController } from '../story/StoryController';
 import { SoundFX } from '../audio/SoundFX';
 import { BGMGenerator } from '../audio/BGMGenerator';
+import { CombatLogModalRenderer } from '../ui/modals/CombatLogModalRenderer';
 
 export class KeyboardController {
+    private static isInitialized: boolean = false;
+
     public static init() {
+        if (this.isInitialized) return;
+        this.isInitialized = true;
+
         window.addEventListener('keydown', (e: KeyboardEvent) => {
             // Permitir recarga nativa de Google Chrome (Ctrl+Shift+R, Ctrl+R, F5, Cmd+Shift+R) y DevTools (F12, Ctrl+Shift+I)
             if (
@@ -23,13 +31,46 @@ export class KeyboardController {
                 return; // Dejar que el navegador ejecute la recarga forzada o inspección sin bloquearla
             }
 
-            // Ignorar si el usuario está escribiendo en una caja de texto
-            if (['INPUT', 'TEXTAREA', 'SELECT'].includes(document.activeElement?.tagName || '')) {
-                return;
-            }
-
             const key = e.key;
             const code = e.code;
+
+            // Si el usuario está en un input/textarea/select y pulsa Escape, permitir cerrar modales
+            if (['INPUT', 'TEXTAREA', 'SELECT'].includes(document.activeElement?.tagName || '')) {
+                if (e.key === 'Escape') {
+                    const fbModal = document.getElementById('feedback-modal') || document.getElementById('modal-feedback');
+                    if (fbModal && !fbModal.classList.contains('hidden')) {
+                        e.preventDefault();
+                        (document.activeElement as HTMLElement)?.blur();
+                        ModalManager.closeFeedbackModal();
+                        SoundFX.playPlaceStone();
+                        return;
+                    }
+                    const optModal = document.getElementById('options-modal');
+                    if (optModal && !optModal.classList.contains('hidden')) {
+                        e.preventDefault();
+                        (document.activeElement as HTMLElement)?.blur();
+                        ModalManager.closeOptionsModal();
+                        return;
+                    }
+                    (document.activeElement as HTMLElement)?.blur();
+                } else {
+                    return; // Ignorar otras teclas mientras se escribe
+                }
+            }
+
+            // =========================================================
+            // MODAL DE FEEDBACK / SUGERENCIAS (PRIORIDAD ALTA)
+            // =========================================================
+            const fbModal = document.getElementById('feedback-modal') || document.getElementById('modal-feedback');
+            if (fbModal && !fbModal.classList.contains('hidden')) {
+                if (key === 'Escape') {
+                    e.preventDefault();
+                    ModalManager.closeFeedbackModal();
+                    SoundFX.playPlaceStone();
+                    return;
+                }
+                return;
+            }
 
             // =========================================================
             // ATAJO PERSONALIZABLE PARA FEEDBACK MODAL
@@ -46,29 +87,7 @@ export class KeyboardController {
                 return;
             }
 
-            // =========================================================
-            // ATAJOS GLOBALES DE ZOOM (Ctrl + Plus / Ctrl + Minus / Ctrl + 0)
-            // =========================================================
-            if (e.ctrlKey || e.metaKey) {
-                if (key === '+' || key === '=' || code === 'Equal' || code === 'NumpadAdd') {
-                    e.preventDefault();
-                    ModalManager.setZoom(ModalManager.currentZoom + 10, true);
-                    SoundFX.playPlaceStone();
-                    return;
-                }
-                if (key === '-' || key === '_' || code === 'Minus' || code === 'NumpadSubtract') {
-                    e.preventDefault();
-                    ModalManager.setZoom(ModalManager.currentZoom - 10, true);
-                    SoundFX.playPlaceStone();
-                    return;
-                }
-                if (key === '0' || code === 'Digit0' || code === 'Numpad0') {
-                    e.preventDefault();
-                    ModalManager.setZoom(100, true);
-                    SoundFX.playPlaceStone();
-                    return;
-                }
-            }
+
 
             // =========================================================
             // ATAJO PARA MODO ZEN (H)
@@ -134,6 +153,50 @@ export class KeyboardController {
             }
 
             // =========================================================
+            // 0b2. MODAL DE REGISTRO DE COMBATE Y REPETICIÓN (COMBAT LOG)
+            // =========================================================
+            const clModal = document.getElementById('modal-combat-log');
+            if (clModal && !clModal.classList.contains('hidden')) {
+                if (key === 'Escape' || ((key === 'l' || key === 'L') && !e.ctrlKey && !e.metaKey && !e.altKey)) {
+                    e.preventDefault();
+                    ModalManager.closeCombatLogModal();
+                    SoundFX.playPlaceStone();
+                    return;
+                }
+                if (key === ' ' || code === 'Space') {
+                    e.preventDefault();
+                    CombatLogModalRenderer.toggleAutoPlay();
+                    return;
+                }
+                if (key === 'ArrowLeft' || key === 'a' || key === 'A') {
+                    e.preventDefault();
+                    CombatLogModalRenderer.pauseAutoPlay();
+                    CombatLogModalRenderer.prevStep();
+                    return;
+                }
+                if (key === 'ArrowRight' || key === 'd' || key === 'D') {
+                    e.preventDefault();
+                    CombatLogModalRenderer.pauseAutoPlay();
+                    CombatLogModalRenderer.nextStep();
+                    return;
+                }
+                if (key === 'Home') {
+                    e.preventDefault();
+                    CombatLogModalRenderer.pauseAutoPlay();
+                    CombatLogModalRenderer.firstStep();
+                    return;
+                }
+                if (key === 'End') {
+                    e.preventDefault();
+                    CombatLogModalRenderer.pauseAutoPlay();
+                    CombatLogModalRenderer.lastStep();
+                    return;
+                }
+                // Prevenir que otras teclas pasen turno, lancen hechizos o interfieran en la partida de fondo
+                return;
+            }
+
+            // =========================================================
             // 0c. MODAL DOJO (LISTA DE CAPÍTULOS)
             // =========================================================
             const dojoModal = document.getElementById('dojo-modal');
@@ -163,6 +226,47 @@ export class KeyboardController {
                 if (key === 'Escape' || key === 'Enter' || key === ' ' || code === 'Space') {
                     e.preventDefault();
                     document.getElementById('btn-story-modal-close')?.click();
+                    return;
+                }
+                return;
+            }
+
+            // =========================================================
+            // 0. MODAL DE OPCIONES / CONFIGURACIÓN DE AUDIO (PRIORIDAD MÁXIMA EN ESCAPE)
+            // =========================================================
+            const optionsModal = document.getElementById('options-modal') || document.getElementById('modal-options');
+            if (optionsModal && !optionsModal.classList.contains('hidden')) {
+                if (key === 'Escape' || key === 'Enter') {
+                    e.preventDefault();
+                    ModalManager.closeOptionsModal();
+                    return;
+                }
+                if (key === 'm' || key === 'M' || key === 'b' || key === 'B') {
+                    e.preventDefault();
+                    SoundFX.toggleBGM();
+                    ModalManager.updateOptionsModalUI();
+                    return;
+                }
+                if (key === 's' || key === 'S') {
+                    e.preventDefault();
+                    SoundFX.toggleSFX();
+                    ModalManager.updateOptionsModalUI();
+                    return;
+                }
+                if (key === 'ArrowLeft' || key === 'a' || key === 'A') {
+                    e.preventDefault();
+                    const newVol = Math.max(0, SoundFX.getMasterVolume() - 0.1);
+                    SoundFX.setMasterVolume(newVol);
+                    BGMGenerator.setVolume(newVol);
+                    ModalManager.updateOptionsModalUI();
+                    return;
+                }
+                if (key === 'ArrowRight' || key === 'd' || key === 'D') {
+                    e.preventDefault();
+                    const newVol = Math.min(1, SoundFX.getMasterVolume() + 0.1);
+                    SoundFX.setMasterVolume(newVol);
+                    BGMGenerator.setVolume(newVol);
+                    ModalManager.updateOptionsModalUI();
                     return;
                 }
                 return;
@@ -206,7 +310,7 @@ export class KeyboardController {
                 }
                 if (key === 'Escape') {
                     e.preventDefault();
-                    ModalManager.closeRewardModal();
+                    ModalManager.openOptionsModal();
                     return;
                 }
                 return;
@@ -256,7 +360,7 @@ export class KeyboardController {
                 }
                 if (key === 'Escape') {
                     e.preventDefault();
-                    document.getElementById('btn-event-leave')?.click();
+                    ModalManager.openOptionsModal();
                     return;
                 }
                 return;
@@ -343,7 +447,7 @@ export class KeyboardController {
                 }
                 if (key === 'Escape') {
                     e.preventDefault();
-                    ModalManager.closeRogueChoiceModal();
+                    ModalManager.openOptionsModal();
                     return;
                 }
                 return;
@@ -649,47 +753,6 @@ export class KeyboardController {
             }
 
             // =========================================================
-            // 7. MODAL DE OPCIONES / CONFIGURACIÓN DE AUDIO
-            // =========================================================
-            const optionsModal = document.getElementById('modal-options');
-            if (optionsModal && !optionsModal.classList.contains('hidden')) {
-                if (key === 'Escape' || key === 'Enter') {
-                    e.preventDefault();
-                    ModalManager.closeOptionsModal();
-                    return;
-                }
-                if (key === 'm' || key === 'M' || key === 'b' || key === 'B') {
-                    e.preventDefault();
-                    SoundFX.toggleBGM();
-                    ModalManager.updateOptionsModalUI();
-                    return;
-                }
-                if (key === 's' || key === 'S') {
-                    e.preventDefault();
-                    SoundFX.toggleSFX();
-                    ModalManager.updateOptionsModalUI();
-                    return;
-                }
-                if (key === 'ArrowLeft' || key === 'a' || key === 'A') {
-                    e.preventDefault();
-                    const newVol = Math.max(0, SoundFX.getMasterVolume() - 0.1);
-                    SoundFX.setMasterVolume(newVol);
-                    BGMGenerator.setVolume(newVol);
-                    ModalManager.updateOptionsModalUI();
-                    return;
-                }
-                if (key === 'ArrowRight' || key === 'd' || key === 'D') {
-                    e.preventDefault();
-                    const newVol = Math.min(1, SoundFX.getMasterVolume() + 0.1);
-                    SoundFX.setMasterVolume(newVol);
-                    BGMGenerator.setVolume(newVol);
-                    ModalManager.updateOptionsModalUI();
-                    return;
-                }
-                return;
-            }
-
-            // =========================================================
             // 8. MODAL DE PUNTUACIÓN Y FIN DE PARTIDA UNIFICADO
             // =========================================================
             const scoreModal = document.getElementById('score-modal');
@@ -753,10 +816,10 @@ export class KeyboardController {
                     document.getElementById('btn-map-deck')?.click();
                     return;
                 }
-                // Atajo para volver al menú principal (Escape)
+                // Atajo para abrir menú de opciones / pausa (Escape)
                 if (key === 'Escape') {
                     e.preventDefault();
-                    ScreenManager.showMainMenu();
+                    ModalManager.openOptionsModal();
                     return;
                 }
                 // Selección y entrada a nodos disponibles (1, 2, 3, Enter, Espacio)
@@ -847,7 +910,7 @@ export class KeyboardController {
                 }
 
                 // Rotar Poliminó (R)
-                if ((key === 'r' || key === 'R') && !e.ctrlKey && !e.metaKey && !e.altKey) {
+                if ((key === 'r' || key === 'R' || code === 'KeyR') && !e.ctrlKey && !e.metaKey && !e.altKey) {
                     e.preventDefault();
                     InteractionManager.rotatePolyomino();
                     return;
@@ -886,12 +949,86 @@ export class KeyboardController {
                     return;
                 }
 
-                // Salir / Pausar (Escape)
-                if (key === 'Escape') {
+                // Registro de Combate y Repetición (L)
+                if ((key === 'l' || key === 'L') && !e.ctrlKey && !e.metaKey && !e.altKey) {
                     e.preventDefault();
-                    document.getElementById('btn-game-back')?.click();
+                    const clModal = document.getElementById('modal-combat-log');
+                    if (clModal && !clModal.classList.contains('hidden')) {
+                        ModalManager.closeCombatLogModal();
+                    } else {
+                        ModalManager.openCombatLogModal();
+                    }
                     return;
                 }
+
+                // Cancelar modos activos o abrir menú de opciones / pausa (Escape)
+                if (key === 'Escape') {
+                    // 1. Si el registro de combate está abierto, cerrarlo
+                    const clModal = document.getElementById('modal-combat-log');
+                    if (clModal && !clModal.classList.contains('hidden')) {
+                        e.preventDefault();
+                        ModalManager.closeCombatLogModal();
+                        return;
+                    }
+
+                    // 2. Si el selector de color del Alquimista está abierto, cerrarlo
+                    const colorPickerModal = document.getElementById('modal-color-picker');
+                    if (colorPickerModal && !colorPickerModal.classList.contains('hidden')) {
+                        e.preventDefault();
+                        document.getElementById('btn-cancel-color-picker')?.click();
+                        return;
+                    }
+
+                    // 3. Si hay una habilidad de campeón activa apuntando, cancelarla
+                    if (ChampionManager.currentTargetingMode !== 'none') {
+                        e.preventDefault();
+                        InteractionManager.toggleChampionActiveSkill();
+                        return;
+                    }
+
+                    // 4. Si hay un poliminó seleccionado (Duplicidad, Monolito, Germinante), cancelarlo
+                    if (PolyominoManager.activePolyomino !== null) {
+                        e.preventDefault();
+                        PolyominoManager.activePolyomino = null;
+                        GameController.updateInGameUI();
+                        if (GameController.renderer) {
+                            GameController.renderer.isInteractive = GameController.isLocalPlayerTurn();
+                            GameController.renderer.render();
+                        }
+                        SoundFX.playPlaceStone();
+                        return;
+                    }
+
+                    // 5. Si hay una pista de mejor jugada activa, quitarla
+                    if (GameController.renderer && GameController.renderer.activeHintNodeId) {
+                        e.preventDefault();
+                        GameController.renderer.clearHint();
+                        HUDController.setHintButtonActive(false);
+                        return;
+                    }
+
+                    // 6. Si el menú de opciones ya está abierto, cerrarlo
+                    const optModal = document.getElementById('options-modal');
+                    if (optModal && !optModal.classList.contains('hidden')) {
+                        e.preventDefault();
+                        ModalManager.closeOptionsModal();
+                        return;
+                    }
+
+                    // 7. Si no hay nada especial activo, abrir menú de opciones / pausa
+                    e.preventDefault();
+                    ModalManager.openOptionsModal();
+                    return;
+                }
+            }
+
+            // =========================================================
+            // 11. MENÚ PRINCIPAL
+            // =========================================================
+            const mainMenuScreen = document.getElementById('main-menu-screen');
+            if (mainMenuScreen && !mainMenuScreen.classList.contains('hidden')) {
+                // En el menú principal, Escape no realiza ninguna acción invasiva.
+                return;
             }
         });
     }

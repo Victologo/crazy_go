@@ -44,6 +44,7 @@ interface StoneChain {
     isIndestructible: boolean;
     isDead: boolean;
     killerId: PlayerId | null;
+    manualOverride: boolean;
 }
 
 export class TerritoryScorer {
@@ -68,6 +69,28 @@ export class TerritoryScorer {
 
         // 1. Identificar todas las cadenas de piedras conexas
         const chains = this.findStoneChains(board);
+
+        // 2. Aplicar overrides manuales de la Fase de Disputa si existen
+        for (const chain of chains) {
+            let forcedDead = false;
+            let forcedAlive = false;
+            for (const nodeId of chain.nodes) {
+                const forced = state.manualDeadStones.get(nodeId);
+                if (forced === true) forcedDead = true;
+                if (forced === false) forcedAlive = true;
+            }
+            if (forcedDead && !forcedAlive) {
+                chain.isDead = true;
+                // Asignar el killerId al oponente (simplificado para 1v1, o null para no dar puntos extra si no sabemos quién fue)
+                // Usaremos null y lo contaremos como muerta sin capturador, o le damos los puntos al rival
+                const enemyId = chain.playerId === 1 ? 2 : 1;
+                chain.killerId = enemyId as PlayerId; 
+                chain.manualOverride = true;
+            } else if (forcedAlive) {
+                chain.isDead = false;
+                chain.manualOverride = true;
+            }
+        }
 
         // 2. Primera pasada: detección de piedras muertas por recintos cerrados
         this.detectDeadStonesViaEnclosure(board, chains, activePlayerIds);
@@ -297,7 +320,8 @@ export class TerritoryScorer {
                 liberties,
                 isIndestructible,
                 isDead: false,
-                killerId: null
+                killerId: null,
+                manualOverride: false
             });
         }
 
@@ -323,7 +347,7 @@ export class TerritoryScorer {
                 for (const chain of chains) {
                     if (chain.playerId === enclosingPlayer) continue;
                     if (chain.isDead) continue;
-                    if (chain.isIndestructible) continue;
+                    if (chain.isIndestructible || chain.manualOverride) continue;
 
                     const libertiesInRegion = Array.from(chain.liberties).filter(lib => region.has(lib));
                     const allLibertiesInsideRegion =
@@ -498,7 +522,7 @@ export class TerritoryScorer {
         // Índice rápido: nodeId → StoneChain (solo cadenas vivas)
         const nodeToChain = new Map<string, StoneChain>();
         for (const chain of chains) {
-            if (chain.isIndestructible) continue;
+            if (chain.isIndestructible || chain.manualOverride) continue;
             for (const nodeId of chain.nodes) {
                 nodeToChain.set(nodeId, chain);
             }
@@ -508,7 +532,7 @@ export class TerritoryScorer {
         const processedPairs = new Set<string>(); // evitar duplicados
 
         for (const chainA of chains) {
-            if (chainA.isIndestructible) continue;
+            if (chainA.isIndestructible || chainA.manualOverride) continue;
 
             for (const libId of chainA.liberties) {
                 const libNode = board.nodes.get(libId);
@@ -539,7 +563,7 @@ export class TerritoryScorer {
         // ── CAPA 3: Rescate de cadenas marcadas muertas que son Seki ──────────
         for (const chain of chains) {
             if (!chain.isDead || chain.killerId === null) continue;
-            if (chain.isIndestructible) continue;
+            if (chain.isIndestructible || chain.manualOverride) continue;
 
             // Buscar la cadena del killer que comparte libertades con esta
             // (la que la "encierra" y la marcó muerta)
@@ -753,7 +777,7 @@ export class TerritoryScorer {
 
         // 3. Evaluar cada cadena (solo las no marcadas aún)
         for (const chain of chains) {
-            if (chain.isIndestructible) { chain.isDead = false; continue; }
+            if (chain.isIndestructible || chain.manualOverride) { if (!chain.manualOverride || (chain.manualOverride && !chain.isDead)) chain.isDead = false; continue; }
             if (chain.isDead) continue;
 
             // Benson: ¿está certificada incondicionalmente viva?

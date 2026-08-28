@@ -10,6 +10,8 @@
 | `src/main.ts` | Orquestador de 40 líneas. Importa todos los binders y arranca la app. |
 | `index.html` | HTML principal. Todos los modales, HUD, botones y templates viven aquí. |
 | `vite.config.ts` | Configuración de Vite (allowedHosts, exclusiones de empaquetado). |
+| `scripts/build_packages.js` | Empaquetador oficial: Vite build + ofuscación JS (`javascript-obfuscator`) + C# `csc.exe` + `.zip` distribuibles (ver `docs/security_and_packaging.md`). |
+| `scripts/Launcher.cs` | Código fuente C# del ejecutable nativo `CrazyGo.exe` (servidor HTTP embebido en localhost). |
 
 ---
 
@@ -65,7 +67,9 @@
 | `RoguelikeMapGenerator.ts` | Mapa roguelike procedural: tiers, tipos de nodo, rivales (Sabios, Monjes, Jefe). |
 | `PolyominoManager.ts` | Fichas poliminó: Germinante, Dominó (rotación R), Monolito. |
 | `AnalysisEngine.ts` | Análisis de posición para pista de mejor jugada (Ojo del Maestro). |
-| `BossManager.ts` | Jefe Final: decide cuándo usar el Aliento Calcinante. |
+| `BossManager.ts` | Pasivas del Jefe Final y Aliento Calcinante. |
+| `StageHazardManager.ts` | Peligros ambientales de escenarios: Erupción volcánica cada 10 turnos en mapas de lava. |
+| `CombatLogManager.ts` | **Motor de Registro y Replays**: captura snapshots profundos, convierte coordenadas Go canónicas, exporta/importa `.cgo` y JSON. |
 | `DevModeManager.ts` | Modo desarrollador: undo libre, instant win, free map travel. |
 | `GlobalSettings.ts` | FPS (30/60), partículas on/off. |
 | `ECS.ts` | EntityManager para entidades capturables (cofres, monjes, pergaminos, espíritus). |
@@ -106,7 +110,8 @@
 |---|---|
 | `HUDController.ts` | **HUD in-game**: turno, capturas, komi, hechizos, standees, alertas, temporizadores. |
 | `DuelistRenderer.ts` | Standees y tarjetas de duelistas (campeón vs rival), habilidades. |
-| `ModalManager.ts` | Fachada de modales: puntuación, victoria, roguelike, selector de color (Alquimista 4P). |
+| `ModalManager.ts` | Fachada de modales: puntuación, victoria, roguelike, combat log, selector de color. |
+| `modals/CombatLogModalRenderer.ts` | **Visor interactivo de repetición**: tablero SVG, auto-play, scrubber slider, timeline filtrable, exportación/importación `.cgo`. |
 | `modals/ScoreModalRenderer.ts` | Modal de puntuación final: territorio, capturas, Komi. |
 | `modals/RogueModalRenderer.ts` | Modal de victoria roguelike: recompensas, cartas, banner del héroe. |
 | `ScreenManager.ts` | Transiciones entre pantallas (menú → juego → mapa roguelike). |
@@ -138,6 +143,18 @@
 
 ---
 
+## Modo Historia (src/story/)
+
+| Archivo | Responsabilidad |
+|---|---|
+| `StoryModeController.ts` | **Controlador maestro del Modo Historia**: escala cósmica 0.08, zoom-in dive 1.4s, watcher de eventos, terremotos sísmicos, florecimiento botánico y transición inter-capítulos. |
+| `StoryDebugUI.ts` | **Panel de Debug en Topbar**: desplegable ámbar en `#game-topbar .topbar-left` con atajos F3 / `~`. |
+| `StoryDialogueRenderer.ts` | Diálogos tipo novela visual con avatares parlantes. |
+| `StoryCampaign.ts` | Legacy — Referencia de capítulos y escenarios clásicos. |
+| `StoryController.ts` | Legacy — Controlador de historia original. |
+
+---
+
 ## Otros
 
 | Ruta | Responsabilidad |
@@ -145,9 +162,7 @@
 | `src/audio/SoundFX.ts` | SFX: placeStone, capture, illegal, undo, special. Web Audio API. |
 | `src/audio/BGMGenerator.ts` | BGM: bgm_zen.wav (menús) y bgm_battle.wav (combate). |
 | `src/i18n/i18n.ts` | ES/EN. getLanguage() → 'es' o 'en'. |
-| `src/types/index.ts` | Tipos globales: SpellId, PolyominoType, BoardSize, GameMode, TimerConfig. |
-| `src/story/StoryController.ts` | Controlador del Modo Historia. |
-| `src/story/StoryCampaign.ts` | Capítulos y escenarios del Modo Historia. |
+| `src/types/index.ts` | Tipos globales: SpellId, PolyominoType, BoardSize, GameMode, TimerConfig, StoryChapter. |
 | `src/tutorial/TutorialManager.ts` | Motor del Dojo (Tutorial): pasos, bloqueos, validación. |
 
 ---

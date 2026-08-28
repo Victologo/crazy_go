@@ -1,4 +1,4 @@
-import type { HeroId, RogueliteDifficulty, BoardShape, BoardSize, AIDifficulty, GameSetupConfig } from '../types';
+import type { HeroId, RogueliteDifficulty, BoardShape, BoardSize, GameSetupConfig } from '../types';
 import { ModalManager } from '../ui/ModalManager';
 import { HUDController } from '../ui/HUDController';
 import { GameController } from '../controllers/GameController';
@@ -60,6 +60,13 @@ export class SetupEventBinder {
             setTimeout(() => ModalManager.setWizardStep(3, tempConfig), 160);
         });
 
+        document.getElementById('setup-mode-aivsai')?.addEventListener('click', () => {
+            tempConfig.gameMode = 'aivsai';
+            refreshUI();
+            SoundFX.playPlaceStone();
+            setTimeout(() => ModalManager.setWizardStep(3, tempConfig), 160);
+        });
+
         // --- PASO 3: TABLERO Y FORMA (Selección libre sin auto-avance involuntario) ---
         const sizes: BoardSize[] = [9, 13, 19];
         sizes.forEach(sz => {
@@ -70,7 +77,7 @@ export class SetupEventBinder {
             });
         });
 
-        const shapes: BoardShape[] = ['square', 'triangle', 'hex', 'eroded', 'islands_v1', 'islands_v2', 'islands', 'cross', 'hourglass', 'geode', 'spiral', 'rings', 'star_5', 'star_6', 'procedural'];
+        const shapes: BoardShape[] = ['square', 'volcano', 'sky', 'oni', 'triangle', 'hex', 'eroded', 'islands_v1', 'islands_v2', 'islands', 'cross', 'hourglass', 'geode', 'spiral', 'rings', 'star_5', 'star_6', 'procedural'];
         shapes.forEach(sh => {
             document.getElementById(`setup-shape-${sh}`)?.addEventListener('click', () => {
                 tempConfig.shape = sh;
@@ -193,12 +200,70 @@ export class SetupEventBinder {
             SoundFX.playPlaceStone();
         });
 
-        const diffs: AIDifficulty[] = ['easy', 'medium', 'hard', 'dan'];
-        diffs.forEach(diff => {
-            document.getElementById(`setup-diff-${diff}`)?.addEventListener('click', () => {
-                tempConfig.difficulty = diff;
+        // --- SELECTORES DE DIFICULTAD DE IA ---
+        const getKyuDanString = (val: number): string => {
+            if (val <= 30) return `${31 - val}k`;
+            return `${val - 30}d`;
+        };
+
+        // Estado del toggle pack/granular
+        let isGranularAI = false;
+
+        document.getElementById('btn-toggle-ai-granular')?.addEventListener('click', () => {
+            isGranularAI = !isGranularAI;
+            const btn = document.getElementById('btn-toggle-ai-granular');
+            const label = document.getElementById('label-toggle-ai-granular');
+            if (btn) {
+                btn.setAttribute('data-enabled', isGranularAI ? 'true' : 'false');
+                btn.classList.toggle('active', isGranularAI);
+            }
+            if (label) label.innerText = isGranularAI ? 'Granular ⚙️' : 'Pack Mode 📦';
+            
+            document.getElementById('ai-pack-mode-box')?.classList.toggle('hidden', isGranularAI);
+            document.getElementById('ai-granular-mode-box')?.classList.toggle('hidden', !isGranularAI);
+            
+            refreshUI();
+            SoundFX.playPlaceStone();
+        });
+
+        // Evento Slider Maestro (Pack)
+        document.getElementById('ai-master-slider')?.addEventListener('input', (e) => {
+            const val = parseInt((e.target as HTMLInputElement).value, 10);
+            const str = getKyuDanString(val);
+            document.getElementById('ai-master-display')!.innerText = str;
+            tempConfig.difficulty = str;
+
+            // Actualizar todos los slots
+            if (!tempConfig.slots) tempConfig.slots = {} as any;
+            [2, 3, 4].forEach(p => {
+                const playerId = p as import('../core/GraphBoard').PlayerId;
+                if (!tempConfig.slots![playerId]) {
+                    tempConfig.slots![playerId] = { slotId: playerId, teamId: (p%2===0?2:1) as import('../types').TeamId, type: 'ai', aiDifficulty: str };
+                } else {
+                    tempConfig.slots![playerId].aiDifficulty = str;
+                }
+            });
+            refreshUI();
+        });
+
+        // Eventos Sliders Individuales
+        [2, 3, 4].forEach(p => {
+            document.getElementById(`ai-granular-p${p}-slider`)?.addEventListener('input', (e) => {
+                const val = parseInt((e.target as HTMLInputElement).value, 10);
+                const str = getKyuDanString(val);
+                document.getElementById(`ai-granular-p${p}-display`)!.innerText = str;
+                
+                const playerId = p as import('../core/GraphBoard').PlayerId;
+                if (!tempConfig.slots) tempConfig.slots = {} as any;
+                if (!tempConfig.slots![playerId]) {
+                    tempConfig.slots![playerId] = { slotId: playerId, teamId: (p%2===0?2:1) as import('../types').TeamId, type: 'ai', aiDifficulty: str };
+                } else {
+                    tempConfig.slots![playerId].aiDifficulty = str;
+                }
+                
+                // Si es granular, usar P2 como el "maestro" visual de la sala o el más bajo
+                tempConfig.difficulty = str;
                 refreshUI();
-                SoundFX.playPlaceStone();
             });
         });
 

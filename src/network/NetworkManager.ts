@@ -9,13 +9,14 @@ export interface PlayerSlotInfo {
     isHost: boolean;
     connected: boolean;
     heroId?: HeroId | null;
+    type?: 'human_local' | 'human_remote' | 'ai';
 }
 
 export type NetworkMessage =
     | { type: 'INIT_GAME'; config: OnlineGameConfig; assignedColor: PlayerId; playerCount: 2 | 4 }
     | { type: 'LOBBY_UPDATE'; playerCount: 2 | 4; connectedCount: number; slots: PlayerSlotInfo[] }
-    | { type: 'GUEST_JOINED'; heroId: HeroId | null }
-    | { type: 'HERO_SELECT'; heroId: HeroId | null; senderColor?: PlayerId }
+    | { type: 'GUEST_JOINED'; heroId: HeroId | null; displayName?: string }
+    | { type: 'HERO_SELECT'; heroId: HeroId | null; senderColor?: PlayerId; displayName?: string }
     | { type: 'START_GAME'; config: OnlineGameConfig; assignedColor: PlayerId; playerCount: 2 | 4 }
     | { type: 'REQUEST_START' }
     | { type: 'MOVE'; nodeId: string; senderColor?: PlayerId }
@@ -24,18 +25,23 @@ export type NetworkMessage =
     | { type: 'UNDO_REWIND'; senderColor?: PlayerId }
     | { type: 'SCORE' }
     | { type: 'REMATCH'; config: OnlineGameConfig }
-    | { type: 'DISCONNECT'; senderColor?: PlayerId };
+    | { type: 'DISCONNECT'; senderColor?: PlayerId }
+    | { type: 'VOTE_ABANDON' }
+    | { type: 'VOTE_ABANDON_REPLY'; accepted: boolean }
+    | { type: 'MAP_CLICK'; nodeId: string }
+    | { type: 'EVENT_OPTION_CLICK'; optionId: string };
 
 export class NetworkManager {
     private static room: Room | null = null;
-    private static sendFn: ((msg: NetworkMessage, targetPeerId?: string) => void) | null = null;
+    public static sendFn: ((msg: NetworkMessage, targetPeerId?: string) => void) | null = null;
 
-    private static guestSlots: Map<string, { playerId: PlayerId; heroId?: HeroId | null }> = new Map();
+    private static guestSlots: Map<string, { playerId: PlayerId; heroId?: HeroId | null; displayName?: string }> = new Map();
     public static isHost: boolean = false;
     public static currentRoomCode: string | null = null;
     public static currentConfig: OnlineGameConfig | null = null;
     public static assignedColor: PlayerId = 1;
     public static localHero: HeroId | null = null;
+    public static localName: string = 'Jugador';
     private static hasStartedMatch: boolean = false;
 
     private static readonly APP_ID = 'crazygo-v6';
@@ -49,6 +55,10 @@ export class NetworkManager {
     public static onUndoReceived: ((senderColor?: PlayerId) => void) | null = null;
     public static onGameEndReceived: (() => void) | null = null;
     public static onPeerDisconnected: (() => void) | null = null;
+    public static onVoteAbandonReceived: (() => void) | null = null;
+    public static onVoteAbandonReplyReceived: ((accepted: boolean) => void) | null = null;
+    public static onMapClickReceived: ((nodeId: string) => void) | null = null;
+    public static onEventOptionClickReceived: ((optionId: string) => void) | null = null;
     public static onError: ((msg: string) => void) | null = null;
 
     public static generateRoomCode(): string {
@@ -67,7 +77,8 @@ export class NetworkManager {
             this.sendFn({
                 type: 'HERO_SELECT',
                 heroId: heroId,
-                senderColor: this.assignedColor
+                senderColor: this.assignedColor,
+                displayName: this.localName
             });
         }
     }
@@ -75,10 +86,11 @@ export class NetworkManager {
     public static hostRoom(
         config: OnlineGameConfig,
         onReady: (code: string) => void,
-        onErrorCb: (err: string) => void
+        onErrorCb: (err: string) => void,
+        forceRoomCode?: string
     ) {
         // Si ya estamos hosteando una sala activa, solo actualizamos la configuración sin romper la sala ni regenerar el código
-        if (this.isHost && this.currentRoomCode && this.room) {
+        if (this.isHost && this.currentRoomCode && this.room && !forceRoomCode) {
             this.currentConfig = { 
                 ...this.currentConfig,
                 ...config, 
@@ -101,13 +113,19 @@ export class NetworkManager {
             guestHeroes: {}
         };
         this.assignedColor = config.hostColor;
-        this.currentRoomCode = this.generateRoomCode();
+        this.currentRoomCode = forceRoomCode || this.generateRoomCode();
         this.guestSlots.clear();
 
         try {
             this.room = joinRoom(
                 {
                     appId: this.APP_ID,
+                    relayConfig: {
+                        urls: [
+                            'wss://broker.emqx.io:8084/mqtt',
+                            'wss://broker.hivemq.com:8884/mqtt'
+                        ]
+                    },
                     turnConfig: [
                         {
                             urls: 'turn:openrelay.metered.ca:80',
@@ -167,14 +185,8 @@ export class NetworkManager {
                 }
 
                 this.broadcastLobbyUpdate();
-
-                // Si la sala está llena en 2P, iniciar automáticamente con sincronización de pulso
-                const targetPlayers = (this.currentConfig?.playerCount || 2) - 1;
-                if (this.guestSlots.size >= targetPlayers) {
-                    setTimeout(() => {
-                        this.startGame();
-                    }, 200);
-                }
+                // startGame() se lanza cuando el guest confirme su presencia vía GUEST_JOINED,
+                // garantizando que su canal de mensajes ya está activo y listo.
             };
 
             this.room.onPeerLeave = (peerId: string) => {
@@ -253,6 +265,12 @@ export class NetworkManager {
             this.room = joinRoom(
                 {
                     appId: this.APP_ID,
+                    relayConfig: {
+                        urls: [
+                            'wss://broker.emqx.io:8084/mqtt',
+                            'wss://broker.hivemq.com:8884/mqtt'
+                        ]
+                    },
                     turnConfig: [
                         {
                             urls: 'turn:openrelay.metered.ca:80',
@@ -285,7 +303,8 @@ export class NetworkManager {
                 if (this.sendFn) {
                     this.sendFn({
                         type: 'GUEST_JOINED',
-                        heroId: this.localHero
+                        heroId: this.localHero,
+                        displayName: this.localName
                     });
                 }
             };
@@ -322,9 +341,9 @@ export class NetworkManager {
         }
 
         switch (msg.type) {
-            case 'GUEST_JOINED':
-            case 'HERO_SELECT': {
+            case 'GUEST_JOINED': {
                 let slot = this.guestSlots.get(fromPeerId);
+                const slotAlreadyExisted = !!slot;
                 if (!slot) {
                     const usedColors = new Set<PlayerId>([this.assignedColor]);
                     for (const s of this.guestSlots.values()) usedColors.add(s.playerId);
@@ -332,17 +351,19 @@ export class NetworkManager {
                     for (const c of [1, 2, 3, 4] as PlayerId[]) {
                         if (!usedColors.has(c)) { nextColor = c; break; }
                     }
-                    slot = { playerId: nextColor, heroId: msg.heroId };
+                    slot = { playerId: nextColor, heroId: msg.heroId, displayName: msg.displayName };
                     this.guestSlots.set(fromPeerId, slot);
                 } else {
                     slot.heroId = msg.heroId;
+                    if (msg.displayName) slot.displayName = msg.displayName;
                 }
 
                 if (!this.currentConfig!.guestHeroes) this.currentConfig!.guestHeroes = {};
                 this.currentConfig!.guestHeroes[slot.playerId] = msg.heroId;
 
-                // Responder con la configuración y el slot asignado
-                if (this.sendFn) {
+                // Solo re-enviar INIT_GAME si el slot no existía previamente
+                // (si ya existía, el guest lo recibió en onPeerJoin del host y no necesita otro)
+                if (!slotAlreadyExisted && this.sendFn) {
                     this.sendFn({
                         type: 'INIT_GAME',
                         config: this.currentConfig!,
@@ -353,11 +374,25 @@ export class NetworkManager {
 
                 this.broadcastLobbyUpdate();
 
-                // Si son 2 jugadores, iniciar partida
+                // Iniciar partida cuando la sala esté completa.
+                // Delay de 500ms para que ICE/DTLS tenga tiempo de completar la negociación WebRTC
+                // antes de enviar START_GAME a través del canal de datos.
                 if (this.guestSlots.size >= ((this.currentConfig?.playerCount || 2) - 1)) {
                     setTimeout(() => {
                         this.startGame();
-                    }, 180);
+                    }, 500);
+                }
+                break;
+            }
+            case 'HERO_SELECT': {
+                // Solo actualizar heroId; NO relanzar startGame() para evitar bucles de handshake.
+                const heroSlot = this.guestSlots.get(fromPeerId);
+                if (heroSlot) {
+                    heroSlot.heroId = msg.heroId;
+                    if (msg.displayName) heroSlot.displayName = msg.displayName;
+                    if (!this.currentConfig!.guestHeroes) this.currentConfig!.guestHeroes = {};
+                    this.currentConfig!.guestHeroes[heroSlot.playerId] = msg.heroId;
+                    this.broadcastLobbyUpdate();
                 }
                 break;
             }
@@ -379,6 +414,18 @@ export class NetworkManager {
             case 'SCORE':
                 if (this.onGameEndReceived) this.onGameEndReceived();
                 break;
+            case 'VOTE_ABANDON':
+                if (this.onVoteAbandonReceived) this.onVoteAbandonReceived();
+                break;
+            case 'VOTE_ABANDON_REPLY':
+                if (this.onVoteAbandonReplyReceived) this.onVoteAbandonReplyReceived(msg.accepted);
+                break;
+            case 'MAP_CLICK':
+                if (this.onMapClickReceived) this.onMapClickReceived(msg.nodeId);
+                break;
+            case 'EVENT_OPTION_CLICK':
+                if (this.onEventOptionClickReceived) this.onEventOptionClickReceived(msg.optionId);
+                break;
             case 'DISCONNECT':
                 if (this.onPeerDisconnected) this.onPeerDisconnected();
                 break;
@@ -393,10 +440,17 @@ export class NetworkManager {
 
         switch (msg.type) {
             case 'INIT_GAME':
-                this.currentConfig = msg.config;
-                this.assignedColor = msg.assignedColor;
-                if (this.localHero) {
-                    this.sendHeroSelect(this.localHero);
+                // Solo procesar la primera vez para evitar enviar HERO_SELECT duplicado
+                if (!this.currentConfig) {
+                    this.currentConfig = msg.config;
+                    this.assignedColor = msg.assignedColor;
+                    if (this.localHero) {
+                        this.sendHeroSelect(this.localHero);
+                    }
+                } else {
+                    // Actualizar config silenciosamente sin reenviar hero select
+                    this.currentConfig = msg.config;
+                    this.assignedColor = msg.assignedColor;
                 }
                 break;
             case 'LOBBY_UPDATE':
@@ -426,6 +480,18 @@ export class NetworkManager {
                 break;
             case 'SCORE':
                 if (this.onGameEndReceived) this.onGameEndReceived();
+                break;
+            case 'VOTE_ABANDON':
+                if (this.onVoteAbandonReceived) this.onVoteAbandonReceived();
+                break;
+            case 'VOTE_ABANDON_REPLY':
+                if (this.onVoteAbandonReplyReceived) this.onVoteAbandonReplyReceived(msg.accepted);
+                break;
+            case 'MAP_CLICK':
+                if (this.onMapClickReceived) this.onMapClickReceived(msg.nodeId);
+                break;
+            case 'EVENT_OPTION_CLICK':
+                if (this.onEventOptionClickReceived) this.onEventOptionClickReceived(msg.optionId);
                 break;
             case 'DISCONNECT':
                 if (this.onPeerDisconnected) this.onPeerDisconnected();
@@ -458,7 +524,7 @@ export class NetworkManager {
         // Host slot
         slots.push({
             id: this.assignedColor,
-            name: `Anfitrión (${colorNames[this.assignedColor]})`,
+            name: `${this.localName} (${colorNames[this.assignedColor]})`,
             isHost: true,
             connected: true,
             heroId: this.currentConfig.hostHero || null
@@ -469,28 +535,51 @@ export class NetworkManager {
         const remainingColors = ([1, 2, 3, 4] as PlayerId[]).filter(c => c !== this.assignedColor);
 
         for (let i = 0; i < pCount - 1; i++) {
-            const guest = guestEntries[i];
             const fallbackColor = remainingColors[i] || 2;
+            const slotConfig = this.currentConfig.slots?.[fallbackColor];
             const isEn = getLanguage() === 'en';
-            if (guest) {
-                const guestHero = guest.heroId || (this.currentConfig.guestHeroes ? this.currentConfig.guestHeroes[guest.playerId] : null) || null;
-                const playerWord = isEn ? 'Player' : 'Jugador';
-                slots.push({
-                    id: guest.playerId,
-                    name: `${playerWord} ${guest.playerId} (${colorNames[guest.playerId]})`,
-                    isHost: false,
-                    connected: true,
-                    heroId: guestHero
-                });
-            } else {
-                const waitingWord = isEn ? 'Waiting...' : 'Esperando...';
+            
+            if (slotConfig && (slotConfig.type === 'ai' || slotConfig.type === 'human_local')) {
+                // Es un slot local (IA o Humano local extra)
+                const typeName = slotConfig.type === 'ai' ? 'IA' : (isEn ? 'Local Player' : 'Jugador Local');
                 slots.push({
                     id: fallbackColor,
-                    name: `${waitingWord} (${colorNames[fallbackColor]})`,
+                    name: `${typeName} (${colorNames[fallbackColor]})`,
                     isHost: false,
-                    connected: false,
-                    heroId: null
+                    connected: true, // Siempre está listo porque es local
+                    heroId: slotConfig.heroId || null,
+                    type: slotConfig.type
                 });
+            } else {
+                // Es un slot remoto, comprobamos si alguien se ha conectado a él
+                // Buscamos si algún peer está asignado a este color
+                const guest = Array.from(this.guestSlots.values()).find(g => g.playerId === fallbackColor) 
+                           || guestEntries.shift(); // Fallback si no está mapeado aún
+                           
+                if (guest) {
+                    guest.playerId = fallbackColor; // Forzar mapeo
+                    const guestHero = guest.heroId || (this.currentConfig.guestHeroes ? this.currentConfig.guestHeroes[guest.playerId] : null) || null;
+                    const playerWord = isEn ? 'Player' : 'Jugador';
+                    const dName = guest.displayName || `${playerWord} ${guest.playerId}`;
+                    slots.push({
+                        id: guest.playerId,
+                        name: `${dName} (${colorNames[guest.playerId]})`,
+                        isHost: false,
+                        connected: true,
+                        heroId: guestHero,
+                        type: 'human_remote'
+                    });
+                } else {
+                    const waitingWord = isEn ? 'Waiting...' : 'Esperando...';
+                    slots.push({
+                        id: fallbackColor,
+                        name: `${waitingWord} (${colorNames[fallbackColor]})`,
+                        isHost: false,
+                        connected: false,
+                        heroId: null,
+                        type: 'human_remote'
+                    });
+                }
             }
         }
 

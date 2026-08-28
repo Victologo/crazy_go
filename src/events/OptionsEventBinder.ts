@@ -12,6 +12,7 @@ import { DevModeManager } from '../core/DevModeManager';
 import { GlobalSettings } from '../core/GlobalSettings';
 import { setLanguage, getLanguage } from '../i18n/i18n';
 import { SetupEventBinder } from './SetupEventBinder';
+import { StageHazardManager } from '../core/StageHazardManager';
 
 export class OptionsEventBinder {
     public static init() {
@@ -30,41 +31,6 @@ export class OptionsEventBinder {
         });
 
         volSlider?.addEventListener('change', () => {
-            SoundFX.playPlaceStone();
-        });
-
-        const zoomSlider = document.getElementById('opt-zoom-slider') as HTMLInputElement | null;
-        const zoomText = document.getElementById('opt-zoom-text');
-
-        let zoomDebounceTimeout: number | null = null;
-
-        // Al arrastrar el slider, actualizamos el texto y aplicamos zoom con debounce
-        // para evitar el feedback loop destructivo bajo el cursor.
-        zoomSlider?.addEventListener('input', (e) => {
-            const val = parseInt((e.target as HTMLInputElement).value, 10);
-            if (zoomText) zoomText.innerText = `${val}%`;
-
-            if (zoomDebounceTimeout !== null) {
-                window.clearTimeout(zoomDebounceTimeout);
-            }
-            zoomDebounceTimeout = window.setTimeout(() => {
-                ModalManager.setZoom(val, false);
-            }, 50); // 50ms de debounce permite ver el zoom en 'tiempo real' sin glitch
-        });
-
-        // Al soltar el click aplicamos el zoom final y reproducimos el sonido
-        zoomSlider?.addEventListener('change', (e) => {
-            const val = parseInt((e.target as HTMLInputElement).value, 10);
-            if (zoomDebounceTimeout !== null) {
-                window.clearTimeout(zoomDebounceTimeout);
-            }
-            ModalManager.setZoom(val, false);
-            SoundFX.playPlaceStone();
-        });
-
-        document.getElementById('opt-zoom-reset')?.addEventListener('click', () => {
-            ModalManager.setZoom(100, false);
-            if (zoomSlider) zoomSlider.value = '100';
             SoundFX.playPlaceStone();
         });
 
@@ -281,8 +247,12 @@ export class OptionsEventBinder {
     }
 
     private static setupSandboxEvents() {
-        // 1. Cerrar Modal Sandbox
+        // 1. Cerrar Modal Sandbox (botón inferior y botón '✖' del header)
         document.getElementById('btn-sandbox-close')?.addEventListener('click', () => {
+            ModalManager.closeSandboxModal();
+            SoundFX.playPlaceStone();
+        });
+        document.getElementById('btn-sandbox-header-close')?.addEventListener('click', () => {
             ModalManager.closeSandboxModal();
             SoundFX.playPlaceStone();
         });
@@ -402,6 +372,22 @@ export class OptionsEventBinder {
             }
         });
 
+        document.getElementById('btn-sandbox-force-meteor')?.addEventListener('click', () => {
+            SandboxController.forceMeteorRainTarget(() => GameController.updateInGameUI());
+        });
+
+        document.getElementById('btn-sandbox-force-shield')?.addEventListener('click', () => {
+            SandboxController.forceDivineShieldTarget(() => GameController.updateInGameUI());
+        });
+
+        document.getElementById('btn-sandbox-force-convert')?.addEventListener('click', () => {
+            SandboxController.forceChromaticConversion(() => GameController.updateInGameUI());
+        });
+
+        document.getElementById('btn-sandbox-force-dragon-breath')?.addEventListener('click', () => {
+            SandboxController.forceDragonBreathTarget(() => GameController.updateInGameUI());
+        });
+
         document.getElementById('btn-sandbox-force-ronin-slash')?.addEventListener('click', () => {
             if (GameController.board && GameController.state) {
                 SandboxController.forceRoninSlash(GameController.board, GameController.state, () => GameController.updateInGameUI());
@@ -420,12 +406,33 @@ export class OptionsEventBinder {
             }
         });
 
-        document.getElementById('btn-sandbox-force-shield')?.addEventListener('click', () => {
-            SandboxController.forceDivineShieldTarget(() => GameController.updateInGameUI());
+        document.getElementById('btn-sandbox-force-oni-inhalation')?.addEventListener('click', () => {
+            if (GameController.board && GameController.state) {
+                const svg = document.getElementById('go-board-svg') as SVGSVGElement | null;
+                StageHazardManager.forceTriggerOniInhalation(
+                    GameController.board,
+                    GameController.state,
+                    svg,
+                    () => GameController.updateInGameUI()
+                );
+                ModalManager.closeSandboxModal();
+            }
         });
 
-        document.getElementById('btn-sandbox-force-convert')?.addEventListener('click', () => {
-            SandboxController.forceChromaticConversion(() => GameController.updateInGameUI());
+        document.getElementById('btn-sandbox-force-rewind')?.addEventListener('click', () => {
+            if (GameController.state) {
+                SandboxController.addRewinds(GameController.state, 5, () => GameController.updateInGameUI());
+            }
+        });
+
+        document.getElementById('btn-sandbox-pass-turn')?.addEventListener('click', () => {
+            if (GameController.state) {
+                GameController.state.advanceTurn();
+                ModalManager.closeSandboxModal();
+                GameController.updateInGameUI();
+                HUDController.showAlert(`🔄 Turno pasado. Le toca al Jugador ${GameController.state.currentPlayer}`);
+                SoundFX.playPlaceStone();
+            }
         });
 
         document.querySelectorAll('.btn-sandbox-hero').forEach(btn => {

@@ -1,5 +1,250 @@
 # Tareas y Roadmap (Task List)
 
+### Fase 105: Red Neuronal AlphaZero (CrazyGoNet) — Entrenamiento en GPU RTX 4070 Ti SUPER e Integración ONNX Runtime (En Progreso)
+- [x] **Tarea 283 (Auditoría Canónica de Reglas de Go y Corrección de Ko)**: Blindaje de `RulesEngine.isMoveLegal` y `tryPlaceStone` para evaluación incondicional de estados repetidos. Sincronización fiel de `docs/ai_wiki/go_rules.md`.
+- [x] **Tarea 284 (Arquitectura ResNet-12 CrazyGoNet con 3 Cabezas)**: Modelo residual profundo con Policy Head ($N \times N + 1$), Value Head ($[p_1, p_2, p_3, p_4]$ para Winrate en vivo) y Ownership Head ($N \times N$ para territorio).
+- [x] **Tarea 285 (Pipeline de Entrenamiento y Simulador Headless TypeScript)**: `GoSimulator.ts` y `generate_games.ts` generando ~3.000 posiciones/segundo sin dependencias de navegador.
+- [x] **Tarea 286 (Fase 1 completada - 50.000 Pasos en 9x9)**: Convergencia de Value Loss a 0.0034 y Ownership Loss a 0.1660.
+- [x] **Tarea 287 (Fase 2 completada - 150.000 Pasos en 9x9)**: Generación de 2.000 partidas y maestría táctica en combate cuerpo a cuerpo.
+- [x] **Tarea 288 (Fase 3 completada - 250.000 Pasos en 13x13)**: Generación de 1.500 partidas (468.309 posiciones) y transfer learning de la espina dorsal convolucional.
+- [x] **Tarea 289 (Integración en Motor de Juego)**: Creación de `NeuralNetAdapter.ts` con `onnxruntime-web` WASM SIMD, conexión en `GoAI.worker.ts` para cálculo de jugadas y en `AnalysisEngine.ts` para Winrate en tiempo real. Compilación exitosa (`npm run build`).
+- [/] **Tarea 290 (Fase 4 + 5 Nocturna - 700.000 Pasos)**: Entrenamiento autónomo en GPU de 19x19 y topologías asimétricas (circular, triangular, erosionado, vórtice Oni) hasta 700.000 pasos.
+- [x] **Tarea 291 (Selector Maestro y Granular de Dificultad 30k-9d en Partidas de 4P Local y Online)**: En partidas de hasta 4 jugadores con bots (1, 2 o 3 IAs), selector general que por defecto ajusta a todos los bots en pack y modo individual para personalizar el nivel específico de cada Bot conectando las simulaciones MCTS y la Red Neuronal (CrazyGoNet). Además de auto-escalado dinámico Kyu/Dan en el Modo Roguelike.
+- [ ] **Tarea 292 (Modo Espectador / Arena de Combate IA vs IA)**: Permitir iniciar combates automáticos de Bot vs Bot con control de velocidad, para depuración y observación del Winrate en vivo.
+
+### Fase 104: Corrección de Multijugador Local 2P y 4P, Animación Universal del Tablero Oni y Cooperativo Completo (Completada)
+- [x] **Tarea 253 (StoryModeController reescrito)**: Reescritura completa con `gameMode: '1via'` (fix bug IA), array `STORY_CHAPTERS[]` tipado, sistema de eventos por turno vía `setInterval`, método `showCinematicIntro()`.
+- [x] **Tarea 254 (Intro Cinemática)**: Overlay fullscreen `#story-cinematic-intro` con cosmos que hace zoom-in dramático (×2.2) y reveal secuencial de 4 líneas de lore. Botón explícito `[ SKIP INTRO ⏩ ]` interactivo desde el milisegundo 0.
+- [x] **Tarea 255 (Sistema de Eventos Mid-batalla)**: Cada capítulo dispara `StoryEvent[]` por turno: `dialogue` (visual-novel), `alert` (HUD banner), `earthquake` (shake + fisura abisal en SVG directamente inyectada).
+- [x] **Tarea 256 (Efecto Terremoto y Ruptura Mecánica)**: `vfx-screen-shake` doble + corte físico de nodos (`GraphBoard.removeNode`) trazando una grieta oscura/púrpura relampagueante en el SVG de la partida.
+- [x] **Tarea 257 (3 Capítulos con narrativa completa)**: Cap.1 Islands 9×9 fácil, Cap.2 Eroded 13×13 con terremoto destructivo en Turno 5, Cap.3 Islands_v1 13×13 con Tenuki mecánico.
+# Tareas y Roadmap (Task List)
+
+### Fase 104: Corrección de Multijugador Local 2P y 4P, Animación Universal del Tablero Oni y Cooperativo Completo (Completada)
+- [x] **Tarea 273 (Causa Raíz de Fichas Negras Forzadas en Local)**: Eliminado el callback `getLocalPlayerColorCallback` de [`SVGRenderer.ts`](file:///c:/Users/VICTOR/Desktop/crazy_go/src/graphics/SVGRenderer.ts) y [`GameController.ts`](file:///c:/Users/VICTOR/Desktop/crazy_go/src/controllers/GameController.ts) que forzaba `placingPlayer` al valor por defecto `humanColor = 1` en todos los clics locales.
+- [x] **Tarea 274 (Colocación Dinámica por `state.currentPlayer`)**: La colocación de piedras y poliminós en [`SVGRenderer.ts`](file:///c:/Users/VICTOR/Desktop/crazy_go/src/graphics/SVGRenderer.ts) lee ahora directamente `this.state.currentPlayer`, asignando con total fidelidad el color de P1 (Negras ⚫), P2 (Blancas ⚪), P3 (Esmeralda 🟢) y P4 (Amatista 🟣) en turnos 1a, 1b, 1c y 1d.
+- [x] **Tarea 275 (Sincronización de Dock de Poliminós en Multijugador)**: Conectado `PolyominoManager.syncCardsWithInventory(currentPlayer)` en [`HUDController.ts`](file:///c:/Users/VICTOR/Desktop/crazy_go/src/ui/HUDController.ts) para actualizar los contadores de cartas según el jugador en turno.
+- [x] **Tarea 276 (Suite de Pruebas Automatizadas de Multijugador Local)**: Creado el script [`scripts/test_local_multiplayer.mjs`](file:///c:/Users/VICTOR/Desktop/crazy_go/scripts/test_local_multiplayer.mjs) con validación de partidas 2P y 4P, rotación de rondas y poliminós.
+- [x] **Tarea 277 (Animación Universal de Fauces Abismales Oni)**: Conectado `renderOniMouthAbyss` en [`SVGRenderer.ts`](file:///c:/Users/VICTOR/Desktop/crazy_go/src/graphics/SVGRenderer.ts) y [`CombatLogModalRenderer.ts`](file:///c:/Users/VICTOR/Desktop/crazy_go/src/ui/modals/CombatLogModalRenderer.ts) con anillos de rotación y brillo palpitante en [`vfx.css`](file:///c:/Users/VICTOR/Desktop/crazy_go/src/styles/vfx.css), mostrándose siempre en combate, replay y previsualizaciones de selección (Local y Online).
+- [x] **Tarea 278 (Sistema Estricto de Sub-turnos Cooperativos)**: Implementación de turno alterno (`coopSubTurn`) en `GameController.ts` y alertas de interfaz interactiva en HUD bloqueando a un jugador durante el sub-turno del compañero, garantizando que el combate contra la IA sea "una jugada cada uno".
+- [x] **Tarea 279 (Control Exclusivo del Anfitrión sobre el Mapa y Recompensas)**: `RoguelikeController` bloquea los clics locales del invitado en los nodos del mapa; sincroniza `MAP_CLICK` desde el anfitrión. Adicionalmente, se envuelve `RogueModalRenderer.ts` con verificación `e.isTrusted` para denegar la elección de recompensas (santuarios, tesoros) a invitados y se procesa el evento simulado vía `EVENT_OPTION_CLICK` cuando el anfitrión hace su elección.
+- [x] **Tarea 280 (Red de Votación para Abandonar Expedición y Manejo de Desconexiones)**: Implementada la confirmación por votación mediante mensaje `VOTE_ABANDON` (`OnlineController.ts`), exigiendo conformidad mutua (`confirm()`) para abortar expediciones en modo `coop_rogue`. Pausa y alerta de advertencia en HUD ante desconexión de peers con reactivación transparente vía Trystero.
+- [x] **Tarea 281 (Limpieza de Interfaz en Lobby Online para Cooperativo)**: Ocultados dinámicamente los campos confusos (Komi, Color, Añadir Bot/Jugador Local) en el Paso 2 de Multijugador Cooperativo (`OnlineModalRenderer.ts`).
+- [x] **Tarea 282 (Blindaje Criptográfico y Ofuscación de Código en Pipeline de Empaquetado)**: Integración de `javascript-obfuscator` en `scripts/build_packages.js`. Se ofuscan los 8 bundles de JavaScript con Control Flow Flattening, inyección de código muerto, encriptación Base64/RC4 y sustitución hexadecimal de identificadores antes de generar los `.zip` de Itch.io y Windows PC.
+
+### Fase 103: Modo Historia — Sistema de Eventos Narrativos, Intro Cinemática, Inmersión Macro Cósmica y Conquista de Naturaleza Ilustrada (Completada)
+- [x] **Tarea 253 (StoryModeController reescrito)**: Reescritura completa con `gameMode: '1via'` (fix bug IA), array `STORY_CHAPTERS[]` tipado, sistema de eventos por turno vía `setInterval`, método `showCinematicIntro()`.
+- [x] **Tarea 254 (Intro Cinemática)**: Overlay fullscreen `#story-cinematic-intro` con cosmos que hace zoom-in dramático (×2.2) y reveal secuencial de 4 líneas de lore. Botón explícito `[ SKIP INTRO ⏩ ]` interactivo desde el milisegundo 0.
+- [x] **Tarea 255 (Sistema de Eventos Mid-batalla)**: Cada capítulo dispara `StoryEvent[]` por turno: `dialogue` (visual-novel), `alert` (HUD banner), `earthquake` (shake + fisura abisal en SVG directamente inyectada).
+- [x] **Tarea 256 (Efecto Terremoto y Ruptura Mecánica)**: `vfx-screen-shake` doble + corte físico de nodos (`GraphBoard.removeNode`) trazando una grieta oscura/púrpura relampagueante en el SVG de la partida.
+- [x] **Tarea 257 (3 Capítulos con narrativa completa)**: Cap.1 Islands 9×9 fácil, Cap.2 Eroded 13×13 con terremoto destructivo en Turno 5, Cap.3 Islands_v1 13×13 con Tenuki mecánico.
+- [x] **Tarea 258 (Debug Panel Integrado en Topbar)**: Botón `🛠️ Story Debug ▼` integrado en `#game-topbar .topbar-left` con menú desplegable, atajos F3 / `~` y cierre por clic externo.
+- [x] **Tarea 259 (GDD actualizado en Bóveda Obsidian)**: `CrazyGo_ModoHistoria_GDD.md` en `C:\Users\VICTOR\Desktop\Bóveda Victólogo\02 Negocios\` con toda la arquitectura, lore, backlog y decisiones fijas.
+- [x] **Tarea 260 (Santuarios de Qi y Objetos Rodeables)**: Integración de Santuarios (`renderShrines`) y Entidades Cautivas (`state.captives`): Núcleo de Qi (💎), Pergamino del Sismo (📜), Monje Atrapado (🧙) y Cofre de Poliminós (🎁).
+- [x] **Tarea 263 (Conquista de la Naturaleza con Assets Ilustrados 2D)**: Sustitución de emojis simples por assets ilustrados PNG transparentes (`nature_pine.png`, `nature_sakura.png`, `nature_bamboo.png`, `nature_vines.png`) con animación `storyNaturePop` y enredaderas SVG verdes (`storyVineGrow`) al purificar el Goban.
+- [x] **Tarea 267 (Inmersión Galáctica Zoom-In y Transición Inter-Capítulos)**: Comienzo obligatorio en la escala macro del cosmos (0.08) con un pequeño tablero flotante brillante, botón / clic para descender en picado (zoom-in dive de 1.4s), y paneo horizontal por el universo hacia el siguiente fragmento al ganar.
+- [x] **Tarea 268 (Renderizado de Goban de Madera en Registro de Combate)**: Integración del fondo de madera de Kaya con Convex Hull dinámico, líneas Urushi y estrellas Hoshi en `#replay-board-svg` dentro del visor interactivo de repetición (`CombatLogModalRenderer.ts`, `combat_log.css`).
+- [x] **Tarea 269 (Eliminación de Winrate en Modo Historia)**: Ocultación de la barra de probabilidad de victoria en tiempo real (`#winrate-bar-wrapper`) y anulación de cómputo en `AnalysisEngine` para preservar el tono narrativo e inmersivo del Modo Historia (`HUDController.ts`).
+- [x] **Tarea 270 (Suite de Pruebas Automatizadas de Combat Log & Replay)**: Suite integral de pruebas (`scripts/test_combat_log.mjs`) que verifica la captura del 100% de jugadas, habilidades de campeón, fichas poliminó, brotes, reversión de turnos con hechizo Rebobinar y exportación/importación `.cgo`.
+- [x] **Tarea 271 (Adaptación de Topología Dinámica en Visor de Replay)**: Integración en `CombatLogModalRenderer.ts` del registro e inserción dinámica de nodos expandidos (Tablero del Cielo / Expansión Celestial) y encogimiento/destrucción (Volcanes / Fauces Oni) con recálculo automático de ViewBox y silueta de madera Convex Hull en tiempo real paso a paso.
+- [x] **Tarea 272 (Reactivación de Peligros Ambientales y Mecánicas Únicas de Tablero)**: Integración de `StageHazardManager.checkStageHazards` en el flujo de colocación de piedras y poliminós de `SVGRenderer.handleNodeClick`, asegurando que la Expansión Celestial (Cielo), Erupciones de Magma (Volcán) y la Inhalación Gravitatoria (Máscara Oni) se ejecuten automáticamente en partidas normales y se registren en el Combat Log. Suite de tests automatizada en `scripts/test_stage_hazards.mjs`.
+- [x] **Tarea 273 (Rediseño de Asistente Online: 2 Columnas y Selección Dedicada de Jugadores)**: Disposición de los modos `Classic Duel` y `Roguelike Expedition` en 2 columnas en la misma fila (`grid-2`). Creación del nuevo Paso 2 exclusivo para elegir 2 o 4 jugadores tras seleccionar Duelo Clásico, omitiéndolo automáticamente al elegir Expedición Roguelike con sincronización dinámica del Stepper y contadores.
+
+## Fase 103 — BACKLOG STORY MODE (Pendiente)
+- [ ] **Tarea 261**: Inventario de Seda Cósmica / Hilos del Destino — UI de telar cósmico y persistencia entre capítulos
+- [ ] **Tarea 262**: Pantalla de recompensas post-capítulo (cosecha de territorio)
+- [ ] **Tarea 264**: Capítulo 4 — El Vórtice del Vacío (agujero negro que absorbe piedras con ≤ 1 libertad)
+- [ ] **Tarea 265**: Capítulo 5 — Los 4 Vientos Celestiales (4 cuadrantes en tablero 19x19)
+- [ ] **Tarea 266**: Capítulo Final — Confrontación con el Dragón del Vacío (El Vacío rompe las reglas del Go en tiempo real)
+
+## Fase 102: Cromatismo de Dificultad Avanzado y Transiciones de Escena por Disolución y Desenfoque (Completada)
+- [x] **Tarea 250 (Rediseño Cromático de Llamas)**: Modificación de los filtros CSS en `carousel.css` para otorgar amarillo-dorado claro a Medium, carmesí puro de alta saturación a Hard y blanco cósmico brillante a Grandmaster.
+- [x] **Tarea 251 (Efecto de Disolución y Blur en Pantallas)**: Reemplazo del fundido en negro por un cross-dissolve translúcido y desenfoque dinámico (`backdrop-filter`) en `theme.css`.
+- [x] **Tarea 252 (Sincronización en ScreenManager)**: Adaptación de los tiempos de transición en `ScreenManager.ts` (240ms de entrada y 300ms de salida) para suavizar la interpolación de pantallas.
+
+## Fase 101: Estilización Zen Minimalista y Reducción de Densidad de Conexiones en el Mapa (Completada)
+- [x] **Tarea 248 (Reducción de Rutas a 3 Caminos Principales)**: Ajuste en `RoguelikeMapGenerator.ts` para reducir la densidad de líneas preservando la estructura completa del mapa.
+- [x] **Tarea 249 (Capping Estricto de 2 Salidas por Nodo)**: Enforce de máximo 2 conexiones salientes en puntos de bifurcación clave (y 1 conexión directa en la mayoría de nodos) para lograr un árbol visualmente limpio y zen.
+
+## Fase 100: Calibración Proporcional de Standees de Monjes y Sabios en Combate (Reducción del 25%) (Completada)
+- [x] **Tarea 248**: Ajuste de la escala CSS en `champions.css` para los standees de Monjes Jóvenes (`monk_1` a `monk_5`) y Sabios Ancianos (`sage_1` a `sage_5`), reduciendo su tamaño un **25%** (`scale(1.26)` en reposo y `scale(1.31)` en hover) tanto en el lado izquierdo (Jugador / P1) como en el lado derecho (Rival / IA / P2) y en las tarjetas multijugador (4P).
+
+## Fase 99: Sincronización Subpixel Inmune a Zoom de Nodos HTML y Trazos SVG (Completada)
+- [x] **Tarea 246 (Unificación de Escenario `stageHeight`)**: Aplicación de altura fija compartida idéntica a `.rogue-map-scroll-wrapper`, `svg.style.height`, `viewBox` y `.rogue-map-nodes-layer` en `RoguelikeMapRenderer.ts`.
+- [x] **Tarea 247 (Eliminación de Paddings Descuadrantes)**: Eliminación del padding del wrapper en `map.css` para anclar los cálculos porcentuales y en píxeles al origen $(0,0)$ compartido.
+
+## Fase 98: Pacing Roguelike Óptimo: 2 Batallas Iniciales, Bifurcación Garantizada y Regla Anti-Grind (Completada)
+- [x] **Tarea 242 (2 Nodos de Inicio de Batalla)**: Configuración en `RoguelikeMapGenerator.ts` para que el Tier 0 contenga exactamente 2 combates de apertura.
+- [x] **Tarea 243 (Bifurcación Inmediata Garantizada)**: Conexión de cada nodo de inicio a múltiples destinos en Tier 1 para habilitar toma de decisiones desde el turno 1.
+- [x] **Tarea 244 (Validador de Pacing Anti-Grind)**: Implementación de la regla estricta que prohíbe 3 batallas consecutivas en cualquier camino, favoreciendo la cadencia *Pelea -> Santuario/Tienda -> Pelea*.
+- [x] **Tarea 245 (Longitud Dinámica de 6 a 8 Filas y Renderizado Adaptativo)**: Generación procedural de 6 a 8 niveles con ajuste dinámico de SVG y viewBox en `RoguelikeMapRenderer.ts`.
+
+## Fase 97: Generador de Grafos DAG Canónico Tipo Slay the Spire (No-Cruces y No-Redundancia) (Completada)
+- [x] **Tarea 239 (Algoritmo de Carvado de Caminos Puros)**: Reescritura del generador en `RoguelikeMapGenerator.ts` mediante tallado de 5 caminos completos continuos desde el inicio hasta el Jefe Final.
+- [x] **Tarea 240 (Prevención Geométrica de Cruces `crossesAnyEdge`)**: Validación formal de intersección ($from_1 < from_2 \land to_1 > to_2$), impidiendo líneas cruzadas en 'X'.
+- [x] **Tarea 241 (Filtro Estricto de No-Redundancia `createsRedundancy`)**: Eliminación de nodos paralelos con destinos idénticos duplicados para asegurar decisiones de ruta auténticas.
+
+## Fase 96: Mapa Roguelike de 4 Columnas sin Callejones sin Salida y Progresión Escalonada de Tableros (9x9 -> 13x13 -> 19x19) (Completada)
+- [x] **Tarea 236 (Barrido Bidireccional Anti-Callejones sin Salida)**: Implementación del doble barrido de alcanzabilidad en `RoguelikeMapGenerator.ts` garantizando que todo nodo existente en el mapa se conecte con el Boss en el Tier 5 y tenga entrada desde el Tier 0.
+- [x] **Tarea 237 (Límite de 4 Columnas y 6 Nodos por Ruta)**: Configuración de exactamente 4 carriles horizontales con longitud fija de 6 Tiers.
+- [x] **Tarea 238 (Progresión Canónica de Tableros 9x9 -> 13x13 -> 19x19)**: Ajuste en `RoguelikeMapGenerator.generateBattleConfig` para que en cualquier dificultad el tablero sea siempre 9x9 en Tiers 0-1, 13x13 en Tiers 2-3 y 19x19 en Tiers 4-5.
+
+## Fase 95: Algoritmo Canónico de Caminos Planares Tipo Slay the Spire y Limpieza de UI del Mapa (Completada)
+- [x] **Tarea 234 (Generador Planar Tipo Slay the Spire)**: Implementación del algoritmo canónico de caminos dirigidos planares sobre 5 carriles en `RoguelikeMapGenerator.ts` con garantía de no-cruce ($c_{t+1}(i) \le c_{t+1}(j)$), bifurcaciones/fusiones orgánicas y navegación estricta por ramas elegidas.
+- [x] **Tarea 235 (Limpieza de UI de Biomas)**: Eliminación de las etiquetas de texto flotantes ("Zen Valley", "Misty Ridge", "Dragon Lair") en `RoguelikeMapRenderer.ts` y `map.css`, preservando el lienzo atmosférico degradado y las cenizas flotantes.
+
+## Fase 94: Sistema Universal de Transiciones Fluidas entre Pantallas y Modales (Completada)
+- [x] **Tarea 231 (Telón Cinemático Global)**: Creación de `#screen-transition-overlay` en `index.html` y estilos con aceleración por hardware en `theme.css` con opacidad y curvas bezier fluidas.
+- [x] **Tarea 232 (Navegación Asíncrona en ScreenManager)**: Implementación de `ScreenManager.transitionTo` con punto ciego ordenado, sincronización de BGM, reseteo de cámara y revelado suave sin parpadeos.
+- [x] **Tarea 233 (Apertura Dimensional de Modales)**: Animaciones `@keyframes modalBackdropFadeIn` y `@keyframes modalCardPopIn` en `modals/base.css` con `backdrop-filter` progresivo y escalado elástico.
+
+## Fase 93: Firma de Autor, Disolución Zen de Capturas y Mapa Roguelike Procedural Vivo con Biomas Evolutivos (Completada)
+- [x] **Tarea 228 (Firma de Autor en Menú de Inicio)**: Insignia elegante `.menu-creator-signature` ("⛩️ Created by Víctor Alonso") en la esquina inferior derecha del Dojo 2.5D en `index.html` y `base.css` con estética zen glassmorphic y resplandor ámbar en hover.
+- [x] **Tarea 229 (Disolución Zen de Capturas de Piedras)**: Sistema de desintegración orgánica *in-situ* en `RulesEngine.ts`, `VFXManager.ts`, `SVGRenderer.ts` y `vfx.css` (anillo de Qi en expansión y micro-partículas de humo de tinta Sumi-e que se dispersan sin desplazamientos hacia la UI).
+- [x] **Tarea 230 (Mapa Roguelike Procedural y Progresión de Biomas)**:
+  - **Generación Procedural de Nodos**: Algoritmo en `RoguelikeMapGenerator.ts` con bifurcaciones orgánicas en cada expedición, balance de tipos de nodos y 0 callejones sin salida a lo largo de 6 Tiers.
+  - **Lienzo Ambiental Vertical**: Fondo degradado en `map.css` y `RoguelikeMapRenderer.ts` que evoluciona desde el Valle Zen Verde inferior, pasando por la Cordillera de la Niebla, hasta la Tierra Calcinada superior con **cenizas vivas incandescentes flotando en el aire** (`.map-ember`).
+  - **Senderos Iluminados**: Curvas Bezier con flujo de Qi animado (`.path-available`) y brillo áureo (`.path-traversed`).
+
+## Fase 92: Arquitectura del Nuevo Modo Historia (Tableros Contiguos)
+- [x] **Tarea 225**: Separar el antiguo Modo Historia en `Legacy` y crear la arquitectura `StoryModeController.ts` como nuevo entry point del botón principal.
+- [x] **Tarea 226**: Añadir interfaz de depuración flotante (`StoryDebugUI.ts` con tecla `~`) para el desarrollo del Modo Historia con botones de Forzar Victoria/Derrota y salto de capítulo.
+- [x] **Tarea 227**: Modificar el `index.html` para envolver el `#game-svg` en un `#story-world-container` con posiciones absolutas y transición CSS, logrando el efecto de tableros pegados al avanzar de capítulo.
+
+## Fase 91: Pulido de Dificultad Roguelike: Normalización de Medium y Llamas Místicas en Expedición Activa (Completada)
+- [x] **Tarea 223 (Llamas Místicas y Dificultad Limpia en Expedición Activa)**: Rediseño de la placa central de la pantalla de continuar expedición (`modal-rogue-choice.html` y `RogueModalRenderer.ts`):
+  - Eliminados los subtítulos redundantes entre paréntesis (`(Principiante)`, `(Guerrero)`, `(Maestro)`, `(Gran Maestro)`), mostrando únicamente la denominación pura de dificultad (`Easy`, `Medium`, `Hard`, `Grandmaster` / `Fácil`, `Medio`, `Difícil`, `Gran Maestro`).
+  - Integrado el icono dinámico de fuego elemental animado (`🔥`) con la misma animación (`flameFlicker`) y filtros cromáticos que en el selector de expedición (`.flame-easy`, `.flame-normal` / `.flame-medium`, `.flame-hard`, `.flame-extreme`).
+- [x] **Tarea 224 (Unificación y Normalización de "Medium")**: Reemplazado "Normal" por "Medium" (en inglés) y "Medio" (en español) en `modal-roguelike-setup.html`, `carousel.css`, `ScreenManager.ts` y `translations.ts`, sincronizando también la barra superior del mapa roguelike.
+
+### Fase 90: Normalización Simétrica y Escalado Heroico de Personajes y Tarjetas de Habilidades (Completada)
+- [x] **Tarea 221 (Escalado Heroico Simétrico de Personajes)**: Unificación dimensional en `champions.css` aplicando `scale(1.28)` simétrico a ambas siluetas (`.duel-standee-player` y `.duel-standee-enemy`) para que llenen con elegancia el espacio vertical (~70-75% del Goban) sin verse pequeños, y escala compensatoria de `scale(1.68)` para personajes sentados (Sabios y Monjes) para igualar su presencia visual a los personajes de pie en todos los modos (Local, Online, Roguelike, Historia, Tutorial).
+- [x] **Tarea 222 (Tarjetas de Habilidad Descriptivas para el Rival)**: Rediseño de `.duel-enemy-skill-pill` en `champions.css` y `DuelistRenderer.ts` para renderizar el nombre de habilidad/pasiva y la fórmula de combate (`.duel-skill-name` y `.duel-skill-formula`) con la misma estructura, dimensiones y tipografía que la tarjeta del jugador en todos los personajes y jefes.
+
+## Fase 89: Corrección de Oponente e Héroes en Modo Online P2P (Completada)
+- [x] **Tarea 220 (Sincronización de Oponente en Online)**: Corregida la resolución de héroes en `DuelistRenderer.ts` para modo Online 2P y 4P. Vinculada la resolución de `hostHero` y `guestHeroes` dinámicamente con `NetworkManager.currentConfig.hostColor` en lugar de asumir que el anfitrión siempre era el Jugador 1 (Negras), erradicando el clonado erróneo del campeón del invitado en el HUD del rival y estableciendo `'normal'` como fallback seguro.
+
+## Fase 88: Tarjeta Lateral Flotante de Inhalación Oni, Vectores Ortogonales y Máscara Continua de Inmunidad (Completada)
+- [x] **Tarea 218 (Tarjeta Lateral y Vectores Oni)**: Reposicionamiento del tooltip de la Máscara Oni como Tarjeta Flotante Lateral fijada a la derecha de la pantalla (`top: 60px; right: 24px;`), dejando el 100% del área del Goban despejada. Implementado el visualizador interactivo SVG `OniInhalationPreview.ts` al hacer hover sobre `👹`:
+  - **Flechas de Arista Ortogonales con Alto Contraste**: Las flechas de atracción siguen estrictamente las líneas de la cuadrícula ($\downarrow$, $\uparrow$, $\rightarrow$, $\leftarrow$) en neón magenta vibrante con sombra de contraste y puntas triangulares nítidas en lugar de líneas diagonales flotantes.
+  - **Exclusión de Grupos Inmunes**: Los grupos sólidos de 4+ piedras no muestran flechas moradas encima, eliminando el ruido visual.
+  - **Máscara Azul Continua Unificada**: Las cadenas de 4+ piedras comparten un contorno perimetral continuo con relleno suave y badge centralizado `🛡️ Inmune (X piedras)` sin solapamiento de círculos internos.
+  - **Puntas Prominentes en Trayectorias de Piedras**: Flechas gruesas con puntas marcadas hacia su casilla destino y calaveras de alerta si caen en la zona de devoración.
+- [x] **Tarea 219 (Reparación de Targeting de Ryūjin y Habilidades)**:
+  - Corregido el enlace de `heroOwnerId` en `ChampionManager.resetForMatch` para respetar al jugador humano independientemente de su color (Negras o Blancas).
+  - Eliminado el disparo erróneo de `onMovePlaced` con la casilla de la piedra calcinada en `SVGRenderer.ts`.
+  - Configurado `onPassiveBurnCompleted` en `GameController.ts` para avanzar ordenadamente el turno tras la Furia del Dragón.
+
+## Fase 87: Escalado Canónico a Escala 19x19 de Habilidades de Campeones e IA en Tablero Máscara Oni (Completada)
+- [x] **Tarea 217**: Estandarizar todas las habilidades activas y pasivas de campeones y agentes de IA para que en el Tablero Máscara Oni (`shape === 'oni'`, topología unificada 25x25) funcionen exactamente como si el tablero fuese **19x19** sin importar si en la configuración previa se seleccionó 9x9, 13x13 o 19x19:
+  - **Kitsune (Escudo Divino)**: Otorga **5 cargas** de escudo (`KitsuneChampion.getShieldCharges`).
+  - **Alquimista (Inversión Cromática)**: Otorga **4 transmutaciones** (`AlchemistChampion.getInversionCount`).
+  - **Himiko (Lluvia Pétrea)**: Invoca **18 piedras celestiales** (`HimikoChampion.getStoneRainCount`).
+  - **Tengu (Lluvia Meteórica)**: Descarga **27 meteoros** (`TenguChampion.getMeteorCount`).
+  - **Ryūjin (Furia del Dragón)**: Activa la regla de 19x19 con 1 quema por grupo vivo de 2 ojos y +1 por cada ojo adicional (`RyujinChampion.checkPassiveTrigger`).
+  - **IA & Motor de Apertura**: `AITurnManager`, `GameController` y `GoAI.ts` adaptados para ejecutar transmutaciones, meteoros, lluvia y aperturas Fuseki a escala de 19x19 en la Máscara Oni.
+
+## Fase 86: Eliminación Definitiva del Selector de Modo Claro/Oscuro y Fijación Permanente de Tema Oscuro (Completada)
+- [x] **Tarea 216**: Eliminar completamente los botones de alternancia de tema claro/oscuro (`#btn-menu-theme`, `#btn-game-theme`, `#btn-map-theme`), silenciar los listeners en `MenuEventBinder.ts` y fijar permanentemente `data-theme="dark"` en `ThemeManager.ts`.
+
+## Fase 85: Rediseño Ergonómico y Nivelación de Previsualización de Escenario y Oponente (Sin Solapes, Standees Compactos, Posición Nivelada y Eliminación de Etiquetas) (Completada)
+- [x] **Tarea 215**: Erradicar el 100% de solapamientos entre los personajes, el tablero y los botones inferiores en los pasos de Escenario (*Scenery*) y Oponente (*Opponent*) de todos los modos (Local y Online):
+  - **Escala Compacta y Proporcional**: Standees de jugador y rival reducidos de 301px a 195px de altura (`width: 165px; height: 195px;`), caja misteriosa a `110x145px`, y tablero central a `135x135px`.
+  - **Posición Nivelada Centrada**: Ajustada la posición vertical con `transform: translateY(0)` y `align-items: center` con `overflow: hidden` en el viewport, asentando los combatientes y el goban con naturalidad sobre el terreno escénico.
+  - **Supresión de Etiquetas Inferiores**: Ocultadas y eliminadas las etiquetas y píldoras flotantes (`.duel-combatant-tag`, `.duel-stage-board-pill`) que causaban colisión directa con la cuadrícula de botones de fondos y rivales.
+  - **Renderizado Completo Online**: Integrado el renderizado en tiempo real de `online-stage-board-svg` y actualización de la imagen del campeón anfitrión en el paso 4 del modo online.
+
+## Fase 84: Placa CRAZY GO con Iluminación Uniforme, Escala Tipográfica (+30%) y Ajuste Fino de Posiciones (Completada)
+- [x] **Tarea 214**: Regenerar la placa de madera "CRAZY GO" del menú de inicio (`title_board_crazy_go.png`) con iluminación ambiental uniforme y sin sombras laterales. Incrementar uniformemente el tamaño de todos los textos del menú un +30% (`font-size: 1.75rem`), y ajustar las posiciones espaciales relativas de Feedback (-10px a la izquierda), Story (+6px a la derecha), Options (+9px a la derecha) y Roguelike (+8px hacia abajo).
+
+## Fase 83: Flujo Secuencial Diferido del Modo Online (Creación en Paso 5 Lobby para Host y Selección Previa de Héroe para Guest) (Completada)
+- [x] **Tarea 211 (Host Lobby P2P diferido)**: Eliminada la apertura prematura de sala WebRTC/P2P y generación del código `GO-XXXX` en los pasos 1 a 4 del asistente (`OnlineController.openOnlineModal()` y `OnlineEventBinder.ts`). El banner `.room-code-banner` se reubicó exclusivamente en el **Paso 5 (Lobby)** en `modal-online.html`, y la sala se genera únicamente al alcanzar el Paso 5, garantizando que el anfitrión termine de configurar modo, tablero, campeón y escenario antes de que cualquier invitado pueda conectarse.
+- [x] **Tarea 212 (Guest Selección Previa de Campeón)**: Reestructurada la pestaña "Join Room (Guest)" en dos fases lógicas secuenciales en `modal-online.html`: Fase 1 (Elección prominente del Campeón Místico del invitado con showcase panorámico y miniaturas) y Fase 2 (Entrada del código de sala `GO-XXXX` y botón `Connect 🚀`), evitando unirse accidentalmente con el héroe por defecto.
+- [x] **Tarea 213 (Blindaje de Navegación y Limpieza de Conexiones)**: Al retroceder del paso 5 al 4 o cancelar en el anfitrión, `NetworkManager.disconnect()` limpia la sala para evitar conexiones a medio editar. Al cambiar de pestaña, se desconectan salas pendientes y se resetea el wizard al paso 1.
+
+## Fase 82: Reparación Integral del Modo Online P2P, Copiado Limpio de Códigos, Desbloqueo del Jugador 2 y Corrección de Fondos (Completada)
+- [x] **Tarea 206 (Modo Online P2P)**: Resolver las condiciones de carrera en el emparejamiento WebRTC P2P (`NetworkManager.ts` y `OnlineController.ts`): eliminación de `startGame()` anticipado en `onPeerJoin` del host, activación exclusiva tras `GUEST_JOINED` con margen de negociación de 500ms, y separación del caso `HERO_SELECT` para evitar bucles de handshake repetitivos.
+- [x] **Tarea 207 (Interactividad del Jugador 2 en Red)**: Desbloqueo total de clics de Blancas en el tablero SVG (`SVGRenderer.ts`): evaluación reactiva de `isActionAllowed()` en la capa interactiva `.interactive-layer` en lugar de una clase CSS estática desactualizada, sincronización de `isInteractive` antes de `render()` en `handleNodeClick`, y re-renderizado reactivo en `onMoveReceived` y `onPassReceived`.
+- [x] **Tarea 208 (Copiado de Códigos y Wizard Online)**: `copyRoomLink()` configurado para copiar únicamente el código de sala `GO-XXXX` sin URLs locales confusas, y visualización contextual de `Next ➔` (visible solo en pasos 1-4 del Host y oculto en Guest/Matchmaking para evitar confusión con `Connect 🚀`).
+- [x] **Tarea 209 (Fondos Negros en Combate)**: Normalización de alias de escenarios en `HUDController.ts`, preservación de `config.background` en `GameController.ts` y corrección de rutas relativas `./bg_*.jpg` en `layout.css`, eliminando el 100% de pantallas negras en tableros especiales (Oni, Cielo, Volcán).
+- [x] **Tarea 210 (Flujo de Tecla Escape)**: Manejo jerárquico de `Escape` en combate (deselección de habilidades/poliminós antes de abrir pausa), cierre limpio e inmediato del formulario de Feedback sin abrir Opciones por debajo, y restricción de la apertura de Opciones exclusivamente a partidas y expediciones roguelike.
+
+## Fase 81: Placa Tradicional de Madera CRAZY GO y Unificación Tipográfica del Menú Principal (Completada)
+- [x] **Tarea 205**: Sustituir el título de texto flotante "CRAZY GO" por una placa de madera tradicional (*Gaku / Kagami-ita*) no interactuable (`public/title_board_crazy_go.png`) perfectamente integrada con la viga del dojo, y unificar el `font-size` de todos los rótulos espaciales interactivos (`ROGUELIKE`, `LOCAL`, `ONLINE`, `STORY`, `FEEDBACK`, `TUTORIAL`, `OPTIONS`) exactamente a `1.35rem` con `font-weight: 900`.
+
+## Fase 80: Rediseño Glassmorphism Borderless de Modo Online & Setup y Fuego Rojo Carmesí en Dificultad Hard (Completada)
+- [x] **Tarea 203**: Rediseñar los componentes de configuración inicial (Expedición Roguelike y Modo Online) eliminando contenedores pesados y bordes rígidos: showcase de héroes abierto y transparente sin marcos oscuros interiores (`.hero-showcase-card`), tarjetas de selección `.btn-choice-card` con esquinas redondeadas de 20px y micro-iluminación orgánica, banner de código de sala y slots de lobby de cristal translúcido, y calibración de la llama de dificultad Hard (`.flame-hard`) a rojo carmesí puro de sangre (`hue-rotate(-60deg) saturate(6)`) eliminando cualquier tono naranja.
+- [x] **Tarea 204 (Hotfix Crítico)**: Reparar la incapacidad de visualizar el modal de selección de colores del Alquimista en el cliente. Diagnosticar el *Event Bubbling* en SVG (`e.stopPropagation()`) que causaba una invocación concurrente de promesas, y la reparación de estructura del `modal-story.html` (cierres de `div` faltantes) que colapsaba el DOM ocultando todas las ventanas de UI inyectadas posteriormente por el Vite parser (`UITemplateLoader`).
+
+## Fase 77: Rediseño Minimalista, Flotante y Borderless del Panel de Lección Completada en el Dojo Tutorial (Completada)
+- [x] **Tarea 201**: Rediseñar integralmente la pantalla de finalización de lección en el Dojo Tutorial (`modal-tutorial.html`, `tutorial.css`, `TutorialManager.ts`): eliminar bordes rígidos y contenedores cerrados tipo caja, implementar panel flotante borderless con desenfoque de fondo cinemático (`backdrop-filter: blur(16px)`), nuevo medallón zen dorado con partículas pulsantes (`✦`), píldora minimalista para la siguiente lección, botón principal de acción con gradiente solar cálido y accesos directos de teclado (`↵ Enter`, `[R]`, `[Esc]`), además de fanfarria de victoria (`SoundFX.playVictoryFanfare()`).
+
+## Fase 72: Desbloqueo Proactivo de Web Audio y Supresión de Advertencias de Autoplay (Completada)
+- [x] **Tarea 197**: Supresión del 100% de advertencias de consola por `AudioContext` autoplay: guarda `hasUserInteracted` en `SoundFX.getContext()` para evitar llamadas automáticas de `MenuCameraController` en `mouseenter`/`focus`, activación proactiva en el primer gesto de usuario (`click`, `keydown`, `pointerdown`, `touchstart`), y regeneración de los paquetes `.zip` oficiales.
+
+## Fase 71: Optimización de Relays MQTT y Arbitraje Determinista de Matchmaking (Completada)
+- [x] **Tarea 196**: Depuración de la infraestructura P2P de Trystero eliminando brokers MQTT caídos/bloqueados que colgaban `Promise.all` (`NetworkManager.ts` y `OnlineController.ts`), fijando los dos clusters globales más estables (`broker.emqx.io` y `broker.hivemq.com`). Arbitraje determinista `selfId < peerId` en matchmaking para evitar colisión de hosts simultáneos, y blindaje de promesas en `AudioContext.resume()`.
+
+## Fase 70: Reparación y Blindaje Integral del Registro de Combate y Repetición (Combat Log) (Completada)
+- [x] **Tarea 195**: Resolver el bloqueo de la interfaz y fugas de eventos al abrir el Registro de Combate (`CombatLogModalRenderer.ts` y `KeyboardController.ts`): soporte de estado inicial vacío seguro para abrir desde el menú principal o antes del primer movimiento, aislamiento total de teclado para auto-play (`Espacio`), avance (`◀ / A`, `▶ / D`) y cierre (`Escape / L`) sin pasar turnos en combate de fondo, y reactivación correcta de `isInteractive` al salir.
+
+## Fase 69: Blindaje de Red P2P y Matchmaking Online (Completada)
+- [x] **Tarea 194**: Diagnosticar trazas de consola (extensiones de navegador y scripts de iframe web) y corregir el sistema de Matchmaking P2P en `OnlineController.ts` (migración a `@trystero-p2p/mqtt` con `makeAction` tipado, 5 brokers MQTT mundiales redundantes y servidores STUN/TURN). Soporte de copia de código de sala limpio en sandboxes/iframes (`hwcdn.net`, `itch.zone`).
+
+## Fase 67: Sistema Integral de Efectos Especiales (SFX Web Audio) y Normalización de Música BGM (Completada)
+- [x] **Tarea 191**: Implementar generadores acústicos procedurales en tiempo real mediante Web Audio API en `SoundFX.ts`: `playMeteorImpact` (Tengu), `playDragonFlame` (Ryūjin), `playCelestialDrop` (Himiko), `playAlchemicalTransmute` (Alquimista), `playDivineShieldCast` y `playDivineShieldShatter` (Kitsune), `playVolcanoEruption` (Tablero Volcánico), `playBossDragonBreath` (Gran Dragón Sabio Gris), `playSkyBlockLand` (Tablero del Cielo), `playVictoryFanfare` y `playDefeatGong` (Finales de Combate).
+- [x] **Tarea 192**: Conectar los nuevos efectos de sonido en vivo en los VFX y gestores (`TenguVFX.ts`, `RyujinVFX.ts`, `HimikoVFX.ts`, `AlchemistVFX.ts`, `KitsuneVFX.ts`, `BossVFX.ts`, `SkyVFX.ts`, `StageHazardManager.ts`, `RogueliteManager.ts`, `ScoreModalRenderer.ts`, `BossManager.ts`).
+- [x] **Tarea 193**: Corregir `BGMGenerator.ts` eliminando las referencias a archivos inexistentes `.mp3` (404), unificando el mapeo semántico de biomas hacia `bgm_zen.wav` (entornos pacíficos/zen) y `bgm_battle.wav` (entornos marciales/combate) con tolerancia a fallos.
+
+## Fase 66: Reimaginación Temática del Tablero Máscara Oni (Inhalación Gravitacional, Fauces del Abismo 23x23 y Festín de Almas) (Completada)
+- [x] **Tarea 189**: Rediseñar la mecánica del Tablero Máscara Oni (`board.shape = 'oni'`) sustituyendo la lava estática por dos dinámicas vivas basadas en Go:
+  1. **La Inhalación del Demonio (Vórtice Gravitacional)**: Cada 10 turnos por jugador (20 totales), el Oni inhala y atrae 1 casilla hacia su boca a todas las piedras sueltas o parejas débiles (1-2 piedras), mientras las cadenas sólidas (3+ piedras) resisten firmes.
+  2. **El Festín de Almas (Turno Extra / Sente Supremo)**: Al capturar un grupo de 2 o más piedras enemigas simultáneamente, el jugador recibe un turno consecutivo inmediato.
+- [x] **Tarea 190**: Integración de VFX de vórtice gravitacional de viento/miasma, animaciones fluidas de desplazamiento de fichas y banner/HUD actualizados.
+
+## Fase 64: Perfeccionamiento de Texturas 3D de Poliminós (2x1 y 2x2), Rotación [R] Reactiva y Mejora del Tutorial de Lluvia Meteórica y Hechizo Meteorito (Completada)
+- [x] **Tarea 179**: Rediseño visual y shaders de alta fidelidad 3D para Monolito (2x2) (losa megalítica de Go, 4 piedras con brillo especular canónico, grabados rúnicos dorados en cruz y sello central `🧱`) y Duplicidad (2x1) (cápsula continua de Go, piedras gemelas 3D y sello `🀄`).
+- [x] **Tarea 180**: Seguimiento continuo del cursor en el Goban (`mousemove` en SVG) y rotación inmediata con `[R]` y clic en HUD en tiempo real con previsualización ghost instantánea.
+- [x] **Tarea 181**: Auto-ajuste de bordes `fitsAt` para Monolito 2x2 y soporte de agrupación `polyGroupId` en modo Sandbox.
+- [x] **Tarea 182**: Mejora pedagógica de la Lección 11 del Tutorial (`TutorialSteps.ts`): explicación de área (25%), recuento de meteoros (6/13/27), probabilidades de impacto (~30% en 9x9), daño indiscriminado (fuego amigo) e inmunidad con Escudo Divino (ES/EN).
+- [x] **Tarea 183**: Implementación de los 2 ejemplos interactivos del Hechizo consumible de Meteorito en la Lección 12 (`TutorialSteps.ts`, `TutorialManager.ts`, `RogueliteManager.ts`): solo 1 piedra blanca inicial en `(4,4)` para garantizar el impacto en Ejemplo 1, y corrección del Rebobinado a 1 solo paso (`steps = 1` en tutorial) con animación celestial de restauración de piedras.
+
+## Fase 63: Optimización del Menú Sandbox y Tablero Máscara Oni (Completada)
+- [x] **Tarea 177**: Rediseño compacto, ergonómico y visualmente optimizado del panel lateral flotante del Sandbox (`modal-sandbox.html`, `sandbox.css`, `SandboxController.ts`, `OptionsEventBinder.ts`). Grid 4x1 de pestañas perfecto sin overflow, layout responsive sin interferir con el Goban de combate, header con toggle directo de pincel y botón de cierre `✖`.
+- [x] **Tarea 178**: Implementación completa del Tablero Dinámico "Máscara Oni" (`oni` en `BoardGenerators.ts`, `StageHazardManager.ts`, `types/index.ts`, modales) con vómito de lava en turno 30.
+
+## Fase 62: Matchmaking, Lobby Libre, Fix Alquimista 4P y Poliminós Duplicity/Monolith (Completada)
+- [x] **Tarea 174**: Permitir Lobby Libre y Matchmaking Anónimo, permitiendo que la IA y amigos jueguen juntos en online, y emparejamiento automático global.
+- [x] **Tarea 175**: Arreglar la habilidad del Alquimista (y todos los campeones activos) en partidas de 4 jugadores (resolución de modalidad de color y des-congelamiento de UI).
+- [x] **Tarea 176**: Mejorar las piedras especiales Duplicidad (rotación `[R]`, clic en HUD y auto-ajuste de bordes) y Monolito (losa 2x2, texturas y shaders 3D con relieve y runas talladas).
+
+## Fase 61: Fixes y Mejoras de UI (Completada)
+- [x] **Tarea 165**: Separación de lecciones en dos módulos visuales (Módulo I: Go Canónico y Módulo II: Crazy Go) en modal-tutorial.html y MenuEventBinder.ts.
+- [x] **Tarea 166**: Añadir lección Ojos Falsos.
+- [x] **Tarea 167**: Añadir lección Snapback (Uttegaeshi).
+- [x] **Tarea 168**: Añadir lección Seki (Vida Mutua).
+- [x] **Tarea 169**: Añadir lecciones especiales (Topologías y Vacío, Sinergias de Magia) a TutorialSteps.ts para ambos idiomas (ES/EN).
+## Fase 59: Tablero del Cielo (Sky Board) y Colapso Celestial de Bloques Cuadrados (Completada)
+- [x] **Tarea 160**: Nueva topología y forma de tablero `sky` en `BoardGenerators.ts`, `types/index.ts` con soporte en tamaños 9x9, 13x13 y 19x19.
+- [x] **Tarea 161**: Decoraciones estéticas diegéticas de nubes celestiales etéreas (`.sky-cloud-drift`), estrellas titilantes (`.sky-star-twinkle`) y gradientes `#sky-cloud-grad` en las 4 esquinas del marco de madera Kaya en `SVGRenderer.ts` y `SVGDefs.ts`.
+- [x] **Tarea 162**: Peligro ambiental procedural en `StageHazardManager.ts`: activación cada 20 turnos totales (10 turnos por jugador / 10b, 20b, 30b...). Selección aleatoria de 5 bloques cuadrados $2\times 2$ (4 casillas por bloque, total hasta 20 casillas) con destrucción de topología (`RulesEngine.destroyTopology`).
+- [x] **Tarea 163**: Animación VFX cinematográfica `SkyVFX.ts` con 5 bloques cuadrados descendiendo de arriba a abajo, estelas celestes, ondas expansivas, partículas y sacudida de pantalla.
+- [x] **Tarea 164**: Integración completa en el Asistente de Partida Local (`modal-local-setup.html`), Lobby Online (`modal-online.html`), HUD superior (`#ui-sky-warning`), controladores de eventos y localización 100% bilingüe (ES/EN).
+
+## Fase 22: Rediseño Cinemático Diegético de la Pantalla de Continuar Expedición Roguelike (Completada)
+- [x] **Tarea 155**: Generación de ilustraciones en perspectiva trasera (vistas de espalda) de los 7 campeones caminando hacia el sendero místico (`public/heroes/*_back.png`).
+- [x] **Tarea 156**: Creación de fondos temáticos en dos caminos narrativos: interior del Dojo tradicional (`bg_choice_dojo.jpg`) y sendero de montaña con nodos de Go y Torii (`bg_choice_map.jpg`).
+- [x] **Tarea 157**: Placa flotante central informativa con el nombre del héroe, icono, nodo/Tier actual y dificultad de la expedición activa.
+- [x] **Tarea 158**: Controlador interactivo de cámara 2.5D con Depth of Field (`RogueChoiceCameraController.ts`), enfoque cinematográfico y revelación dinámica de etiquetas al pasar el cursor.
+
+## Fase 21: Sistema de Foco de Cámara Interactivo (Completada)
+- [x] **Tarea 150**: Reestructuración del contenedor del menú principal (`index.html`) añadiendo `perspective` y un subcontenedor de cámara.
+- [x] **Tarea 151**: Implementación de Depth of Field (`filter: blur`, `brightness`) y separadores Z-index para el fondo de pantalla en `base.css`.
+- [x] **Tarea 152**: Creación de `MenuCameraController.ts` para interpolar transformaciones 3D basándose en el hover relativo al centro.
+- [x] **Tarea 153**: Integración del controlador de cámara en `MenuEventBinder.ts`.
+- [x] **Tarea 154**: Migración total a **Entorno Espacial 2.5D**. Eliminados botones UI y reemplazados por elementos físicos (`.dojo-item`) en un escenario 16:9 posicionado con coordenadas porcentuales absolutas.
+- [x] **Tarea 159**: Corrección de Jitter y Aceleración Logarítmica en la Cámara 3D del Menú Principal (`MenuCameraController.ts`, `base.css`): Zoom óptico in-situ (0px lateral shift) mediante `transform-origin` dinámico, amortiguación debounced de 75ms y curva Ease-Out Expo (`cubic-bezier(0.16, 1, 0.3, 1)`).
+
 ## Fase 1: Motor Canónico y Topologías
 - [x] Grafo de adyacencia no euclidiano (`GraphBoard`).
 - [x] Reglas puras de Go (Libertades, Capturas, Ko simple, Suicidio ilegal, Komi).
@@ -40,6 +285,12 @@
 ## Fase 8: Tableros Asimétricos / Erosionados & Fichas Poliminó Tácticas (Completada)
 - [x] **Tarea 22**: Generador de Tableros Asimétricos y Erosionados (`BoardGenerators.ts` con 🪨 Erosionado / Carved Goban, 🕳️ Islas / Abismos interiores y ➕ Cruz / Diamante).
 - [x] **Tarea 23**: Sistema de Fichas Poliminó en Combate (`PolyominoManager.ts` con 🌿 Germinante 1x1, 🀄 Dominó 2x1 rotatorio [Tecla R / Horiz ⇄ Vert] y 🧱 Monolito 2x2).
+- [x] **Tarea 61**: Equipos y Lobby Libre
+- [x] Arquitectura de Juego en Equipos (Rengo Style) en GameState y SVGGhostPreview
+- [x] Estructura backend `GameSetupConfig.slots` para configuración libre
+- [x] Lógica de control de turnos (Humano Local vs IA vs Humano Online) en GameController
+- [x] Interfaz UI (Modales) para la creación de "Lobby Libre"
+- [ ] Implementar el balanceo de la habilidad de escudo en grupo de Kitsune (Pendiente de decisión de diseño)
 - [x] **Tarea 24**: Colocación y resolución de capturas multi-piedra simultáneas (`RulesEngine.tryPlaceMultiStones`).
 - [x] **Tarea 25**: Renderizado dinámico de Ghosts Poliminó, auras botánicas `🌿` y rotación en tiempo real en `SVGRenderer.ts`.
 - [x] **Tarea 27**: Duelistas en Combate 300% Más Grandes & Perspectiva Cenital Zen (Eliminados artefactos blancos en katana del Ronin y fondos opacos en rivales, encuadre superior sereno con katana en reposo, escalado grandioso en tatami y sombras realistas).
@@ -464,3 +715,46 @@
 
 
 
+
+## Fase 58: Sincronización P2P Avanzada y Corrección de Tooltips Multijugador
+- [x] **Tarea 295**: **Sincronización P2P de Animaciones y Tooltips:**
+  - Extracción y renderizado de placas de habilidad enemiga (\#duel-enemy-skill-badge\) en modo online P2P.
+  - Corrección de asignación de héroe local en \GameController.handleRemoteSkill\ y \ChampionManager.executeTargetedSkill\ para garantizar que se ejecute la habilidad del héroe remoto y no del local.
+- [x] **Tarea 296**: **Determinismo Pseudoaleatorio (\SeededRandom.ts\):**
+  - Semilla inicializada vía configuración compartida (\config.seed\) e instanciada para reemplazar \Math.random()\ en \TenguChampion\, \RoninChampion\ y \HimikoChampion\, sincronizando así los objetivos dinámicos entre clientes y previniendo desincronizaciones de tablero.
+- [x] **Tarea 297**: **Empaquetado Dual v14:**
+  - Compilación nativa y empaquetado para Itch.io y Windows con el script \scripts/build_packages.js\.
+- [x] **Tarea 298**: **Rediseño y Unificación de la Barra de Winrate:**
+  - Eliminación de la barra duplicada en la barra superior.
+  - Rediseño de la barra de 4 jugadores: reubicada en la parte inferior, sobre la barra de hechizos.
+  - Aumento de grosor (x3) y adición de etiquetas de porcentaje explícitas debajo de cada segmento coloreado.
+- [x] **Tarea 299**: **Optimización de Winrate (KataGo style) y Layout:**
+  - Ajustado el tamaño de los tableros en un -5% y reubicados (-40px en Y) para encajar perfectamente con la nueva barra de winrate sin solapar la Spellbar.
+  - Modificada la altura de la barra a 12px y anchura al 70%.
+  - Se ha programado una heurística avanzada de Ventaja de Iniciativa (Virtual Komi) en \AnalysisEngine.calculateWinRate\, la cual simula el comportamiento de KataGo asignando la compensación equitativa inicial en turnos tempranos y decayendo de forma progresiva. Ahora el Turno 1 evalúa la probabilidad como 25% equitativo en 4 jugadores o 50% en 1v1.
+- [x] **Tarea 300**: **Mejoras temporales de Winrate (Puente A+B):**
+  - Ajuste de la temperatura del Softmax en AnalysisEngine.ts para que sea más baja (cercana a 1.5 - 5 dependiendo del tablero), logrando una mayor sensibilidad a la diferencia de puntos, imitando parcialmente el comportamiento analítico agudo de KataGo.
+  - Comprobación y estabilización del bucle de recuento de libertades para evitar multiplicadores irreales en cadenas masivas.
+
+## Fase 59: Sandbox Entity Testing & Cheat Capture (Completada)
+- [x] **Tarea 301**: Captura Inmediata de Entidades (\GameController.ts\, \SVGRenderer.ts\): Al activar el modo Sandbox/Desarrollador, hacer clic directo sobre una entidad en el tablero desencadena instantáneamente su recompensa (Cofre, Monje, Pergamino o Espíritu), sin requerir capturarla rodeando sus libertades.
+- [x] **Tarea 302**: Brochas Generadoras de Entidades (\SandboxController.ts\, \modal-sandbox.html\): Implementados 4 pinceles específicos en el menú del Testing Lab para sembrar Cofres Místicos, Monjes Cautivos, Pergaminos Sagrados y Espíritus Guardianes proceduralmente sobre el Goban y testear comportamientos y recompensas.
+- [x] **Tarea 303**: Corrección de Sistema de Zoom (\OptionsModalRenderer.ts\, \	heme.css\): Reemplazado el enfoque de variables CSS \--ui-scale\ (y \	ransform: scale\) por la propiedad directa \document.body.style.zoom\, evitando la pérdida de centrado de coordenadas SVG y los fallos de márgenes o scroll, igualándolo funcionalmente al nativo \Ctrl +\ / \Ctrl -\ de Google Chrome.
+
+## Fase 60: Destrucción Topológica y Tableros Dinámicos (Lluvia de Meteoros) (Completada)
+- [x] **Tarea 304**: Integración de Eliminación Física de Nodos (\GraphBoard.ts\, \RulesEngine.ts\): Método \
+emoveNode()\ implementado sin romper referencias de coordenadas (se limpian los vecinos y se marca \	errain = 'DESTROYED'\) y \destroyTopology()\ para erradicar las aristas y evaluar asfixia masiva inmediata de todas las piedras que dependían de la intersección destruida.
+- [x] **Tarea 305**: Máscaras Dinámicas de Agujeros en Madera (\SVGRenderer.ts\): Implementada una \SVG Mask\ que recorta dinámicamente el polígono de madera exterior mostrando un vacío oscuro puro (agujero transparente/negro) y detiene el renderizado de la cuadrícula interactiva, visualizando fielmente los estragos topológicos.
+- [x] **Tarea 306**: Devastación Pasiva del Jefe Dragón (\BossManager.ts\, \AITurnManager.ts\, \GameState.ts\): Añadido \checkAIPassiveDevastation()\. A partir del turno global 22 de la batalla de jefe, en cada turno de la IA, caen automática y pasivamente 4 meteoros aleatorios (con cinemática de fuego) que pulverizan para siempre nodos del tablero.
+
+
+## Fase 61: Rediseño del Combat Log e i18n Completo (Completada)
+- [x] **Tarea 307**: Nomenclatura de Nodos Base-25: Columnas tipo Excel (A-Z, AA-ZZ) para escalar infinitamente.
+- [x] **Tarea 308**: Eliminación de Bordes y Bounding Boxes (Convex Hull): Se ha quitado el borde rojo interpolado que arruinaba la topología cóncava.
+- [x] **Tarea 309**: i18n del Log de Combate: Creados tokens en translations.ts y refactorización del DOM para traducir todo al inglés dinámicamente.
+- [x] **Tarea 310**: Resolución de Bug Crítico de Renderizado de Retorno: Prevenido el fallo en navegadores por el cual inyectar un \<defs>\ repetido en un contenedor oculto apagaba los materiales SVG del viewport activo.
+- [x] **Tarea 311**: Registro de Habilidades Activas: Conectado el \ChampionManager\ al \CombatLogManager\ para que las habilidades dirigidas lanzadas por el jugador se registren correctamente en el historial.
+- [x] **Tarea 312**: Visibilidad de la Cuadrícula en el Log: Las líneas de la cuadrícula en el Combat Log ahora son semitransparentes brillantes (\gba(255, 255, 255, 0.15)\) para asegurar su visibilidad tras quitar el fondo de madera.
+- [x] **Tarea 313**: Refinado del UI del Log: Eliminado el botón X redundante arriba a la derecha.
+- [x] **Tarea 314**: Pestaña Tablero en Combat Log: Añadida pestaña de filtro 'board' en el Log de Combate para eventos de entorno.
+- [x] **Tarea 315**: Integración de Eventos de Tablero al Log: El gestor de peligros (\StageHazardManager\) ahora reporta erupciones volcánicas, expansión celestial y la inhalación del Oni directo al registro, y se muestra en la pestaña 'Board' y 'All'.

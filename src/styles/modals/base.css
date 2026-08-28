@@ -8,7 +8,8 @@
   width: 100vw;
   height: 100vh;
   background: var(--bg-modal-backdrop);
-  backdrop-filter: blur(8px);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
   z-index: 1000;
   display: flex;
   align-items: center;
@@ -16,11 +17,43 @@
   padding: 1.5rem;
 }
 
+.modal-backdrop:not(.hidden) {
+  animation: modalBackdropFadeIn 0.22s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.modal-backdrop:not(.hidden) .modal-card {
+  animation: modalCardPopIn 0.26s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@keyframes modalBackdropFadeIn {
+  from {
+    opacity: 0;
+    backdrop-filter: blur(0px);
+    -webkit-backdrop-filter: blur(0px);
+  }
+  to {
+    opacity: 1;
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+  }
+}
+
+@keyframes modalCardPopIn {
+  from {
+    opacity: 0;
+    transform: scale(0.95) translateY(14px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
 .modal-card {
   background: linear-gradient(170deg, rgba(15, 20, 32, 0.96) 0%, rgba(9, 12, 20, 0.98) 100%);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 20px;
-  box-shadow: 0 35px 80px -15px rgba(0, 0, 0, 0.85), 0 0 30px rgba(245, 158, 11, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 22px;
+  box-shadow: 0 35px 90px -15px rgba(0, 0, 0, 0.9), inset 0 1px 0 rgba(255, 255, 255, 0.08);
   width: 100%;
   display: flex;
   flex-direction: column;
@@ -34,10 +67,11 @@
 }
 
 .modal-header h2 {
-  font-size: 1.35rem;
+  font-family: var(--font-oriental);
+  font-size: 1.4rem;
   font-weight: 800;
   color: var(--text-primary);
-  letter-spacing: -0.01em;
+  letter-spacing: 0.03em;
 }
 
 .modal-desc {
@@ -63,7 +97,7 @@
   font-size: 0.88rem;
   font-weight: 600;
   padding: 0.5rem 0.85rem;
-  cursor: pointer;
+  cursor: var(--cursor-pointer);
   transition: all 0.2s ease;
 }
 

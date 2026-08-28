@@ -2,6 +2,16 @@
 
 // 1. Identificadores y Elementos de Tablero
 export type PlayerId = 1 | 2 | 3 | 4; // 1 = Negras ⚫, 2 = Blancas ⚪, 3 = Esmeralda 🟢, 4 = Amatista 🟣
+export type TeamId = 1 | 2;
+
+export interface PlayerSlot {
+    slotId: PlayerId;
+    teamId: TeamId;
+    type: 'human_local' | 'human_remote' | 'ai';
+    aiDifficulty?: AIDifficulty;
+    heroId?: HeroId;
+    onlinePeerId?: string;
+}
 
 export type TerrainType = 'normal' | 'void' | 'portal' | 'sanctuary' | 'vortex';
 
@@ -41,6 +51,9 @@ export interface BoardNode {
 // 2. Modos, Topologías y Configuración de Partida
 export type BoardShape = 
     | 'square' 
+    | 'volcano'
+    | 'sky'
+    | 'oni'
     | 'triangle' 
     | 'hex' 
     | 'hexagon'
@@ -58,9 +71,9 @@ export type BoardShape =
     | 'star_6'
     | 'procedural';
 export type BoardSize = 5 | 9 | 13 | 19;
-export type GameMode = '1v1' | '1via' | 'coop' | 'online' | 'story';
+export type GameMode = '1v1' | '1via' | 'aivsai' | 'coop' | 'online' | 'story' | 'custom';
 export type RuleStyle = 'classic' | 'roguelite';
-export type AIDifficulty = 'easy' | 'medium' | 'hard' | 'dan';
+export type AIDifficulty = string; // e.g. 'easy', '25k', '3d', etc.
 export type AppTheme = 'dark' | 'light';
 
 export type TimerMode = 'none' | 'per_move' | 'absolute' | 'fischer' | 'japanese';
@@ -121,8 +134,8 @@ export interface GameSetupConfig {
     seed?: number;
     background?: BoardBackground;
     heroId?: HeroId | null;
-    enemyHeroId?: EnemyHeroId | 'random' | 'random_monk' | 'random_sage' | null;
-    enemyHeroIds?: Record<number, EnemyHeroId | 'random' | 'random_monk' | 'random_sage' | null>;
+    enemyHeroId?: EnemyHeroId | 'random' | 'random_monk' | 'random_sage' | 'story_sage' | null;
+    enemyHeroIds?: Record<number, EnemyHeroId | 'random' | 'random_monk' | 'random_sage' | 'story_sage' | null>;
 
     specialStones?: SpecialStonesConfig;
     playerKomis?: Record<number, number>; // Komi individual para 4P (e.g. { 2: 2.5, 3: 4.5, 4: 6.5 })
@@ -130,9 +143,11 @@ export interface GameSetupConfig {
     isCoopRogue?: boolean;
     isRoguelikeMatch?: boolean;
     coopSubTurn?: 1 | 2; // 1 = J1 Host, 2 = J2 Guest
+    localCoopRole?: 1 | 2; // El rol de esta instancia local en coop
+    slots?: Record<PlayerId, PlayerSlot>; // Configuración detallada de jugadores (Lobby Libre)
 }
 
-export type BoardBackground = 'combat' | 'story' | 'tutorial' | 'boss' | 'meadow' | 'sunset' | 'night';
+export type BoardBackground = 'combat' | 'story' | 'tutorial' | 'boss' | 'meadow' | 'sunset' | 'night' | 'volcano' | 'oni' | 'sky' | 'zen' | 'dojo' | 'void';
 
 // 3. Sistema de Héroes y Hechizos Roguelite
 export type HeroId = 'tengu' | 'himiko' | 'kitsune' | 'ronin' | 'alchemist' | 'ryujin' | 'normal';
@@ -200,7 +215,10 @@ export interface OnlineGameConfig {
     guestHeroes?: Partial<Record<PlayerId, HeroId | null>>;
     timer?: TimerConfig;
     isCoopRogue?: boolean;
+    difficulty?: RogueliteDifficulty;
+    rogueSeed?: number;
     background?: BoardBackground;
+    slots?: any;
 }
 
 export interface MapNode {
@@ -273,3 +291,18 @@ export interface PlayerMeta {
     icon: string;
     colorHex: string;
 }
+
+
+
+export interface CombatLogSnapshotNode {
+    [key: string]: any;
+}
+
+export interface CombatLogEntry {
+    [key: string]: any;
+}
+
+export interface CombatReplayFile {
+    [key: string]: any;
+}
+

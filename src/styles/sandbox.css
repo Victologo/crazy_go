@@ -58,7 +58,7 @@ body[data-theme="light"] .btn-menu-sandbox:hover {
 
 /* Badge "DEV" superpuesto */
 .sandbox-dev-badge {
-  font-size: 0.5rem;
+  font-size: 0.55rem;
   font-weight: 900;
   font-family: var(--font-mono, monospace);
   letter-spacing: 0.08em;
@@ -67,7 +67,9 @@ body[data-theme="light"] .btn-menu-sandbox:hover {
   padding: 1px 4px;
   border-radius: 3px;
   line-height: 1.2;
-  margin-left: 0.1rem;
+  margin-left: 0.2rem;
+  display: inline-block;
+  vertical-align: middle;
 }
 
 /* Cuando el brush está activo: anillo pulsante + badge rojo para indicarlo */
@@ -94,90 +96,199 @@ body[data-theme="light"] .btn-menu-sandbox:hover {
   50%       { opacity: 0; }
 }
 
-/* Modal Sandbox Panel */
-.modal-sandbox-panel {
-  max-width: 860px;
-  width: min(92vw, 860px);
-  max-height: 90vh;
-  background: linear-gradient(170deg, rgba(13, 20, 32, 0.96) 0%, rgba(8, 12, 20, 0.98) 100%);
-  border: 1.5px solid rgba(16, 185, 129, 0.35);
-  box-shadow: 0 35px 80px -15px rgba(0, 0, 0, 0.85), 0 0 40px rgba(16, 185, 129, 0.1);
-  border-radius: 20px;
+/* ==================== PANEL FLOTANTE SANDBOX (OPTIMIZADO PARA COMBATE) ==================== */
+
+.sandbox-overlay {
+  position: absolute;
+  top: 56px;
+  right: 14px;
+  width: clamp(340px, 25vw, 410px);
+  max-height: calc(100vh - 70px);
+  z-index: 2500;
+  pointer-events: none; /* Permite clicar en el tablero debajo */
+  display: flex;
+  justify-content: flex-end;
+  align-items: flex-start;
+  transition: opacity 0.25s ease, transform 0.25s ease;
 }
 
+.sandbox-overlay.hidden {
+  display: none !important;
+}
+
+/* Contenedor principal del panel */
+.modal-sandbox-panel {
+  pointer-events: auto; /* Reactiva clicks dentro del panel */
+  width: 100%;
+  max-height: calc(100vh - 70px);
+  display: flex;
+  flex-direction: column;
+  background: linear-gradient(170deg, rgba(13, 20, 32, 0.96) 0%, rgba(8, 12, 20, 0.98) 100%);
+  border: 1.5px solid rgba(16, 185, 129, 0.38);
+  box-shadow: 0 14px 45px -10px rgba(0, 0, 0, 0.9), 0 0 20px rgba(16, 185, 129, 0.12);
+  border-radius: 12px;
+  backdrop-filter: blur(14px);
+  overflow: hidden;
+}
+
+/* Header compacto */
 .sandbox-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 1.25rem 1.75rem 1rem;
+  padding: 0.55rem 0.85rem;
   border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(0, 0, 0, 0.25);
+  flex-shrink: 0;
+  gap: 0.5rem;
+}
+
+.sandbox-title-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.05rem;
+  min-width: 0;
+}
+
+.sandbox-title-row {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.sandbox-title-icon {
+  font-size: 1rem;
+}
+
+.sandbox-title-text {
+  font-size: 0.95rem !important;
+  font-weight: 800 !important;
+  color: #ffffff !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  line-height: 1.2 !important;
+  white-space: nowrap;
+}
+
+.sandbox-subtitle {
+  font-size: 0.65rem;
+  color: var(--text-muted);
+  margin: 0;
+  line-height: 1.1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.sandbox-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  flex-shrink: 0;
 }
 
 .btn-sandbox-brush-toggle {
   background: rgba(16, 185, 129, 0.15);
-  border: 1.5px solid rgba(16, 185, 129, 0.4);
+  border: 1px solid rgba(16, 185, 129, 0.4);
   color: #6ee7b7;
-  padding: 0.45rem 0.9rem;
-  border-radius: var(--radius-md);
+  padding: 0.25rem 0.55rem;
+  border-radius: var(--radius-sm);
   font-family: var(--font-main);
-  font-size: 0.85rem;
+  font-size: 0.75rem;
   font-weight: 700;
-  cursor: pointer;
+  cursor: var(--cursor-pointer);
   transition: all 0.2s ease;
+  white-space: nowrap;
 }
 
 .btn-sandbox-brush-toggle.active {
-  background: linear-gradient(135deg, rgba(16, 185, 129, 0.3) 0%, rgba(6, 182, 212, 0.35) 100%);
+  background: linear-gradient(135deg, rgba(16, 185, 129, 0.35) 0%, rgba(6, 182, 212, 0.4) 100%);
   border-color: #34d399;
   color: #ffffff;
-  box-shadow: 0 0 14px rgba(16, 185, 129, 0.35);
+  box-shadow: 0 0 10px rgba(16, 185, 129, 0.4);
 }
 
-/* Tabs de Navegación del Sandbox */
+/* Tabs de Navegación del Sandbox (Grid 4x1 perfecto) */
 .sandbox-tabs-nav {
-  display: flex;
-  gap: 0.5rem;
-  padding: 0.75rem 1.75rem 0.25rem;
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 3px;
+  padding: 4px 6px;
   border-bottom: 1px solid rgba(255, 255, 255, 0.06);
-  background: rgba(0, 0, 0, 0.2);
+  background: rgba(0, 0, 0, 0.3);
+  flex-shrink: 0;
 }
 
 .sandbox-tab-btn {
-  background: transparent;
-  border: none;
-  border-bottom: 2px solid transparent;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.25rem;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid transparent;
+  border-radius: 6px;
   color: var(--text-muted);
-  padding: 0.6rem 1rem;
+  padding: 0.32rem 0.2rem;
   font-family: var(--font-main);
-  font-size: 0.9rem;
+  font-size: 0.74rem;
   font-weight: 700;
-  cursor: pointer;
-  transition: all 0.2s ease;
+  cursor: var(--cursor-pointer);
+  transition: all 0.15s ease;
+  white-space: nowrap;
 }
 
 .sandbox-tab-btn:hover {
   color: var(--text-primary);
+  background: rgba(255, 255, 255, 0.08);
 }
 
 .sandbox-tab-btn.active {
   color: #34d399;
-  border-bottom-color: #34d399;
-  background: rgba(16, 185, 129, 0.08);
-  border-radius: var(--radius-sm) var(--radius-sm) 0 0;
+  background: rgba(16, 185, 129, 0.16);
+  border-color: rgba(16, 185, 129, 0.45);
+  box-shadow: 0 0 8px rgba(16, 185, 129, 0.2);
 }
 
+.tab-icon {
+  font-size: 0.85rem;
+}
+
+.tab-label {
+  font-size: 0.72rem;
+}
+
+/* Cuerpo con Scroll Suave */
 .sandbox-body {
-  padding: 1.25rem 1.75rem;
+  padding: 0.6rem 0.8rem;
   display: flex;
   flex-direction: column;
-  gap: 1.25rem;
-  min-height: 380px;
+  gap: 0.6rem;
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+}
+
+.sandbox-body::-webkit-scrollbar {
+  width: 5px;
+}
+
+.sandbox-body::-webkit-scrollbar-track {
+  background: rgba(0, 0, 0, 0.2);
+}
+
+.sandbox-body::-webkit-scrollbar-thumb {
+  background: rgba(16, 185, 129, 0.3);
+  border-radius: 3px;
+}
+
+.sandbox-body::-webkit-scrollbar-thumb:hover {
+  background: rgba(16, 185, 129, 0.5);
 }
 
 .sandbox-tab-pane {
   display: none;
   flex-direction: column;
-  gap: 1.15rem;
+  gap: 0.55rem;
 }
 
 .sandbox-tab-pane.active {
@@ -187,44 +298,74 @@ body[data-theme="light"] .btn-menu-sandbox:hover {
 .sandbox-section {
   display: flex;
   flex-direction: column;
-  gap: 0.5rem;
+  gap: 0.28rem;
 }
 
-/* Grid de Pinceles */
+.sandbox-section-header {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+  font-size: 0.7rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  color: #34d399;
+  letter-spacing: 0.04em;
+  margin-bottom: 0.05rem;
+}
+
+.sandbox-section-header .setup-label {
+  margin: 0;
+  font-size: 0.7rem;
+  font-weight: 800;
+  color: #34d399;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+/* Grids de Pinceles y Botones */
 .sandbox-brush-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
-  gap: 0.5rem;
+  gap: 4px;
 }
+
+.sandbox-brush-grid.grid-2 { grid-template-columns: repeat(2, 1fr); }
+.sandbox-brush-grid.grid-3 { grid-template-columns: repeat(3, 1fr); }
+.sandbox-brush-grid.grid-4 { grid-template-columns: repeat(4, 1fr); }
+.sandbox-brush-grid.grid-5 { grid-template-columns: repeat(5, 1fr); }
 
 .btn-sandbox-brush {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
+  justify-content: center;
+  gap: 0.3rem;
   background: var(--bg-card-sub);
-  border: 1.5px solid var(--border-subtle);
-  border-radius: var(--radius-md);
-  padding: 0.6rem 0.75rem;
+  border: 1px solid var(--border-subtle);
+  border-radius: 6px;
+  padding: 0.35rem 0.35rem;
   color: var(--text-secondary);
   font-family: var(--font-main);
-  font-size: 0.82rem;
+  font-size: 0.72rem;
   font-weight: 700;
-  cursor: pointer;
-  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  cursor: var(--cursor-pointer);
+  transition: all 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+  text-align: center;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .btn-sandbox-brush:hover {
   border-color: #34d399;
   color: var(--text-primary);
-  transform: translateY(-2px);
-  background: rgba(16, 185, 129, 0.1);
+  transform: translateY(-1px);
+  background: rgba(16, 185, 129, 0.12);
 }
 
 .btn-sandbox-brush.active {
   border-color: #34d399;
-  background: linear-gradient(135deg, rgba(16, 185, 129, 0.25) 0%, rgba(6, 182, 212, 0.3) 100%);
+  background: linear-gradient(135deg, rgba(16, 185, 129, 0.3) 0%, rgba(6, 182, 212, 0.35) 100%);
   color: #ffffff;
-  box-shadow: 0 0 14px rgba(16, 185, 129, 0.35);
+  box-shadow: 0 0 10px rgba(16, 185, 129, 0.35);
 }
 
 .btn-eraser-brush {
@@ -234,13 +375,32 @@ body[data-theme="light"] .btn-menu-sandbox:hover {
 .btn-eraser-brush.active {
   border-color: #ef4444;
   background: rgba(239, 68, 68, 0.25);
-  box-shadow: 0 0 14px rgba(239, 68, 68, 0.4);
+  box-shadow: 0 0 10px rgba(239, 68, 68, 0.4);
 }
+
+.brush-icon {
+  font-size: 0.85rem;
+  line-height: 1;
+}
+
+/* Piedras miniaturas */
+.mini-stone {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  display: inline-block;
+  flex-shrink: 0;
+}
+
+.black-mini { background: #1a1a1a; border: 1px solid #444; }
+.white-mini { background: #f0f0f0; border: 1px solid #aaa; }
+.green-mini { background: #10b981; border: 1px solid #34d399; }
+.purple-mini { background: #a855f7; border: 1px solid #c084fc; }
 
 .sandbox-actions-row {
   display: flex;
-  gap: 0.75rem;
-  margin-top: 0.5rem;
+  gap: 0.5rem;
+  margin-top: 0.2rem;
 }
 
 .btn-sandbox-action {
@@ -248,6 +408,9 @@ body[data-theme="light"] .btn-menu-sandbox:hover {
   border: 1px solid rgba(239, 68, 68, 0.35);
   color: #fca5a5;
   font-weight: 700;
+  font-size: 0.75rem;
+  padding: 0.4rem 0.6rem;
+  width: 100%;
 }
 
 .btn-sandbox-action:hover {
@@ -258,41 +421,42 @@ body[data-theme="light"] .btn-menu-sandbox:hover {
 
 /* Tarjetas de Escenarios Predefinidos */
 .sandbox-help-text {
-  font-size: 0.85rem;
+  font-size: 0.72rem;
   color: var(--text-secondary);
-  margin: 0;
+  margin: 0 0 0.15rem 0;
+  line-height: 1.25;
 }
 
 .sandbox-presets-list {
   display: flex;
   flex-direction: column;
-  gap: 0.65rem;
+  gap: 0.4rem;
 }
 
 .sandbox-preset-card {
   display: flex;
   align-items: center;
-  gap: 1rem;
+  gap: 0.6rem;
   background: var(--bg-card-sub);
-  border: 1.5px solid var(--border-subtle);
-  border-radius: var(--radius-md);
-  padding: 0.85rem 1.1rem;
+  border: 1px solid var(--border-subtle);
+  border-radius: 6px;
+  padding: 0.45rem 0.6rem;
   color: var(--text-primary);
   font-family: var(--font-main);
   text-align: left;
-  cursor: pointer;
-  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  cursor: var(--cursor-pointer);
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .sandbox-preset-card:hover {
   border-color: #34d399;
   background: linear-gradient(135deg, rgba(16, 185, 129, 0.15) 0%, rgba(6, 182, 212, 0.2) 100%);
-  transform: translateX(4px);
-  box-shadow: 0 4px 15px rgba(16, 185, 129, 0.2);
+  transform: translateX(3px);
+  box-shadow: 0 2px 10px rgba(16, 185, 129, 0.2);
 }
 
 .preset-icon {
-  font-size: 1.8rem;
+  font-size: 1.2rem;
   line-height: 1;
   flex-shrink: 0;
 }
@@ -300,17 +464,63 @@ body[data-theme="light"] .btn-menu-sandbox:hover {
 .preset-info {
   display: flex;
   flex-direction: column;
-  gap: 0.2rem;
+  gap: 0.1rem;
 }
 
 .preset-info strong {
-  font-size: 0.95rem;
+  font-size: 0.78rem;
   font-weight: 800;
   color: var(--text-primary);
+  line-height: 1.2;
 }
 
 .preset-info span {
-  font-size: 0.78rem;
+  font-size: 0.68rem;
   color: var(--text-muted);
-  line-height: 1.35;
+  line-height: 1.2;
+}
+
+/* Clases de utilidad compactas para botones */
+.btn-compact {
+  padding: 0.35rem 0.5rem !important;
+  font-size: 0.74rem !important;
+  line-height: 1.2 !important;
+}
+
+.btn-purple-glow {
+  background: rgba(139, 92, 246, 0.15) !important;
+  border-color: rgba(139, 92, 246, 0.4) !important;
+  color: #c4b5fd !important;
+  font-weight: 700;
+}
+
+.btn-sky-glow {
+  background: rgba(56, 189, 248, 0.15) !important;
+  border-color: rgba(56, 189, 248, 0.4) !important;
+  color: #7dd3fc !important;
+  font-weight: 700;
+}
+
+.btn-gold-glow {
+  border-color: #f59e0b !important;
+  color: #fbbf24 !important;
+  font-weight: 700;
+}
+
+.btn-green-glow {
+  border-color: #10b981 !important;
+  color: #34d399 !important;
+  font-weight: 700;
+}
+
+/* Footer mínimo */
+.sandbox-footer {
+  padding: 0.4rem 0.8rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(0, 0, 0, 0.2);
+  flex-shrink: 0;
+}
+
+.sandbox-footer .btn {
+  width: 100%;
 }

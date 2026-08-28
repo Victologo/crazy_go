@@ -1,44 +1,72 @@
-    <!-- ================= MODAL: ACTIVE ROGUELIKE CHOICE ================= -->
-    <div id="modal-rogue-choice" class="modal-backdrop hidden">
-      <div class="modal-card modal-choice-dialog">
-        <div class="modal-header">
-          <h2>⚔️ Active Roguelike Expedition</h2>
-          <p class="modal-desc">You have a saved journey recorded along the spiritual Goban path.</p>
-        </div>
+    <!-- ================= MODAL: ACTIVE ROGUELIKE CHOICE (2.5D SPATIAL SCENE) ================= -->
+    <div id="modal-rogue-choice" class="modal-backdrop hidden" style="background:#090d16; display:flex; align-items:center; justify-content:center; overflow:hidden; z-index:1000;">
+      
+      <!-- Camera Container -->
+      <div id="rogue-choice-camera" style="width:100%; height:100%; position:relative; transition: transform 0.8s cubic-bezier(0.2, 0.9, 0.3, 1); will-change: transform;">
+        
+        <!-- Spatial Scene Layer (16:9 Aspect Ratio) -->
+        <div id="rogue-choice-scene" class="aspect-ratio-16-9" style="position:absolute; top:0; left:0; width:100%; height:100%; overflow:hidden;">
+          
+          <!-- LEFT SCENERY: Dojo Entrance / Interior (Return to Dojo - Grayish / Nostalgic) -->
+          <div id="rogue-bg-left" style="position:absolute; top:-5%; left:-5%; width:55%; height:110%; background: url('bg_choice_dojo.jpg') center/cover no-repeat; filter: grayscale(60%) brightness(0.5) contrast(0.95); transition: filter 0.6s ease, transform 0.8s ease; pointer-events:none; mask-image: linear-gradient(to right, black 70%, transparent 100%); -webkit-mask-image: linear-gradient(to right, black 70%, transparent 100%);"></div>
 
-        <div class="modal-body-scroll">
-          <div class="saved-run-card" id="saved-run-info-box">
-            <img id="saved-run-hero-img" src="./heroes/tengu_face.jpg" alt="Champion" />
-            <div class="saved-run-details">
-              <strong id="saved-run-hero-name">Tengu</strong>
-              <div class="saved-run-meta">
-                <span id="saved-run-diff" class="pill-badge">Normal Difficulty</span>
+          <!-- RIGHT SCENERY: Living Map Trail with Torii & Nodes (Continue Journey - Highly Saturated / Vivid) -->
+          <div id="rogue-bg-right" style="position:absolute; top:-5%; right:-5%; width:55%; height:110%; background: url('bg_choice_map.jpg') center/cover no-repeat; filter: saturate(1.4) brightness(0.8) contrast(1.1); transition: filter 0.6s ease, transform 0.8s ease; pointer-events:none; mask-image: linear-gradient(to left, black 70%, transparent 100%); -webkit-mask-image: linear-gradient(to left, black 70%, transparent 100%);"></div>
+
+          <!-- Central Ambient Vignette & Mist -->
+          <div style="position:absolute; inset:0; background: radial-gradient(circle at 50% 50%, rgba(9,13,22,0.3) 0%, rgba(9,13,22,0.85) 100%); pointer-events:none; z-index:2;"></div>
+
+          <!-- ================= CENTER: ACTIVE EXPEDITION RUN INFO ================= -->
+          <div id="saved-run-info-box" class="rogue-run-plaque" style="position:absolute; top:8%; left:50%; transform:translateX(-50%); z-index:20; display:flex; flex-direction:column; align-items:center; text-align:center; pointer-events:none; transition: all 0.6s ease;">
+            <div style="background: rgba(15, 23, 42, 0.88); backdrop-filter: blur(12px); border: 1px solid rgba(251, 191, 36, 0.45); box-shadow: 0 10px 30px rgba(0,0,0,0.8), 0 0 20px rgba(245, 158, 11, 0.2); border-radius: 12px; padding: 0.8rem 2.2rem; min-width: 320px;">
+              <span data-i18n="rogue.choice_active_badge" style="font-size: 0.75rem; letter-spacing: 4px; text-transform: uppercase; color: #fbbf24; font-weight: 700; display: block; margin-bottom: 4px;">⚔️ EXPEDICIÓN ACTIVA</span>
+              <div style="display: flex; align-items: center; justify-content: center; gap: 0.6rem; margin-bottom: 6px;">
+                <span id="saved-run-hero-icon" style="font-size: 1.6rem;">🧙‍♂️</span>
+                <strong id="saved-run-hero-name" style="font-size: 1.5rem; color: #f8fafc; text-shadow: 0 2px 8px rgba(0,0,0,0.9); font-weight: 800;">Tengu</strong>
               </div>
-              <small id="saved-run-progress">📍 Expedition ready to resume</small>
+              <div style="display: flex; align-items: center; justify-content: center; gap: 0.8rem; font-size: 0.85rem;">
+                <span id="saved-run-diff" style="background: rgba(245, 158, 11, 0.2); color: #fcd34d; border: 1px solid rgba(245, 158, 11, 0.4); padding: 2px 10px; border-radius: 999px; font-weight: 600; display: inline-flex; align-items: center; gap: 6px;">
+                  <span class="diff-flame flame-normal" style="font-size: 1.1rem; vertical-align: middle;">🔥</span>
+                  <span>Medium</span>
+                </span>
+                <span style="color: rgba(255,255,255,0.3);">•</span>
+                <span id="saved-run-progress" style="color: #94a3b8; font-weight: 500;">📍 Nodo 3: Sabio de la Niebla</span>
+              </div>
+            </div>
+          </div>
+          
+          <!-- ================= LEFT: START NEW EXPEDITION (Return Home / Dojo - Grayish / Muted) ================= -->
+          <div id="btn-rogue-start-fresh" class="rogue-choice-item" style="position:absolute; top:5%; left:3%; width:38%; height:90%; cursor:pointer; z-index:15; display:flex; flex-direction:column; align-items:center; justify-content:flex-end;">
+            
+            <!-- Character seen from behind returning to the Dojo (tilted left) -->
+            <img id="rogue-hero-img-left" class="rogue-hero-img" src="./heroes/tengu_back.png" style="position:absolute; bottom:6%; max-height:82%; object-fit:contain; filter: grayscale(45%) brightness(0.7) drop-shadow(4px 8px 16px rgba(0,0,0,0.8)); transform: scaleX(-1) rotate(-3deg); transition: all 0.6s cubic-bezier(0.2, 0.9, 0.3, 1); pointer-events:none; transform-origin: bottom center;" />
+            
+            <!-- Diegetic Label / Glow -->
+            <div class="rogue-choice-label" style="text-align:center; margin-bottom:8%; transition: all 0.4s cubic-bezier(0.2, 0.9, 0.3, 1); opacity:0.92; transform:translateY(0px); pointer-events:none; z-index:25;">
+              <div data-i18n="rogue.choice_start_new_title" style="font-size:2.3rem; font-weight:900; color:#fca5a5; text-shadow: 0 4px 20px rgba(0,0,0,1), 0 0 25px rgba(239, 68, 68, 0.6); letter-spacing:2px; margin-bottom:4px;">NUEVA EXPEDICIÓN</div>
+              <div data-i18n="rogue.choice_start_new_sub" style="font-size:0.95rem; color:#fee2e2; text-shadow: 0 2px 10px rgba(0,0,0,1); background: rgba(0,0,0,0.75); padding: 4px 14px; border-radius: 6px; border: 1px solid rgba(239,68,68,0.35); display:inline-block;">Abandonar viaje actual y regresar al Dojo</div>
+            </div>
+          </div>
+          
+          <!-- ================= RIGHT: CONTINUE EXPEDITION (Advance Path - Full Vibrant Colors) ================= -->
+          <div id="btn-rogue-resume-active" class="rogue-choice-item" style="position:absolute; top:5%; right:3%; width:38%; height:90%; cursor:pointer; z-index:15; display:flex; flex-direction:column; align-items:center; justify-content:flex-end;">
+            
+            <!-- Character seen from behind walking along the node path in rich full color -->
+            <img id="rogue-hero-img-right" class="rogue-hero-img" src="./heroes/tengu_back.png" style="position:absolute; bottom:6%; max-height:82%; object-fit:contain; filter: saturate(1.25) brightness(0.9) drop-shadow(4px 8px 16px rgba(0,0,0,0.8)); transform: scale(1); transition: all 0.6s cubic-bezier(0.2, 0.9, 0.3, 1); pointer-events:none; transform-origin: bottom center;" />
+            
+            <!-- Diegetic Label / Glow -->
+            <div class="rogue-choice-label" style="text-align:center; margin-bottom:8%; transition: all 0.4s cubic-bezier(0.2, 0.9, 0.3, 1); opacity:0.92; transform:translateY(0px); pointer-events:none; z-index:25;">
+              <div data-i18n="rogue.choice_continue_title" style="font-size:2.3rem; font-weight:900; color:#34d399; text-shadow: 0 4px 20px rgba(0,0,0,1), 0 0 25px rgba(52, 211, 153, 0.6); letter-spacing:2px; margin-bottom:4px;">CONTINUAR EXPEDICIÓN</div>
+              <div data-i18n="rogue.choice_continue_sub" style="font-size:0.95rem; color:#d1fae5; text-shadow: 0 2px 10px rgba(0,0,0,1); background: rgba(0,0,0,0.75); padding: 4px 14px; border-radius: 6px; border: 1px solid rgba(52,211,153,0.35); display:inline-block;">Reanudar la marcha por el sendero del mapa</div>
             </div>
           </div>
 
-          <div class="choice-actions-container">
-            <button id="btn-rogue-resume-active" class="btn btn-choice-large btn-resume-run">
-              <div class="choice-large-icon">▶️</div>
-              <div class="choice-large-text">
-                <strong>Continue Expedition</strong>
-                <span>Resume match exactly where you left off</span>
-              </div>
-            </button>
-
-            <button id="btn-rogue-start-fresh" class="btn btn-choice-large btn-fresh-run">
-              <div class="choice-large-icon">🔄</div>
-              <div class="choice-large-text">
-                <strong>Start New Expedition</strong>
-                <span>Discard current run and choose a fresh champion</span>
-              </div>
-            </button>
-          </div>
-        </div>
-
-        <div class="modal-footer">
-          <button id="btn-rogue-choice-cancel" class="btn btn-modal-secondary">Return to Menu</button>
         </div>
       </div>
+      
+      <!-- Unobtrusive Return to Menu UI Button -->
+      <button id="btn-rogue-choice-cancel" class="btn" data-i18n="rogue.choice_return_menu" style="position:absolute; bottom:2rem; left:2rem; z-index:100; background:rgba(15, 23, 42, 0.75); border:1px solid rgba(255,255,255,0.2); color:#e2e8f0; padding:0.6rem 1.4rem; border-radius:8px; font-size:0.95rem; font-weight:600; cursor:pointer; backdrop-filter:blur(8px); transition: all 0.2s; box-shadow: 0 4px 12px rgba(0,0,0,0.5);">
+        🏠 Menú Principal
+      </button>
     </div>
+

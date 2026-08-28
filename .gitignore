@@ -25,3 +25,13 @@ CrazyGo_Portable/
 *.njsproj
 *.sln
 *.sw?
+
+# Scratch & Temporary
+scratch/
+*.rar
+recover_*.txt
+
+# ML Checkpoints and heavy dataset generation
+ml_training/checkpoints/*.pt
+ml_training/data/*.jsonl
+ml_training/data/*.npy

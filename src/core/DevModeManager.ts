@@ -56,23 +56,23 @@ export class DevModeManager {
     // ==================== PERMISOS ====================
 
     /**
-     * Undo/Redo: permitido en partidas locales y siempre si Dev Mode está activo.
+     * Undo/Redo: permitido en partidas locales, modo historia y siempre si Dev Mode está activo.
      */
     public static isUndoRedoAllowed(gameMode: GameMode): boolean {
         if (gameMode === 'online') return false;
         if (this._isDevMode) return true;
-        if (RoguelikeRunManager.isRunActive || gameMode === 'story') return false;
-        return gameMode === '1v1' || gameMode === '1via';
+        if (RoguelikeRunManager.isRunActive) return false;
+        return gameMode === '1v1' || gameMode === '1via' || gameMode === 'story';
     }
 
     /**
-     * Sandbox Testing Lab: disponible en partidas locales y en CUALQUIER modo si Dev Mode está activo.
+     * Sandbox Testing Lab: disponible en partidas locales, modo historia y en CUALQUIER modo si Dev Mode está activo.
      * Online: bloqueado siempre.
      */
     public static isSandboxAllowed(gameMode: GameMode): boolean {
         if (gameMode === 'online') return false;
         if (this._isDevMode) return true;
-        if (RoguelikeRunManager.isRunActive || gameMode === 'story') return false;
-        return gameMode === '1v1' || gameMode === '1via';
+        if (RoguelikeRunManager.isRunActive) return false;
+        return gameMode === '1v1' || gameMode === '1via' || gameMode === 'story';
     }
 }

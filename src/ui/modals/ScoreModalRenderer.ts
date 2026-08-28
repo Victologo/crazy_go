@@ -3,6 +3,7 @@ import type { ScoreReport, PlayerId, HeroId } from '../../types';
 import { TerritoryScorer } from '../../core/TerritoryScorer';
 import { RoguelikeRunManager } from '../../core/RoguelikeRunManager';
 import { t, translateEnemyName, getLanguage } from '../../i18n/i18n';
+import { SoundFX } from '../../audio/SoundFX';
 
 export class ScoreModalRenderer {
     public static showFinalScoreModal(
@@ -74,10 +75,12 @@ export class ScoreModalRenderer {
             if (title && subtitle) {
                 const isEn = getLanguage() === 'en';
                 if (report.winner !== 'draw' && report.winnerPlayerId) {
+                    SoundFX.playVictoryFanfare();
                     const meta = TerritoryScorer.PLAYER_META[report.winnerPlayerId];
                     title.innerText = isEn ? `Victory for ${meta.name}! ${meta.icon}` : `¡Victoria para ${meta.name}! ${meta.icon}`;
                     subtitle.innerText = `1º ${report.ranking[0].name} (${report.ranking[0].total} pts) • 2º ${report.ranking[1].name} (${report.ranking[1].total} pts) • 3º ${report.ranking[2]?.name || ''} • 4º ${report.ranking[3]?.name || ''}`;
                 } else {
+                    SoundFX.playPass();
                     title.innerText = t('score.draw');
                     subtitle.innerText = "Jigo";
                 }
@@ -99,6 +102,7 @@ export class ScoreModalRenderer {
                 modalScoreCard?.classList.add('modal-victory-unified');
 
                 if (humanWon) {
+                    SoundFX.playVictoryFanfare();
                     if (title) title.innerText = t('score.victory_goban');
                     starLeft?.classList.remove('hidden');
                     starRight?.classList.remove('hidden');
@@ -143,6 +147,7 @@ export class ScoreModalRenderer {
                         });
                     }
                 } else {
+                    SoundFX.playDefeatGong();
                     starLeft?.classList.add('hidden');
                     starRight?.classList.add('hidden');
                     rewardsSection?.classList.add('hidden');
@@ -161,12 +166,15 @@ export class ScoreModalRenderer {
 
                 if (title && subtitle) {
                     if (report.winner === 'black') {
+                        SoundFX.playVictoryFanfare();
                         title.innerText = t('score.winner_black');
                         subtitle.innerText = t('score.margin', { margin: report.margin });
                     } else if (report.winner === 'white') {
+                        SoundFX.playVictoryFanfare();
                         title.innerText = t('score.winner_white');
                         subtitle.innerText = t('score.margin_komi', { margin: report.margin });
                     } else {
+                        SoundFX.playPass();
                         title.innerText = t('score.draw');
                         subtitle.innerText = "Jigo";
                     }

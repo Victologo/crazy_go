@@ -47,84 +47,305 @@ export class RoguelikeMapGenerator {
      * Genera el árbol procedural de 6 niveles (Tiers 0 a 5) en un único mapa continuo que culmina en el Jefe Final.
      */
     public static generateMap(difficulty: RogueliteDifficulty): RoguelikeMap {
-        const nodesMap = new Map<string, MapNode>();
-        const tiers: MapNode[][] = [];
-
-        const shapes: BoardShape[] = ['square', 'eroded', 'islands_v1', 'islands_v2', 'cross', 'hourglass', 'geode', 'spiral', 'rings', 'star_5', 'star_6', 'triangle', 'hex', 'procedural'];
+        const shapes: BoardShape[] = ['square', 'volcano', 'sky', 'oni', 'eroded', 'islands_v1', 'islands_v2', 'cross', 'hourglass', 'geode', 'spiral', 'rings', 'star_5', 'star_6', 'triangle', 'hex', 'procedural'];
         const sizes: BoardSize[] = [9, 13, 19];
 
-        // Definición de la topología del grafo por niveles del Acto Único
-        interface NodeSpec {
-            id: string;
-            colIndex: number;
-            type: MapNodeType;
-            x: number; // Porcentaje horizontal
-            y: number; // Coordenada vertical en px
-            nextIds: string[];
+        // Longitud del mapa: entre 6 y 8 filas/pisos totales (6, 7 u 8 nodos por camino hasta el Boss)
+        const NUM_TIERS = 6 + Math.floor(Math.random() * 3); 
+        const NUM_LANES = 4; // Máximo 4 columnas horizontales (0, 1, 2, 3)
+        const laneX = [20, 40, 60, 80]; // % horizontal espaciado
+
+        // Generar coordenadas Y dinámicas (Boss siempre arriba en y=60, base abajo)
+        const stepY = 125;
+        const tierY: number[] = [];
+        for (let t = 0; t < NUM_TIERS; t++) {
+            tierY.push(60 + (NUM_TIERS - 1 - t) * stepY);
         }
 
-        const tierSpecs: NodeSpec[][] = [
-            // Tier 0 (Inicio - 2 Opciones iniciales: Batalla vs Mercader)
-            [
-                { id: '0-0', colIndex: 0, type: 'battle', x: 36, y: 700, nextIds: ['1-0'] },
-                { id: '0-1', colIndex: 1, type: 'shop',   x: 64, y: 700, nextIds: ['1-1'] }
-            ],
-            // Tier 1 (Carriles paralelos independientes)
-            [
-                { id: '1-0', colIndex: 0, type: 'battle', x: 36, y: 570, nextIds: ['2-0'] },
-                { id: '1-1', colIndex: 1, type: 'shrine', x: 64, y: 570, nextIds: ['2-0'] }
-            ],
-            // Tier 2 (Punto de Convergencia - Batalla de Go)
-            [
-                { id: '2-0', colIndex: 0, type: 'battle', x: 50, y: 440, nextIds: ['3-0', '3-1'] }
-            ],
-            // Tier 3 (Nueva Bifurcación: Santuario Místico vs Batalla de Go)
-            [
-                { id: '3-0', colIndex: 0, type: 'shrine', x: 36, y: 310, nextIds: ['4-0', '4-1'] },
-                { id: '3-1', colIndex: 1, type: 'battle', x: 64, y: 310, nextIds: ['4-1', '4-2'] }
-            ],
-            // Tier 4 (3 Caminos de Especialización: Bazar, Meditación, Batalla)
-            [
-                { id: '4-0', colIndex: 0, type: 'shop',   x: 24, y: 180, nextIds: ['5-0'] },
-                { id: '4-1', colIndex: 1, type: 'rest',   x: 50, y: 180, nextIds: ['5-0'] },
-                { id: '4-2', colIndex: 2, type: 'battle', x: 76, y: 180, nextIds: ['5-0'] }
-            ],
-            // Tier 5 (Jefe Final del Goban)
-            [
-                { id: '5-0', colIndex: 0, type: 'boss',   x: 50, y: 60,  nextIds: [] }
-            ]
-        ];
+        // Estructuras de aristas y nodos activos
+        const edges: Array<Array<{ from: number; to: number }>> = Array.from({ length: NUM_TIERS - 1 }, () => []);
+        const activeNodes: Array<Set<number>> = Array.from({ length: NUM_TIERS }, () => new Set<number>());
 
-        for (let tier = 0; tier < tierSpecs.length; tier++) {
-            const specList = tierSpecs[tier];
+        // El Jefe Final está en el último Tier (centrado en el Goban, carril 1 o 2 en x=50%)
+        const BOSS_LANE = 1;
+        activeNodes[NUM_TIERS - 1].add(BOSS_LANE);
+
+        // Validación matemática de cruces en X en el mismo nivel
+        const crossesAnyEdge = (tier: number, fromLane: number, toLane: number): boolean => {
+            for (const e of edges[tier]) {
+                if (fromLane < e.from && toLane > e.to) return true;
+                if (fromLane > e.from && toLane < e.to) return true;
+            }
+            return false;
+        };
+
+        // Validación para evitar redundancia (dos nodos del mismo nivel con idénticos destinos)
+        const createsRedundancy = (tier: number, fromLane: number, toLane: number): boolean => {
+            const currentTargets = new Set<number>();
+            for (const e of edges[tier]) {
+                if (e.from === fromLane) currentTargets.add(e.to);
+            }
+            currentTargets.add(toLane);
+
+            for (const otherLane of activeNodes[tier]) {
+                if (otherLane === fromLane) continue;
+                const otherTargets = new Set<number>();
+                for (const e of edges[tier]) {
+                    if (e.from === otherLane) otherTargets.add(e.to);
+                }
+                if (currentTargets.size > 1 && otherTargets.size > 1 && currentTargets.size === otherTargets.size) {
+                    let allSame = true;
+                    for (const t of currentTargets) {
+                        if (!otherTargets.has(t)) { allSame = false; break; }
+                    }
+                    if (allSame) return true;
+                }
+            }
+            return false;
+        };
+
+        // 1. INICIO DEL MAPA: Siempre exactamente 2 nodos de combate iniciales en Tier 0
+        const startPairOptions = [[1, 2], [0, 2], [1, 3], [0, 3]];
+        const startLanes = startPairOptions[Math.floor(Math.random() * startPairOptions.length)];
+        activeNodes[0].add(startLanes[0]);
+        activeNodes[0].add(startLanes[1]);
+
+        // 2. BIFURCACIÓN ELEGANTE TRAS EL PRIMER COMBATE (Tier 0 -> Tier 1):
+        // Al menos un nodo inicial se bifurca en 2 opciones para dar elección al jugador, manteniendo el mapa limpio
+        for (let i = 0; i < startLanes.length; i++) {
+            const sLane = startLanes[i];
+            const possibleTargets = [-1, 0, 1]
+                .map(d => sLane + d)
+                .filter(l => l >= 0 && l < NUM_LANES)
+                .filter(l => !crossesAnyEdge(0, sLane, l))
+                .filter(l => !createsRedundancy(0, sLane, l));
+
+            // El primer nodo se bifurca en 2 si es posible; el segundo puede tener 1 o 2
+            const maxConnections = (i === 0 || Math.random() < 0.4) ? 2 : 1;
+            let connected = 0;
+            for (const tLane of possibleTargets) {
+                if (connected >= maxConnections) break;
+                if (!crossesAnyEdge(0, sLane, tLane) && !createsRedundancy(0, sLane, tLane)) {
+                    if (!edges[0].some(e => e.from === sLane && e.to === tLane)) {
+                        edges[0].push({ from: sLane, to: tLane });
+                        activeNodes[1].add(tLane);
+                        connected++;
+                    }
+                }
+            }
+            if (connected === 0 && possibleTargets.length > 0) {
+                const target = possibleTargets[0];
+                edges[0].push({ from: sLane, to: target });
+                activeNodes[1].add(target);
+            }
+        }
+
+        // 3. CARVADO MINIMALISTA Y LIMPIO DE CAMINOS DESDE TIER 1 HASTA EL BOSS
+        // Tallamos exactamente 3 caminos principales limpios (máximo 2 salidas por nodo)
+        const tier1Lanes = Array.from(activeNodes[1]).sort((a, b) => a - b);
+        const NUM_MAIN_PATHS = 3;
+
+        for (let p = 0; p < NUM_MAIN_PATHS; p++) {
+            let currentLane = tier1Lanes[p % tier1Lanes.length];
+
+            for (let t = 1; t < NUM_TIERS - 1; t++) {
+                if (t === NUM_TIERS - 2) {
+                    // Penúltimo Tier hacia el Boss (Boss en BOSS_LANE)
+                    if (!crossesAnyEdge(t, currentLane, BOSS_LANE)) {
+                        if (!edges[t].some(e => e.from === currentLane && e.to === BOSS_LANE)) {
+                            edges[t].push({ from: currentLane, to: BOSS_LANE });
+                        }
+                    }
+                    activeNodes[t + 1].add(BOSS_LANE);
+                    currentLane = BOSS_LANE;
+                } else {
+                    const existingOutgoing = edges[t].filter(e => e.from === currentLane);
+                    if (existingOutgoing.length >= 2) {
+                        // Si el nodo ya tiene 2 salidas, seguir una de las existentes
+                        currentLane = existingOutgoing[Math.floor(Math.random() * existingOutgoing.length)].to;
+                        continue;
+                    }
+
+                    const candidates = [-1, 0, 1]
+                        .map(d => currentLane + d)
+                        .filter(l => l >= 0 && l < NUM_LANES)
+                        .filter(l => !crossesAnyEdge(t, currentLane, l))
+                        .filter(l => !createsRedundancy(t, currentLane, l));
+
+                    let nextLane: number;
+                    if (candidates.length > 0) {
+                        nextLane = candidates[Math.floor(Math.random() * candidates.length)];
+                    } else {
+                        const validFallback = [currentLane, currentLane - 1, currentLane + 1]
+                            .filter(l => l >= 0 && l < NUM_LANES)
+                            .find(l => !crossesAnyEdge(t, currentLane, l));
+                        nextLane = validFallback !== undefined ? validFallback : currentLane;
+                    }
+
+                    if (!edges[t].some(e => e.from === currentLane && e.to === nextLane)) {
+                        edges[t].push({ from: currentLane, to: nextLane });
+                    }
+                    activeNodes[t + 1].add(nextLane);
+                    currentLane = nextLane;
+                }
+            }
+        }
+
+        // 4. ASEGURAR SALIDAS LIMPIAS PARA TODOS LOS NODOS ACTIVOS
+        for (let t = 1; t < NUM_TIERS - 1; t++) {
+            for (const lane of activeNodes[t]) {
+                const hasOutgoing = edges[t].some(e => e.from === lane);
+                if (!hasOutgoing) {
+                    if (t === NUM_TIERS - 2) {
+                        edges[t].push({ from: lane, to: BOSS_LANE });
+                        activeNodes[t + 1].add(BOSS_LANE);
+                    } else {
+                        const candidates = [-1, 0, 1]
+                            .map(d => lane + d)
+                            .filter(l => l >= 0 && l < NUM_LANES)
+                            .filter(l => !crossesAnyEdge(t, lane, l));
+                        const target = candidates.length > 0 ? candidates[0] : lane;
+                        edges[t].push({ from: lane, to: target });
+                        activeNodes[t + 1].add(target);
+                    }
+                }
+            }
+        }
+
+        // 5. MAPEAR IDS DE NODOS
+        const laneToNodeId = new Map<string, string>();
+        const tiers: MapNode[][] = [];
+        const nodesMap = new Map<string, MapNode>();
+
+        for (let t = 0; t < NUM_TIERS; t++) {
+            const sortedLanes = Array.from(activeNodes[t]).sort((a, b) => a - b);
+            sortedLanes.forEach((lane, colIdx) => {
+                laneToNodeId.set(`${t}-${lane}`, `${t}-${colIdx}`);
+            });
+        }
+
+        // 5. ASIGNACIÓN INICIAL DE TIPOS DE NODOS CON RITMO ROGUELIKE ÓPTIMO
+        // Regla de Ritmo: la alternancia más común es Pelea -> Santuario/Tienda -> Pelea -> Santuario/Tienda/Descanso...
+        const nodeTypes = new Map<string, MapNodeType>();
+
+        for (let t = 0; t < NUM_TIERS; t++) {
+            const sortedLanes = Array.from(activeNodes[t]).sort((a, b) => a - b);
+
+            for (const lane of sortedLanes) {
+                const nodeId = laneToNodeId.get(`${t}-${lane}`)!;
+
+                if (t === NUM_TIERS - 1) {
+                    nodeTypes.set(nodeId, 'boss');
+                } else if (t === 0) {
+                    // Ambos nodos de inicio son siempre de pelea
+                    nodeTypes.set(nodeId, 'battle');
+                } else if (t === 1) {
+                    // Tier 1 (justo tras el inicio): muy común encontrar Santuario, Tienda o Pelea alternativa
+                    const roll = Math.random();
+                    if (roll < 0.45) nodeTypes.set(nodeId, 'shrine');
+                    else if (roll < 0.80) nodeTypes.set(nodeId, 'shop');
+                    else nodeTypes.set(nodeId, 'battle');
+                } else if (t === NUM_TIERS - 2) {
+                    // Penúltimo Tier antes del Jefe Final: descanso previo o santuario
+                    const roll = Math.random();
+                    if (roll < 0.50) nodeTypes.set(nodeId, 'rest');
+                    else if (roll < 0.80) nodeTypes.set(nodeId, 'shrine');
+                    else nodeTypes.set(nodeId, 'shop');
+                } else {
+                    // Tiers intermedios: distribución equilibrada
+                    const roll = Math.random();
+                    if (roll < 0.42) nodeTypes.set(nodeId, 'battle');
+                    else if (roll < 0.70) nodeTypes.set(nodeId, 'shrine');
+                    else if (roll < 0.88) nodeTypes.set(nodeId, 'shop');
+                    else nodeTypes.set(nodeId, 'rest');
+                }
+            }
+        }
+
+        // 6. VALIDACIÓN ESTRICTA DE PACING: NUNCA MÁS DE 2 PELEAS SEGUIDAS EN CUALQUIER RUTA
+        // Recorrer el grafo desde Tier 0 y evitar que un camino encadene 3 peleas consecutivas
+        const enforceNoThreeConsecutiveBattles = () => {
+            for (let t = 0; t < NUM_TIERS - 2; t++) {
+                for (const lane of activeNodes[t]) {
+                    const currentId = laneToNodeId.get(`${t}-${lane}`)!;
+                    if (nodeTypes.get(currentId) !== 'battle') continue;
+
+                    // Si este nodo es batalla, revisar sus destinos en t + 1
+                    for (const e of edges[t]) {
+                        if (e.from === lane) {
+                            const nextId = laneToNodeId.get(`${t + 1}-${e.to}`)!;
+                            if (nodeTypes.get(nextId) === 'battle') {
+                                // Dos batallas seguidas detectadas (Tier t y Tier t+1).
+                                // Todos los nodos sucesores en Tier t+2 NO pueden ser batalla
+                                if (t + 1 < NUM_TIERS - 2) {
+                                    for (const e2 of edges[t + 1]) {
+                                        if (e2.from === e.to) {
+                                            const thirdId = laneToNodeId.get(`${t + 2}-${e2.to}`)!;
+                                            if (nodeTypes.get(thirdId) === 'battle') {
+                                                nodeTypes.set(thirdId, Math.random() < 0.6 ? 'shrine' : 'shop');
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        };
+        enforceNoThreeConsecutiveBattles();
+
+        // 7. CONSTRUCCIÓN DE OBJETOS FINALES MapNode
+        for (let t = 0; t < NUM_TIERS; t++) {
             const tierNodes: MapNode[] = [];
+            const sortedLanes = Array.from(activeNodes[t]).sort((a, b) => a - b);
 
-            for (const spec of specList) {
-                const { title, icon, description } = this.getNodeMeta(spec.type, tier);
-                let battleConfig: StageBattleConfig | undefined = undefined;
+            sortedLanes.forEach((lane, colIdx) => {
+                const nodeId = laneToNodeId.get(`${t}-${lane}`)!;
+                const type = nodeTypes.get(nodeId) || 'battle';
 
-                if (spec.type === 'battle' || spec.type === 'boss') {
-                    battleConfig = this.generateBattleConfig(spec.type, tier, difficulty, shapes, sizes);
+                // Conexiones salientes hacia el siguiente tier
+                const nextConnectedNodeIds: string[] = [];
+                if (t < NUM_TIERS - 1) {
+                    for (const e of edges[t]) {
+                        if (e.from === lane) {
+                            const targetId = laneToNodeId.get(`${t + 1}-${e.to}`);
+                            if (targetId && !nextConnectedNodeIds.includes(targetId)) {
+                                nextConnectedNodeIds.push(targetId);
+                            }
+                        }
+                    }
                 }
 
+                const { title, icon, description } = this.getNodeMeta(type, t);
+                let battleConfig: StageBattleConfig | undefined = undefined;
+
+                if (type === 'battle' || type === 'boss') {
+                    battleConfig = this.generateBattleConfig(type, t, NUM_TIERS, difficulty, shapes, sizes);
+                }
+
+                // Coordenada X (centrada en 50% para el Boss, de 20% a 80% para las columnas)
+                const x = t === NUM_TIERS - 1 ? 50 : laneX[lane];
+
                 const node: MapNode = {
-                    id: spec.id,
-                    tier,
-                    colIndex: spec.colIndex,
-                    type: spec.type,
+                    id: nodeId,
+                    tier: t,
+                    colIndex: colIdx,
+                    type,
                     title,
                     icon,
                     description,
-                    status: tier === 0 ? 'available' : 'locked', // Nodos de inicio disponibles
+                    status: t === 0 ? 'available' : 'locked',
                     battleConfig,
-                    nextConnectedNodeIds: spec.nextIds,
-                    x: spec.x,
-                    y: spec.y
+                    nextConnectedNodeIds,
+                    x,
+                    y: tierY[t]
                 };
 
-                nodesMap.set(spec.id, node);
+                nodesMap.set(nodeId, node);
                 tierNodes.push(node);
-            }
+            });
+
             tiers.push(tierNodes);
         }
 
@@ -174,6 +395,7 @@ export class RoguelikeMapGenerator {
     private static generateBattleConfig(
         type: MapNodeType, 
         tier: number, 
+        totalTiers: number,
         difficulty: RogueliteDifficulty,
         shapes: BoardShape[], 
         _sizes: BoardSize[]
@@ -184,36 +406,48 @@ export class RoguelikeMapGenerator {
         let shape: BoardShape = 'square';
         let goldReward = 30 + tier * 15;
 
-        // Dificultad escalada paso a paso según la selección y el tier
-        if (difficulty === 'easy') {
-            const ranks = ['30 Kyu', '27 Kyu', '25 Kyu', '24 Kyu', '22 Kyu', '👑 20 Kyu'];
-            rankLabel = ranks[tier] || '25 Kyu';
-            aiDifficulty = tier >= 4 ? 'medium' : 'easy';
-            size = tier >= 4 ? 13 : 9;
-            shape = tier === 0 ? 'square' : shapes[tier % shapes.length];
-        } else if (difficulty === 'normal') {
-            const ranks = ['22 Kyu', '18 Kyu', '15 Kyu', '12 Kyu', '10 Kyu', '👑 8 Kyu'];
-            rankLabel = ranks[tier] || '15 Kyu';
-            aiDifficulty = tier >= 4 ? 'hard' : 'medium';
-            size = tier >= 4 ? 13 : (tier >= 2 ? 13 : 9);
-            shape = shapes[tier % shapes.length];
-        } else if (difficulty === 'hard') {
-            const ranks = ['8 Kyu', '6 Kyu', '4 Kyu', '2 Kyu', '1 Kyu', '👑 1 Dan'];
-            rankLabel = ranks[tier] || '4 Kyu';
-            aiDifficulty = tier >= 4 ? 'dan' : 'hard';
-            size = tier >= 3 ? 19 : 13;
-            shape = shapes[tier % shapes.length];
+        // Progresión Canónica de Tamaño de Tablero en Roguelike:
+        // Tier 0 y 1: 9x9 (Inicio)
+        // Tiers intermedios (ej. 2, 3 o 2, 3, 4): 13x13 (Medio)
+        // Tiers finales y Jefe Boss: 19x19
+        const midCutoff = Math.floor((totalTiers - 2) / 2) + 1;
+        if (tier <= 1) {
+            size = 9;
+        } else if (tier <= midCutoff) {
+            size = 13;
         } else {
-            const ranks = ['1 Dan', '2 Dan', '3 Dan', '4 Dan', '5 Dan', '👑 6 Dan Pro'];
-            rankLabel = ranks[tier] || '3 Dan';
-            aiDifficulty = 'dan';
             size = 19;
-            shape = shapes[tier % shapes.length];
         }
+
+        // Dificultad escalada de IA y Rangos según la selección de dificultad
+        // Se suma 1 rango (1 kyu/dan) por cada tier
+        const kyuDanToString = (val: number): string => {
+            if (val <= 30) return `${31 - val}k`;
+            return `${val - 30}d`;
+        };
+
+        // Valores iniciales (1 a 40, donde 1 = 30k, 16 = 15k, 31 = 1d)
+        // Fácil empieza en 26k (valor 5)
+        // Normal empieza en 14k (valor 17)
+        // Difícil empieza en 3k (valor 28)
+        // Extremo empieza en 7d (valor 37)
+        let baseValue = 5; 
+        if (difficulty === 'easy') baseValue = 5;
+        else if (difficulty === 'normal') baseValue = 17;
+        else if (difficulty === 'hard') baseValue = 28;
+        else baseValue = 37;
+
+        // Sumar 1 nivel por cada Tier
+        const currentLvlValue = Math.min(40, baseValue + tier);
+        
+        const rankStr = kyuDanToString(currentLvlValue);
+        rankLabel = type === 'boss' ? `👑 ${rankStr} (Jefe)` : `${rankStr}`;
+        aiDifficulty = rankStr;
+        shape = shapes[tier % shapes.length];
 
         if (type === 'boss') {
             goldReward += 100;
-            size = difficulty === 'easy' ? 13 : 19;
+            size = 19;
             shape = 'square';
         }
 

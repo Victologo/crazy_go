@@ -1,8 +1,10 @@
 // graphics/vfx/AlchemistVFX.ts - Efectos Visuales de Transmutación Alquímica
 import { GlobalSettings } from '../../core/GlobalSettings';
+import { SoundFX } from '../../audio/SoundFX';
 
 export class AlchemistVFX {
     public static triggerTransmuteSlash(targetPos: { x: number; y: number }, svgElement: SVGSVGElement) {
+        SoundFX.playAlchemicalTransmute();
         if (!GlobalSettings.particlesEnabled) return;
 
         const g = document.createElementNS('http://www.w3.org/2000/svg', 'g');

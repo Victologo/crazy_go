@@ -3,6 +3,7 @@ import { RoguelikeRunManager } from '../core/RoguelikeRunManager';
 import { TutorialManager } from '../tutorial/TutorialManager';
 import { NetworkManager } from '../network/NetworkManager';
 import { GameState } from '../core/GameState';
+import { ChampionManager } from '../core/ChampionManager';
 import { t, translateEnemyName, getLanguage } from '../i18n/i18n';
 
 export class DuelistRenderer {
@@ -27,6 +28,13 @@ export class DuelistRenderer {
 
         if (TutorialManager.isActive) {
             this.renderTutorialDuelists(playerCard, enemyCard, multiEnemyCard, heroId);
+            return;
+        }
+
+        if (gameMode === 'story') {
+            playerCard.classList.add('hidden');
+            enemyCard.classList.add('hidden');
+            if (multiEnemyCard) multiEnemyCard.classList.add('hidden');
             return;
         }
 
@@ -66,8 +74,20 @@ export class DuelistRenderer {
         }
 
         // Player 1 (Left Standee)
-        const p1HeroId = heroId || 'normal';
-        const hero = RoguelikeRunManager.HEROES[p1HeroId] || RoguelikeRunManager.HEROES['normal'];
+        let p1HeroId = heroId || 'normal';
+        let configEnemyHeroIds: Record<number, any> = enemyHeroIds || {};
+
+        if (gameMode === 'online' && NetworkManager.currentConfig) {
+            const hostColor = NetworkManager.currentConfig.hostColor || 1;
+            const guestHeroes = NetworkManager.currentConfig.guestHeroes || {};
+            p1HeroId = (hostColor === 1 ? NetworkManager.currentConfig.hostHero : guestHeroes[1]) || 'normal';
+            
+            [2, 3, 4].forEach(pid => {
+                configEnemyHeroIds[pid] = (hostColor === pid ? NetworkManager.currentConfig!.hostHero : guestHeroes[pid as PlayerId]) || 'normal';
+            });
+        }
+
+        const hero = RoguelikeRunManager.HEROES[p1HeroId as HeroId] || RoguelikeRunManager.HEROES['normal'];
         if (pImg && hero) {
             pImg.src = hero.image;
             pImg.classList.toggle('hero-normal-img', p1HeroId === 'normal');
@@ -77,8 +97,6 @@ export class DuelistRenderer {
             const hName = t(`champion.${p1HeroId}.name`) || hero.name;
             pName.innerText = gameMode === '1via' ? hName : `${hName} (${t('hud.player_num', { num: 1 })})`;
         }
-
-        let configEnemyHeroIds: Record<number, any> = enemyHeroIds || {};
 
         // Mapeo dinámico de posiciones de rotación en 4P:
         // El jugador activo está al frente (pos-front); el siguiente en turno rota atrás a la derecha (pos-back-right); el otro atrás a la izquierda (pos-back-left).
@@ -167,6 +185,13 @@ export class DuelistRenderer {
             if (pTitle) pTitle.innerText = '';
         }
 
+        const pSub = document.getElementById('duel-player-sub');
+        if (pSub) {
+            const isEn = getLanguage() === 'en';
+            pSub.innerText = isEn ? 'Dojo Apprentice • Fundamentals' : 'Aprendiz del Dojo • Fundamentos';
+            pSub.classList.remove('hidden');
+        }
+
         const enemyRoleTag = enemyCard.querySelector('.duel-role-tag') as HTMLElement | null;
         if (enemyRoleTag) enemyRoleTag.innerText = t('hud.role_dojo_master');
 
@@ -227,6 +252,17 @@ export class DuelistRenderer {
             if (pName && hero) pName.innerText = t(`champion.${targetHero}.name`) || hero.name;
             if (pTitle) pTitle.innerText = '';
 
+            const pSub = document.getElementById('duel-player-sub');
+            if (pSub) {
+                const isEn = getLanguage() === 'en';
+                if (targetHero === 'normal') {
+                    pSub.innerText = isEn ? '2 Rewinds' : '2 Rebobinares';
+                    pSub.classList.remove('hidden');
+                } else {
+                    pSub.classList.add('hidden');
+                }
+            }
+
             const eImg = document.getElementById('duel-enemy-img') as HTMLImageElement | null;
             const eIcon = document.getElementById('duel-enemy-icon-badge');
             const eName = document.getElementById('duel-enemy-name');
@@ -270,6 +306,17 @@ export class DuelistRenderer {
                 if (pIcon) pIcon.innerText = '👤';
                 if (pName) pName.innerText = `${t('hud.player_you')}`;
                 if (pTitle) pTitle.innerText = '';
+            }
+
+            const pSub = document.getElementById('duel-player-sub');
+            if (pSub) {
+                const isEn = getLanguage() === 'en';
+                if (!heroId || heroId === 'normal') {
+                    pSub.innerText = isEn ? '2 Rewinds' : '2 Rebobinares';
+                    pSub.classList.remove('hidden');
+                } else {
+                    pSub.classList.add('hidden');
+                }
             }
 
             const eImg = document.getElementById('duel-enemy-img') as HTMLImageElement | null;
@@ -337,10 +384,6 @@ export class DuelistRenderer {
                 enemyCard.setAttribute('data-hero', 'none');
             }
 
-            const eSkillBadge = document.getElementById('duel-enemy-skill-badge');
-            const eSkillIcon = document.getElementById('duel-enemy-skill-icon');
-            const eSkillText = document.getElementById('duel-enemy-skill-text');
-
             if (eImg) {
                 eImg.src = aiImage;
                 eImg.classList.toggle('hero-boss-img', enemyCard.getAttribute('data-hero') === 'boss' || difficulty === 'dan');
@@ -350,39 +393,6 @@ export class DuelistRenderer {
             if (eName) eName.innerText = translateEnemyName(aiName);
             if (eRank) eRank.innerText = aiRank;
 
-            // Renderizar placa de habilidad única del rival si posee poderes especiales
-            if (eSkillBadge && eSkillIcon && eSkillText) {
-                const isEn = getLanguage() === 'en';
-                const currentEnemyHero = enemyCard.getAttribute('data-hero');
-                if (currentEnemyHero === 'boss' || difficulty === 'dan') {
-                    eSkillBadge.classList.remove('hidden');
-                    eSkillIcon.innerText = '🐉';
-                    eSkillText.innerText = isEn ? 'Calcinating Breath' : 'Aliento Calcinante';
-                    eSkillBadge.title = isEn 
-                        ? '🐉 Calcinating Breath: Incinerates 25% of the board in a corner quadrant.' 
-                        : '🐉 Aliento Calcinante: Calcina el 25% del tablero en una esquina.';
-                } else if (currentEnemyHero && currentEnemyHero !== 'none' && currentEnemyHero !== 'normal') {
-                    eSkillBadge.classList.remove('hidden');
-                    const heroSkillMap: Record<string, { icon: string; nameEs: string; nameEn: string; descEs: string; descEn: string }> = {
-                        kitsune: { icon: '🦊', nameEs: 'Escudo Divino', nameEn: 'Divine Shield', descEs: 'Protege piedras clave haciéndolas inmunes a capturas.', descEn: 'Protects key stones making them immune to capture.' },
-                        tengu: { icon: '👺', nameEs: 'Lluvia Meteórica', nameEn: 'Meteor Strike', descEs: 'Arrasa un área de piedras enemigas con meteoritos.', descEn: 'Devastates enemy stones with a falling meteor shower.' },
-                        ryujin: { icon: '🐉', nameEs: 'Furia del Dragón', nameEn: 'Dragon Fury', descEs: 'Quema piedras rivales inmediatamente al consolidar ojos.', descEn: 'Incinerates enemy stones when making eyes.' },
-                        ronin: { icon: '🗡️', nameEs: 'Tajo del Samurai', nameEn: 'Samurai Slash', descEs: 'Transmuta piedras enemigas al instante con precisión de acero.', descEn: 'Transmutes enemy stones instantly with steel precision.' },
-                        alchemist: { icon: '⚗️', nameEs: 'Inversión Cromática', nameEn: 'Chromatic Inversion', descEs: 'Transmuta piedras enemigas sin ceder el turno.', descEn: 'Transmutes enemy stones without yielding turn.' },
-                        himiko: { icon: '👑', nameEs: 'Lluvia Pétrea', nameEn: 'Stone Rain', descEs: 'Invoca refuerzos masivos celestiales sobre el Goban.', descEn: 'Summons celestial stone reinforcements onto the Goban.' }
-                    };
-                    const sInfo = heroSkillMap[currentEnemyHero];
-                    if (sInfo) {
-                        eSkillIcon.innerText = sInfo.icon;
-                        eSkillText.innerText = isEn ? sInfo.nameEn : sInfo.nameEs;
-                        eSkillBadge.title = isEn ? `${sInfo.icon} ${sInfo.nameEn}: ${sInfo.descEn}` : `${sInfo.icon} ${sInfo.nameEs}: ${sInfo.descEs}`;
-                    } else {
-                        eSkillBadge.classList.add('hidden');
-                    }
-                } else {
-                    eSkillBadge.classList.add('hidden');
-                }
-            }
         } else {
             const pImg = document.getElementById('duel-player-img') as HTMLImageElement | null;
             const pIcon = document.getElementById('duel-player-icon-badge');
@@ -396,16 +406,17 @@ export class DuelistRenderer {
 
             if (gameMode === 'online') {
                 const myColor = NetworkManager.assignedColor || 1;
+                const hostColor = NetworkManager.currentConfig?.hostColor || 1;
                 const oppColor = (myColor === 1 ? 2 : 1) as PlayerId;
                 const guestHeroes = NetworkManager.currentConfig?.guestHeroes || {};
-                const myHeroKey = heroId || (myColor === 1 ? NetworkManager.currentConfig?.hostHero : guestHeroes[myColor]) || 'normal';
-                const oppHeroKey = (oppColor === 1 ? NetworkManager.currentConfig?.hostHero : guestHeroes[oppColor]) || 'kitsune';
+                const myHeroKey = heroId || (myColor === hostColor ? NetworkManager.currentConfig?.hostHero : guestHeroes[myColor]) || 'normal';
+                const oppHeroKey = (oppColor === hostColor ? NetworkManager.currentConfig?.hostHero : guestHeroes[oppColor]) || 'normal';
 
                 playerCard.setAttribute('data-hero', myHeroKey);
                 enemyCard.setAttribute('data-hero', oppHeroKey);
 
                 const myHero = RoguelikeRunManager.HEROES[myHeroKey as HeroId] || RoguelikeRunManager.HEROES['normal'];
-                const oppHero = RoguelikeRunManager.HEROES[oppHeroKey as HeroId] || RoguelikeRunManager.HEROES['kitsune'];
+                const oppHero = RoguelikeRunManager.HEROES[oppHeroKey as HeroId] || RoguelikeRunManager.HEROES['normal'];
 
                 if (pImg && myHero) {
                     pImg.src = myHero.image;
@@ -422,6 +433,17 @@ export class DuelistRenderer {
                 if (eIcon && oppHero) eIcon.innerText = oppHero.icon;
                 if (eName && oppHero) eName.innerText = `${t(`champion.${oppHeroKey}.name`) || oppHero.name} (${t('hud.player_rival')})`;
                 if (eRank) eRank.innerText = oppColor === 1 ? t('hud.turn_black') : t('hud.turn_white');
+
+                const pSub = document.getElementById('duel-player-sub');
+                if (pSub) {
+                    const isEn = getLanguage() === 'en';
+                    if (myHeroKey === 'normal') {
+                        pSub.innerText = isEn ? '2 Rewinds' : '2 Rebobinares';
+                        pSub.classList.remove('hidden');
+                    } else {
+                        pSub.classList.add('hidden');
+                    }
+                }
             } else {
                 // 1v1 Local Mode
                 const p1HeroId = heroId || 'normal';
@@ -443,7 +465,68 @@ export class DuelistRenderer {
                 if (eIcon && p2Hero) eIcon.innerText = rivalIcon || p2Hero.icon;
                 if (eName && p2Hero) eName.innerText = rivalName ? translateEnemyName(rivalName) : `${t(`champion.${p2HeroId}.name`) || p2Hero.name} (${t('hud.player_num', { num: 2 })})`;
                 if (eRank) eRank.innerText = t('hud.player_white');
+
+                const pSub = document.getElementById('duel-player-sub');
+                if (pSub) {
+                    const isEn = getLanguage() === 'en';
+                    if (p1HeroId === 'normal') {
+                        pSub.innerText = isEn ? '2 Rewinds' : '2 Rebobinares';
+                        pSub.classList.remove('hidden');
+                    } else {
+                        pSub.classList.add('hidden');
+                    }
+                }
             }
+        }
+        
+        this.renderEnemySkillBadge(enemyCard, difficulty);
+    }
+
+    private static renderEnemySkillBadge(enemyCard: HTMLElement, difficulty?: AIDifficulty) {
+        const eSkillBadge = document.getElementById('duel-enemy-skill-badge');
+        const eSkillIcon = document.getElementById('duel-enemy-skill-icon');
+        const eSkillText = document.getElementById('duel-enemy-skill-text');
+
+        if (!eSkillBadge || !eSkillText) return;
+
+        const isEn = getLanguage() === 'en';
+        const currentEnemyHero = enemyCard.getAttribute('data-hero');
+
+        if (eSkillIcon) {
+            eSkillIcon.style.display = 'none'; // El contenido enriquecido se renderiza en eSkillText
+        }
+
+        if (currentEnemyHero === 'boss' || difficulty === 'dan') {
+            eSkillBadge.classList.remove('hidden');
+            const name = isEn ? 'Calcinating Breath' : 'Aliento Calcinante';
+            const formula = isEn ? 'Incinerates 25% corner quadrant' : 'Calcina el 25% del tablero en una esquina';
+            eSkillText.innerHTML = `<span class="duel-skill-name">🐉 ${name}</span><span class="duel-skill-formula">${formula}</span>`;
+            eSkillBadge.title = `🐉 ${name}: ${formula}`;
+        } else if (currentEnemyHero && currentEnemyHero !== 'none' && currentEnemyHero !== 'normal') {
+            eSkillBadge.classList.remove('hidden');
+            const hero = RoguelikeRunManager.HEROES[currentEnemyHero as HeroId];
+            const activeSkill = ChampionManager.ACTIVE_SKILLS[currentEnemyHero as HeroId];
+            const passiveSkill = ChampionManager.PASSIVE_SKILLS[currentEnemyHero as HeroId];
+            
+            let skillName = '';
+            let combatFormula = '';
+            let skillIcon = hero?.icon || '⚡';
+
+            if (hero && hero.skillType === 'active' && activeSkill) {
+                const rawSkillName = t(`champion.${currentEnemyHero}.active_name`) || activeSkill.name;
+                skillName = rawSkillName.replace(/^[^\p{L}\p{N}]+/u, '').replace(/\s*\(\d+\s*(?:uso|usos|use|uses)?\)/gi, '').trim();
+                combatFormula = t(`champion.${currentEnemyHero}.combat_formula`) || t(`champion.${currentEnemyHero}.active_desc`) || activeSkill.description || '';
+                skillIcon = activeSkill.icon;
+            } else {
+                skillName = t(`champion.${currentEnemyHero}.passive_name`) || passiveSkill?.name || 'Pasiva';
+                combatFormula = t(`champion.${currentEnemyHero}.combat_formula`) || t(`champion.${currentEnemyHero}.passive_desc`) || passiveSkill?.description || '';
+                skillIcon = hero?.icon || '⚡';
+            }
+
+            eSkillText.innerHTML = `<span class="duel-skill-name">${skillIcon} ${skillName}</span><span class="duel-skill-formula">${combatFormula}</span>`;
+            eSkillBadge.title = `${skillIcon} ${skillName}: ${combatFormula}`;
+        } else {
+            eSkillBadge.classList.add('hidden');
         }
     }
 }

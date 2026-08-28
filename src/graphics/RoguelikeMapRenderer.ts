@@ -22,11 +22,38 @@ export class RoguelikeMapRenderer {
         const mapWrapper = document.createElement('div');
         mapWrapper.className = 'rogue-map-scroll-wrapper';
 
-        // 1. Crear capa SVG para las líneas de camino (Sumi-e Paths)
+        // 1. Añadir partículas de cenizas vivas en la atmósfera del mapa
+        const embersLayer = document.createElement('div');
+        embersLayer.className = 'map-embers-layer';
+        for (let i = 0; i < 16; i++) {
+            const ember = document.createElement('div');
+            ember.className = 'map-ember';
+            ember.style.left = `${Math.random() * 90 + 5}%`;
+            ember.style.top = `${Math.random() * 85}%`;
+            const size = Math.random() * 4 + 2.5;
+            ember.style.width = `${size}px`;
+            ember.style.height = `${size}px`;
+            ember.style.animationDelay = `${Math.random() * 3.5}s`;
+            ember.style.animationDuration = `${Math.random() * 2 + 2.8}s`;
+            embersLayer.appendChild(ember);
+        }
+        mapWrapper.appendChild(embersLayer);
+
+        // 3. Calcular altura dinámica del mapa según el número de tiers
+        let maxY = 750;
+        for (const node of map.nodes.values()) {
+            if (node.y > maxY) maxY = node.y;
+        }
+        const stageHeight = maxY + 80;
+        mapWrapper.style.height = `${stageHeight + 40}px`;
+        mapWrapper.style.minHeight = `${stageHeight + 40}px`;
+
+        // 4. Crear capa SVG para las líneas de camino (Sumi-e Paths)
         const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
         svg.setAttribute('class', 'rogue-map-svg-connections');
-        svg.setAttribute('viewBox', '0 0 1000 800');
+        svg.setAttribute('viewBox', `0 0 1000 ${stageHeight}`);
         svg.setAttribute('preserveAspectRatio', 'none');
+        svg.style.height = `${stageHeight}px`;
 
         // Dibujar conexiones entre nodos
         for (const [_, node] of map.nodes.entries()) {
@@ -46,16 +73,23 @@ export class RoguelikeMapRenderer {
                     path.setAttribute('d', d);
 
                     const isTraversed = node.status === 'completed' && (nextNode.status === 'completed' || nextNode.status === 'available' || nextNode.status === 'current');
-                    path.setAttribute('class', `rogue-map-path ${isTraversed ? 'path-traversed' : ''}`);
+                    const isAvailable = (node.status === 'completed' || node.status === 'current') && nextNode.status === 'available';
+
+                    let pathClass = 'rogue-map-path';
+                    if (isTraversed) pathClass += ' path-traversed';
+                    else if (isAvailable) pathClass += ' path-available';
+
+                    path.setAttribute('class', pathClass);
                     svg.appendChild(path);
                 }
             }
         }
         mapWrapper.appendChild(svg);
 
-        // 2. Crear capa de Nodos Interactivos (HTML Elements sobre el pergamino)
+        // 5. Crear capa de Nodos Interactivos (HTML Elements sobre el pergamino)
         const nodesContainer = document.createElement('div');
         nodesContainer.className = 'rogue-map-nodes-layer';
+        nodesContainer.style.height = `${stageHeight}px`;
 
         for (const [_, node] of map.nodes.entries()) {
             const nodeEl = document.createElement('button');

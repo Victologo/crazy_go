@@ -67,7 +67,7 @@ export class HimikoVFX {
 
                     // ¡EMERGE LA PIEDRA FÍSICA EN LA CASILLA INMEDIATAMENTE!
                     onStoneImpact(idx);
-                    SoundFX.playPlaceStone();
+                    SoundFX.playCelestialDrop();
                     
                     const boardTarget = document.getElementById('board-container') || document.getElementById('game-screen');
                     if (boardTarget) {

@@ -1,5 +1,5 @@
 /* style.css - Crazy Go Modern Design System (Light / Dark Mode) */
-@import url('https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@700;900&family=JetBrains+Mono:wght@400;500;700&family=Outfit:wght@300;400;500;600;700;800&family=Shippori+Mincho:wght@600;800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@700;900&family=Cinzel:wght@600;700;800;900&family=JetBrains+Mono:wght@400;500;600;700&family=Outfit:wght@300;400;500;600;700;800&family=Shippori+Mincho:wght@500;600;700;800&display=swap');
 
 :root {
   /* MODO OSCURO (POR DEFECTO - Pizarra Obsidiana & Slate) */
@@ -32,8 +32,12 @@
   --hoshi-color: #6b7280;
 
   --font-main: 'Outfit', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font-base: var(--font-main);
+  --font-body: var(--font-main);
   --font-mono: 'JetBrains Mono', monospace;
-  --font-oriental: 'Cinzel Decorative', 'Shippori Mincho', serif;
+  --font-oriental: 'Cinzel Decorative', 'Shippori Mincho', 'Cinzel', serif;
+  --font-display: 'Cinzel Decorative', 'Shippori Mincho', 'Cinzel', serif;
+  --font-serif: 'Shippori Mincho', 'Cinzel', serif;
 
   --radius-sm: 6px;
   --radius-md: 10px;
@@ -46,4 +50,9 @@
   --shadow-lg: 0 10px 30px -5px rgba(0,0,0,0.6);
   --shadow-glow-gold: 0 0 25px rgba(245, 158, 11, 0.2);
   --shadow-glow-cyan: 0 0 25px rgba(6, 182, 212, 0.25);
+
+  /* CURSORES VECTORIALES ANCESTRALES (Templo Zen & Go) */
+  --cursor-default: url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI0OCIgaGVpZ2h0PSI0OCIgdmlld0JveD0iMCAwIDQ4IDQ4IiBmaWxsPSJub25lIj4KICA8ZyB0cmFuc2Zvcm09InNjYWxlKDEuNSkiPgogICAgPHBhdGggZD0iTTMgMiBMMjIgMTQgTDE0IDE2IEwxMCAyNiBaIiBmaWxsPSJyZ2JhKDAsMCwwLDAuNTUpIiBmaWx0ZXI9ImJsdXIoMXB4KSIgdHJhbnNmb3JtPSJ0cmFuc2xhdGUoMSwgMS41KSIvPgogICAgPHBhdGggZD0iTTMgMiBMMjIgMTQgTDE0IDE2IEwxMCAyNiBaIiBmaWxsPSIjMGMwZjE3IiBzdHJva2U9IiNmYmJmMjQiIHN0cm9rZS13aWR0aD0iMS42IiBzdHJva2UtbGluZWpvaW49InJvdW5kIi8+CiAgICA8cGF0aCBkPSJNNSA1IEwxNyAxMi41IEwxMyAxMy41IFoiIGZpbGw9IiNmZWYwOGEiIG9wYWNpdHk9IjAuOSIvPgogICAgPGNpcmNsZSBjeD0iMTEiIGN5PSIxMSIgcj0iMS41IiBmaWxsPSIjZjU5ZTBiIi8+CiAgPC9nPgo8L3N2Zz4K') 4 3, default;
+  --cursor-pointer: url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI0OCIgaGVpZ2h0PSI0OCIgdmlld0JveD0iMCAwIDQ4IDQ4IiBmaWxsPSJub25lIj4KICA8ZyB0cmFuc2Zvcm09InNjYWxlKDEuNSkiPgogICAgPGNpcmNsZSBjeD0iMTIiIGN5PSIxMiIgcj0iOC41IiBmaWxsPSJyZ2JhKDI0NSwxNTgsMTEsMC4zKSIgZmlsdGVyPSJibHVyKDJweCkiLz4KICAgIDxwYXRoIGQ9Ik00IDIgTDIyIDEzIEwxNCAxNSBMMTAgMjUgWiIgZmlsbD0icmdiYSgwLDAsMCwwLjYpIiBmaWx0ZXI9ImJsdXIoMXB4KSIgdHJhbnNmb3JtPSJ0cmFuc2xhdGUoMSwgMS41KSIvPgogICAgPHBhdGggZD0iTTQgMiBMMjIgMTMgTDE0IDE1IEwxMCAyNSBaIiBmaWxsPSIjZjU5ZTBiIiBzdHJva2U9IiNmZmZmZmYiIHN0cm9rZS13aWR0aD0iMS44IiBzdHJva2UtbGluZWpvaW49InJvdW5kIi8+CiAgICA8Y2lyY2xlIGN4PSIxMiIgY3k9IjEyIiByPSI0LjIiIGZpbGw9IiNmZmZmZmYiIHN0cm9rZT0iI2I0NTMwOSIgc3Ryb2tlLXdpZHRoPSIxLjIiLz4KICAgIDxjaXJjbGUgY3g9IjEwLjgiIGN5PSIxMC44IiByPSIxLjYiIGZpbGw9IiNmZWYwOGEiLz4KICA8L2c+Cjwvc3ZnPgo=') 6 3, default;
+  --cursor-grab: url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI0OCIgaGVpZ2h0PSI0OCIgdmlld0JveD0iMCAwIDQ4IDQ4IiBmaWxsPSJub25lIj4KICA8ZyB0cmFuc2Zvcm09InNjYWxlKDEuNSkiPgogICAgPGNpcmNsZSBjeD0iMTYiIGN5PSIxNiIgcj0iMTAiIGZpbGw9Im5vbmUiIHN0cm9rZT0iI2ZiYmYyNCIgc3Ryb2tlLXdpZHRoPSIxLjUiIHN0cm9rZS1kYXNoYXJyYXk9IjMgMiIvPgogICAgPGNpcmNsZSBjeD0iMTYiIGN5PSIxNiIgcj0iNiIgZmlsbD0iIzFlMjkzYiIgc3Ryb2tlPSIjZmJiZjI0IiBzdHJva2Utd2lkdGg9IjEuNSIvPgogICAgPGNpcmNsZSBjeD0iMTQiIGN5PSIxNCIgcj0iMiIgZmlsbD0iIzk0YTNiOCIgb3BhY2l0eT0iMC42Ii8+CiAgPC9nPgo8L3N2Zz4K') 24 24, crosshair;
 }

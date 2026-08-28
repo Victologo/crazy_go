@@ -8,6 +8,7 @@ import modalScoreHtml from './templates/modal-score.html?raw';
 import modalSandboxHtml from './templates/modal-sandbox.html?raw';
 import modalStoryHtml from './templates/modal-story.html?raw';
 import modalColorPickerHtml from './templates/modal-color-picker.html?raw';
+import modalCombatLogHtml from './templates/modal-combat-log.html?raw';
 
 export class UITemplateLoader {
     /**
@@ -32,7 +33,8 @@ export class UITemplateLoader {
             modalScoreHtml + 
             modalSandboxHtml + 
             modalStoryHtml +
-            modalColorPickerHtml;
+            modalColorPickerHtml +
+            modalCombatLogHtml;
 
         container.insertAdjacentHTML('beforeend', combinedHtml);
         console.log('✅ UI Templates cargados correctamente vía Vite ?raw');

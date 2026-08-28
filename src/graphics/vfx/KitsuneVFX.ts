@@ -1,4 +1,5 @@
 // graphics/vfx/KitsuneVFX.ts - Animación de Teletransporte Espiritual de Kitsune
+import { SoundFX } from '../../audio/SoundFX';
 
 export class KitsuneVFX {
     /**
@@ -22,6 +23,7 @@ export class KitsuneVFX {
      * Animación: Concesión de Escudo Divino Sagrado (Kitsune)
      */
     public static triggerDivineShieldAura(coord: { x: number; y: number }, svgElement: SVGSVGElement) {
+        SoundFX.playDivineShieldCast();
         const aura = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
         aura.setAttribute('cx', `${coord.x}`);
         aura.setAttribute('cy', `${coord.y}`);
@@ -49,6 +51,7 @@ export class KitsuneVFX {
         this.recentShatters.add(key);
         setTimeout(() => this.recentShatters.delete(key), 800);
 
+        SoundFX.playDivineShieldShatter();
         const shatter = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
         shatter.setAttribute('cx', `${coord.x}`);
         shatter.setAttribute('cy', `${coord.y}`);

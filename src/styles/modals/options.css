@@ -43,7 +43,7 @@
   gap: 0.45rem;
   background: transparent;
   border: none;
-  cursor: pointer;
+  cursor: var(--cursor-pointer);
   color: var(--text-muted);
   font-family: var(--font-main);
   font-size: 0.8rem;
@@ -157,19 +157,22 @@ body[data-theme="light"] .wizard-line {
   justify-content: center;
   text-align: center;
   gap: 0.65rem;
-  padding: 1.8rem 1.4rem;
-  background: rgba(30, 41, 59, 0.55);
-  border: 2px solid rgba(255, 255, 255, 0.1);
-  border-radius: var(--radius-lg);
-  cursor: pointer;
-  transition: all 0.22s cubic-bezier(0.4, 0, 0.2, 1);
-  min-height: 150px;
+  padding: 1.6rem 1.4rem;
+  background: rgba(255, 255, 255, 0.035);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  border-radius: 20px;
+  cursor: var(--cursor-pointer);
+  transition: all 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+  min-height: 140px;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.25);
 }
 
 .choice-card-icon {
   font-size: 2.5rem;
   line-height: 1;
-  filter: drop-shadow(0 4px 8px rgba(0,0,0,0.4));
+  filter: drop-shadow(0 4px 10px rgba(0,0,0,0.5));
 }
 
 .choice-card-title {
@@ -179,7 +182,7 @@ body[data-theme="light"] .wizard-line {
 }
 
 .choice-card-desc {
-  font-size: 0.8rem;
+  font-size: 0.82rem;
   color: var(--text-secondary);
   opacity: 0.85;
   max-width: 280px;
@@ -188,15 +191,15 @@ body[data-theme="light"] .wizard-line {
 
 .btn-choice-card:hover {
   transform: translateY(-3px);
-  border-color: var(--accent-gold);
-  background: rgba(245, 158, 11, 0.08);
-  box-shadow: 0 10px 25px -5px rgba(0,0,0,0.5);
+  border-color: rgba(245, 158, 11, 0.5);
+  background: rgba(245, 158, 11, 0.06);
+  box-shadow: 0 12px 30px -5px rgba(0, 0, 0, 0.5), 0 0 20px rgba(245, 158, 11, 0.2);
 }
 
 .btn-choice-card.active {
-  border-color: var(--accent-gold);
-  background: linear-gradient(145deg, rgba(245, 158, 11, 0.16) 0%, rgba(217, 119, 6, 0.24) 100%);
-  box-shadow: 0 0 20px rgba(245, 158, 11, 0.35);
+  border-color: rgba(245, 158, 11, 0.7);
+  background: linear-gradient(145deg, rgba(245, 158, 11, 0.16) 0%, rgba(217, 119, 6, 0.25) 100%);
+  box-shadow: 0 8px 25px rgba(245, 158, 11, 0.35), inset 0 1px 0 rgba(253, 230, 138, 0.4);
   transform: translateY(-2px);
 }
 
@@ -349,7 +352,7 @@ body[data-theme="light"] .option-row:hover {
   font-size: 0.82rem;
   font-weight: 800;
   font-family: var(--font-main);
-  cursor: pointer;
+  cursor: var(--cursor-pointer);
   transition: all 0.22s cubic-bezier(0.4, 0, 0.2, 1);
   border: 1.5px solid transparent;
   outline: none;
@@ -414,7 +417,7 @@ body[data-theme="light"] .option-row:hover {
   height: 18px;
   border-radius: 50%;
   background: var(--accent-gold);
-  cursor: pointer;
+  cursor: var(--cursor-pointer);
   box-shadow: 0 0 10px rgba(245, 158, 11, 0.6);
   transition: transform 0.15s ease;
 }
@@ -496,6 +499,6 @@ body[data-theme="light"] .key-badge {
 .feedback-form input, .feedback-form textarea { width: 100%; padding: 0.75rem; border-radius: 8px; border: 1px solid var(--surface-2); background: var(--surface-1); color: var(--text-base); font-family: var(--font-base); font-size: 1rem; transition: border-color 0.2s; }
 .feedback-form input:focus, .feedback-form textarea:focus { outline: none; border-color: var(--accent-gold); }
 .custom-shortcut-item { display: flex; justify-content: space-between; align-items: center; padding: 0.5rem; background: var(--surface-1); border-radius: 6px; }
-.btn-bind-key { background: var(--surface-2); border: 1px solid var(--accent-gold); color: var(--accent-gold); cursor: pointer; padding: 0.2rem 0.6rem; border-radius: 4px; font-weight: bold; transition: all 0.2s; }
+.btn-bind-key { background: var(--surface-2); border: 1px solid var(--accent-gold); color: var(--accent-gold); cursor: var(--cursor-pointer); padding: 0.2rem 0.6rem; border-radius: 4px; font-weight: bold; transition: all 0.2s; }
 .btn-bind-key:hover { background: var(--accent-gold); color: #fff; }
 

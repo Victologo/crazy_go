@@ -3,7 +3,6 @@ import { HUDController } from '../ui/HUDController';
 import { SoundFX } from '../audio/SoundFX';
 import { TutorialManager } from '../tutorial/TutorialManager';
 import { RogueliteManager } from '../core/RogueliteManager';
-import { PolyominoManager } from '../core/PolyominoManager';
 import { ChampionManager } from '../core/ChampionManager';
 // ...
 import { AnalysisEngine } from '../core/AnalysisEngine';
@@ -65,28 +64,7 @@ export class InteractionManager {
     }
 
     public static selectPolyomino(type: PolyominoType) {
-        const isEn = getLanguage() === 'en';
-        if (!GameController.isLocalPlayerTurn()) {
-            HUDController.showAlert(isEn ? "You can only deploy polyomino tiles during your turn." : "Solo puedes desplegar fichas poliminó durante tu turno.");
-            SoundFX.playIllegal();
-            return;
-        }
-
-        if (ChampionManager.currentTargetingMode !== 'none') {
-            ChampionManager.currentTargetingMode = 'none';
-        }
-
-        PolyominoManager.selectPolyomino(type);
-        if (PolyominoManager.activePolyomino) {
-            const card = PolyominoManager.polyominoCards.get(type);
-            SoundFX.playPlaceStone();
-            HUDController.showAlert(isEn ? `🎯 ${card?.name || 'Tile'}: Hover over the Goban and click to place.` : `🎯 ${card?.name || 'Ficha'}: Pasa el cursor sobre el Goban y haz clic para colocarla.`);
-        } else {
-            HUDController.showAlert(isEn ? "Tile deployment cancelled." : "Despliegue de ficha cancelado.");
-        }
-
-        GameController.renderer.render();
-        GameController.updateInGameUI();
+        GameController.selectPolyomino(type);
     }
 
     public static rotatePolyomino() {
@@ -113,6 +91,7 @@ export class InteractionManager {
 
         if (ChampionManager.currentTargetingMode !== 'none') {
             ChampionManager.currentTargetingMode = 'none';
+            SoundFX.playSkillDeactivate();
             HUDController.showAlert(isEn ? "Skill selection cancelled." : "Selección de habilidad cancelada.");
         } else {
             const hero = ChampionManager.currentHero || 'tengu';
@@ -121,6 +100,7 @@ export class InteractionManager {
                 HUDController.showAlert(isEn ? "This hero has no active skill." : "Este héroe no posee habilidad activa.");
                 return;
             }
+            SoundFX.playSkillActivate();
             HUDController.triggerStandeeSkillFX(GameController.config.humanColor, true);
             ChampionManager.currentTargetingMode = skill.targetingMode;
             ChampionManager.targetingPlayerId = (GameController.config.gameMode === 'online' ? GameController.localOnlineColor : GameController.state.currentPlayer);

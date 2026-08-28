@@ -1,6 +1,6 @@
 import { GraphBoard, type PlayerId, type StoneInfo, type TerrainType } from './GraphBoard';
 import { EntityManager } from './ECS';
-import type { ScoreReport } from './TerritoryScorer';
+import { TerritoryScorer, type ScoreReport } from './TerritoryScorer';
 import type { CaptiveEntity, TimerConfig, PlayerTimerState, SpellId, PolyominoType } from '../types';
 import { ChampionManager, type ChampionSnapshot } from './ChampionManager';
 import { RogueliteManager } from './RogueliteManager';
@@ -41,6 +41,8 @@ export interface GameSnapshot {
     lastMoveNodeId: string | null;
     consecutivePasses: number;
     isGameOver: boolean;
+    isScoringPhase: boolean;
+    manualDeadStones: [string, boolean][];
     boardHistory: string[];
     resources?: TurnResourceSnapshot;
 }
@@ -49,8 +51,13 @@ export class GameState {
     public currentTurn: number = 1;
     public currentRound: number = 1;
     public playerTurnCounts: Record<PlayerId, number> = { 1: 0, 2: 0, 3: 0, 4: 0 };
-    public playerCount: 2 | 4 = 2; // 2 Jugadores (1v1) o 4 Jugadores (Go Cuádruple)
-    public currentPlayer: PlayerId = 1; // 1 = Negras (Empieza siempre), 2 = Blancas, 3 = Esmeralda, 4 = Amatista
+    public playerCount: 2 | 4 = 2; // 2 Jugadores (1v1) o 4 Jugadores (Go Cuádruple / 2v2)
+    public currentPlayer: PlayerId = 1; // Slot activo: 1, 2, 3 o 4
+    
+    // Mapeo de Slot (Turno) a Color Real de Piedra
+    // Por defecto es 1:1 (FFA). En Rengo 2v2 sería {1:1, 2:2, 3:1, 4:2}
+    public playerColors: Record<PlayerId, PlayerId> = { 1: 1, 2: 2, 3: 3, 4: 4 };
+
     public eventQueue: GameEvent[] = [];
     
     // Capturas / Prisioneros por jugador
@@ -81,6 +88,9 @@ export class GameState {
     public player2Status: PlayerStatus = 'READY';
     public player1WaitTurns: number = 0;
     public player2WaitTurns: number = 0;
+
+    public isScoringPhase: boolean = false;
+    public manualDeadStones: Map<string, boolean> = new Map(); // true = forzado muerto, false = forzado vivo
 
     // Reglas de Go clásicas
     public consecutivePasses: number = 0;
@@ -175,6 +185,8 @@ export class GameState {
             lastMoveNodeId: this.lastMoveNodeId,
             consecutivePasses: this.consecutivePasses,
             isGameOver: this.isGameOver,
+            isScoringPhase: this.isScoringPhase,
+            manualDeadStones: Array.from(this.manualDeadStones.entries()),
             boardHistory: [...this.boardHistory],
             resources: {
                 champion: ChampionManager.getSnapshot(),
@@ -224,6 +236,8 @@ export class GameState {
             lastMoveNodeId: this.lastMoveNodeId,
             consecutivePasses: this.consecutivePasses,
             isGameOver: this.isGameOver,
+            isScoringPhase: this.isScoringPhase,
+            manualDeadStones: Array.from(this.manualDeadStones.entries()),
             boardHistory: [...this.boardHistory],
             resources: {
                 champion: ChampionManager.getSnapshot(),
@@ -267,6 +281,8 @@ export class GameState {
             lastMoveNodeId: this.lastMoveNodeId,
             consecutivePasses: this.consecutivePasses,
             isGameOver: this.isGameOver,
+            isScoringPhase: this.isScoringPhase,
+            manualDeadStones: Array.from(this.manualDeadStones.entries()),
             boardHistory: [...this.boardHistory],
             resources: {
                 champion: ChampionManager.getSnapshot(),
@@ -302,6 +318,8 @@ export class GameState {
         this.lastMoveNodeId = snapshot.lastMoveNodeId;
         this.consecutivePasses = snapshot.consecutivePasses;
         this.isGameOver = snapshot.isGameOver;
+        this.isScoringPhase = snapshot.isScoringPhase || false;
+        this.manualDeadStones = snapshot.manualDeadStones ? new Map(snapshot.manualDeadStones) : new Map();
         this.boardHistory = snapshot.boardHistory ? [...snapshot.boardHistory] : [...this.boardHistory];
         this.scoreReport = null;
 
@@ -321,12 +339,21 @@ export class GameState {
 
     passTurn(board?: GraphBoard): boolean {
         if (this.isGameOver) return false;
+        if (this.isScoringPhase) {
+            // Si pasamos durante la fase de puntuación (ej. botón Reanudar), abortamos y volvemos a jugar
+            this.isScoringPhase = false;
+            this.consecutivePasses = 0;
+            this.manualDeadStones.clear();
+            return true;
+        }
         
         this.consecutivePasses++;
         this.lastMoveNodeId = null;
 
         if (this.consecutivePasses >= this.playerCount) {
-            this.isGameOver = true;
+            this.isScoringPhase = true;
+            // IMPORTANTE: generar scoreReport para que SVGRenderer muestre la predicción de muertos
+            this.scoreReport = TerritoryScorer.calculateScore(board!, this);
             return true;
         }
 
@@ -334,7 +361,7 @@ export class GameState {
         return true;
     }
 
-    advanceTurn(board?: GraphBoard): string[] {
+    advanceTurn(board?: GraphBoard, isExtraTurn: boolean = false): string[] {
         const brokenShields: string[] = [];
         // Reducir duración del escudo divino (3 turnos) para las piedras del jugador actual
         if (board) {
@@ -373,6 +400,12 @@ export class GameState {
         if (this.player2WaitTurns > 0) {
             this.player2WaitTurns--;
             if (this.player2WaitTurns === 0) this.player2Status = 'READY';
+        }
+
+        // Si es un turno extra consecutivo (Festín de Almas), el jugador actual conserva el turno
+        if (isExtraTurn) {
+            ChampionManager.onTurnAdvanced(this.currentPlayer);
+            return brokenShields;
         }
 
         // Rotación de jugador (Round-Robin según playerCount):

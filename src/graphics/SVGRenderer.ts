@@ -13,6 +13,8 @@ import { TutorialManager } from '../tutorial/TutorialManager';
 import { StoryController } from '../story/StoryController';
 import { getLanguage } from '../i18n/i18n';
 import { VFXManager } from './VFXManager';
+import { CombatLogManager } from '../core/CombatLogManager';
+import { StageHazardManager } from '../core/StageHazardManager';
 
 export class SVGRenderer {
     public svgElement: SVGSVGElement;
@@ -23,8 +25,9 @@ export class SVGRenderer {
     private onMovePlaced?: (nodeId: string, isLocal: boolean) => void;
     private onSkillPlaced?: (skillType: string, nodeId: string) => void;
     private isTurnAllowedCallback?: () => boolean;
-    private getLocalPlayerColorCallback?: () => import('../core/GraphBoard').PlayerId;
     public onPassiveBurnCompleted?: () => void;
+    public onCaptiveDevClick?: (captive: any, capturerId: import('../core/GraphBoard').PlayerId) => void;
+    public background?: string;
     public isInteractive: boolean = true;
     public lastHoveredNode: BoardNode | null = null;
     public currentStoneRadius: number = 18;
@@ -39,8 +42,7 @@ export class SVGRenderer {
         onIllegalMove: (msg: string) => void,
         onMovePlaced?: (nodeId: string, isLocal: boolean) => void,
         onSkillPlaced?: (skillType: string, nodeId: string) => void,
-        isTurnAllowed?: () => boolean,
-        getLocalPlayerColor?: () => import('../core/GraphBoard').PlayerId
+        isTurnAllowed?: () => boolean
     ) {
         this.svgElement = document.getElementById(svgElementId) as unknown as SVGSVGElement;
         this.board = board;
@@ -50,7 +52,6 @@ export class SVGRenderer {
         this.onMovePlaced = onMovePlaced;
         this.onSkillPlaced = onSkillPlaced;
         this.isTurnAllowedCallback = isTurnAllowed;
-        this.getLocalPlayerColorCallback = getLocalPlayerColor;
 
         if (!this.svgElement) {
             console.error(`Element with id ${svgElementId} not found`);
@@ -101,7 +102,7 @@ export class SVGRenderer {
         // Margen compacto y óptimo para todas las topologías (picudas, duales, anchas o estándar)
         // La madera sobresale exactamente alrededor de las piedras periféricas sin desperdiciar espacio en el viewBox
         const padding = stoneRadius * 1.08;
-        const safetyMargin = padding + 4;
+        const safetyMargin = this.board.shape === 'volcano' ? (padding * 1.55 + 8) : (padding + 4);
         const finalWidth = (maxX - minX) + safetyMargin * 2;
         const finalHeight = (maxY - minY) + safetyMargin * 2;
         const finalMinX = minX - safetyMargin;
@@ -122,6 +123,13 @@ export class SVGRenderer {
 
         // 3.5. Generar Fondo de Madera Dinámico (Forma Convex Hull)
         this.renderBoardBackground(nodes, padding);
+
+        // 3.6. Decoraciones Temáticas de Tableros Especiales (Volcán / Máscara Oni)
+        if (this.board.shape === 'volcano') {
+            this.renderVolcanoCornerDecorations(nodes, padding);
+        } else if (this.board.shape === 'oni') {
+            this.renderOniMouthAbyss(padding);
+        }
 
         // 4. Dibujar Líneas de la Red (Grid Lines / Urushi Ink)
         this.renderGridLines(nodes);
@@ -165,12 +173,13 @@ export class SVGRenderer {
 
         const drawnEdges = new Set<string>();
         for (const node of nodes) {
+            if (node.terrain === 'DESTROYED') continue;
             for (const neighborId of node.neighbors) {
-                const edgeKey = [node.id, neighborId].sort().join('--');
-                if (!drawnEdges.has(edgeKey)) {
-                    drawnEdges.add(edgeKey);
-                    const neighbor = this.board.nodes.get(neighborId);
-                    if (neighbor) {
+                const neighbor = this.board.nodes.get(neighborId);
+                if (neighbor && neighbor.terrain !== 'DESTROYED') {
+                    const edgeKey = [node.id, neighborId].sort().join('--');
+                    if (!drawnEdges.has(edgeKey)) {
+                        drawnEdges.add(edgeKey);
                         const line = document.createElementNS("http://www.w3.org/2000/svg", "line");
                         line.setAttribute("x1", node.x.toString());
                         line.setAttribute("y1", node.y.toString());
@@ -191,8 +200,9 @@ export class SVGRenderer {
     private renderBoardBackground(nodes: BoardNode[], padding: number) {
         if (nodes.length < 3) return;
 
-        // 1. Obtener todos los puntos
-        const points = nodes.map(n => ({ x: n.x, y: n.y }));
+        // 1. Obtener todos los puntos activos que no estén destruidos
+        const points = nodes.filter(n => n.terrain !== 'DESTROYED').map(n => ({ x: n.x, y: n.y }));
+        if (points.length < 3) return;
 
         // 2. Algoritmo de Graham Scan (Convex Hull)
         points.sort((a, b) => a.y === b.y ? a.x - b.x : a.y - b.y);
@@ -253,11 +263,180 @@ export class SVGRenderer {
         this.svgElement.appendChild(bgGroup);
     }
 
+    private renderVolcanoCornerDecorations(nodes: BoardNode[], padding: number): void {
+        const validNodes = nodes.filter(n => n.terrain !== 'DESTROYED');
+        if (validNodes.length === 0) return;
+
+        let minX = Infinity, maxX = -Infinity, minY = Infinity, maxY = -Infinity;
+        for (const n of validNodes) {
+            if (n.x < minX) minX = n.x;
+            if (n.x > maxX) maxX = n.x;
+            if (n.y < minY) minY = n.y;
+            if (n.y > maxY) maxY = n.y;
+        }
+
+        const offset = padding * 0.72;
+        const corners = [
+            { x: minX - offset, y: minY - offset, angle: 45 },
+            { x: maxX + offset, y: minY - offset, angle: 135 },
+            { x: maxX + offset, y: maxY + offset, angle: 225 },
+            { x: minX - offset, y: maxY + offset, angle: 315 },
+        ];
+
+        const volcanoGroup = document.createElementNS("http://www.w3.org/2000/svg", "g");
+        volcanoGroup.setAttribute("class", "volcano-corners-decoration");
+
+        const rOuter = Math.max(16, padding * 0.68);
+        const rCrater = rOuter * 0.58;
+        const rMagma = rOuter * 0.38;
+
+        corners.forEach((c) => {
+            const vG = document.createElementNS("http://www.w3.org/2000/svg", "g");
+            vG.setAttribute("class", "volcano-corner-item");
+            vG.setAttribute("transform", `translate(${c.x}, ${c.y}) rotate(${c.angle})`);
+
+            const shadow = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+            shadow.setAttribute("cx", "0");
+            shadow.setAttribute("cy", "2");
+            shadow.setAttribute("r", (rOuter + 3).toString());
+            shadow.setAttribute("fill", "rgba(0,0,0,0.65)");
+            shadow.setAttribute("filter", "url(#stone-shadow)");
+            vG.appendChild(shadow);
+
+            const cone = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+            cone.setAttribute("cx", "0");
+            cone.setAttribute("cy", "0");
+            cone.setAttribute("r", rOuter.toString());
+            cone.setAttribute("fill", "url(#volcano-rock-grad)");
+            cone.setAttribute("stroke", "#1c1917");
+            cone.setAttribute("stroke-width", "2");
+            vG.appendChild(cone);
+
+            for (let i = 0; i < 4; i++) {
+                const crackAngle = (i * 90 + 25) * (Math.PI / 180);
+                const x1 = Math.cos(crackAngle) * rCrater * 0.9;
+                const y1 = Math.sin(crackAngle) * rCrater * 0.9;
+                const x2 = Math.cos(crackAngle) * (rOuter * 0.9);
+                const y2 = Math.sin(crackAngle) * (rOuter * 0.9);
+
+                const crack = document.createElementNS("http://www.w3.org/2000/svg", "line");
+                crack.setAttribute("x1", x1.toFixed(1));
+                crack.setAttribute("y1", y1.toFixed(1));
+                crack.setAttribute("x2", x2.toFixed(1));
+                crack.setAttribute("y2", y2.toFixed(1));
+                crack.setAttribute("stroke", "#ea580c");
+                crack.setAttribute("stroke-width", "1.5");
+                crack.setAttribute("stroke-linecap", "round");
+                crack.setAttribute("opacity", "0.85");
+                vG.appendChild(crack);
+            }
+
+            const craterRim = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+            craterRim.setAttribute("cx", "0");
+            craterRim.setAttribute("cy", "0");
+            craterRim.setAttribute("r", rCrater.toString());
+            craterRim.setAttribute("fill", "#0c0a09");
+            craterRim.setAttribute("stroke", "#7f1d1d");
+            craterRim.setAttribute("stroke-width", "1.5");
+            vG.appendChild(craterRim);
+
+            const magma = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+            magma.setAttribute("cx", "0");
+            magma.setAttribute("cy", "0");
+            magma.setAttribute("r", rMagma.toString());
+            magma.setAttribute("fill", "url(#volcano-magma-grad)");
+            vG.appendChild(magma);
+
+            volcanoGroup.appendChild(vG);
+        });
+
+        this.svgElement.appendChild(volcanoGroup);
+    }
+
+    private renderOniMouthAbyss(_padding: number): void {
+        const spacing = 24;
+        const mouthCenterX = 12 * spacing;
+        const mouthCenterY = 17 * spacing;
+        const rx = 4.4 * spacing;
+        const ry = 1.35 * spacing;
+
+        const abyssGroup = document.createElementNS("http://www.w3.org/2000/svg", "g");
+        abyssGroup.setAttribute("class", "oni-mouth-abyss-container");
+
+        const outerGlow = document.createElementNS("http://www.w3.org/2000/svg", "ellipse");
+        outerGlow.setAttribute("cx", mouthCenterX.toString());
+        outerGlow.setAttribute("cy", mouthCenterY.toString());
+        outerGlow.setAttribute("rx", (rx + 8).toString());
+        outerGlow.setAttribute("ry", (ry + 6).toString());
+        outerGlow.setAttribute("fill", "url(#oni-void-swirl-glow)");
+        outerGlow.setAttribute("filter", "url(#oni-void-glow)");
+        abyssGroup.appendChild(outerGlow);
+
+        const baseVoid = document.createElementNS("http://www.w3.org/2000/svg", "ellipse");
+        baseVoid.setAttribute("cx", mouthCenterX.toString());
+        baseVoid.setAttribute("cy", mouthCenterY.toString());
+        baseVoid.setAttribute("rx", rx.toString());
+        baseVoid.setAttribute("ry", ry.toString());
+        baseVoid.setAttribute("fill", "url(#oni-void-core)");
+        baseVoid.setAttribute("stroke", "#7e22ce");
+        baseVoid.setAttribute("stroke-width", "2.2");
+        baseVoid.setAttribute("stroke-opacity", "0.9");
+        abyssGroup.appendChild(baseVoid);
+
+        // Anillos de rotación gravitatoria y vórtice místico
+        const swirlRing1 = document.createElementNS("http://www.w3.org/2000/svg", "ellipse");
+        swirlRing1.setAttribute("cx", mouthCenterX.toString());
+        swirlRing1.setAttribute("cy", mouthCenterY.toString());
+        swirlRing1.setAttribute("rx", (rx * 0.88).toString());
+        swirlRing1.setAttribute("ry", (ry * 0.82).toString());
+        swirlRing1.setAttribute("fill", "none");
+        swirlRing1.setAttribute("stroke", "#e879f9");
+        swirlRing1.setAttribute("stroke-width", "1.4");
+        swirlRing1.setAttribute("stroke-dasharray", "8, 6, 2, 6");
+        swirlRing1.setAttribute("stroke-opacity", "0.75");
+        swirlRing1.setAttribute("class", "oni-mouth-swirl-ring-1");
+        abyssGroup.appendChild(swirlRing1);
+
+        const swirlRing2 = document.createElementNS("http://www.w3.org/2000/svg", "ellipse");
+        swirlRing2.setAttribute("cx", mouthCenterX.toString());
+        swirlRing2.setAttribute("cy", mouthCenterY.toString());
+        swirlRing2.setAttribute("rx", (rx * 0.62).toString());
+        swirlRing2.setAttribute("ry", (ry * 0.58).toString());
+        swirlRing2.setAttribute("fill", "none");
+        swirlRing2.setAttribute("stroke", "#f43f5e");
+        swirlRing2.setAttribute("stroke-width", "1.2");
+        swirlRing2.setAttribute("stroke-dasharray", "5, 5");
+        swirlRing2.setAttribute("stroke-opacity", "0.85");
+        swirlRing2.setAttribute("class", "oni-mouth-swirl-ring-2");
+        abyssGroup.appendChild(swirlRing2);
+
+        const innerRim = document.createElementNS("http://www.w3.org/2000/svg", "ellipse");
+        innerRim.setAttribute("cx", mouthCenterX.toString());
+        innerRim.setAttribute("cy", mouthCenterY.toString());
+        innerRim.setAttribute("rx", (rx * 0.72).toString());
+        innerRim.setAttribute("ry", (ry * 0.65).toString());
+        innerRim.setAttribute("fill", "none");
+        innerRim.setAttribute("stroke", "#c084fc");
+        innerRim.setAttribute("stroke-width", "1.2");
+        innerRim.setAttribute("stroke-opacity", "0.6");
+        abyssGroup.appendChild(innerRim);
+
+        const coreBlackHole = document.createElementNS("http://www.w3.org/2000/svg", "ellipse");
+        coreBlackHole.setAttribute("cx", mouthCenterX.toString());
+        coreBlackHole.setAttribute("cy", mouthCenterY.toString());
+        coreBlackHole.setAttribute("rx", (rx * 0.45).toString());
+        coreBlackHole.setAttribute("ry", (ry * 0.4).toString());
+        coreBlackHole.setAttribute("fill", "#000000");
+        abyssGroup.appendChild(coreBlackHole);
+
+        this.svgElement.appendChild(abyssGroup);
+    }
+
     private renderStarPoints(nodes: BoardNode[], stoneRadius: number) {
         const hoshiGroup = document.createElementNS("http://www.w3.org/2000/svg", "g");
         hoshiGroup.setAttribute("class", "hoshi-points");
         for (const node of nodes) {
-            if (node.isStarPoint) {
+            if (node.isStarPoint && node.terrain !== 'DESTROYED') {
                 const star = document.createElementNS("http://www.w3.org/2000/svg", "circle");
                 star.setAttribute("cx", node.x.toString());
                 star.setAttribute("cy", node.y.toString());
@@ -527,7 +706,17 @@ export class SVGRenderer {
                 stoneVisual.setAttribute("r", stoneRadius.toString());
                 
                 const pid = node.stone.playerId;
-                const isDeadStone = this.state.isGameOver && !!this.state.scoreReport?.deadStones?.has(node.id);
+                let isDeadStone = false;
+                
+                if (this.state.isGameOver) {
+                    isDeadStone = !!this.state.scoreReport?.deadStones?.has(node.id);
+                } else if (this.state.isScoringPhase) {
+                    if (this.state.manualDeadStones.has(node.id)) {
+                        isDeadStone = this.state.manualDeadStones.get(node.id) === true;
+                    } else {
+                        isDeadStone = !!this.state.scoreReport?.deadStones?.has(node.id);
+                    }
+                }
 
                 if (isDeadStone) {
                     stoneG.setAttribute("class", `stone stone-${pid} stone-dead-captured`);
@@ -856,12 +1045,10 @@ export class SVGRenderer {
                 SVGGhostPreview.renderGhost(this.svgElement, this.board, this.state, node, stoneRadius);
             });
 
-            hitArea.addEventListener('mouseleave', () => {
-                if (this.lastHoveredNode === node) {
-                    this.lastHoveredNode = null;
-                }
-                SVGGhostPreview.clearGhost(this.svgElement);
-            });
+        this.svgElement.addEventListener('mouseleave', () => {
+            this.lastHoveredNode = null;
+            SVGGhostPreview.clearGhost(this.svgElement);
+        });
 
             hitArea.addEventListener('click', () => {
                 const isTargeting = ChampionManager.currentTargetingMode !== 'none';
@@ -970,7 +1157,14 @@ export class SVGRenderer {
         }
 
         const isTargeting = ChampionManager.currentTargetingMode !== 'none';
-        if (!this.isInteractive && !isTargeting && isLocal) return;
+        if (!this.isInteractive && !isTargeting && isLocal) {
+            import('../controllers/GameController').then(({ GameController }) => {
+                if (GameController.config.isCoopRogue && GameController.config.localCoopRole && GameController.config.localCoopRole !== GameController.config.coopSubTurn) {
+                    HUDController.showAlert(getLanguage() === 'en' ? '⏳ Wait for your partner to play.' : '⏳ Espera a que tu compañero juegue.');
+                }
+            });
+            return;
+        }
         if (this.state.isGameOver) return;
 
         // BLOQUEO ABSOLUTO DE TURNO LOCAL: Si es un clic local y no estamos en modo apuntar habilidad,
@@ -1030,18 +1224,17 @@ export class SVGRenderer {
             return;
         }
 
-        // Determinar el color exacto a colocar:
-        // Si es un clic local, forzar siempre el color asignado al jugador humano
-        const placingPlayer: import('../core/GraphBoard').PlayerId = (isLocal && this.getLocalPlayerColorCallback)
-            ? this.getLocalPlayerColorCallback()
-            : this.state.currentPlayer;
+        // Determinar el color exacto a colocar según el jugador activo del turno
+        const placingPlayer: import('../core/GraphBoard').PlayerId = this.state.currentPlayer;
 
         const targetNode = this.board.nodes.get(nodeId);
 
         // 2. Si estamos en modo colocación de Ficha Poliminó (🌿 Germinante, 🀄 Dominó, 🧱 Monolito)
         if (PolyominoManager.activePolyomino !== null) {
+            const polyType = PolyominoManager.activePolyomino;
+            const targetNodeIds = PolyominoManager.getPolyominoTargetNodes(this.board, nodeId, polyType, PolyominoManager.orientation);
             this.state.recordSnapshot(this.board);
-            const success = PolyominoManager.placePolyomino(
+            const res = PolyominoManager.placePolyomino(
                 this.board,
                 this.state,
                 nodeId,
@@ -1050,7 +1243,16 @@ export class SVGRenderer {
                 (msg) => this.onIllegalMove(msg)
             );
 
-            if (success) {
+            if (res && res.success) {
+                CombatLogManager.logPolyominoPlacement(
+                    this.board,
+                    this.state,
+                    polyType,
+                    targetNodeIds.length > 0 ? targetNodeIds : [nodeId],
+                    placingPlayer,
+                    res.capturedCount || 0
+                );
+
                 const brokenShields = this.state.advanceTurn(this.board);
                 const uniqueBroken = Array.from(new Set(brokenShields));
                 
@@ -1063,6 +1265,7 @@ export class SVGRenderer {
                 
                 // Procesar brotaciones de Piedras Germinantes
                 PolyominoManager.processSproutingStones(this.board, this.state, placingPlayer, (sproutNodeId) => {
+                    CombatLogManager.logSproutingGrowth(this.board, this.state, sproutNodeId, placingPlayer);
                     const sproutNode = this.board.nodes.get(sproutNodeId);
                     if (sproutNode) {
                         this.triggerPlacementRipple(sproutNode.x, sproutNode.y, 18);
@@ -1090,11 +1293,35 @@ export class SVGRenderer {
                     }
                 );
 
-                if (TutorialManager.isActive) {
-                    TutorialManager.advanceStep();
-                } else if (this.onMovePlaced) {
-                    this.onMovePlaced(nodeId, isLocal);
-                }
+                const executePostMovePoly = () => {
+                    const hazardTriggered = StageHazardManager.checkStageHazards(
+                        this.board,
+                        this.state,
+                        this.svgElement,
+                        () => {
+                            this.render();
+                            this.onUIUpdate();
+                        },
+                        () => {
+                            this.render();
+                            this.onUIUpdate();
+                            if (TutorialManager.isActive) {
+                                TutorialManager.advanceStep();
+                            } else if (this.onMovePlaced) {
+                                this.onMovePlaced(nodeId, isLocal);
+                            }
+                        }
+                    );
+
+                    if (!hazardTriggered) {
+                        if (TutorialManager.isActive) {
+                            TutorialManager.advanceStep();
+                        } else if (this.onMovePlaced) {
+                            this.onMovePlaced(nodeId, isLocal);
+                        }
+                    }
+                };
+                executePostMovePoly();
             } else {
                 this.state.historyStack.pop();
             }
@@ -1106,6 +1333,14 @@ export class SVGRenderer {
         const result = RulesEngine.tryPlaceStone(this.board, this.state, nodeId, placingPlayer);
         
         if (result.success) {
+            CombatLogManager.logStonePlacement(
+                this.board,
+                this.state,
+                nodeId,
+                placingPlayer,
+                result.capturedCount
+            );
+
             if (result.capturedCount > 0) {
                 SoundFX.playCapture();
             } else {
@@ -1128,6 +1363,7 @@ export class SVGRenderer {
 
             // Procesar brotaciones de Piedras Germinantes tras avanzar turno
             PolyominoManager.processSproutingStones(this.board, this.state, placingPlayer, (sproutNodeId) => {
+                CombatLogManager.logSproutingGrowth(this.board, this.state, sproutNodeId, placingPlayer);
                 const sproutNode = this.board.nodes.get(sproutNodeId);
                 if (sproutNode) {
                     this.triggerPlacementRipple(sproutNode.x, sproutNode.y, 18);
@@ -1157,14 +1393,35 @@ export class SVGRenderer {
                 }
             );
 
-            if (TutorialManager.isActive) {
-                TutorialManager.advanceStep();
-            } else if (this.onMovePlaced) {
-                // Siempre notificamos la jugada original al GameController para que reenvíe online y gestione turnos.
-                // Si hay una habilidad en curso (ej. Furia del Dragón), el GameController la detectará
-                // mediante ChampionManager.currentTargetingMode !== 'none' y pausará la IA si corresponde.
-                this.onMovePlaced(nodeId, isLocal);
-            }
+            const executePostMoveStone = () => {
+                const hazardTriggered = StageHazardManager.checkStageHazards(
+                    this.board,
+                    this.state,
+                    this.svgElement,
+                    () => {
+                        this.render();
+                        this.onUIUpdate();
+                    },
+                    () => {
+                        this.render();
+                        this.onUIUpdate();
+                        if (TutorialManager.isActive) {
+                            TutorialManager.advanceStep();
+                        } else if (this.onMovePlaced) {
+                            this.onMovePlaced(nodeId, isLocal);
+                        }
+                    }
+                );
+
+                if (!hazardTriggered) {
+                    if (TutorialManager.isActive) {
+                        TutorialManager.advanceStep();
+                    } else if (this.onMovePlaced) {
+                        this.onMovePlaced(nodeId, isLocal);
+                    }
+                }
+            };
+            executePostMoveStone();
         } else {
             // Revertir el snapshot si el movimiento no fue válido
             this.state.historyStack.pop();

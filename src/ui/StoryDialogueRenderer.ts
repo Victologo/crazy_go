@@ -1,5 +1,4 @@
 import { type StoryDialogueLine } from '../story/StoryCampaign';
-import { StoryController } from '../story/StoryController';
 import type { HeroId } from '../types';
 import { getLanguage } from '../i18n/i18n';
 import { SoundFX } from '../audio/SoundFX';
@@ -19,11 +18,11 @@ export class StoryDialogueRenderer {
                 gameScreen.appendChild(container);
             }
 
-            // Click to advance
+            // Click to dismiss/advance
             container.addEventListener('click', (e) => {
                 // Si el clic fue en un modal de selección de poder, no avanzar diálogo
                 if ((e.target as HTMLElement).closest('.story-power-container')) return;
-                StoryController.advanceDialogue();
+                StoryDialogueRenderer.hide();
             });
         }
         container.style.display = 'flex';

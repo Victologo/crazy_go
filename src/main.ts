@@ -7,7 +7,6 @@ import { GameController } from './controllers/GameController';
 import { OnlineController } from './controllers/OnlineController';
 import { RoguelikeRunManager } from './core/RoguelikeRunManager';
 import { AppEventBinder } from './events/AppEventBinder';
-import { KeyboardController } from './events/KeyboardController';
 import { initI18n } from './i18n/i18n';
 import { DevModeManager } from './core/DevModeManager';
 import { GlobalSettings } from './core/GlobalSettings';
@@ -37,7 +36,18 @@ class CrazyGoApp {
 
         // 3. Vincular Navegación, Atajos de Teclado y Eventos Globales
         AppEventBinder.init();
-        KeyboardController.init();
+        import('./story/StoryModeController').then(m => m.StoryModeController.init());
+        
+        // 3.5 Inicializar DB y nombre
+        import('./network/DatabaseManager').then(async (m) => {
+            await m.DatabaseManager.initialize();
+            const profile = await m.DatabaseManager.getProfile(m.DatabaseManager.getUserId());
+            if (profile) {
+                import('./network/NetworkManager').then(nm => {
+                    nm.NetworkManager.localName = profile.displayName;
+                });
+            }
+        });
 
         // 4. Comprobar si se ha entrado mediante enlace de invitación online (?join=XXXX o ?room=XXXX)
         const params = new URLSearchParams(window.location.search);

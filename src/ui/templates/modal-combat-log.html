@@ -1,0 +1,144 @@
+<!-- ================= MODAL: COMBAT LOG & INTERACTIVE REPLAY ================= -->
+<div id="modal-combat-log" class="modal-backdrop hidden">
+  <div class="modal-card modal-combat-log-card" id="modal-combat-log-card">
+    
+    <!-- Modal Header with Title & Export/Import Quick Actions -->
+    <div class="modal-header combat-log-header">
+      <div class="header-titles">
+        <h2 id="combat-log-title" data-i18n="combat_log.title">📜 Registro de Combate y Repetición</h2>
+        <p id="combat-log-subtitle" class="modal-desc" data-i18n="combat_log.subtitle">Explora visualmente cada jugada, habilidad y captura del combate paso a paso.</p>
+      </div>
+
+      <div class="header-actions">
+        <button id="btn-replay-copy" class="btn btn-replay-action" data-i18n-title="combat_log.btn_copy_title" title="Copiar repetición en formato JSON al portapapeles">
+          <span data-i18n="combat_log.btn_copy">📋 Copiar JSON</span>
+        </button>
+        <button id="btn-replay-download" class="btn btn-replay-action" data-i18n-title="combat_log.btn_download_title" title="Descargar archivo de repetición (.cgo)">
+          <span data-i18n="combat_log.btn_download">💾 Descargar .cgo</span>
+        </button>
+        <button id="btn-replay-import-trigger" class="btn btn-replay-action btn-replay-import" data-i18n-title="combat_log.btn_import_title" title="Cargar archivo de repetición externo">
+          <span data-i18n="combat_log.btn_import">📂 Importar Replay</span>
+        </button>
+        <input type="file" id="replay-file-input" accept=".cgo,.json" class="hidden" />
+        
+      </div>
+    </div>
+
+    <!-- Modal Panoramic Body (Two-Column Layout: Replay Board on Left, Timeline Log on Right) -->
+    <div class="combat-log-body">
+      
+      <!-- LEFT COLUMN: Replay Visual Board & Media Controls -->
+      <div class="replay-board-column">
+        
+        <!-- Step Info Card -->
+        <div class="replay-step-banner">
+          <div class="step-badge-row">
+            <span id="replay-step-badge" class="replay-badge-turn">Paso 0 / 0</span>
+            <span id="replay-turn-badge" class="replay-badge-turn-label">Turno 0</span>
+            <div id="replay-captures-pill" class="replay-captures-pill">
+              <span id="replay-cap-p1">⚫ 0</span>
+              <span class="cap-sep">vs</span>
+              <span id="replay-cap-p2">⚪ 0</span>
+              <span id="replay-cap-p3" class="hidden">🟢 0</span>
+              <span id="replay-cap-p4" class="hidden">🟣 0</span>
+            </div>
+          </div>
+          <div id="replay-step-desc" class="replay-step-desc-text">
+            Inicio del combate.
+          </div>
+        </div>
+
+        <!-- SVG Preview Board Viewport -->
+        <div id="replay-board-viewport" class="replay-board-viewport">
+          <div id="replay-board-container" class="replay-board-container">
+            <svg id="replay-board-svg" xmlns="http://www.w3.org/2000/svg"></svg>
+          </div>
+        </div>
+
+        <!-- Replay Scrubber & Media Controls Toolbar -->
+        <div class="replay-controls-toolbar">
+          
+          <!-- Scrubber Range Slider -->
+          <div class="replay-scrubber-row">
+            <span class="scrubber-label">0</span>
+            <input type="range" id="replay-step-slider" min="0" max="0" value="0" class="replay-slider" />
+            <span id="replay-slider-max-label" class="scrubber-label">0</span>
+          </div>
+
+          <!-- Buttons Row: Step Navigation, Auto-Play & Speed -->
+          <div class="replay-buttons-row">
+            <div class="playback-buttons-group">
+              <button id="btn-replay-first" class="btn btn-playback" data-i18n-title="combat_log.btn_first" title="Saltar al inicio (Paso 0)">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="19 20 9 12 19 4 19 20"></polygon><line x1="5" y1="19" x2="5" y2="5"></line></svg>
+              </button>
+              <button id="btn-replay-prev" class="btn btn-playback" data-i18n-title="combat_log.btn_prev" title="Jugada anterior (Flecha Izquierda / A)">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="15 18 9 12 15 6 15 18"></polygon></svg>
+              </button>
+              <button id="btn-replay-play" class="btn btn-playback btn-playback-play" data-i18n-title="combat_log.btn_play" title="Reproducir automáticamente / Pausa (Espacio)">
+                <span id="replay-play-icon">
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
+                </span>
+                <span id="replay-play-text" data-i18n="combat_log.btn_auto">Auto</span>
+              </button>
+              <button id="btn-replay-next" class="btn btn-playback" data-i18n-title="combat_log.btn_next" title="Siguiente jugada (Flecha Derecha / D)">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="9 18 15 12 9 6 9 18"></polygon></svg>
+              </button>
+              <button id="btn-replay-last" class="btn btn-playback" data-i18n-title="combat_log.btn_last" title="Saltar al turno final (Paso actual)">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 4 15 12 5 20 5 4"></polygon><line x1="19" y1="5" x2="19" y2="19"></line></svg>
+              </button>
+            </div>
+
+            <!-- Speed selector -->
+            <div class="replay-speed-group">
+              <label for="replay-speed-select" data-i18n="combat_log.speed">Velocidad:</label>
+              <select id="replay-speed-select" class="replay-select">
+                <option value="1800" data-i18n="combat_log.speed_slow">0.5x (Lenta)</option>
+                <option value="1000" selected data-i18n="combat_log.speed_normal">1.0x (Normal)</option>
+                <option value="600" data-i18n="combat_log.speed_fast">1.5x (Rápida)</option>
+                <option value="350" data-i18n="combat_log.speed_hyper">2.5x (Relámpago)</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- RIGHT COLUMN: Timeline Log List & Filters -->
+      <div class="replay-timeline-column">
+        
+        <!-- Filter Tabs & Search -->
+        <div class="timeline-filter-header">
+          <div class="filter-tabs">
+            <button class="filter-tab active" data-filter="all" data-i18n="combat_log.filter_all">Todos</button>
+            <button class="filter-tab" data-filter="stones" data-i18n="combat_log.filter_stones">Piedras</button>
+            <button class="filter-tab" data-filter="skills" data-i18n="combat_log.filter_skills">Habilidades</button>
+            <button class="filter-tab" data-filter="poly" data-i18n="combat_log.filter_poly">Poliminós</button>
+            <button class="filter-tab" data-filter="passes" data-i18n="combat_log.filter_passes">Pases</button>
+            <button class="filter-tab" data-filter="board" data-i18n="combat_log.filter_board">Tablero</button>
+          </div>
+          <input type="text" id="replay-search-input" class="timeline-search-input" data-i18n-placeholder="combat_log.search_placeholder" placeholder="🔍 Filtrar jugada, casilla o héroe..." />
+        </div>
+
+        <!-- Scrollable Cards List -->
+        <div id="replay-log-entries-list" class="timeline-cards-scroll">
+          <!-- Injected dynamically by CombatLogModalRenderer -->
+        </div>
+
+      </div>
+
+    </div>
+
+    <!-- Modal Footer -->
+    <div class="modal-footer combat-log-footer">
+      <div class="footer-left-info">
+        <span id="replay-footer-match-info" class="replay-meta-text">Modo Local • 9x9 • Komi: 6.5</span>
+      </div>
+      <button id="btn-combat-log-bottom-close" class="btn btn-modal-primary">
+        <span data-i18n="combat_log.btn_return">Volver a la Partida ⚔️</span>
+      </button>
+    </div>
+
+  </div>
+</div>
+
+

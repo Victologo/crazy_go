@@ -14,6 +14,15 @@ export class BoardGenerators {
             case 'square':
                 this.generateSquareGrid(board, size);
                 break;
+            case 'volcano':
+                this.generateVolcanoGrid(board, size);
+                break;
+            case 'sky':
+                this.generateSkyGrid(board, size);
+                break;
+            case 'oni':
+                this.generateOniGrid(board, size);
+                break;
             case 'triangle':
                 this.generateTriangularGrid(board, size);
                 break;
@@ -295,6 +304,26 @@ export class BoardGenerators {
     }
 
     /**
+     * Tablero Volcánico (9x9, 13x13, 19x19)
+     * Cuadrícula canónica de Go con estética de cráteres volcánicos en las esquinas y peligro ambiental de erupción.
+     */
+    static generateVolcanoGrid(board: GraphBoard, size: number = 9): void {
+        board.shape = 'volcano';
+        this.generateSquareGrid(board, size);
+    }
+
+    /**
+     * Tablero del Cielo (9x9, 13x13, 19x19)
+     * Comienza como una cuadrícula canónica completa de Go del tamaño seleccionado (9x9, 13x13 o 19x19),
+     * y cada pocos turnos caen 5 nuevos bloques cuadrados (2x2) del cielo expandiendo el goban indefinidamente hacia el exterior.
+     */
+    static generateSkyGrid(board: GraphBoard, size: number = 9): void {
+        board.shape = 'sky';
+        board.size = size;
+        this.generateSquareGrid(board, size);
+    }
+
+    /**
      * Cuadrícula clásica de Go (9x9, 13x13, 19x19) con puntos Hoshi
      */
     static generateSquareGrid(board: GraphBoard, size: number = 9): void {
@@ -322,6 +351,81 @@ export class BoardGenerators {
      * Tablero Erosionado / Dentado (Eroded / Carved Goban)
      * Bordes y esquinas dentadas y recortadas de forma orgánica/asimétrica con chokepoints tácticos
      */
+    /**
+     * Tablero Máscara Oni (25x25 Unificado con Cuernos, Ojos Huecos y Fauces del Abismo)
+     * Siempre se genera con la silueta completa 25x25 independientemente del tamaño seleccionado
+     */
+    static generateOniGrid(board: GraphBoard, _size: number = 25): void {
+        board.shape = 'oni';
+        const size = 25;
+        board.size = size;
+        const spacing = 24; // Escala visual óptima (viewBox ~600x600)
+
+        const starPoints = new Set<string>([
+            '4,6', '20,6', '12,6',
+            '4,12', '12,12', '20,12',
+            '5,20', '12,20', '19,20',
+            '12,23'
+        ]);
+
+        const excluded = new Set<string>();
+
+        // 1. Vano exterior de cuernos (Outer upper corners above temples)
+        for (let y = 0; y <= 4; y++) {
+            excluded.add(`0,${y}`);
+            excluded.add(`24,${y}`);
+        }
+        excluded.add('1,0'); excluded.add('1,1'); excluded.add('1,2');
+        excluded.add('23,0'); excluded.add('23,1'); excluded.add('23,2');
+
+        // 2. Hendidura central superior entre cuernos (Frente en V)
+        for (let x = 6; x <= 18; x++) excluded.add(`${x},0`);
+        for (let x = 6; x <= 18; x++) excluded.add(`${x},1`);
+        for (let x = 7; x <= 17; x++) excluded.add(`${x},2`);
+        for (let x = 8; x <= 16; x++) excluded.add(`${x},3`);
+        for (let x = 10; x <= 14; x++) excluded.add(`${x},4`);
+        for (let x = 11; x <= 13; x++) excluded.add(`${x},5`);
+
+        // 3. Ojos Huecos del Demonio (3x2 cada ojo)
+        for (let x = 6; x <= 8; x++) {
+            excluded.add(`${x},8`);
+            excluded.add(`${x},9`);
+        }
+        for (let x = 16; x <= 18; x++) {
+            excluded.add(`${x},8`);
+            excluded.add(`${x},9`);
+        }
+
+        // 4. Boca / Fauces del Oni (Mouth Void / Cavidad del Abismo Infinito)
+        for (let x = 8; x <= 16; x++) excluded.add(`${x},16`);
+        for (let x = 8; x <= 16; x++) excluded.add(`${x},17`);
+        for (let x = 9; x <= 15; x++) excluded.add(`${x},18`);
+
+        // 5. Barbilla y Mandíbula inferior (Escalonado de mandíbula hacia la barbilla)
+        excluded.add('0,20'); excluded.add('24,20');
+        for (let x = 0; x <= 1; x++) { excluded.add(`${x},21`); excluded.add(`${24 - x},21`); }
+        for (let x = 0; x <= 2; x++) { excluded.add(`${x},22`); excluded.add(`${24 - x},22`); }
+        for (let x = 0; x <= 4; x++) { excluded.add(`${x},23`); excluded.add(`${24 - x},23`); }
+        for (let x = 0; x <= 6; x++) { excluded.add(`${x},24`); excluded.add(`${24 - x},24`); }
+
+        // Crear Nodos
+        for (let row = 0; row < size; row++) {
+            for (let col = 0; col < size; col++) {
+                const id = `${col},${row}`;
+                if (excluded.has(id)) continue;
+                
+                const x = col * spacing;
+                const y = row * spacing;
+                const isStar = starPoints.has(id);
+                
+                board.addNode(id, x, y, isStar);
+            }
+        }
+
+        // Conectar vecinos ortogonales
+        this.connectOrthogonalEdges(board, size);
+    }
+
     static generateErodedGrid(board: GraphBoard, size: number = 9): void {
         const spacing = size === 19 ? 28 : size === 13 ? 36 : 46;
         const starPoints = this.getStarPoints(size);
@@ -1036,7 +1140,7 @@ export class BoardGenerators {
         }
     }
 
-    private static getStarPoints(size: number): Set<string> {
+    public static getStarPoints(size: number): Set<string> {
         const starPoints = new Set<string>();
         if (size === 5) {
             [[2, 2]].forEach(([c, r]) => starPoints.add(`${c},${r}`));

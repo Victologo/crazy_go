@@ -2,6 +2,710 @@
 
 Este registro cronológico documenta los avances diarios en el desarrollo del juego. (Orden: Más reciente arriba).
 
+## 27 de Agosto de 2026 - Día 11 (Sesión 150): Corrección Integral de Multijugador Local 2P/4P (Colores por Turno) y Animación Universal del Vórtice de la Boca Oni
+
+### 👥 1. Corrección de Asignación de Color en Partidas Multijugador Local (`SVGRenderer.ts`, `GameController.ts`, `HUDController.ts`, `test_local_multiplayer.mjs`)
+- **Causa Raíz del Error**:
+  - `SVGRenderer.handleNodeClick` utilizaba un callback `getLocalPlayerColorCallback` que evaluaba `(this.config.humanColor || ...)`.
+  - Como `this.config.humanColor` se inicializaba por defecto en `1` (Negras), la expresión devolvía invariablemente `1` (*truthy*) en todas las partidas locales.
+  - Al ser un clic local (`isLocal === true`), `placingPlayer` se forzaba siempre al Jugador 1 (Negras ⚫), ignorando el jugador activo `this.state.currentPlayer`. Por tanto, aunque el HUD cambiaba a los turnos 1b (Blancas ⚪), 1c (Esmeralda 🟢) o 1d (Amatista 🟣), cualquier clic sobre el Goban colocaba una ficha negra.
+- **Solución Implementada**:
+  - Se eliminó el parámetro y callback redundante `getLocalPlayerColorCallback` de `SVGRenderer` y de la llamada en `GameController`.
+  - `placingPlayer` ahora se extrae directamente de `this.state.currentPlayer`, garantizando que en partidas de 2 y 4 jugadores locales cada usuario coloque fielmente su color correspondiente (Negras, Blancas, Esmeralda y Amatista).
+  - Sincronización del dock de poliminós en `HUDController.updatePolyominoUI` mediante `PolyominoManager.syncCardsWithInventory(currentPlayer)` para reflejar las cartas disponibles de cada jugador en su turno.
+  - Ajuste en `GameController.onNodeClicked` para que la captura de entidades neutrales (`resolveCaptiveCaptures`) se atribuya al jugador que realizó la jugada (`previousPlayerId`).
+  - Creada y validada la suite de pruebas automatizadas `scripts/test_local_multiplayer.mjs` con 100% de éxito.
+
+### 👹 2. Animación Universal del Vórtice Abismal en la Boca de la Máscara Oni (`SVGRenderer.ts`, `CombatLogModalRenderer.ts`, `vfx.css`)
+- **Problema Reportado**:
+  - La animación del vórtice abismal morado/carmesí en las fauces del tablero Oni únicamente aparecía en el visor del Combat Log & Replay, pero faltaba en el tablero de combate en vivo (`#game-svg`) y en las previsualizaciones de selección de tablero (Asistente Local y Asistente Online).
+- **Solución Implementada**:
+  - Se añadieron `renderOniMouthAbyss` y `renderVolcanoCornerDecorations` en el método principal `render()` de `SVGRenderer.ts`, dibujándose inmediatamente sobre el fondo de madera dinámico (`renderBoardBackground`).
+  - Se agregaron anillos concéntricos giratorios (`.oni-mouth-swirl-ring-1` y `.oni-mouth-swirl-ring-2`) con `transform-box: fill-box;` en `vfx.css` para lograr una rotación fluida y centrada en todos los navegadores.
+  - Ahora el vórtice místico con brillo palpitante morado/carmesí se muestra permanentemente en el combate en vivo, en el Combat Log/Replay, en el Paso 3, 5 y 6 del Asistente Local (`wizard-board-preview-svg`, `wizard-stage-board-svg`, `wizard-rival-board-svg`) y en el Asistente Online (`online-board-preview-svg`, `online-stage-board-svg`).
+
+### 🌐 3. Rediseño del Asistente Multijugador Online (`modal-online.html`, `OnlineModalRenderer.ts`, `OnlineEventBinder.ts`, `translations.ts`)
+- **Disposición en 2 Columnas**:
+  - Las tarjetas de selección de modo de red (`Classic Duel (1v1 / 4P)` y `Roguelike Expedition`) ahora se presentan lado a lado en la misma fila con una cuadrícula de 2 columnas (`setup-grid grid-2 wizard-big-grid`).
+- **Nueva Fase/Paso Dedicado de Selección de Jugadores**:
+  - Tras seleccionar **Duelo Clásico** (y exclusivamente en este modo), el asistente avanza a un nuevo Paso 2 independiente donde el anfitrión elige entre **2 Jugadores (Duelo 1v1)** o **4 Jugadores (FFA Cuádruple)** en tarjetas panorámicas.
+  - Al seleccionar **Roguelike Expedition**, este paso se omite y salta de forma automática, pasando directamente a la configuración del tablero y adaptando la barra de progreso (5 pasos para Roguelike vs 6 pasos para Duelo Clásico).
+- **Navegación Fluida y Adaptativa**:
+  - Se sincronizaron los botones "Atrás" / "Siguiente" y los clics en los nodos del Stepper para saltar fluidamente el paso omitido en expediciones cooperativas.
+  - Sincronización del Paso 6 (Lobby y Sala P2P) en `OnlineController.ts` y `OnlineModalRenderer.ts`.
+
+---
+
+## 27 de Agosto de 2026 - Día 11 (Sesión 149): Auditoría Exhaustiva de Reglas Canónicas de Go, Corrección de Inconsistencia de Ko, y Hoja de Ruta Definitiva de Machine Learning (AlphaZero-Style)
+
+### ♟️ 1. Auditoría Canónica del Motor de Go y Corrección de Ko (`RulesEngine.ts`, `docs/ai_wiki/go_rules.md`)
+- **Diagnóstico y Corrección de Ko Simple**:
+  - Se identificó una discrepancia sutil entre `RulesEngine.isMoveLegal` y `RulesEngine.tryPlaceStone`: `isMoveLegal` condicionaba la verificación del Ko a `nodesToCapture.size > 0`, mientras que `tryPlaceStone` lo evaluaba de forma incondicional cuando `boardHistory.length >= 2`.
+  - Se corrigió `isMoveLegal` en `RulesEngine.ts` para evaluar la repetición de estado serializado siempre que exista historial suficiente, unificando ambos métodos y blindando el motor contra falsos positivos en simulaciones y MCTS.
+- **Sincronización del Wiki de Reglas (`go_rules.md`)**:
+  - Se actualizó el manual canónico corrigiendo el error que indicaba que el Ko estaba desactivado (en el código real siempre estuvo activo).
+  - Verificadas e indexadas como válidas todas las reglas: cadenas, libertades BFS, prohibición de suicidio, Teorema de Benson (1976) para vida incondicional, detección de 3 capas para Seki, Komi y descarte de piedras muertas por recinto cerrado.
+  - Se documentó la razón por la cual la "Fase de Disputa de Territorio" (reanudación post-pases) no es requerida para el entrenamiento con ML, ya que el *Ownership Head* de la red neuronal resuelve la asignación territorial directamente.
+
+### 🧠 2. Plan Maestro de Machine Learning y Red Neuronal (`entrenar la IA para el Go con machine learning.md`)
+- **Arquitectura de Tres Cabezas (CrazyGoNet - ResNet-12)**:
+  - **Policy Head**: Distribución de probabilidades de mejor jugada ($N \times N + 1$).
+  - **Value Head**: Vector de probabilidad de victoria calibrado $[p_1, p_2, p_3, p_4]$ sin sesgo de Komi en el turno 1, reemplazando la heurística Softmax actual en `AnalysisEngine.ts` y reparando el cálculo de **Winrate en tiempo real**.
+  - **Ownership Head**: Mapa de predicción de dominio territorial ($N \times N \times 4$) para resolver piedras muertas y territorio en tableros asimétricos sin heurísticas BFS frágiles.
+- **Decisión Arquitectónica Clave (Simulador Headless en Node.js/TypeScript)**:
+  - Se descartó reescribir las reglas en Python para evitar discrepancias de código o bugs divergentes; el bucle de Self-Play consumirá directamente las clases `RulesEngine.ts` y `GraphBoard.ts` mediante `tsx`/Node.js conectándose con PyTorch (CUDA 12) para el entrenamiento por lotes en GPU.
+- **Estrategia de Doble Modelo**:
+  - **Versión Descargable (Desktop / itch.io)**: Exportación ONNX en FP32 completo (~85-100 MB, ResNet-12) ejecutada mediante `onnxruntime-node` a máxima velocidad (<15 ms).
+  - **Versión Web (WASM)**: Exportación cuantizada en FP16 y modelo destilado ResNet-8 (~40-45 MB) vía `onnxruntime-web` con caché persistente en navegador.
+
+### 🌋 3. Reactivación y Sincronización Universal de Peligros Ambientales (Cielo, Volcán, Máscara Oni) (`SVGRenderer.ts`, `StageHazardManager.ts`, `GameController.ts`, `AITurnManager.ts`)
+- **Causa Raíz del Fallo en Tableros con Habilidades Especiales**:
+  - En versiones recientes, `StageHazardManager.checkStageHazards` únicamente se invocaba cuando un jugador o la IA decidía pasar turno (`passTurn`), pero **nunca** tras la colocación estándar de piedras o poliminós en `SVGRenderer.handleNodeClick`.
+  - En consecuencia, en partidas donde ambos bandos colocaban piedras de forma continua, el turno alcanzaba el umbral de activación (Turno 21 / 11a en Tablero del Cielo y Volcán, o Turno 15 / 8a en Máscara Oni) y la alerta de aviso se mostraba pero los bloques celestiales nunca caían, el magma no impactaba y el vórtice gravitatorio del Oni no se activaba.
+- **Solución Implementada**:
+  - **Ejecución Post-Jugada en `SVGRenderer`**: Se conectó `StageHazardManager.checkStageHazards` tras la colocación de piedras y fichas de poliminó en `SVGRenderer.handleNodeClick`.
+  - **Bloqueo Asíncrono durante Animaciones (`isHazardInProgress`)**: Se introdujo el flag `StageHazardManager.isHazardInProgress` para evitar que la IA o el usuario interactúen mientras caen los bloques (600ms), impacta el meteorito volcánico o el vórtice arrastra piedras ligeras hacia las fauces. Al finalizar el efecto, se restaura la interactividad y se cede el turno limpiamente.
+  - **Registro en Combat Log**: Se agregaron eventos de tablero (`CombatLogManager.logBoardEvent`) para la Expansión Celestial y la Inhalación del Oni.
+  - **Filtro de Casillas Destruidas en SVG**: Se perfeccionó el renderizado del Goban en `SVGRenderer.ts` (líneas de cuadrícula, estrellas Hoshi y fondo Convex Hull de madera) para descartar completamente las casillas eliminadas por el magma o sismos.
+  - **Suite de Pruebas Automatizada (`scripts/test_stage_hazards.mjs`)**: Suite de validación que simula partidas paso a paso verificando que en el turno 21 (11a) el Tablero del Cielo se expande proceduralmente de 81 a 91 casillas, el Volcán destruye casillas por impacto directo de magma, y en el turno 15 (8a) la Máscara Oni succiona piedras ligeras hacia la boca. 100% de tests pasando.
+
+---
+
+## 27 de Agosto de 2026 - Día 11 (Sesión 148 / Fase 103): Registro Total de Jugadas en Combat Log & Replay con Rebobinar, Aislamiento del Modo Historia, Audio Pool Anti-Caché y Textura de Hierba en Tableros Conquistados
+
+### 📜 1. Reparación Integral del Combat Log & Replay Engine con Hechizos de Rebobinar (`SVGRenderer.ts`, `CombatLogManager.ts`, `CombatLogModalRenderer.ts`)
+- **Causa Raíz del Error Diagnosticada**:
+  - Al abrir el Registro de Combate y Repetición (`CombatLogModalRenderer`), el visor solo mostraba los lanzamientos del pergamino ⌛ *Rebobinar* (`CS93`) y parecía "olvidar todo lo anterior".
+  - La causa raíz era que **`CombatLogManager.logStonePlacement`** y **`CombatLogManager.logPolyominoPlacement`** estaban implementados en el gestor pero nunca se llamaban desde el flujo de clics del tablero (`SVGRenderer.handleNodeClick`). Por tanto, ninguna colocación de piedra normal se guardaba en el historial; únicamente se registraban hechizos y habilidades.
+- **Solución Implementada**:
+  - **Registro Universal de Piedras Go**: Se conectó `CombatLogManager.logStonePlacement(this.board, this.state, nodeId, placingPlayer, result.capturedCount)` en `SVGRenderer.handleNodeClick` inmediatamente después de cada jugada válida. Esto registra automáticamente todas las jugadas del jugador humano, de la IA, de invitados online y en modo historia.
+  - **Registro de Poliminós y Brotes**: Se conectó `CombatLogManager.logPolyominoPlacement` para Fichas Germinantes (1x1), Duplicidad (2x1) y Monolitos (2x2), y `CombatLogManager.logSproutingGrowth` para cada nuevo brote botánico.
+  - **Cronología Fiel con Rebobinado**: Ahora, al lanzar el pergamino ⌛ *Rebobinar*, el historial conserva íntegramente todos los pasos y capturas previas, y añade el paso de Rebobinado con el snapshot del tablero restaurado a su turno anterior, permitiendo reproducir la partida paso a paso sin vacíos en la línea temporal.
+  - **Soporte para Topología Dinámica y Destrucción de Nodos**: El visor de replay (`CombatLogModalRenderer`) y los snapshots (`CombatLogManager.createBoardSnapshot`) sincronizan el estado exacto de cada nodo y terreno (`DESTROYED`, `NORMAL`). Si un evento de tablero destruye o desconecta casillas (volcanes, terremotos, fauces Oni), las líneas de cuadrícula, estrellas Hoshi y fondo de madera se recalculan y adaptan en cada paso cronológico.
+  - **Suite de Pruebas Automatizadas (`scripts/test_combat_log.mjs`)**: 7 pruebas unitarias y de integración que verifican piedras, habilidades de campeones, poliminós, brotes, rebobinado y destrucción dinámica de nodos con un 100% de éxito.
+
+### 🛡️ 2. Aislamiento Total del Modo Historia y Prevención de Fugas de Estado (`StoryModeController.ts`, `GameController.ts`, `ScreenManager.ts`)
+- **Diagnóstico del Fallo de Carga de Tablero en Otros Modos**:
+  - Al jugar al Modo Historia, el contenedor `#story-world-container` se reducía a `scale(0.08)` (macrocosmos), los tableros superados se clonaban en el DOM (`.story-conquered-island`), los duelistas se ocultaban con `opacity: 0; pointer-events: none;`, y un watcher con `setInterval` (`_turnWatcher`) quedaba activo.
+  - Al salir al Menú Principal o iniciar modos como 1v1 Local, Roguelite u Online, no se limpiaban estos estados, provocando que el nuevo tablero apareciera enano (escala 8%), desplazado fuera de pantalla o no interactivo.
+- **Solución Implementada**:
+  - **`StoryModeController.resetWorld()`**: Método público de reseteo total que restaura `#story-world-container` a `scale(1)` y `translate(0, 0)`, elimina los SVGs clonados, resetea `#game-svg`, reactiva los duelistas y limpia diálogos y prompts residuales.
+  - **Blindaje en `GameController.initGame()`**: Toda inicialización de partida que no sea del Modo Historia ejecuta automáticamente `stopCampaign()` y `resetWorld()`, restaurando el fondo a `'combat'` si estaba en `'story'`.
+  - **Blindaje en `ScreenManager.transitionTo()`**: Cualquier transición hacia el Menú Principal (`main-menu`) o el Mapa Roguelike (`roguelike-map`) detiene la campaña y limpia el contenedor del tablero.
+
+### 🔊 3. Resolución de Error de Audio Chromium `ERR_CACHE_OPERATION_NOT_SUPPORTED` (`BGMGenerator.ts`)
+- **Causa Raíz**: El reproductor creaba 16 instancias de `new Audio()` en el arranque (7 de ellas apuntando simultáneamente a `bgm_zen.wav` de 10.5 MB y 9 a `bgm_battle.wav`), generando peticiones concurrentes de *byte-range* HTTP que saturaban la caché interna de Chromium en `localhost`.
+- **Solución Implementada**: Se rediseñó `BGMGenerator` con un pool estricto de instancias únicas por archivo de audio. Al transicionar entre pantallas que comparten la misma música (Menú ➔ Mapa ➔ Zen ➔ Tutorial), la pista continúa sonando sin reinicios, cortes ni re-peticiones de red.
+
+### 🌿 4. Textura de Hierba en Tableros Conquistados (`SVGDefs.ts`, `StoryModeController.ts`)
+- Añadido el patrón vectorial `#grass-texture` en `SVGDefs.ts` con tono verde esmeralda y follaje natural.
+- En la transición de victoria del Modo Historia, el tablero superado reemplaza dinámicamente la textura de madera de Kaya por la textura de hierba, transformándose en un prado purificado sin madera visible al quedar anclado como isla inferior del macrocosmos.
+
+---
+
+## 26 y 27 de Agosto de 2026 - Día 11 (Sesión 148): Nuevo Modo Historia Cósmico: Flujo de 4 Escenas Macro, Zoom-In Dive Cinemático, Conquista de Naturaleza Ilustrada 2D y Corrección de Ejecución
+
+### 🌌 1. Flujo Canónico de 4 Escenas Cósmicas (`StoryModeController.ts`, `SVGRenderer.ts`, `layout.css`, `board.css`)
+- **Escena 1 (Cosmos Puro e Intro Cinemática)**:
+  - Overlay fullscreen `#story-cinematic-intro` con fondo de nebulosa estelar `/bg_story.jpg`.
+  - Zoom dinámico del cosmos (×2.2) y revelación secuencial de las 4 frases del lore del Tejedor Cósmico y la fractura de la realidad por el Vacío.
+  - Botón de salto rápido `[ SKIP INTRO ⏩ ]` interactivo desde el milisegundo 0.
+- **Escena 2 (Vista Macro Cósmica con Tablero Diminuto Flotante)**:
+  - Al salir de la intro o cargar un nuevo capítulo con `startZoomedOut = true`, la cámara se ubica en el vacío cósmico.
+  - En el centro de la pantalla flota un **pequeño Goban místico enano a escala `0.08`** con un resplandor pulsante dorado/ámbar (`drop-shadow(0 0 35px rgba(251, 191, 36, 0.85))`).
+  - Los duelistas permanecen ocultos (`opacity: 0`).
+  - Banner interactivo flotante: `✦ FRACTURE NODE 01 ✦ The Shattered Goban ✦ [ ⚔️ DIVE INTO GOBAN ✦ ]`.
+  - Clic en el tablero diminuto o en el banner: **Zoom-In Dive de 1.4s** (`cubic-bezier(0.16, 1, 0.3, 1)`), con leve sacudida al aterrizar (`vfx-screen-shake`), aparición de duelistas y apertura de diálogo narrativo.
+- **Escena 3 (Combate en el Cosmos y Florecimiento de Naturaleza)**:
+  - El fondo de batalla se mantiene **siempre en el cosmos estelar** (`url('/bg_story.jpg')`), dando la sensación de combatir directamente en islas flotantes en el espacio profundo.
+  - Colocación de piedras 100% receptiva mediante doble detección en SVG.
+  - Al vencer (`onWinCurrentChapter`), brotan sobre las casillas 4 ilustraciones 2D de alta resolución con animación elástica (`storyNaturePop`) y enredaderas verdes SVG trepando por la cuadrícula (`storyVineGrow`).
+- **Escena 4 (Zoom-Out Cósmico y Navegación con Doble Tablero)**:
+  - La cámara hace zoom-out a `scale(0.08)` de vuelta a la galaxia.
+  - En la parte inferior queda la isla purificada (`[ CONQUISTADO ]`) resplandeciendo en verde con su jardín y árboles.
+  - En la parte superior se carga la nueva isla (`[ NUEVO ]`, Capítulo 2: *The Crystal Fault*) esperando a ser purificada.
+  - Clic en la nueva isla desciende en picado al siguiente combate.
+
+### 🌲 2. Generación e Integración de Assets Ilustrados de Naturaleza (`/public/nature/`)
+- Creados y procesados 4 assets PNG transparentes de estilo anime / sumi-e tradicional:
+  - **`nature_pine.png`**: Bonsái centenario de Pino Negro Japonés (*Matsu*) con tronco retorcido.
+  - **`nature_sakura.png`**: Árbol floreciente de Cerezo Japonés (*Sakura*) con copa rosada.
+  - **`nature_bamboo.png`**: Macizo de Bambú Zen verde esmeralda.
+  - **`nature_vines.png`**: Manto de enredadera de hiedra y musgo con hojas brillantes.
+- Sustituyen definitivamente los emojis de texto por elementos gráficos `<image>` dentro de la capa `<g id="story-nature-bloom-layer">` del SVG.
+
+### 🛠️ 3. Panel de Debug Integrado en la Topbar (`StoryDebugUI.ts`, `index.html`)
+- Reubicado `#story-debug-panel` y su botón `🛠️ Story Debug ▼` en `#game-topbar .topbar-left` (junto al botón de reset `🔄`).
+- Menú desplegable ámbar con opciones para: saltar capítulo, ganar/perder al instante, forzar terremoto con ruptura de tablero (`⚡ Quake`), probar diálogos y reiniciar la intro cinemática.
+- Atajos de teclado rápidos: **`F3`** o **`~`** (tilde/backtick). Cierre automático al hacer clic fuera del panel.
+
+### 🐛 4. Resolución de Errores Críticos de Runtime y Conexión de Goban
+- **Fix `Uncaught TypeError: Cannot read properties of undefined (reading '0')` en `SVGRenderer.renderShrines`**:
+  - `STORY_CHAPTERS` estaba fuera de la clase `StoryModeController` y `(window as any).StoryModeController.STORY_CHAPTERS` devolvía `undefined`, abortando la inicialización del motor, impidiendo el cambio de fondo a cósmico y bloqueando los clics para poner fichas.
+  - Declarado `public static readonly STORY_CHAPTERS = STORY_CHAPTERS;`, asignación global incondicional a `window` y protección con `try...catch` en todas las capas SVG.
+- **Doble Detección Global en SVG (`SVGRenderer.ts`)**:
+  - El manejador global de clics en SVG asegura que cualquier clic donde se dibuje la piedra fantasma consolida la jugada con 100% de efectividad.
+- **Omisión de Splash de Komi (`GameController.ts`)**:
+  - Activado `skipKomiSplash` en modo historia para erradicar el velo translúcido de desenfoque que interceptaba los eventos del puntero.
+- **Alineación Visual en Menú Principal (`index.html`)**:
+  - Elevado el texto "ROGUELIKE" en 20px (`translateY(-22px)`).
+
+---
+
+## 26 de Agosto de 2026 - Día 10 (Sesión 147): Cromatismo de Dificultad Avanzado y Transiciones de Escena por Disolución y Desenfoque
+
+### 🔥 1. Rediseño Cromático de las Llamas de Expedición (`carousel.css`)
+- **Medium (Medio)**: Ajustado a un color **amarillo-dorado brillante** (`#fde047`, `rgba(234, 179, 8, 0.9)`) con un factor de rotación de matiz cálido (`hue-rotate(10deg)`). Esto evita que se confunda visualmente con la dificultad Hard.
+- **Hard (Difícil)**: Rediseñado para mostrar un **rojo carmesí profundo y puro** (`#ef4444`, `rgba(220, 38, 38, 1)`) con alta saturación (`saturate(10)` y `hue-rotate(-45deg)`), logrando una distinción instantánea.
+- **Grandmaster (Gran Maestro)**: Cambiado a una **llama blanca cósmica celestial** pura y brillante (`brightness(3.2) saturate(0.1)`), evocando maestría suprema.
+
+### 🌊 2. Transición de Pantallas por Disolución y Desenfoque Progresivo (`theme.css`, `ScreenManager.ts`)
+- **Adiós al Parpadeo en Negro**: Reemplazada la máscara opaca de color negro puro por una **transición fluida de tipo disolución (cross-dissolve)** con desenfoque de fondo y atenuación de brillo:
+  - Fondo de transición translúcido y azulado: `rgba(8, 12, 22, 0.45)`.
+  - Desenfoque y brillo dinámicos mediante hardware: `backdrop-filter: blur(18px) brightness(0.55)`.
+  - Evita la fatiga visual y la sensación de tirones durante la carga de assets del Goban.
+- **Sincronización de Tiempos**: Ajustados los retrasos en `ScreenManager.ts` (retraso inicial de entrada de 240ms y retraso de salida de 300ms) para acomodar suavemente la animación de desenfoque.
+
+---
+
+## 26 de Agosto de 2026 - Día 10 (Sesión 146): Mapa Roguelike Definitivo Tipo Slay the Spire, Pacing Anti-Grind y Sincronización Subpixel Inmune a Zoom
+
+### 🗺️ 1. Generador de Grafos DAG Canónico Tipo Slay the Spire (`RoguelikeMapGenerator.ts`)
+- **Tallado de Caminos Puros (Path-Carving DAG)**: El mapa se genera mediante el tallado de 3 caminos continuos e independientes desde el inicio hasta el Gran Dragón Sabio Gris, garantizando que el 100% de los nodos pertenezcan a una ruta válida y eliminando cualquier posibilidad de nodos huérfanos o callejones sin salida.
+- **Prevención Geométrica Estricta de Cruces (`crossesAnyEdge`)**: Evaluación formal de no-intersección ($from_1 < from_2 \land to_1 > to_2$), impidiendo líneas cruzadas en "X" y garantizando un grafo planar limpio.
+- **Filtro de No-Redundancia (`createsRedundancy`)**: Se rechazan conexiones que dupliquen el abanico completo de destinos de otro nodo paralelo en el mismo nivel, asegurando que cada nodo ofrezca decisiones estratégicas diferenciadas.
+- **Estilización Zen y Capping de Salidas**: Se limitó a un máximo de 2 conexiones salientes en puntos de bifurcación clave (y 1 conexión directa en la mayoría de nodos) para lograr un mapa visualmente despejado, legible y sin ruido de telarañas.
+
+### ⚔️ 2. Pacing de Game Design Óptimo y Progresión de Tableros (`RoguelikeMapGenerator.ts`)
+- **2 Nodos Iniciales de Batalla**: El nivel inicial (Tier 0) siempre presenta exactamente 2 combates para que el jugador elija con qué apertura comenzar.
+- **Bifurcación Inmediata Garantizada**: Cada nodo de inicio en Tier 0 se ramifica obligatoriamente hacia 2 o más opciones distintas en Tier 1, otorgando agencia y toma de decisiones al jugador desde el primer turno.
+- **Regla Estricta Anti-Grind (Máximo 2 Peleas Seguidas)**: Se implementó un validador que recorre todos los caminos del grafo y prohíbe que se encadenen 3 combates seguidos, forzando nodos sucesores a transformarse en Santuarios ⛩️, Mercaderes 🛒 o Zonas de Meditación 🏕️.
+- **Longitud Procedural y Escala de Goban**: Cada mapa genera entre 6 y 8 pisos totales con progresión canónica: **9x9** (primeras 2 rondas) $\to$ **13x13** (rondas intermedias) $\to$ **19x19** (rondas tardías y combate final).
+
+### 🔍 3. Sincronización Subpixel Inmune a Zoom (`RoguelikeMapRenderer.ts`, `map.css`)
+- **Causa Raíz del Descuadre en Zoom**: El contenedor del mapa tenía paddings y discrepancias entre la altura SVG vectorial (`viewBox`) y los píxeles absolutos CSS de los botones, lo que provocaba que al hacer zoom (50% a 200%) las líneas y los nodos se desfasaran hasta 40px.
+- **Solución Geométrica**: Eliminados los paddings del wrapper y unificada la altura exacta del escenario (`stageHeight = maxY + 80`) tanto en `svg.style.height`, `nodesContainer.style.height` y `viewBox="0 0 1000 stageHeight"`, logrando que $\text{SVG}(X,Y) \equiv \text{Centro Botón}(X,Y)$ a cualquier nivel de zoom o resolución.
+
+---
+
+## 26 de Agosto de 2026 - Día 10 (Sesión 145): Calibración Proporcional de Standees de Monjes y Sabios en Combate (-25%)
+
+### 🧘 1. Reducción Proporcional del Tamaño de Monjes y Sabios (`champions.css`)
+- **Motivo**: Las ilustraciones de monjes jóvenes (`monk_1.png` a `monk_5.png`) y sabios ancianos (`sage_1.png` a `sage_5.png`), al estar en postura sentada ancha con ratio cuadrado y tener configurado un `scale(1.68)`, se veían con una presencia física sobredimensionada en combate respecto al resto de héroes.
+- **Ajuste Aplicado (-25%)**:
+  - Reducción del factor de escala exactamente en un **25%**:
+    - En reposo: de `scale(1.68)` a `scale(1.26)`.
+    - En hover: de `scale(1.74)` a `scale(1.31)`.
+  - Reasentado vertical con `translateY(95px)` (hover `90px`) para mantener su base asentada sobre el pedestal de madera.
+  - Aplicación consistente sin importar el lado o modo de juego:
+    - **Lado Izquierdo (Jugador / P1)**: `.duel-standee-player`, `#duel-player-img` con `scaleX(-1)`.
+    - **Lado Derecho (Rival / IA / P2)**: `.duel-standee-enemy`, `#duel-enemy-img` con `scaleX(1)`.
+    - **Modo 4 Jugadores**: `.multi-standee-card`, `#duel-p2-img`, `#duel-p3-img`, `#duel-p4-img`.
+
+---
+
+## 26 de Agosto de 2026 - Día 10 (Sesión 137): Modo Historia - Tableros Contiguos e Internacionalización de Miniaturas de Campeones
+
+### 🌐 1. Internacionalización de Botones y Miniaturas de Campeones (`modal-local-setup.html`, `modal-online.html`, `modal-roguelike-setup.html`)
+- **Causa Raíz**: En la tira de miniaturas inferior de los modales de configuración de partida, los textos de los botones (*Persona Normal* y *Alquimista*) estaban escritos de forma estática en español en el HTML sin el atributo de enlace `data-i18n`.
+- **Solución**: Se añadieron los atributos reactivos `data-i18n="champion.<hero>.name"` a todas las miniaturas en los asistentes Local, Online (Host y Guest) y Roguelike, traduciéndose de inmediato al inglés (*Normal Person* / *Alchemist*) cuando el juego está en dicho idioma.
+
+---
+
+## 26 de Agosto de 2026 - Día 10 (Sesión 136): Normalización Simétrica de Personajes y Habilidades, Escalado Canónico a 19x19 en Máscara Oni, Vectores Ortogonales y Máscara Continua de Inmunidad
+
+### ⚖️ 1. Normalización y Simetría Total de Personajes y Tarjetas de Habilidad (`champions.css`, `DuelistRenderer.ts`)
+- **Simetría Dimensional de Siluetas (Standees)**:
+  - Eliminado el `scale(1.3)` asimétrico que agrandaba al jugador del lado izquierdo.
+  - Ambas siluetas (`.duel-standee-player` y `.duel-standee-enemy`) se calibraron con idéntico ancho (`clamp(285px, 23vw, 400px)`), altura de figuras (`clamp(340px, 50vh, 520px)`), posición base (`translateY(6%)`) y factor de escala de imagen (`scale(1.45)`, hover `1.50`).
+  - Sincronizadas las orientaciones y escalas de todos los campeones (`normal`, `ronin`, `alchemist`, `tengu`, `boss`) para una presencia equilibrada en ambos lados.
+- **Tarjetas de Habilidad Descriptivas y Completas para el Rival (`#duel-enemy-skill-badge`)**:
+  - Rediseñada la tarjeta del rival en `champions.css` (`.duel-enemy-skill-pill`) para igualar las dimensiones, padding, bordes redondeados y estructura interna de `.btn-card-skill.passive-badge`.
+  - Ahora renderiza tanto el **nombre de la habilidad** (`.duel-skill-name`) como la **fórmula de combate explicativa** (`.duel-skill-formula`) para todos los héroes (Kitsune, Tengu, Ryūjin, Ronin, Alquimista, Himiko, Gran Dragón Sabio y Aprendiz del Dojo) en cualquier modo de juego.
+
+---
+
+### 👹 2. Escalado Canónico a Escala 19x19 en el Tablero Máscara Oni
+- **Estandarización Universal**: Con independencia de si el jugador selecciona 9x9, 13x13 o 19x19 en la configuración previa, en el Tablero Máscara Oni (`shape === 'oni'`, topología de 25x25) todos los personajes y rivales IA operan con sus habilidades calibradas exactamente a **escala 19x19**:
+  - **🦊 Kitsune**: Otorga **5 cargas de Escudo Divino** (`KitsuneChampion.getShieldCharges`).
+  - **⚗️ Alquimista**: Otorga **4 transmutaciones de Inversión Cromática** (`AlchemistChampion.getInversionCount`).
+  - **✨ Himiko**: Su Lluvia Pétrea Celestial invoca **18 piedras aliadas** (`HimikoChampion.getStoneRainCount`).
+  - **🦅 Tengu**: Su Lluvia Meteórica descarga **27 meteoros** (`TenguChampion.getMeteorCount`).
+  - **🐉 Ryūjin**: Opera con la regla de 19x19 (1 quema por grupo vivo de 2 ojos y +1 quema por cada ojo adicional que se expanda en `RyujinChampion.checkPassiveTrigger`).
+  - **🤖 IA & Heurística de Apertura**: `AITurnManager`, `GameController` y `GoAI.ts` (`getBoardDimensions`) calibrados para operar a escala de 19x19 en el mapa de Máscara Oni.
+
+---
+
+### 🌪️ 2. Visualizador Dinámico de Inhalación Oni y Tarjeta Lateral Flotante (`OniInhalationPreview.ts`, `hud.css`, `GameEventBinder.ts`)
+- **Tarjeta Lateral Flotante sin Solapamientos**: El tooltip informativo de la Máscara Oni ya no cae sobre el Goban; ahora se despliega como tarjeta flotante fijada en el margen superior derecho de la pantalla (`top: 60px; right: 24px;`), dejando el **100% del área del tablero despejada y visible**.
+- **Capa SVG Dinámica de Alta Fidelidad en Hover (`OniInhalationPreview.ts`)**:
+  - **Vectores de Flujo Ortogonales**: Las flechas de atracción ya no se dibujan en diagonal flotando en el vacío; siguen con precisión las **aristas reales de la cuadrícula** ($\downarrow$, $\uparrow$, $\rightarrow$, $\leftarrow$) por donde se desplazarán las piedras.
+  - **Alto Contraste y Visibilidad**: Diseñadas con doble trazo (núcleo en **neón magenta vibrante `#e879f9`** sobre sombra oscura `rgba(15, 23, 42, 0.85)` y puntas triangulares nítidas) para resaltar sobre la madera y las líneas urushi del Goban.
+  - **Exclusión de Ruido en Cadenas Inmunes**: Las piedras pertenecientes a cadenas de 4+ piedras no tienen ninguna flecha dibujada encima.
+  - **Máscara Azul Continua Compartida (Sin Círculos Superpuestos)**: Los grupos inmunes (4+ piedras) comparten un contorno perimetral exterior suave y continuo (`#38bdf8`) con relleno azul cian translúcido y badge centralizado `🛡️ Inmune (X piedras)`.
+  - **Puntas de Flecha en Trayectorias de Piedras Ligeras**: Flechas de 3.2px con puntas prominentes hacia su destino y calaveras `💀` de alerta si van a ser devoradas por las fauces abismales.
+
+---
+
+### 🐉 3. Reparación del Targeting de Ryūjin y Flujo de Fin de Quema (`ChampionManager.ts`, `GameController.ts`, `SVGRenderer.ts`)
+- **Sincronización de `heroOwnerId`**: Se corrigió `ChampionManager.resetForMatch` para recibir y enlazar `config.humanColor`, permitiendo que el jugador humano dispare y ejecute la Furia del Dragón con cualquier color (Negras o Blancas).
+- **Aislamiento de `onPassiveBurnCompleted`**: Se eliminó el falso disparo de `onMovePlaced` al terminar la quema pasiva de piedras en `SVGRenderer.ts`, conectando `onPassiveBurnCompleted` en `GameController.ts` para dar paso fluido al turno de la IA sin estados suspendidos.
+
+---
+
+### 🌐 4. Corrección del Oponente / Rival del Invitado en Modo Online (`DuelistRenderer.ts`)
+- **Causa Raíz Identificada**: En `DuelistRenderer.render2PlayerDuelists`, la resolución del héroe rival (`oppHeroKey`) y del héroe propio (`myHeroKey`) asumía hardcodeado que el Anfitrión (Host) siempre jugaba con Negras (`myColor === 1` / `oppColor === 1`). Cuando el Host configuraba la sala como Blancas (P2) o el Invitado jugaba con Negras (P1), la condición invertía los roles y asignaba al rival el héroe del propio invitado (creando clones visuales en la interfaz del Guest) o recurría a un fallback forzado `'kitsune'`.
+- **Solución Técnica Aplicada**:
+  - Se vinculó dinámicamente con `NetworkManager.currentConfig.hostColor`.
+  - La comprobación ahora compara `myColor === hostColor ? hostHero : guestHeroes[myColor]` y `oppColor === hostColor ? hostHero : guestHeroes[oppColor]`.
+  - Se normalizó el fallback por defecto de oponente no seleccionado a `'normal'` (Aprendiz de Dojo).
+  - **Soporte 4P Online (`render4PlayerDuelists`)**: Se derivaron de forma exacta los campeones de todos los slots (P1 a P4) leyendo `hostHero` y el mapa `guestHeroes`, asegurando que cada jugador vea a los otros 3 rivales con sus respectivos personajes reales.
+
+---
+
+### 🎴 5. Rediseño Ergonómico de Previsualización de Escenario y Oponente (`setup.css`, `champions.css`, `modal-local-setup.html`, `modal-online.html`, `OnlineModalRenderer.ts`)
+- **Eliminación Total de Solapamientos**: Erradicada la colisión de standees y el Goban central con los selectores inferiores en los pasos de Escenario (*Scenery*) y Oponente (*Opponent*) tanto en Modo Local como Online.
+- **Dimensionado y Centrado Natural**:
+  - Standees reducidos de 301px a 195px (`165px x 195px`).
+  - Caja misteriosa reducida a `110px x 145px` y Goban central a `135px x 135px`.
+  - Asentados de forma natural en el centro del viewport escénico con `transform: translateY(0)` y `align-items: center`.
+- **Limpieza de Etiquetas**: Eliminadas las etiquetas flotantes `.duel-combatant-tag` y `.duel-stage-board-pill` para despejar completamente la vista previa.
+- **Renderizado en Tiempo Real Online**: Conectado el renderizado reactivo del SVG del tablero (`online-stage-board-svg`) y el standee del héroe anfitrión (`online-stage-player-img`) en el Paso 4 del Asistente Online.
+
+---
+
+### 🚪 6. Flujo Secuencial Diferido del Modo Online P2P (`modal-online.html`, `OnlineController.ts`, `OnlineEventBinder.ts`)
+- **Creación de Sala P2P Diferida al Paso 5 (Host)**: La sala WebRTC/MQTT se crea únicamente cuando el anfitrión completa la configuración (Modo, Tablero, Campeón, Escenario) y accede al Paso 5 (Lobby), erradicando desincronizaciones de red previas.
+- **Estructuración en 2 Fases Claras para el Invitado (Guest)**:
+  - **Fase 1**: Selección visual del Campeón.
+  - **Fase 2**: Introducción del código `GO-XXXX` y conexión directa `Connect 🚀`.
+
+---
+
+## 26 de Agosto de 2026 - Día 10 (Sesiones 129 - 134): Reparación Integral del Modo Online P2P, Copiado Limpio de Códigos, Desbloqueo del Jugador 2 y Corrección de Fondos
+
+### 🌐 Mejoras en el Modo Online y Análisis de Fallos Previos
+
+#### 1. ¿Por qué antes no funcionaba el emparejamiento online? (Causas Raíz Técnicas)
+- **Causa 1: Condición de carrera por doble llamada a `startGame()` (`NetworkManager.ts`)**
+  - *El problema*: Cuando un invitado se unía a la sala, el anfitrión disparaba `onPeerJoin`, reservaba el slot y llamaba a `startGame()` con un temporizador corto (200ms). Casi al mismo instante, el invitado enviaba el mensaje `GUEST_JOINED`, y el anfitrión volvía a llamar a `startGame()` dentro de `handleHostIncomingMessage`.
+  - *La consecuencia*: El paquete de red `START_GAME` se transmitía a través del canal de datos antes de que la negociación ICE/DTLS de WebRTC entre ambos navegadores estuviese 100% establecida. El mensaje se perdía silenciosamente y la partida no arrancaba.
+  - *La solución*: Se eliminó la llamada prematura a `startGame()` del `onPeerJoin` del anfitrión. Ahora `startGame()` se dispara **únicamente tras recibir `GUEST_JOINED`** (lo que garantiza que el canal de datos del invitado ya está activo y escuchando), y se aumentó el margen a **500ms** para permitir que la negociación P2P finalice con estabilidad.
+- **Causa 2: Bucle de handshake por solapamiento de `GUEST_JOINED` y `HERO_SELECT` (`NetworkManager.ts`)**
+  - *El problema*: Ambos mensajes compartían el mismo bloque `case` en el manejador del host. Cuando el invitado recibía `INIT_GAME`, respondía con `HERO_SELECT`, lo que provocaba que el host volviese a reenviar `INIT_GAME` y a reiniciar el temporizador de inicio, creando un ciclo repetitivo de mensajes.
+  - *La solución*: Se separaron en dos casos independientes. `HERO_SELECT` ahora únicamente actualiza el héroe del slot y sincroniza el lobby, sin interferir en el arranque de la partida. Además, en el cliente se añadió una guarda para enviar `HERO_SELECT` solo una vez.
+- **Causa 3: Bloqueo de clics del Jugador 2 / Blancas tras el primer turno (`SVGRenderer.ts`, `OnlineController.ts`)**
+  - *El problema*: Al arrancar la partida en el navegador del Jugador 2 (Blancas), el motor inicializaba la capa interactiva SVG (`<g class="interactive-layer">`) con `pointer-events: none` porque el primer turno correspondía al Jugador 1 (Negras). Cuando el Jugador 1 ponía su piedra y el mensaje de red llegaba al Jugador 2, `handleNodeClick` avanzaba el turno a Blancas pero llamaba a `render()` **antes** de actualizar `isInteractive = true`. El nuevo SVG se volvía a construir con `pointer-events: none`.
+  - *La consecuencia*: El Jugador 2 veía la piedra blanca transparente en hover (porque el evento de movimiento del ratón se escuchaba en el SVG raíz), pero al hacer clic, los círculos invisibles de las intersecciones tenían los clics bloqueados por CSS (`pointer-events: none`) y ninguna jugada se registraba.
+  - *La solución*: La capa interactiva ahora comprueba `this.isActionAllowed()` de forma reactiva, `handleNodeClick()` sincroniza `isInteractive` antes de llamar a `render()`, y los callbacks de red `onMoveReceived` y `onPassReceived` en `OnlineController` re-renderizan y actualizan el HUD de inmediato.
+
+---
+
+#### 2. Copiado Rápido y Limpio de Código de Sala (`OnlineController.ts`, `modal-online.html`)
+- **Antes**: Al pulsar el botón de compartir, se copiaba la URL local completa (`http://127.0.0.1:5174/?join=GO-XXXX`), la cual era confusa e inútil para compartir con amigos a través de Discord/WhatsApp si se jugaba en red o local.
+- **Ahora**: El botón **"📋 Copy Code"** copia **exclusivamente el código de sala `GO-XXXX`** en todos los entornos (localhost, itch.io, servidores dedicados).
+
+---
+
+#### 3. Interfaz del Asistente Online y Navegación Contextual (`modal-online.html`, `OnlineModalRenderer.ts`)
+- **Supresión de confusión con el botón "Next ➔"**:
+  - En la pestaña **"Join Room (Guest)"** y en **"Buscar Partida (Matchmaking)"**, los botones de navegación del wizard (`Next ➔` y `◀ Back`) se ocultan por completo, dejando únicamente el botón principal **`Connect 🚀`** al lado del campo de texto.
+  - En la pestaña **"Create Room (Host)"**, el botón `Next ➔` permanece activo y visible en los pasos 1 (*Mode*), 2 (*Board*), 3 (*Champion*) y 4 (*Scenery*), ocultándose en el paso 5 (*Lobby*).
+
+---
+
+#### 4. Corrección de Pantallas y Fondos en Negro (`HUDController.ts`, `GameController.ts`, `layout.css`)
+- **Causa Raíz**: Al elegir tableros como *Máscara Oni*, *Cielo* o *Volcán*, `GameController.initGame()` sobrescribía `activeBg` con el nombre de la forma geométrica (`'oni'`, `'sky'`, `'volcano'`). `HUDController.setBoardBackground` intentaba cargar `./bg_oni.jpg` o `./bg_sky.jpg` (archivos inexistentes en `/public`), produciendo error 404 y dejando el fondo en negro.
+- **Solución**: Se implementó un mapa de alias (`volcano` $\to$ `boss`, `dojo` $\to$ `combat`, `zen` $\to$ `tutorial`, `oni`/`sky` $\to$ `combat`), se respetó la elección del usuario en `config.background` y se actualizaron las rutas relativas en `layout.css`.
+
+---
+
+#### 5. Flujo Ergonómico de la Tecla Escape (`KeyboardController.ts`, `OptionsModalRenderer.ts`)
+- **Jerarquía en Combate**: Presionar `Escape` en partida ahora deselecciona habilidades activas de campeón, poliminós y pistas tácticas antes de abrir el menú de opciones.
+- **Cierre Limpio de Feedback**: `Escape` dentro del formulario de feedback cierra el formulario inmediatamente y regresa al menú principal limpio, sin abrir el menú de opciones por debajo.
+- **Apertura Restringida de Opciones**: `Escape` para abrir Opciones/Pausa queda restringido exclusivamente a combates activos y expediciones Roguelike (mapa, combates, tiendas y santuarios).
+
+---
+
+## 23 de Agosto de 2026 - Día 9 (Sesión 123): Tablero Máscara Oni 25x25, Atracción Omnidireccional Hacia las Fauces y Portal Abisal Permanente
+
+**1. Expansión y Rediseño Topológico a 25x25 (`BoardGenerators.ts`):**
+- **Grid Unificado 25x25 (`board.size = 25`, `spacing = 24px`):**
+  - Con independencia de la elección de 9/13/19 en los menús, el tablero Máscara Oni se genera en su escala completa de 25x25 (~465 intersecciones jugables).
+  - Silueta demoníaca esculpida con cuernos superiores en las esquinas (`(2..5, 0..4)` y `(19..22, 0..4)`), hendidura central en V de la frente, cuencas oculares vacías de 3x2 (`(6..8, 8..9)` y `(16..18, 8..9)`), cavidad abismal de las fauces (`(8..16, 16..17)` y `(9..15, 18)`) y mandíbula escalonada hacia la barbilla.
+- **Sincronización en Previsualizadores de Interfaz (`SetupModalRenderer.ts`, `OnlineModalRenderer.ts`):**
+  - Corregido el rótulo de tamaño en el asistente local y lobby online para que muestre exactamente `25x25 Máscara Oni` y el cómputo real de intersecciones.
+
+**2. Inhalación Gravitacional y Devoración de Grupos Ligeros (`StageHazardManager.ts`, `OniVFX.ts`):**
+- **Cadencia Canónica de 14 Turnos Totales:**
+  - Activación garantizada cada 7 turnos por jugador (turnos 15, 29, 43, 57...).
+- **Regla de Resistencia de Cadenas Pesadas vs Débiles:**
+  - **Cadenas Pesadas ($\ge 4$ piedras aliadas):** Inamovibles e inmunes a la succión.
+  - **Piedras y Grupos Ligeros ($\le 3$ piedras aliadas):** Atraídas por el vórtice hacia el centro de la boca $(12, 17)$.
+- **Atracción Vectorial Omnidireccional:**
+  - Las piedras situadas arriba descienden ($y+1$), las de abajo ascienden ($y-1$), las de la izquierda avanzan a la derecha ($x+1$) y las de la derecha a la izquierda ($x-1$).
+- **Mecánica de Devoración en las Fauces:**
+  - Si el movimiento de una piedra ligera la hace entrar en la cavidad de la boca, **el Oni la DEVORA y absorbe** en el abismo dimensional (`isDevoured: true`), destruyendo la entidad, reproduciendo el rugido demoníaco y animándola implosionando y reduciendo su escala a 0 en el vórtice.
+
+**3. Portal Abisal Permanente en la Boca (`SVGRenderer.ts`, `SVGDefs.ts`, `vfx.css`):**
+- Simplificada la representación visual de la cavidad bucal: eliminados los anillos rotatorios y los colmillos, dejando un portal dimensional estático de horizonte de sucesos con núcleo de singularidad oscura, resplandor púrpura/carmesí y borde neón.
+
+**4. Localización y Textos (`translations.ts`):**
+- Actualizadas las descripciones y advertencias en español e inglés para reflejar con precisión la cadencia de 14 turnos, la resistencia de 4+ piedras y la atracción omnidireccional con devoración.
+
+---
+
+## 23 de Agosto de 2026 - Día 9 (Sesión 122): Sistema Integral de Efectos Especiales (SFX Web Audio) y Normalización de Música de Fondo BGM
+
+**1. Síntesis Acústica Procedural en Tiempo Real con Web Audio API (`SoundFX.ts`):**
+- **Sintetizadores de Audio Dedicados y de Alta Fidelidad:**
+  - `playMeteorImpact()` (Tengu / Hechizo Meteorito): Silbido de caída en alta velocidad con filtro dinámico + explosión subsónica en 32Hz + crepitar y chisporroteo de ascuas incandescentes.
+  - `playDragonFlame()` (Ryūjin / Furia del Dragón): Ruido térmico modelado con modulación armónica y barrido pasa-banda continuo (450Hz-1400Hz) emulando convección térmica de fuego vivo.
+  - `playCelestialDrop()` (Himiko / Lluvia Pétrea): Arpegio cósmico pentatónico (880, 1318, 1760, 2637Hz) con envolvente cristalina y destellos de polvo estelar.
+  - `playAlchemicalTransmute()` (Alquimista / Inversión Yin-Yang): Trazo suave de pincel caligráfico sobre papel washi seguido de un acorde místico efervescente de transmutación.
+  - `playDivineShieldCast()` (Kitsune / Pergamino de Escudo): Acorde sacrosanto envolvente con campanas tibetanas (440, 880, 1320, 2200Hz) con decaimiento orgánico de 0.95s.
+  - `playDivineShieldShatter()` (Kitsune / Rotura de Escudo): Estallido cristalino en alta frecuencia (3500Hz) con cascada de fragmentos resonantes en caída de tono.
+  - `playVolcanoEruption()` (Tablero Volcánico): Retumbar sísmico subterráneo profundo (30Hz) combinado con detonación y expulsión de magma ardiente.
+  - `playBossDragonBreath()` (Gran Dragón Sabio Gris / Boss Final): Rugido colosal ancestral de dragón con doble capa de plasma ardiente de alta energía.
+  - `playSkyBlockLand()` (Tablero del Cielo): Golpe gravitacional etéreo en tono sinusoidal grave combinado con campana de nubes en descenso armónico.
+  - `playVictoryFanfare()` (Desenlace de Combate Victorioso): Doble golpe de tambor marcial Taiko + arpegio tradicional de Koto/campanas en escala Hirajōshi (A, B, C, E, F).
+  - `playDefeatGong()` (Desenlace de Combate Derrotado): Golpe sombrío de campana/gong budista de bronce (110Hz) con armónico menor disonante.
+
+**2. Integración y Enlace en Capa Gráfica, VFX y Controladores:**
+- Reemplazados los sonidos reciclados (`playCapture()` o silencios) por los nuevos efectos dedicados en:
+  - `TenguVFX.ts`: `SoundFX.playMeteorImpact()`.
+  - `RyujinVFX.ts`: `SoundFX.playDragonFlame()`.
+  - `HimikoVFX.ts`: `SoundFX.playCelestialDrop()`.
+  - `AlchemistVFX.ts`: `SoundFX.playAlchemicalTransmute()`.
+  - `KitsuneVFX.ts`: `SoundFX.playDivineShieldCast()` y `SoundFX.playDivineShieldShatter()`.
+  - `BossVFX.ts` & `BossManager.ts`: `SoundFX.playBossDragonBreath()`.
+  - `SkyVFX.ts`: `SoundFX.playSkyBlockLand()`.
+  - `StageHazardManager.ts`: `SoundFX.playVolcanoEruption()`.
+  - `RogueliteManager.ts`: Sonidos dedicados para el lanzamiento de Meteorito, Escudo Sagrado e Inversión Yin-Yang.
+  - `ScoreModalRenderer.ts`: Disparo automático de `playVictoryFanfare()` al ganar la partida y `playDefeatGong()` al caer derrotado.
+
+**3. Normalización y Corrección de Música de Fondo BGM (`BGMGenerator.ts`):**
+- **Eliminación Total de Errores HTTP 404:** Se eliminaron las referencias a archivos `.mp3` inexistentes que provocaban fallos de carga y silenciamiento en segundo plano.
+- **Clasificación Semántica y Fallback Automático:**
+  - Entornos Zen / Relajantes (`meadow`, `sunset`, `night`, `zen`, `tutorial`, `menu`, `map`) enrutados a la pista acústica `bgm_zen.wav`.
+  - Entornos de Combate / Intensos (`combat`, `dojo`, `void`, `story`, `volcano`, `boss`, `online`) enrutados a la pista marcial `bgm_battle.wav`.
+  - Añadido manejador de eventos `error` para auto-recuperar la reproducción inmediatamente ante cualquier imprevisto de red o carga.
+
+---
+
+## 23 de Agosto de 2026 - Día 9 (Sesión 121): Corrección de Ghost Preview en Previsualizaciones y Turno Rival, Banner Prominente de Peligros y Calibración del Tablero Oni
+
+**1. Supresión de Ghost Preview en Modos Inertes y Fuera de Turno (`SVGRenderer.ts`, `GameController.ts`):**
+- **Bloqueo en Modos No Interactivos (`isInteractive = false`):**
+  - Se implementó el guardián centralizado `isActionAllowed()` y se aplicó `pointer-events: none` a la capa interactiva SVG en todas las maquetas de previsualización (Asistente Local, Lobby Online y Stage Preview).
+  - Se eliminó por completo la aparición de fichas fantasma o cursores de colocación al pasar el ratón sobre los tableros de previsualización en menús.
+- **Sincronización con el Turno del Rival / IA:**
+  - En combate activo, cuando no es el turno del jugador local (es el turno del rival remoto o la IA está calculando), `isActionAllowed()` evalúa `false`.
+  - El cursor permanece en modo puntero neutro (`default`) y no se proyecta ninguna ficha fantasma en casillas vacías, evitando la falsa impresión visual de que el jugador puede colocar ficha fuera de su turno.
+
+**2. Icono en HUD y Banner Prominente de Advertencia de Peligros (`index.html`, `HUDController.ts`, `modal-local-setup.html`, `modal-online.html`, `SetupModalRenderer.ts`, `OnlineModalRenderer.ts`, `translations.ts`, `hud.css`):**
+- **Icono Interactivo `👹` en HUD Superior:**
+  - Añadido el badge `👹` al HUD de combate para el tablero Máscara Oni con animación de pulso y tooltip explicativo.
+  - Sincronizado de forma inmediata y síncrona en `HUDController.updateInGameUI` desde el turno 1.
+- **Banner Prominente en Previsualización (`.setup-board-hazard-banner`):**
+  - Creado un componente de advertencia destacado con borde, fondo sombreado y texto explicativo bilingüe (ES/EN) debajo de la previsualización del goban en el Asistente Local y Lobby Online.
+  - Informa dinámicamente sobre la mecánica activa según la topología seleccionada:
+    - `🌋 Volcán`: Meteorito destructor cada 20 turnos totales.
+    - `☁️ Cielo`: Expansión perimetral de 5 bloques cuadrados (2x2) cada 20 turnos totales.
+    - `👹 Máscara Oni`: Fases de erupción / peligros ambientales.
+
+**3. Calibración de Disparadores Oni en Modo Debug (`StageHazardManager.ts`):**
+- Configurados los disparadores de depuración rápida en las rondas 3, 6 y 9 (al finalizar los turnos 3b, 6b y 9b / turnos 7, 13 y 19 en 2P).
+
+---
+
+## 23 de Agosto de 2026 - Día 9 (Sesión 120): Rediseño Integral de Lecciones del Dojo (Snapback, Seki, Ojos Falsos, Puntuación Japonesa y Magia Alquimista), Llamas Místicas Animadas y UI Glassmorphism
+
+**1. Reestructuración Modular y Didáctica del Dojo Tutorial (`TutorialSteps.ts`, `TutorialManager.ts`, `tutorial.css`, `translations.ts`, `GameController.ts`):**
+- **División Canónica en 2 Módulos Temáticos:**
+  - `dojo.module_classic` (*Fundamentos del Go Tradicional*): Lecciones 1 a 9 dedicadas a reglas puras de Go (Libertades, Capturas, Ojos, Seki, Snapback, Suicidio, Ko y Territorio).
+  - `dojo.module_special` (*Mecánicas de Crazy Go*): Lecciones 10 a 14 dedicadas a topologías destruidas, poliminós tácticos, magia de campeones y entidades neutrales del mapa.
+- **Rediseño Didáctico e Interactivo de Lecciones Clave:**
+  - **Lección 7 (Snapback / Uttegaeshi):** Diseñado el patrón canónico de herradura de 6 piedras y corregido el flujo de IA con `RulesEngine.tryPlaceStone` para evitar bloqueos del botón de avance.
+  - **Lección 8 (Seki / Vida Mutua):** Integración diegética del botón `[Pasar Turno]` (`.tutorial-show-pass-only`) para permitir al jugador resolver el Seki pasando turno con [P] o clic en el botón iluminado.
+  - **Lección 4 (Ojos Falsos y Muerte / La Trampa de los 2 Ojos):** Transformada de un texto estático a un problema interactivo paso a paso enfocado en la regla de los 2 ojos. El jugador ve 2 ojos aparentes, blanco asedia la esquina del Ojo 2 en Atari, y el jugador se ve forzado a jugar dentro de su propio ojo para salvar sus piedras, experimentando de primera mano la desaparición del ojo, quedándose con 1 solo ojo y condenando al grupo entero a morir.
+  - **Lección 9 (Puntuación Final y Territorio / Reglas Japonesas):** Corregidas las coordenadas históricas 0-indexadas por coordenadas válidas 1-indexadas en 9x9 (`1,1` a `9,9`). Se convirtió en un ejercicio interactivo donde el jugador sella la brecha de su muralla en `(3,4)` cercando 11 puntos de territorio, aprende cómo las piedras muertas en `(2,2)` suman +1 prisionero sin gastar turnos, el funcionamiento del Komi (+6.5 para Blancas), y el desglose de la fórmula de victoria japonesa.
+  - **Lección 13 (Sinergias de Magia / Alquimista):** Sustituido el ejemplo previo de la cruz (donde la piedra transmutada se suicidaba al instante) por un Tesuji de Inversión Cromática real: transmutar la piedra central `(5,5)` de un muro de corte enemigo captura y elimina instantáneamente las 2 piedras blancas adyacentes `(5,4)` y `(5,6)` por falta de libertades, conectando a Negras en una fortaleza viva con 8 libertades.
+- **Limpieza de Interfaz en Tutoriales:**
+  - Ocultación del botón de Registro de Combate (`#btn-game-combat-log`) en modo tutorial para maximizar el área de juego y concentración.
+
+**2. Modernización Visual y Glassmorphism del Modal de Expedición Roguelike (`modal-rogue-setup.html`, `carousel.css`, `base.css`):**
+- **Llamas Místicas Animadas por Dificultad (🔥):**
+  - Sustituidos los puntos estáticos y subtítulos redundantes ("Beginner", "Warrior", "Master", "Supreme Dan") por **Llamas Elementales Animadas** con efecto de fuego parpadeante (`@keyframes flameFlicker`) y auras luminosas:
+    - **Easy (Fácil):** Llama Verde Esmeralda Mística 🔥 (`flame-easy`).
+    - **Normal:** Llama Ámbar / Dorada Solar 🔥 (`flame-normal`).
+    - **Hard (Difícil):** Llama Roja Carmesí de Sangre 🔥 (`flame-hard`).
+    - **Grandmaster (Gran Maestro):** Llama Púrpura del Vacío Supremo 🔥 (`flame-extreme`).
+- **Contenedores Sin Bordes Rígidos (*Borderless Glassmorphism*):**
+  - Eliminación de bordes sólidos pesados y sustitución por fondos con desenfoque de cristal (`backdrop-filter: blur(28px)`), sutiles relieves de luz interior (`inset 0 1px 0 rgba(255, 255, 255, 0.1)`), degradados ambientales de cristal tintado en las cajas de habilidades activas y pasivas, y píldoras de héroe iluminadas suavemente.
+  - Suavizado global de bordes de ventanas modales (`.modal-card`) en `base.css`.
+
+**3. Reparación de Tipos y Generador de Tableros (`BoardGenerators.ts`, `OnlineController.ts`):**
+- Corregida la sintaxis de plantillas de texto en `BoardGenerators.generateOniGrid`.
+- Tipado estricto de `OnlineGameConfig.slots` y corrección de imports dinámicos en `OnlineController.ts`.
+
+---
+
+## 23 de Agosto de 2026 - Día 9 (Sesión 119): Tablero del Cielo con Expansión Perimetral Infinita (Bloques Cuadrados 2x2), VFX Suave y Refinamientos de UI y Menú
+
+**1. Tablero del Cielo y Expansión Perimetral Infinita (`BoardGenerators.ts`, `SVGRenderer.ts`, `StageHazardManager.ts`, `SkyVFX.ts`, `SVGDefs.ts`, `translations.ts`):**
+- **Inicio Canónico Completo:** El tablero de cielo comienza como una cuadrícula oficial pura de Go en los tres tamaños profesionales (**9x9, 13x13 y 19x19**) con sus líneas y puntos Hoshi oficiales.
+- **Mecánica Celestial de Caída y Expansión Dinámica:**
+  - Se activa cada **20 turnos totales** (10 turnos por jugador / al terminar las rondas 10b, 20b, 30b... en los turnos 21, 41, 61...).
+  - El motor escanea el perímetro exterior del goban (`[minCol - 2, maxCol + 1]` y `[minRow - 2, maxRow + 1]`) buscando cuadrantes $2\times 2$ adyacentes al terreno actual.
+  - **5 nuevos bloques cuadrados ($2\times 2$, 4 casillas por bloque, totalizando hasta 20 casillas)** caen desde el cielo y se acoplan a los bordes del goban.
+  - Al aterrizar, **crean nuevas intersecciones de madera y líneas de Go**, conectándose con el tablero existente y **haciéndolo crecer y expandirse infinitamente hacia afuera** (11x11, 15x15, 17x17, 21x21...) a lo largo de toda la partida en cualquier tamaño de tablero.
+- **Animación VFX Cinemática Fluida y sin Sacudidas (`SkyVFX.ts`, `board.css`):**
+  - Eliminado por completo el temblor de pantalla (`vfx-screen-shake`).
+  - Descenso gravitatorio suave (`cubic-bezier(0.22, 1, 0.36, 1)`), estelas celestes (`#38bdf8`, `#fef08a`), halo de luz expansivo al posarse sobre el goban y chispas estelares sutiles.
+  - Eliminada la floritura azul de la esquina superior izquierda del renderizador SVG para una madera limpia.
+- **Integración UI, HUD e Internacionalización (ES / EN):**
+  - Nueva opción `☁️ Sky / Cielo` con badge dinámico `#ui-sky-warning` en el HUD de combate y tarjetas informativas interactivas en el Asistente Local (`modal-local-setup.html`) y Lobby Online (`modal-online.html`).
+
+**2. Refinamiento de la Pantalla de Continuar Expedición Roguelike (`RogueChoiceCameraController.ts`, `modal-rogue-choice.html`):**
+- **Periodo de Gracia Inicial al Abrir (700ms):** Se bloquea la activación automática del hover durante los primeros 700ms, evitando que la posición del cursor en el menú principal (a la izquierda) fuerce inmediatamente el zoom sobre "NUEVA EXPEDICIÓN".
+- **Visibilidad Dual de Títulos en Estado Neutral:** En el encuadre neutral 50/50, **ambos letreros permanecen visibles y legibles** con sus colores temáticos:
+  - Izquierda: **NUEVA EXPEDICIÓN** en coral/rosa cálido (`#fca5a5`) con subtítulo *"Abandonar viaje actual y regresar al Dojo"*.
+  - Derecha: **CONTINUAR EXPEDICIÓN** en verde esmeralda (`#34d399`) con subtítulo *"Reanudar la marcha por el sendero del mapa"*.
+
+**3. Aceleración y Respuesta Instantánea del Menú de Inicio (`MenuCameraController.ts`, `base.css`):**
+- **Sincronización Inmediata de `transform-origin` (0ms):** Eliminada la interpolación CSS en el pivote focal para que salte al instante al nuevo icono enfocado sin derivas ni retrasos.
+- **Cámara y Objetos Ultrarrápidos:** Reducida la transición de cámara a **200ms**, el buffer de amortiguación a **15ms** y los objetos a **180ms**, permitiendo una navegación ágil e inmediata entre los elementos del dojo.
+
+---
+
+## 22 de Agosto de 2026 - Día 8 (Sesión 118): Rediseño Cinemático de la Pantalla de Continuar Expedición Roguelike (Escena 2.5D, Vistas Traseras en Ambos Lados, Corrección de Clics y Biblia de Prompts)
+
+**1. Pantalla de Elección Diegética e Inmersiva (`modal-rogue-choice.html`, `RogueChoiceCameraController.ts`, `RogueModalRenderer.ts`):**
+- **Sustitución de la Ventana Modal por Escenario 2.5D:** Se eliminó el diálogo emergente genérico de tres botones y se transformó en una experiencia espacial cinemática a pantalla completa con dos caminos narrativos representados en el entorno físico del juego.
+- **Lado Izquierdo (Nueva Expedición / Regreso al Dojo):**
+  - Fondo del interior de un dojo tradicional de cedro (`bg_choice_dojo.jpg`) con iluminación ámbar tenue.
+  - El héroe aparece **visto de espaldas, girado e inclinado hacia el dojo** (`./heroes/${hero.id}_back.png` con `transform: scaleX(-1) rotate(-3deg)`), simbolizando que abandona el viaje para regresar al santuario.
+  - Paleta de color **grisácea, nostálgica y atenuada** (`grayscale(45%)`, brillo moderado), que se ilumina suavemente con tono ámbar al hacer *hover*.
+- **Lado Derecho (Continuar Expedición / Reanudar Marcha):**
+  - Fondo del sendero místico de montaña con los **nodos espirituales de Go brillando a lo largo del camino** y un portal Torii a lo lejos (`bg_choice_map.jpg`).
+  - El héroe aparece **visto de espaldas avanzando con paso firme hacia el sendero** (`./heroes/${hero.id}_back.png`) en colores **ricos, saturados y vívidos** (`saturate(1.25)`).
+  - Al hacer *hover*, el sendero estalla en brillo esmeralda/dorado y la cámara realiza un suave *dolly-in* con profundidad de campo desenfocando el dojo.
+- **Placa Central Informativa de la Run:** Muestra de forma flotante con cristal ahumado y bordes dorados el nombre del héroe activo con su icono, la dificultad (`🟢 Fácil (Principiante)`, `🟡 Normal (Guerrero)`, etc.) y la posición exacta en el mapa procedural (`📍 Tier {N}: {Nombre del Nodo}`).
+- **Internacionalización Completa (ES / EN):** Integradas todas las cadenas en `translations.ts` con claves `rogue.choice_*` y atributos `data-i18n`, traduciendo dinámicamente nombres de rivales (`translateEnemyName`), dificultades y nodos.
+- **Corrección de Eventos de Clic (`RogueChoiceCameraController.ts`):** Se eliminó el `cloneNode` que eliminaba los event listeners de `MenuEventBinder.ts`, restaurando el funcionamiento instantáneo de los clics para reanudar o reiniciar la run.
+- **Calibración y Desactivación del Modo Debug de Hitboxes (`index.html`, `base.css`):** Se ajustaron las cajas de colisión y contenedores de los 7 elementos espaciales para eliminar franjas desfasadas y se desactivaron los recuadros visuales de depuración para dejar el menú 100% limpio en producción.
+- **Auto-recorte de Márgenes Transparentes de Assets (`Pillow / PIL`):** Se procesaron todos los archivos `item_*.png` recortando automáticamente los bordes y márgenes transparentes vacíos (que en farolillos, muñeco y grulla ocupaban hasta un 60% del lienzo), logrando que los elementos se vean significativamente más grandes, nítidos y proporcionados sin aumentar el tamaño de sus cajas de colisión ni invadir otros botones.
+
+**2. Generación y Procesamiento de Vistas Traseras de los 7 Campeones (`public/heroes/*_back.png`):**
+- Se generaron ilustraciones en alta resolución de los 7 campeones vistos de espaldas y se procesaron con scripts de PowerShell/.NET `System.Drawing` a PNGs transparentes de 32 bits puros:
+  1. **Ryūjin (`ryujin_back.png`):** Cabello blanco/plateado largo cayendo por la espalda, cuernos de dragón blancos, túnica azul zafiro con dragón dorado y olas, aura cian, sin rocas en la base.
+  2. **Tengu (`tengu_back.png`):** Alas de cuervo gigantes desplegadas en la espalda, máscara tengu ladeada y ropas yamabushi rojas/doradas.
+  3. **Kitsune (`kitsune_back.png`):** Cabello negro largo, orejas de zorro blancas con lazo rojo, 9 colas blancas con puntas doradas y hakama carmesí.
+  4. **Ronin (`ronin_back.png`):** Sombrero cónico *kasa*, petate enrollado, katana al cinto y haori índigo desgastado.
+  5. **Himiko (`himiko_back.png`):** Corona solar, pelo negro larguísimo, manto imperial carmesí con soles dorados en la espalda y polvo estelar.
+  6. **Alquimista (`alchemist_back.png`):** Gorro alto ceremonial *eboshi*, túnica verde/morada con constelaciones celestiales y emblema del Yin-Yang en la espalda.
+  7. **Hombre Normal (`normal_back.png`):** Moño con lazo azul, kimono blanco superior y pantalón hakama azul marino.
+
+**3. Biblia Maestra de Prompts de Arte Actualizada (`docs/ai_wiki/game_design/art_prompts_bible.md`):**
+- Documentados de forma exhaustiva los prompts exactos tanto para la vista **Frontal** como para la vista **Trasera** (Sendero y Retorno al Dojo) de cada uno de los 7 campeones, así como de los enemigos (monjes, sabios y Gran Dragón Sabio Gris), escenarios, mobiliario 2.5D y artefactos del juego para garantizar una consistencia artística del 100%.
+
+---
+
+## 22 de Agosto de 2026 - Día 8 (Sesión 117): Topología de Tablero Volcánico con Cráteres Diegéticos, Vulnerabilidad de Escudo Divino, Tipografía Mincho y Pulido del Dojo
+
+**1. Nueva Topología de Tablero Volcánico (`board.shape = 'volcano'`) e Independencia del Escenario:**
+- **Desvinculación del Fondo:** La mecánica de erupción volcánica ya no depende del fondo o escenario (`background === 'boss'`), sino que es una forma y topología propia de tablero (`board.shape = 'volcano'`), seleccionable y jugable en cualquier entorno o modo (Local, 1vIA, 1v1, Online, Sandbox).
+- **Cuadrícula Canónica en 9x9, 13x13 y 19x19 (`BoardGenerators.generateVolcanoGrid`):** Genera una cuadrícula de Go completa, limpia y pura con todos sus puntos Hoshi oficiales intactos.
+- **Capa Estética Diegética de Cráteres en las 4 Esquinas (`renderVolcanoCornerDecorations` en `SVGRenderer.ts`):**
+  - Renderiza 4 conos volcánicos de roca basáltica oscura (`#1c1917`), grietas radiales de lava incandescente (`#ea580c`) y una caldera con núcleo de magma resplandeciente (`#fef08a` ➔ `#f59e0b` ➔ `#dc2626`).
+  - Animación de pulso térmico en vivo (`.volcano-core-glow`) y penachos de humo y ceniza suspendida (`.volcano-smoke-plume`).
+- **Mecánica Ambiental y Recálculo Canónico de Libertades (`StageHazardManager.ts` y `RulesEngine.destroyTopology`):**
+  - Cada 10 turnos globales, un proyectil de magma impacta una casilla aleatoria, destruye la piedra presente y perfora el nodo del tablero a estado `DESTROYED`.
+  - Recalcula inmediatamente las libertades: si alguna cadena aliada o enemiga pierde su última libertad por el agujero resultante, muere por asfixia topológica y es retirada del tablero.
+  - Totalmente sincronizado con rebobinado/deshacer (`StageHazardManager.onTurnRolledBack`).
+
+**2. Lógica Canónica: Erupción Volcánica vs Escudo Divino de Kitsune (`RulesEngine.destroyTopology`):**
+- **Impacto Directo:** Si el meteorito de magma impacta directamente sobre una casilla ocupada por una piedra con Escudo Divino, la piedra muere incondicionalmente y se reproduce el quiebre de cristal dorado (`VFXManager.triggerDivineShieldShatter`), ya que el suelo físico sobre el que reposaba desaparece en el vacío.
+- **Supervivencia del Resto del Grupo:** Las demás piedras del grupo que posean Escudo Divino **conservan intacta su protección** y **no mueren por falta de libertades**, manteniéndose invulnerables a la captura colateral.
+
+**3. Optimización Tipográfica y Legibilidad en Placas de Combatientes (`champions.css`, `DuelistRenderer.ts`, `index.html`):**
+- **Sustitución de Tipografía All-Caps por Mincho Serif Mixta:** Se sustituyó `var(--font-oriental)` (`Cinzel Decorative`, que forzaba mayúsculas desmedidas y truncaba nombres como `NORMAL PER...`) por `var(--font-serif)` (`'Shippori Mincho', 'Cinzel', serif`), permitiendo minúsculas y mayúsculas naturales (Title Case) con elegancia caligráfica tradicional japonesa.
+- **Ampliación de Placa y Envoltura de Texto (`.duel-standee-plate`, `.duel-plate-title-group strong`):**
+  - Ampliado el ancho máximo de la placa a `255px`.
+  - Ajustado `font-size: 0.92rem; font-weight: 700; max-width: 100%; white-space: normal; word-break: break-word;` para que nombres largos como *Persona Normal*, *Kitsune (Tú)*, *Novice Monk* o *Sensei Hiroshi* se lean completos y nítidos sin elipses indeseadas.
+- **Lectura Simultánea de Identidad y Habilidad/Descripción:**
+  - Añadido el subtítulo `#duel-player-sub` para reflejar la maestría canónica (*Maestría de Go Canónico • 2 Rebobinares*) en personajes normales o aprendices.
+  - Para héroes con habilidades, el botón/placa inferior muestra directamente el **Nombre de la Habilidad** y su **Fórmula/Efecto de Combate** de forma simultánea.
+
+**4. Pulido Visual del Selector del Dojo y Relieve de Textos del Menú Principal (`tutorial.css`, `modal-tutorial.html`, `base.css`):**
+- **Selector de Lecciones del Dojo:** Eliminados los contenedores rígidos tipo pill, líneas divisorias ondulantes y kanjis de marca de agua para un acabado diáfano, zen y minimalista.
+- **Internacionalización Completa (ES/EN):** Título, subtítulo, botón de cierre y etiquetas dinámicas del Dojo 100% traducidas.
+- **Contraste de Letreros del Menú 2.5D:** Sistema multicapa de contorno oscuro profundo (`#05070c`), sombra proyectada y resplandor ambiental reactivo (`currentColor`) para máxima legibilidad de las opciones sobre el fondo de madera del dojo.
+
+**5. Clarificación de Habilidades: Tengu vs Peligros del Mapa (`TenguChampion.ts`):**
+- Se reafirmó y blindó que la *Lluvia Meteórica* de Tengu destruye exclusivamente piedras enemigas sin perforar ni alterar los nodos del tablero, manteniéndose diferenciada de la destrucción topológica volcánica.
+
+---
+
+## 22 de Agosto de 2026 - Día 8 (Sesión 116): Generación de Assets Finales del Menú 2.5D, Maquetación de Estantería en Zig-Zag y Sistema de Escalado Paramétrico
+
+**1. Generación e Integración de los 3 Assets Fundacionales del Menú (`public/bg_dojo_empty.jpg`, `furniture_bookshelf.png`, `furniture_stand.png`):**
+- **Fondo de Dojo Acogedor y Tenue 16:9 (`bg_dojo_empty.jpg`):**
+  - Interior diáfano y espacioso de madera de cedro maciza oscura y tatami limpio.
+  - Iluminación cinematográfica tenue nocturna/crepuscular con paneles shoji cerrados y sutil vistazo al jardín zen exterior, optimizado para hacer brillar los farolillos y destacar el mobiliario 2.5D sin elementos dibujados fijos.
+- **Estantería Abierta de 3 Baldas Limpias (`furniture_bookshelf.png`):**
+  - Mueble tradicional minimalista de cedro japonés con exactamente 3 baldas horizontales amplias y despejadas. Procesado con script de recorte y transparencia alfa pura de 32 bits (`Pillow`).
+- **Soporte Ceremonial de Suelo para Pergaminos / Emakimono Stand (`furniture_stand.png`):**
+  - Caballete bajo tradicional con patas curvas y dos postes verticales con clavijas ranuradas. Procesado con transparencia alfa pura, posicionado en el lateral izquierdo enmarcando y sosteniendo el pergamino del mapa Roguelike.
+
+**2. Maquetación y Armonización en Zig-Zag de la Estantería (`index.html`):**
+- Reorganizada la alineación de objetos interactivos y sus etiquetas de texto en las 3 baldas de la estantería para lograr un equilibrio visual perfecto:
+  - *Balda Superior:* Libro antiguo a la izquierda $\rightarrow$ Texto **`STORY`** a la derecha del libro.
+  - *Balda Media:* Texto **`FEEDBACK`** a la izquierda (`right: 110%`) $\leftarrow$ Grulla de origami a la derecha.
+  - *Balda Inferior:* Ábaco artesanal a la izquierda $\rightarrow$ Texto **`OPTIONS`** a la derecha (`left: 102%`).
+- Añadido `white-space: nowrap;` en todas las etiquetas de la estantería para evitar saltos de línea no deseados en pantallas de cualquier resolución.
+
+**3. Espejado Horizontal del Muñeco de Entrenamiento de Tutorial (`item_dummy_tutorial_1787400017841.png`):**
+- Volteado horizontalmente de forma permanente en el propio asset PNG de origen (`ImageOps.mirror`) para que la pose del muñeco de madera apunte naturalmente hacia el centro de la estancia y hacia el jugador, manteniendo intacto y legible al frente el texto `TUTORIAL`.
+
+**4. Sistema de Escalado Paramétrico de Fácil Modificación (`index.html`):**
+- Añadida la propiedad `transform: scale(1); transform-origin: center center;` de forma explícita a todos los elementos del escenario espacial (`#furniture-bookshelf`, `#furniture-stand`, `#btn-menu-title`, `#btn-menu-roguelike`, `#btn-menu-free`, `#btn-menu-online`, `#btn-menu-story`, `#btn-menu-feedback`, `#btn-menu-dojo`, `#btn-menu-options`).
+- Permite que cualquier desarrollador o diseñador ajuste la escala de cada objeto editando un único valor numérico (`scale(1.2)`, `scale(0.85)`, etc.) sin alterar las posiciones relativas, los porcentajes de caja ni las interpolaciones de la cámara de foco 3D.
+
+## 22 de Agosto de 2026 - Día 8 (Sesión 116): Fix Definitivo de Jitter Loop y Cursores Personalizados (Base64 + Inyección Universal)
+
+**1. Corrección Definitiva del Bug de Superposición de Cursores en Windows/Chromium:**
+- **Inyección Base64 (`variables.css`):** Se abandonó el uso de Data URIs con texto plano y SVG vinculados mediante rutas relativas (que daban problemas al empaquetar con Vite para Itch.io o aplicaciones portables). Se codificaron los 3 cursores SVG (Puntero, Default y Agarre) en formato Base64 puro y se inyectaron en el núcleo del CSS, asegurando que carguen instantáneamente el 100% de las veces.
+- **Escalado Vectorial Nativo:** Los cursores se han hecho un 50% más grandes escalando los vectores SVG directamente a una caja de 48x48 píxeles mediante `<g transform="scale(1.5)">`.
+- **Eliminación Total de `cursor: pointer` nativo:** Se ejecutó un barrido masivo en todos los archivos del proyecto (17+ hojas de estilos) reemplazando cualquier mención a `cursor: pointer;` por `cursor: var(--cursor-pointer);`. Esto, sumado a la estrategia de fijar el fallback de los SVGs como `default` (ej: `url('...'), default;`), bloquea completamente al navegador Chromium para que no solicite la "mano" nativa al sistema operativo, erradicando para siempre el glitch de doble flecha superpuesta.
+
+**2. Solución Analítica al Bucle de Parpadeo (Jitter Loop) en el Menú Principal 2.5D:**
+- **El Problema:** Al hacer zoom cinemático con la cámara (`scale(1.045)` en `#menu-camera`), la imagen y el texto se expandían alejándose entre sí. Como la cámara calculaba el centro basándose en la imagen, el texto se desplazaba físicamente unos píxeles hacia afuera, provocando que el ratón "cayera" en el hueco transparente entre la silueta y el texto, perdiendo el foco y generando un bucle epiléptico de zoom in / zoom out (y alternancia rápida de cursores).
+- **El Fix Inicial (Fallido):** Se intentó añadir una caja invisible global (`.dojo-item::after`) que englobaba ambas partes, pero era tan inmensa que los botones se solapaban invisiblemente entre ellos, haciendo que el ratón activara menús equivocados al pasar cerca.
+- **La Solución Quirúrgica (`base.css`):**
+  - Se eliminó el `transform: scale(1.05)` nativo de hover en `.dojo-item` para evitar que compitiera o multiplicara el escalado del controlador JavaScript.
+  - Se introdujo un "puente" matemático estrictamente confinado al texto (`.dojo-item span::before`). Este pseudo-elemento tiene un padding negativo de `150%` alrededor del texto y un fondo casi transparente (`rgba(0, 0, 0, 0.001)`).
+  - Este puente llena de forma exacta y precisa el abismo de separación entre el texto y la imagen de cada sección sin invadir otras secciones, logrando que el cursor mantenga un foco sólido como una roca durante toda la transición de cámara.
+
+---
+
+## 22 de Agosto de 2026 - Día 8 (Sesión 114): Menú Principal Espacial 2.5D, Dolly-in Cinemático y Arquitectura Modular de Mobiliario
+
+**1. Menú Principal Espacial 2.5D y Cámara Cinemática (`MenuCameraController.ts`, `base.css`, `index.html`):**
+- **Transformación 3D Espacial:** Reemplazo de los botones planos tradicionales por un entorno 2.5D inmersivo con perspectiva CSS (`perspective: 1200px`, `transform-style: preserve-3d`). La mirada del jugador (cursor del ratón) genera un suave paneo Parallax tridimensional en tiempo real sobre la estancia del Dojo.
+- **Dolly-in Zoom y Profundidad de Campo:** Al posar el cursor (*hover*) sobre cualquier modo de juego, la cámara ejecuta una transición suave de aproximación (dolly-in centrado) hacia el objeto, desenfocando (`filter: blur`) los elementos circundantes para crear un efecto cinematográfico de lente. El título principal `CRAZY GO` se diseñó para permanecer siempre visible y nítido sin sufrir zoom intrusivo.
+
+**2. Arquitectura de Escenario Desacoplada y Modular:**
+- **Separación en 3 Capas Físicas:** Para evitar que los elementos floten o se desfasen al mover la cámara, se dividió la escena en:
+  1. *Fondo Diáfano (Z: -100px):* Habitación tradicional japonesa vacía (`bg_dojo_empty.jpg`) con vista al jardín.
+  2. *Mobiliario Modular (Z: 0px):* Elementos de mobiliario como PNGs transparentes independientes (`furniture_bookshelf.png`, `furniture_stand.png`), permitiendo reposicionarlos y escalarlos con libertad total.
+  3. *Objetos Interactivos de Juego (Z: 10px):* Farolillos de papel luminosos para Local y Online, Pergamino antiguo para la Expedición Roguelike, Libro clásico para el Modo Historia, Grulla de origami para Feedback, Ábaco de piedra para Opciones y Muñeco de entrenamiento gigante para el Tutorial posado sobre el suelo de madera.
+- **Eliminación del Botón Obsoleto `LOG`:** Retirado del DOM y del flujo de navegación.
+
+**3. Automatización de Transparencias y Procesamiento de Assets:**
+- Implementado pipeline de procesamiento con scripts de Python (Pillow / PIL) para extraer los fondos blancos de las ilustraciones generadas por IA, convirtiéndolas en texturas PNG transparentes puras sin pérdida de resolución ni bordes duros.
+
+**4. Fix de Compilación TypeScript y Parseo de Vite/Oxc:**
+- Resuelto el bloqueo de parseo `[PARSE_ERROR] Expected '(' but found 'Identifier'` en `RulesEngine.ts` reestructurando los comentarios de cabecera.
+- Subsanados los errores de tipos en `types/index.ts` y restaurada la firma de `RulesEngine.destroyTopology()`.
+
+---
+
+## 22 de Agosto de 2026 - Día 8 (Sesión 113): Topología Dinámica, Sandbox y Arquitectura Multi-Facciones (Lobby Libre)
+
+**1. Modo Desarrollador (Sandbox) In-Game:**
+- **Funcionalidad:** Se amplió el soporte del Modo Sandbox. Ahora se permite probar y alterar tableros libremente sin respetar los turnos de color, ideal para encontrar fallos, plantear tsumegos o verificar el comportamiento matemático de grupos complejos de piedras.
+
+**2. Sistema Avanzado de Zoom In-Game:**
+- **Problema:** El escalado previo estropeaba el centrado visual de los objetos, separaba a los duelistas y revelaba bordes no renderizados (franjas negras) al disminuir el zoom.
+- **Solución:** Se reconstruyó por completo el sistema de cámara de combate (`MenuCameraController`) acoplándolo matemáticamente al viewBox y unificando el paneo del escenario 3D para emular el zoom nativo de los navegadores web.
+
+**3. Topología Dinámica y Asfixia por Destrucción:**
+- **Mecánica Core (`RulesEngine.destroyTopology`):** Ahora el tablero de Go puede perder intersecciones físicas en mitad del combate. Si un nodo es destruido, la piedra que contenía muere al instante, sus aristas de conexión se rompen permanentemente, y cualquier cadena aliada o enemiga adyacente que pierda su última libertad por este hundimiento sufrirá captura inmediata por "asfixia espacial".
+- **Renderizado Dinámico (Holey-Board):** El `SVGRenderer` aplica máscaras de recorte instantáneas (`<mask id="board-hole-mask">`) sobre la textura del propio goban, revelando el fondo transparente o la madera destrozada por debajo de la zona afectada.
+
+**4. Devastación Pasiva del Boss y Hechizo Meteoro Reconstruido:**
+- El consumible "Lluvia de Meteoritos" ahora remodela la geometría del terreno, destruyendo nodos además de piedras.
+- **Jefe Final Despiadado (`BossManager`):** Se activó la habilidad pasiva definitiva para los combates finales: A partir del turno 22, el jefe invocará meteoritos aleatorios turno tras turno (aliento calcinante), obligando al jugador a proteger sus territorios frente a un tablero menguante y dinámico.
+
+**5. Arquitectura Multijugador "Rengo" y Asientos Flexibles (Lobby Libre Backend):**
+- **Soporte Híbrido (`GameSetupConfig.slots`):** Se reescribió la arquitectura del estado de partida para independizar el concepto de "Turno" del concepto de "Color de Piedra". El motor permite asignar independientemente los 4 asientos a humanos locales, amigos online (remotos) o inteligencias artificiales.
+- **Turnos Aliados (Rengo):** El `GameController` y la `GoAI` ahora comprenden configuraciones de equipo (ej: Asiento 1 y 3 = Equipo Negro; Asiento 2 y 4 = Equipo Blanco). Esto garantiza que el recuento matemático japonés (`TerritoryScorer`) permanezca inalterado (al final del día solo hay piedras Negras vs Blancas), logrando soporte instantáneo para 2v2 (Humanos vs Humanos) y 3v1 (Tres amigos vs IA Máster).
+
+---
+
+## 20 de Agosto de 2026 - Día 6 (Sesión 112): Hotfix Integral 4 Jugadores (Reglas y Habilidades)
+
+**1. Blindaje del Motor de Reglas en 4P (`RulesEngine.ts`):**
+- **Problema:** En el motor de capturas neutrales (`resolveCaptiveCaptures`), cuando una entidad se asfixiaba indirectamente, el motor otorgaba la captura al jugador que tuviera más piezas a su alrededor comparando *únicamente* entre Jugador 1 y 2 (`playerCounts[2] > playerCounts[1] ? 2 : 1`), ignorando por completo a los jugadores 3 (Esmeralda) y 4 (Amatista).
+- **Solución:** Se implementó una búsqueda modular del máximo (`Math.max` iterativo sobre `playerCounts`) que evalúa equitativamente la presencia de los 4 colores, adjudicando correctamente los prisioneros neutrales al verdadero captor en partidas de 4 jugadores.
+
+**2. Corrección del Hechizo "Inversión Yin-Yang" y "Meteoro" para 4P (`RogueliteManager.ts`):**
+- **Problema:** Ambos hechizos místicos usaban lógica binaria (`playerId === 1 ? 2 : 1`) para buscar piedras "enemigas". En partidas de 4 jugadores, esto provocaba que solo afectaran a las piedras del Jugador 1 o 2, volviendo los hechizos inútiles si querías atacar a P3 o P4.
+- **Solución:** Se reemplazó el check binario por `playerId !== playerId`, permitiendo que el algoritmo rastree y afecte correctamente a *cualquier* piedra rival en el Goban, sin importar el color.
+
+**3. Arreglo de IA y "Ojo del Maestro" en 4P (`AnalysisEngine.ts`):**
+- **Problema:** La pista táctica de "Mejor Jugada" y el simulador predecían el próximo turno usando la misma lógica binaria hardcodeada (`opponentId = activePlayerId === 1 ? 2 : 1`). Si pedías una pista durante el turno del Jugador 3, la IA predecía la respuesta del Jugador 1 en lugar del Jugador 4.
+- **Solución:** Se implementó rotación modular `((activePlayerId % state.playerCount) + 1)`, asegurando que las pistas y el motor de IA subyacente siempre prevean el movimiento del *verdadero* jugador siguiente en el orden de turnos rotativo (1 → 2 → 3 → 4 → 1).
+
+**4. Validación de Habilidades en 4P:**
+- Se comprobó y validó que **Tengu, Kitsune, Ryūjin, Ronin, Alquimista y Boss/Himiko** operan sin bugs de 2P, debido a que su lógica de captura (`tryPlaceMultiStones`, destrucción física, y validación por `effectivePid`) escala naturalmente a múltiples jugadores sin asunciones binarias.
+
+**5. Sistema Avanzado de Registro de Combate y Repeticiones (Combat Log & Replay Viewer):**
+- **Registro Integral (`CombatLogManager.ts`)**: Grabación de coordenadas canónicas de Go (ej. `Q16`), colocación de piedras especiales, uso de hechizos, activaciones de campeones y saltos de turno. Sincronizado completamente con la mecánica de deshacer (`undo`).
+- **Visor Interactivo Panorámico**: Un modal SVG (`modal-combat-log.html`) que renderiza el tablero paso a paso, con anillo resaltador, controles multimedia (`⏪`, `◀`, `▶`, `⏩`, `⏯`), selector de velocidad y línea temporal cronológica filtrable.
+- **Exportación/Importación de Partidas**: Capacidad de guardar las partidas como un archivo local `.cgo` (o copiar a JSON portapapeles) e importarlas libremente en cualquier otra sesión o dispositivo para estudiar estrategias y compartir finales épicos.
+
+**6. Motor Matemático de Win Rate 4P y Ojo del Maestro (`AnalysisEngine.ts`):**
+- **Algoritmo Softmax Compensado**: Sustitución del modelo Sigmoide binario de 2 colores. El motor ahora toma el territorio, komi, capturas, libertades por piedra y grupos vivos de los N jugadores y aplica un cálculo Logit + Softmax (con temperatura adaptable al tamaño del tablero) para obtener `playerWinRates` dinámicos que suman exactamente el 100%.
+- **Win Rate Bar en HUD**: Adición de la barra superior `.winrate-bar-container` dinámica, mostrando visualmente la ventaja relativa (Negro, Blanco, Esmeralda, Amatista) de todos los combatientes en tiempo real.
+
+**7. Sistema de Música de Fondo Ambiental Dinámico (BGM):**
+- Refactorización de `BGMGenerator.ts` para mapear fondos específicos (`dojo`, `combat`, `zen`, `meadow`, `sunset`, `void`, etc.) a sus propias bandas sonoras.
+- Implementación de transiciones fluidas de `fade-out` y `fade-in` de volumen cruzado entre escenas y escenarios, inyectado directamente en el método visual de `HUDController`.
+
+---
+
+### 📢 Draft de Novedades para Update v15 (Itch.io CommonMark):
+*(Nota: Este borrador se acumulará con las próximas features que se añadan antes de lanzar el devlog oficial)*
+
+> ### **Update v15 [WIP]: Combat Logs, 4-Player Tactical Engine & Dynamic Soundtracks!**
+>
+> We're pushing the engine to the limit again! This update introduces fundamental tools for competitive and analytical play, massively upgrades the 4-Player engine, and deepens the atmosphere of the Go board.
+>
+> ### **1. Combat Log & Interactive Replay Viewer**
+> Want to study a masterstroke or figure out where a 4-player game fell apart? You can now hit the **Log & Replay** button at any time during or after a match!
+> - **Timeline & Breakdown:** See a full chronological timeline of every stone placed (canonical coordinates like K10), spell cast, and champion ability used.
+> - **Interactive Scrubber:** Play, pause, fast-forward, and scrub through the match move-by-move on a dedicated mini-Goban with glowing highlights for every action.
+> - **Export & Import Matches (.cgo):** Share your wildest matches with friends! Download your replay files or copy them as JSON strings, and import them instantly from the Main Menu.
+>
+> ### **2. The 4-Player Softmax Win Rate Engine**
+> We tore down the old 2-player win rate calculator and rebuilt it mathematically from scratch using a compensated Softmax algorithm. 
+> - The Tactical Engine now weighs territory, prisoners, stone density, liberties, and immortal Benson groups for **up to 4 players simultaneously**. 
+> - A new, sleek **multi-segmented Win Rate Bar** sits at the top of your HUD, dynamically showing exactly who is dominating the board at any given second—Black, White, Emerald, or Amethyst!
+>
+> ### **3. Dynamic Stage Soundtracks (BGM)**
+> The game no longer cycles between just "menu" and "battle" music. Every visual environment (Zen Garden, Volcano, Twilight Meadow, The Void, Dojo) now has its own unique traditional Japanese soundtrack that seamlessly cross-fades as you travel through the Story or Roguelike map!
+>
+> ### **4. 4-Player Rules Engine Bulletproofing**
+> We fixed several critical interactions in massive Free-For-All 4-Player games:
+> - Neutral entity captures are now properly credited to the player who surrounds them the most (whether they are P3 or P4!).
+> - Meteor strikes and Yin-Yang inversions can now correctly target ANY enemy color on the board, not just Player 1 or Player 2.
+>
+> *— The Crazy Go Dev Team*
+
+---
+
+## 20 de Agosto de 2026 - Día 6 (Sesión 111): Hotfix Crítico de IA (Game Over Prematuro)
+
+**1. Fix: Game Over Prematuro en la Apertura (`GoAI.ts`):**
+- **Problema:** Si el jugador humano pasaba su turno muy temprano (ej. turno 3), la IA evaluaba erróneamente el tablero como "maduro" (`isBoardMatured = true`) y también pasaba, finalizando la partida de golpe. La causa raíz era el motor de `TerritoryScorer`, que al ver un tablero casi vacío, asignaba temporalmente todas las casillas sin reclamar a las únicas piedras presentes. Esto elevaba artificialmente el índice de resolución de la IA a casi el 100%.
+- **Solución Quirúrgica:** Se ajustó la fórmula en `GoAI.ts` para que `resolvedNodesCount` excluya el territorio especulativo durante el cálculo de madurez, contando estrictamente las piedras físicas colocadas.
+- **Escudo de Turno Mínimo:** Se introdujo la constante `ABSOLUTE_MIN_TURNS = 10`. Esto actúa como una barrera rígida que impide a la IA considerar que la partida ha terminado antes del turno 10, garantizando una apertura jugable bajo cualquier circunstancia.
+
+---
+
 ## 20 de Agosto de 2026 - Día 6 (Sesión 110): Actualización v14 (Balance del Alquimista y UI Scaling)
 
 ### 📢 Devlog Oficial de la Versión v14 (Itch.io CommonMark):
@@ -1446,34 +2150,7 @@ Este registro cronológico documenta los avances diarios en el desarrollo del ju
    - 4 Arquetipos orgánicos generados proceduralmente: Costa y Penínsulas Dentadas, Archipiélago con Puentes Tácticos, Abismo / Cráter Celestial Central, y Cañón Táctico Dividido.
    - Algoritmo de Conectividad Estricta (BFS Flood-Fill) que asegura un único componente conexo con superficie útil del 60-85% y sin nodos aislados de 0 o 1 libertad inicial, 100% canónico según las reglas de Go.
    - Integrado en Modo Libre, Modo Online, Roguelike y Modo Sandbox / Pruebas.
-4. **Rediseño Panorámico Sin Cajas Sobre-anidadas & Tipografía Mejorada (+5% a +15%):**
-   - Eliminados los elementos `.rogue-counter-badge` (`1 / 5`) y `.hero-portrait-badge` sobre el retrato de héroe.
-   - Eliminado el contenedor interior `.hero-showcase-card`, integrando el retrato y descripción directamente sobre el panel modal sin cajas sobre-anidadas.
-   - Aumento general de las fuentes pequeñas un 5-15% (`.diff-sub` a 0.78rem, `.modal-desc` a 0.94rem, `.hero-subtitle` a 0.94rem, `.hero-quote` a 0.90rem, `.skill-desc` a 0.88rem, `.hero-thumb-btn` a 0.90rem).
-5. **Calibración Estratégica del Motor de IA (`GoAI.ts` - Fácil y Medio):**
-   - Resuelto el problema de "arrastre ciego / serpiente" donde la IA fácil/medio solo jugaba piedras pegadas a las anteriores.
-   - Implementadas formas canónicas de Go: **Kosumi** (diagonal), **Ikken-Tobi** (salto de 1 espacio), **Keima** (paso de caballo) y **Boca de Tigre** (Kake-tsugi).
-   - Valoración de esquinas territoriales y lados en 3ª y 4ª línea, evitando el contacto innecesario en áreas abiertas.
-6. **Validación:**
-   - `npm run build` completado en 466ms (0 errores), servidor Vite dev activo y verificado en `http://localhost:5173/`.
-
----
-
-## 🗄️ Archivo Histórico de Sesiones Anteriores
-Las sesiones 19 a 30 han sido factorizadas y archivadas para optimizar el rendimiento y la legibilidad.
-👉 **Consulta el histórico completo en:** [`log_archive_sesiones_19_30.md`](file:///c:/Users/VICTOR/Desktop/crazy_go/docs/ai_wiki/log_archive_sesiones_19_30.md).
-
----
-
-## 17 de Agosto de 2026 - Sesión 48: Corrección de Bug de Ryūjin, Aclaración de Tableros Irregulares y Correcciones Visuales (Fase 41)
-
-**Resumen del hito:**
-1. **Corrección de Bug de Ryūjin en Modo Co-op:**
-   - Detectado que tras usar la habilidad pasiva *Furia del Dragón* de Ryūjin en el modo Roguelike Cooperativo, el juego dejaba en el cursor del jugador una piedra del rival y bloqueaba el sistema de turnos.
-   - Solución: En `GameController.ts`, el modo `'coop'` ahora se evalúa correctamente junto a `'1via'` para delegar el control a la IA (`checkAITurn()`) y no habilitar la interfaz interactiva para el jugador cuando no le corresponde su turno, impidiendo que coloque una piedra rival.
-2. **Aclaración de Comportamiento en Tableros Irregulares (Archipiélago Dual):**
-   - El reporte de que *"un grupo no se captura por falta de libertades"* en las islas conectadas no era un error del código. Las diferentes regiones (ej. hexágono y triángulo) están unidas por un puente formando una sola súper-cadena que requiere que se rellenen absolutamente todas sus libertades. No requiere optimización del código fuente, sino un cambio en la percepción de los turnos (es vital *Pasar Turno* cuando no quedan jugadas beneficiosas en lugar de llenar el territorio propio).
-3. **Mejora Integral del Zoom (`ModalManager.ts`, `AppEventBinder.ts`):**
+4. **Redise�3. **Mejora Integral del Zoom (`ModalManager.ts`, `AppEventBinder.ts`):**
    - Completada la Tarea 261.
    - Refactorizada la función de zoom para permitir incrementos/decrementos precisos en pasos del 10% (rango del 10% al 200%).
    - Se eliminó la persistencia errónea inter-sesiones en `localStorage`, garantizando que la partida inicie siempre en un nítido 100%.
@@ -1493,10 +2170,143 @@ Las sesiones 19 a 30 han sido factorizadas y archivadas para optimizar el rendim
    - Se crearon nuevos *Binders* para gestionar los eventos del sistema: MenuEventBinder.ts, GameEventBinder.ts y OnlineEventBinder.ts, que delegaron el control visual puramente al DOM sin ensuciar la lógica del juego.
    - Creación e integración de InteractionManager.ts como la nueva fachada principal para capturar interacciones de teclado, modales, habilidades activas, uso de hechizos y despliegue de poliminós.
    - Creación de GameEventBus.ts para conectar de forma desacoplada la notificación de jugadas y turnos con RoguelikeController y StoryController.
-   - Resolución de todos los conflictos y dependencias cruzadas generadas por el rediseño para asegurar \  Errores\ en la validación estricta de TypeScript.
+   - Resolución de todos los conflictos y dependencias cruzadas generadas por el rediseño para asegurar 0 Errores en la validación estricta de TypeScript.
 2. **Mejoras del Campeón Alquimista (Inversión Cromática):**
    - **VFX Remasterizado:** Ahora, al usar su habilidad activa, aparece una brocha o pincel animado (🖌️) de forma elegante pintando sobre la piedra para simular la transmutación visual del color, limitando la fluidez a los parámetros del nuevo sistema de FPS.
-   - **Elección Completa en 4 Jugadores:** La habilidad ahora cambia "cualquier piedra a cualquier otro color", en lugar de limitarse a Blanco/Negro. En partidas de más de 2 jugadores, ahora despliega un modal intermedio (\#modal-color-picker\) donde el jugador elige manualmente a qué color exacto va a convertir la piedra (Negro, Blanco, Verde o Púrpura). Se implementó usando de forma eficiente una función \sync\ en el flujo del \ChampionManager\.
+   - **Elección Completa en 4 Jugadores:** La habilidad ahora cambia "cualquier piedra a cualquier otro color", en lugar de limitarse a Blanco/Negro. En partidas de más de 2 jugadores, ahora despliega un modal intermedio (`#modal-color-picker`) donde el jugador elige manualmente a qué color exacto va a convertir la piedra (Negro, Blanco, Verde o Púrpura). Se implementó usando de forma eficiente una función async en el flujo del `ChampionManager`.
 3. **Nuevas Configuraciones Básicas del Sistema:**
-   - **Límite de FPS (Animaciones):** Agregada una opción en el modal de \Opciones\ que permite reducir la tasa de refresco (30 FPS) para efectos visuales o dejarlo fluido (60 FPS) mediante \GlobalSettings.ts\. Útil para ahorrar batería en portátiles o mejorar fluidez en dispositivos de menores recursos.
+   - **Límite de FPS (Animaciones):** Agregada una opción en el modal de Opciones que permite reducir la tasa de refresco (30 FPS) para efectos visuales o dejarlo fluido (60 FPS) mediante `GlobalSettings.ts`. Útil para ahorrar batería en portátiles o mejorar fluidez en dispositivos de menores recursos.
    - **Animaciones de Partículas:** Añadido un botón de palanca adicional para activar/desactivar completamente la ejecución de animaciones SVG/VFX en tiempo real.
+
+---
+
+## 21/08/2026 - Sesión de Optimización P2P
+- Se corrigieron los problemas de visualización del tooltip y nombre de habilidades de oponentes en modo multijugador online P2P.
+- Se solucionó el problema de ejecución de habilidades remotas en el cliente local que causaba el bug de "Asignación Local del Héroe". Ahora la asignación respeta el héroe del oponente de la red.
+- Se implementó `SeededRandom.ts` para resolver desincronizaciones de tablero causadas por habilidades y pasivas aleatorias.
+- Se añadió redundancia STUN/TURN (Google) para evitar fallos de ICE Candidates que producían cuelgues al unirse a las salas.
+- Se rediseñó la barra de Winrate: se eliminó la barra pequeña superior y se amplió la barra cuádruple, colocándola en la parte inferior del tablero con etiquetas de porcentaje explícitas. Redimensionada al 70% de ancho y 12px de altura para evitar solapamientos con la barra de hechizos.
+- Reducción del tamaño del tablero (SVG) en un 5% y reubicación vertical (-40px) para acomodar la nueva HUD sin obstaculizar modos Roguelike.
+- Se ha integrado una "Heurística de Iniciativa" inspirada en KataGo dentro de `AnalysisEngine`. Ahora la evaluación neutraliza los sesgos del Komi inicial de forma progresiva, mostrando probabilidades justas (50/50 o 25/25/25/25) en el primer turno y decayendo a medida que se desarrolla la partida.
+- Generadas versiones ejecutables v14 (Windows e Itch.io).
+- Aplicadas las Mejoras Temporales A+B al motor heurístico de Winrate (AnalysisEngine): ajuste severo de la temperatura del algoritmo Softmax para responder dinámicamente al tamaño del tablero y reflejar diferencias de puntuación con mayor precisión táctica, sirviendo de puente hasta la integración de la red neuronal ResNet-12.
+
+---
+
+## 23 de Agosto de 2026 - Sesiones 114 a 117: Tablero del Cielo, Entorno Espacial 2.5D, Matchmaking Online, Fix Alquimista 4P y Poliminós 3D (Fases 59 a 62)
+
+### 1. Tablero del Cielo (*Sky Board*) y Colapso Celestial (Fase 59):
+- **Nueva Topología `sky` (`BoardGenerators.ts`, `SVGRenderer.ts`, `StageHazardManager.ts`, `SkyVFX.ts`, `SVGDefs.ts`)**:
+  - Tablero suspendido con nubes etéreas en deriva suave (`.sky-cloud-drift`), estrellas titilantes (`.sky-star-twinkle`) y gradientes celestes en las esquinas.
+  - **Peligro Ambiental**: Cada 20 turnos globales colapsan 5 bloques cuadrados $2\times 2$ (hasta 20 casillas) con animación VFX suave (`cubic-bezier(0.22, 1, 0.36, 1)`) sin sacudidas de pantalla bruscas.
+
+### 2. Entorno Espacial 2.5D y Foco de Cámara Interactivo (Fases 21 y 22):
+- **Menú Principal Espacial 2.5D (`MenuCameraController.ts`, `index.html`, `base.css`)**:
+  - Objetos físicos diegéticos (`.dojo-item`) en un escenario 16:9 con coordenadas porcentuales absolutas.
+  - Zoom óptico in-situ sin desplazamiento lateral (0px shift) mediante `transform-origin` dinámico, amortiguación debounced de 15ms y curva Ease-Out Expo.
+  - Sistema de cursores vectoriales SVG de alta definición (Puntero maestro de obsidiana, Puntero de Go con piedra blanca nacarada).
+- **Pantalla de Continuar Expedición Roguelike 2.5D (`RogueChoiceCameraController.ts`, `modal-rogue-choice.html`)**:
+  - Escenario interactivo con vistas traseras de los 7 campeones (`public/heroes/*_back.png`), placa central de datos y Depth of Field cinemático.
+
+### 3. Matchmaking Anónimo Global y Lobby Libre Híbrido (Fase 62):
+- **Emparejamiento Rápido Automático (`NetworkManager.ts`, `OnlineModalRenderer.ts`)**:
+  - Búsqueda de partidas con prefijo temporal (`MATCHMAKING_{N}P_{HORA}`) vía `trystero/mqtt`. Los jugadores se emparejan anónimamente y el host genera una sala privada `GO-XXXX` transparente.
+- **Lobby Libre y Slots Híbridos**:
+  - Configuración flexible por slot: Humano Local (`human_local`), Humano Remoto (`human_remote`) o IA (`ai`).
+  - Sincronización de IA local en partidas en red mediante `GameController.checkAITurn()`, permitiendo iniciar partidas mixtas aunque falten rivales humanos remotos.
+
+### 4. Fix Definitivo: Habilidad del Alquimista en 4 Jugadores (4P) (`AlchemistChampion.ts`, `ChampionManager.ts`, `ModalManager.ts`, `SVGRenderer.ts`):
+- **Priorización de Modos de Apuntado (`ChampionManager.ts`)**:
+  - Reestructurado `executeTargetedSkill()` para priorizar de forma estricta `currentTargetingMode === 'convert_enemy'` (Alquimista) en lugar de evaluar primero el ID de héroe local (`effectiveHero`), evitando que la habilidad falle o ejecute acciones de otros personajes en partidas 4P o con slots mixtos.
+- **Eliminación de Conflicto de Doble Callback (`SVGRenderer.ts`)**:
+  - Unificado el callback `onComplete` en ramas mutuamente excluyentes (`onSkillPlaced` $\rightarrow$ `advanceStep` $\rightarrow$ `onPassiveBurnCompleted` $\rightarrow$ `onMovePlaced`), eliminando la colocación accidental de piedras duplicadas tras usar habilidades activas.
+- **Selector de Color 4P Robusto (`ModalManager.ts` & `modal-color-picker.html`)**:
+  - Modal rediseñado con cuadrícula 2x2 para ⚫ (P1), ⚪ (P2), 🟢 (P3) y 🟣 (P4).
+  - Captura infalible de clic con `(e.target as HTMLElement).closest('.color-picker-btn')`, prevención de propagación de eventos y soporte para cancelación limpia (botón Cancelar o clic fuera).
+- **Flujo de Turno y Seguridad**:
+  - Si el jugador hace clic en una casilla vacía o protegida, el modo de apuntar permanece activo sin penalizar al usuario.
+  - Si cancela el modal, se restaura la interactividad sin pasar turno a la IA ni restar cargas.
+  - Verificados y blindados el resto de campeones (Tengu, Kitsune, Himiko, Ronin, Ryūjin) para 4 jugadores.
+
+### 5. Piedras Especiales: Duplicidad (2x1) y Monolito (2x2) (`PolyominoManager.ts`, `GameController.ts`, `KeyboardController.ts`, `SVGRenderer.ts`, `SVGGhostPreview.ts`, `SVGDefs.ts`):
+- **Rotación con Tecla `[R]` y Clic en HUD**:
+  - Soporte de tecla física `KeyR` y mayúsculas/minúsculas para alternar instantáneamente entre Horizontal ⇄ y Vertical ⇅.
+  - Clic repetido sobre el botón de Duplicidad en el HUD rota la orientación automáticamente.
+- **Auto-Ajuste Inteligente de Bordes (`PolyominoManager.ts`)**:
+  - Al colocar Duplicidad (2x1) o Monolito (2x2) en los bordes o esquinas del Goban, la pieza se orienta automáticamente hacia el interior del tablero, evitando errores de fuera de límites.
+- **Texturas Visuales y Shaders 3D de Alta Fidelidad**:
+  - *Duplicidad (2x1)*: Cápsula continua biselada con relieve (`#domino-bevel`), borde dinámico del color del jugador, aros concéntricos de núcleo y runa central `🀄` con resplandor místico.
+  - *Monolito (2x2)*: Losa megalítica maciza de 4 piedras unificadas con sombra 3D profunda (`#monolith-shadow`), líneas interiores de talla rúnica en cruz, aros de anclaje de esquina y emblema titánico `🧱` con resplandor dorado (`#monolith-rune-glow`).
+  - *Previsualizaciones Ghost*: Renderizado reactivo en hover con tooltip informativo flotante de orientación `⇄ [R]` / `⇅ [R]`.
+
+### 6. Zoom Global y Estabilidad del Sistema:
+- Restaurado el motor de escalado de interfaz (`ModalManager.setZoom` / `initZoom`) mediante `transform: scale()` sobre `#app` con atajos globales `Ctrl +`, `Ctrl -`, `Ctrl 0`.
+- Compilación validada al 100% con `npm r
+
+## 23/08/2026 - Sesión 117: Optimización del Menú Sandbox (Testing Lab), Topología Dinámica Máscara Oni y Zoom Nativo Chromium
+
+### 1. Optimización Integral del Menú Sandbox (Testing Lab & Troubleshooter) (Fase 63)
+- **Rediseño Ergonómico y Visual del Panel Flotante (`modal-sandbox.html`, `sandbox.css`):**
+  - Transformado en un panel lateral flotante con estética *glassmorphism* translúcida (`rgba(13, 20, 32, 0.96)`), bordes sutiles de esmeralda y scroll interno ultra-fino.
+  - Dimensiones dinámicamente adaptadas (`clamp(340px, 25vw, 410px)` y `calc(100vh - 70px)`) para permitir manipular el tablero e interactuar con el juego de fondo sin obstruir el Goban de combate.
+- **Barra de 4 Pestañas en Grid 4x1 Perfecto:**
+  - Pestañas `🖌️ Pinceles`, `🗺️ Tablero`, `🎯 Pruebas` y `⚡ Poderes` distribuidas al 100% de ancho sin desbordamiento horizontal ni cortes en ninguna resolución.
+- **Cabecera Compacta con Acceso Rápido:**
+  - Añadido botón de cierre rápido `✖` en la esquina superior derecha para cerrar el panel con un solo clic.
+  - Botón de alternancia de colocación simplificado a toggle compacto `🖌️ Pincel ON` / `🖌️ Pincel OFF`.
+- **Selector Completo de los 8 Campeones:**
+  - Incorporado el **Alquimista** junto a Normal, Tengu, Himiko, Kitsune, Ronin, Ryūjin y Dragón Sabio en una cuadrícula compacta 4x2.
+  - Al cambiar de héroe se le otorgan automáticamente 99 cargas de habilidad y se actualizan el HUD, el retrato y el snapshot de combate en caliente.
+- **Fix en "Activar Habilidad Activa" y "Forzar Efecto Pasivo":**
+  - Corregida la resolución dinámica de habilidades activas: detecta con exactitud el campeón en uso (Meteoro de Tengu, Escudo de Kitsune, Transmutación del Alquimista, Llamas de Ryūjin, Rebobinados de Normal, etc.) configurando el modo de apuntado preciso con 99 cargas.
+- **Lanzador Directo de TODOS los Poderes (Estación de Debug Total):**
+  - Añadidos botones independientes para disparar cualquier poder en cualquier momento sin necesidad de cambiar de héroe:
+    - `☄️ Meteoro 5x5 (Tengu)`: Activa lluvia de meteoros en área.
+    - `🛡️ Escudo Divino (Kitsune)`: Activa modo de protección sagrada indestructible.
+    - `⚗️ Transmutación (Alquimista)`: Activa inversión cromática con selector de color 4P.
+    - `🐉 Llamas Aliento (Ryūjin)`: Activa selección para calcinar 2 piedras enemigas.
+    - `🗡️ Corte Katana (Ronin)`: Ejecuta tajo diagonal de viento con VFX y sonido.
+    - `🌧️ Lluvia Pétrea (Himiko)`: Invoca 4 piedras bendecidas con rayos celestiales.
+    - `🔥 Quema 25% (Boss Dragón)`: Incinera el cuadrante de la esquina con mayor densidad de piedras.
+    - `⏳ +5 Rebobinados (Normal)`: Añade +5 cargas de rebobinado táctico al jugador.
+    - `🔄 Pasar Turno (Pass)`: Fuerza el paso de turno para ceder el control al rival/IA.
+- **Pinceles de Tablero y Entidades Categorizados:**
+  - Separado visualmente en categorías claras: *Piedras de Jugador* (⚫ P1, ⚪ P2, 🟢 P3, 🟣 P4, 🛡️ Sagrada), *Poliminós* (🌿 Brote 1x1, 🀄 Dominó 2x1, 🧱 Monolito 2x2), *Entidades* (🎁 Cofre, 🧙 Monje, 📜 Pergamino, ✨ Espíritu) y *Terrenos* (🌌 Portal, 🌀 Vórtice, ⛩️ Santuario, 🪨 Destruir, ⏹️ Normal, 🧹 Borrador).
+
+### 2. Topología Dinámica y Peligro Ambiental: Máscara Oni (Demonio)
+- **Generador de Topología Temática (`BoardGenerators.ts`, `types/index.ts`):**
+  - Nueva forma de tablero `oni` esculpida en madera Kaya con forma de máscara de demonio japonés: cuernos superiores (frente hendida), ojos huecos, pómulos y boca central.
+  - Soportada en los tres tamaños estándar: 9x9 (Rápido), 13x13 (Equilibrado) y 19x19 (Oficial Pro).
+- **Mecánica Dinámica de Lava (`StageHazardManager.ts`):**
+  - A partir de la ronda 30 (y fases posteriores en rondas 40 y 50), la boca del Oni entra en erupción y escupe lava fundida en columna vertical hacia la barbilla, destruyendo las intersecciones y dividiendo el tablero inferior en dos mitades independientes con animaciones VFX de fuego y capturas automáticas de piedras atrapadas.
+- **Integración y Selección en Todos los Modos (`SetupEventBinder.ts`, `SetupModalRenderer.ts`, `OnlineEventBinder.ts`, `OnlineModalRenderer.ts`, `translations.ts`):**
+  - Añadido a los selectores de tablero de Partida Local (Asistente), Lobby Online, Testing Lab (Sandbox) y Generador de Mapas Roguelike.
+  - Textos descriptivos y advertencias diegéticas traducidos al 100% en español e inglés.
+
+### 3. Zoom Nativo Chromium y Rendimiento
+- Eliminados los hacks artificiales de escalado CSS que alteraban el tamaño del layout y deformaban las unidades `vw`/`vh` relativas en modales y menús.
+- Desbloqueados los atajos de teclado del navegador en `KeyboardController.ts`, permitiendo que el motor embebido de Chromium/Edge de `CrazyGo.exe` gestione el zoom nativamente con máxima fluidez y aceleración por hardware (`Ctrl + Rueda`, `Ctrl +`, `Ctrl -`, `Ctrl 0`).
+- Validación de compilación completa: **0 errores de TypeScript y bundle de producción Vite limpio**.
+
+## 27/08/2026 - Sesión 118 (Parte 2): Flujo Online Co-op Roguelike
+
+### 1. Reestructuración del Asistente Online para Roguelike Expedition
+- **Fast-Track al Lobby:** Se modificó el menú Online (modal-online.html, OnlineEventBinder.ts, OnlineModalRenderer.ts) para que, al elegir "Roguelike Expedition", se omitan los pasos de configuración estándar (Jugadores, Tablero, Campeón, Escenario). El Host es llevado directamente al Lobby (Paso 6 convertido visualmente en Paso 2) para generar y compartir el código de la sala.
+- **Transición Controlada Host/Guest:** En OnlineController.ts y NetworkManager.ts, cuando un invitado se une a la sala:
+  - El **Host** cierra el modal online y abre el selector de Dificultad y Campeón del Roguelike.
+  - El **Guest** cierra el modal y queda en espera pasiva de la configuración.
+- **Sincronización de Semilla (RogueSeed):** RoguelikeController ahora empaqueta la configuración elegida por el Host (difficulty, hostHero, ogueSeed) y la envía mediante NetworkManager a los invitados. Ambos inician el mapa procedimental idéntico de forma sincronizada.
+
+
+### Sesión 151 (27/08/2026)
+- **Asistente Online (Cooperativo)**: Ocultadas dinámicamente las secciones irrelevantes de Color (Blancas/Negras), Komi y la opción de llenar slots con bots o jugadores locales en modo Cooperativo.
+- **Sub-Turnos en Combate Co-op**: Se implementó una alternancia estricta del control entre el anfitrión y el invitado al jugar contra la IA (Negras compartidas). Si alguien intenta colocar, pasar turno o lanzar hechizos fuera de su sub-turno, recibe un aviso.
+- **Sincronización Determinista del Mapa Roguelike**: Bloqueados los clics del invitado en los nodos del mapa y en los botones de recompensas/eventos (detectando .isTrusted para denegar acciones nativas del invitado). El anfitrión toma todas las decisiones, que se sincronizan con los nuevos eventos de red MAP_CLICK y EVENT_OPTION_CLICK, forzando la interfaz del invitado a replicar mecánicamente las decisiones (tn.click()) y avanzar el estado local al unísono.
+- **Votación Anti-Abandonos**: Al pulsar 'Abandonar Expedición', se requiere el consentimiento del compañero vía VOTE_ABANDON.
+
+
+- **Generación de Paquetes Distribuibles**: Compilados con éxito los dos archivos .zip oficiales del proyecto: crazy_go_itchio_v14_browser.zip (69.13 MB para navegador web en Itch.io) y crazy_go_windows_v14.zip (69.14 MB versión portable para Windows PC con CrazyGo.exe y README.txt en inglés).
+
+
+- **Blindaje Criptográfico y Ofuscación de Código (uild_packages.js)**: Integrado el módulo javascript-obfuscator en el pipeline oficial de empaquetado. Todos los bundles JavaScript se procesan con Control Flow Flattening, inyección de código muerto, encriptación Base64/RC4 de strings y ofuscación hexadecimal de identificadores antes de generar los archivos .zip de Itch.io y Windows PC.
+

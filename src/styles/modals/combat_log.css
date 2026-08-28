@@ -1,0 +1,569 @@
+/* src/styles/modals/combat_log.css - Estilos del Visor de Registro de Combate y Repetición */
+
+.modal-combat-log-card {
+  max-width: 1160px;
+  width: 95vw;
+  height: 90vh;
+  max-height: 880px;
+  display: flex;
+  flex-direction: column;
+  background: rgba(15, 23, 42, 0.94);
+  backdrop-filter: blur(18px);
+  border: none;
+  border-radius: 16px;
+  box-shadow: 0 25px 60px rgba(0, 0, 0, 0.75), 0 0 40px rgba(56, 189, 248, 0.12);
+  color: #f8fafc;
+  overflow: hidden;
+  animation: modalFadeIn 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* Header */
+.combat-log-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1.1rem 1.6rem;
+  border-bottom: none;
+  background: transparent;
+  gap: 1rem;
+}
+
+.combat-log-header .header-titles h2 {
+  margin: 0;
+  font-size: 1.4rem;
+  font-weight: 800;
+  color: #f8fafc;
+  letter-spacing: -0.02em;
+}
+
+.combat-log-header .header-titles .modal-desc {
+  margin: 0.25rem 0 0 0;
+  font-size: 0.85rem;
+  color: #94a3b8;
+}
+
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+}
+
+.btn-replay-action {
+  background: rgba(255, 255, 255, 0.08);
+  border: none;
+  color: #e2e8f0;
+  padding: 0.45rem 0.85rem;
+  border-radius: 8px;
+  font-size: 0.82rem;
+  font-weight: 600;
+  cursor: var(--cursor-pointer);
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  transition: all 0.18s ease;
+}
+
+.btn-replay-action:hover {
+  background: rgba(255, 255, 255, 0.16);
+  border-color: rgba(255, 255, 255, 0.28);
+  color: #ffffff;
+  transform: translateY(-1px);
+}
+
+.btn-replay-import {
+  background: rgba(56, 189, 248, 0.15);
+  border-color: rgba(56, 189, 248, 0.35);
+  color: #38bdf8;
+}
+
+.btn-replay-import:hover {
+  background: rgba(56, 189, 248, 0.25);
+  border-color: #38bdf8;
+  color: #ffffff;
+}
+
+/* Panoramic Two-Column Body */
+.combat-log-body {
+  display: grid;
+  grid-template-columns: 1.05fr 1fr;
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+  background: rgba(10, 15, 29, 0.65);
+}
+
+/* Left Column: Replay Board */
+.replay-board-column {
+  display: flex;
+  flex-direction: column;
+  border-right: none;
+  padding: 1rem 1.4rem;
+  gap: 0.8rem;
+  min-height: 0;
+  overflow: hidden;
+  background: radial-gradient(circle at center, rgba(30, 41, 59, 0.35) 0%, rgba(15, 23, 42, 0.6) 100%);
+}
+
+.replay-step-banner {
+  background: transparent;
+  border: none;
+  border-radius: 10px;
+  padding: 0.65rem 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.step-badge-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+
+.replay-badge-turn {
+  background: #38bdf8;
+  color: #0f172a;
+  font-size: 0.78rem;
+  font-weight: 800;
+  padding: 0.15rem 0.55rem;
+  border-radius: 6px;
+  text-transform: uppercase;
+}
+
+.replay-badge-turn-label {
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: #cbd5e1;
+}
+
+.replay-captures-pill {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.8rem;
+  font-weight: 700;
+  background: rgba(255, 255, 255, 0.08);
+  padding: 0.15rem 0.55rem;
+  border-radius: 6px;
+}
+
+.replay-step-desc-text {
+  font-size: 0.92rem;
+  font-weight: 600;
+  color: #f1f5f9;
+  line-height: 1.35;
+}
+
+/* Replay Board SVG Viewport */
+.replay-board-viewport {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 0;
+  overflow: hidden;
+  position: relative;
+}
+
+.replay-board-container {
+  width: 100%;
+  height: 100%;
+  max-width: 460px;
+  max-height: 460px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.replay-board-container svg {
+  width: 100%;
+  height: 100%;
+  display: block;
+  overflow: visible;
+}
+
+/* Replay Controls & Scrubber */
+.replay-controls-toolbar {
+  background: transparent;
+  border: none;
+  border-radius: 12px;
+  padding: 0.75rem 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+
+.replay-scrubber-row {
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
+}
+
+.scrubber-label {
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: #94a3b8;
+  min-width: 24px;
+  text-align: center;
+}
+
+.replay-slider {
+  flex: 1;
+  -webkit-appearance: none;
+  appearance: none;
+  height: 6px;
+  border-radius: 3px;
+  background: rgba(255, 255, 255, 0.15);
+  outline: none;
+  cursor: var(--cursor-pointer);
+  transition: background 0.15s;
+}
+
+.replay-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: #38bdf8;
+  cursor: var(--cursor-pointer);
+  box-shadow: 0 0 10px rgba(56, 189, 248, 0.7);
+  border: 2px solid #ffffff;
+  transition: transform 0.1s ease;
+}
+
+.replay-slider::-webkit-slider-thumb:hover {
+  transform: scale(1.25);
+}
+
+.replay-buttons-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.8rem;
+}
+
+.playback-buttons-group {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.btn-playback {
+  background: rgba(255, 255, 255, 0.08);
+  border: none;
+  color: #e2e8f0;
+  padding: 0.4rem 0.75rem;
+  border-radius: 8px;
+  font-size: 0.9rem;
+  cursor: var(--cursor-pointer);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.35rem;
+  transition: all 0.15s ease;
+}
+
+.btn-playback:hover {
+  background: rgba(255, 255, 255, 0.18);
+  border-color: rgba(255, 255, 255, 0.3);
+  transform: translateY(-1px);
+}
+
+.btn-playback-play {
+  background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%);
+  border-color: #38bdf8;
+  color: #ffffff;
+  font-weight: 700;
+  padding: 0.4rem 0.95rem;
+}
+
+.btn-playback-play:hover {
+  background: linear-gradient(135deg, #0369a1 0%, #075985 100%);
+  box-shadow: 0 0 12px rgba(56, 189, 248, 0.5);
+}
+
+.replay-speed-group {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  font-size: 0.8rem;
+  color: #94a3b8;
+}
+
+.replay-select {
+  background: rgba(15, 23, 42, 0.9);
+  border: none;
+  color: #f8fafc;
+  padding: 0.35rem 0.6rem;
+  border-radius: 6px;
+  font-size: 0.8rem;
+  outline: none;
+  cursor: var(--cursor-pointer);
+}
+
+/* Right Column: Timeline Cards List */
+.replay-timeline-column {
+  display: flex;
+  flex-direction: column;
+  padding: 1rem 1.2rem;
+  gap: 0.8rem;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.timeline-filter-header {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+
+.filter-tabs {
+  display: flex;
+  gap: 0.35rem;
+  overflow-x: auto;
+  padding-bottom: 2px;
+}
+
+.filter-tab {
+  background: rgba(255, 255, 255, 0.06);
+  border: none;
+  color: #94a3b8;
+  padding: 0.35rem 0.7rem;
+  border-radius: 6px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: var(--cursor-pointer);
+  white-space: nowrap;
+  transition: all 0.15s ease;
+}
+
+.filter-tab:hover {
+  background: rgba(255, 255, 255, 0.12);
+  color: #ffffff;
+}
+
+.filter-tab.active {
+  background: #38bdf8;
+  color: #0f172a;
+  border-color: #38bdf8;
+  font-weight: 800;
+}
+
+.timeline-search-input {
+  background: transparent;
+  border: none;
+  border-radius: 8px;
+  padding: 0.45rem 0.8rem;
+  color: #f8fafc;
+  font-size: 0.85rem;
+  outline: none;
+  transition: border-color 0.15s;
+}
+
+.timeline-search-input:focus {
+  border-color: #38bdf8;
+  box-shadow: 0 0 0 2px rgba(56, 189, 248, 0.2);
+}
+
+/* Timeline Cards Container */
+.timeline-cards-scroll {
+  flex: 1;
+  overflow-y: auto;
+  padding-right: 0.4rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+}
+
+/* Custom Scrollbar */
+.timeline-cards-scroll::-webkit-scrollbar {
+  width: 6px;
+}
+.timeline-cards-scroll::-webkit-scrollbar-track {
+  background: transparent;
+  border-radius: 3px;
+}
+.timeline-cards-scroll::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.15);
+  border-radius: 3px;
+}
+.timeline-cards-scroll::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.3);
+}
+
+/* Individual Log Card */
+.replay-log-card {
+  background: rgba(30, 41, 59, 0.45);
+  border: none;
+  border-radius: 10px;
+  padding: 0.65rem 0.85rem;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  cursor: var(--cursor-pointer);
+  transition: all 0.18s ease;
+  user-select: none;
+}
+
+.replay-log-card:hover {
+  background: rgba(51, 65, 85, 0.65);
+  border-color: rgba(255, 255, 255, 0.2);
+  transform: translateX(3px);
+}
+
+.replay-log-card.active-step {
+  background: rgba(14, 116, 144, 0.45);
+  border: 1px solid #38bdf8;
+  box-shadow: 0 0 16px rgba(56, 189, 248, 0.3);
+  transform: translateX(4px);
+}
+
+.card-turn-pill {
+  min-width: 38px;
+  height: 38px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.85rem;
+  font-weight: 800;
+  flex-shrink: 0;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.4);
+}
+
+.card-turn-pill.p1 {
+  background: #0f172a;
+  color: #f8fafc;
+  border: none;
+}
+
+.card-turn-pill.p2 {
+  background: #f8fafc;
+  color: #0f172a;
+  border: 1px solid #cbd5e1;
+}
+
+.card-turn-pill.p3 {
+  background: #047857;
+  color: #ecfdf5;
+  border: 1px solid #10b981;
+}
+
+.card-turn-pill.p4 {
+  background: #6b21a8;
+  color: #faf5ff;
+  border: 1px solid #a855f7;
+}
+
+.card-info-content {
+  flex: 1;
+  min-width: 0;
+}
+
+.card-top-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.4rem;
+  margin-bottom: 0.2rem;
+}
+
+.card-action-title {
+  font-size: 0.86rem;
+  font-weight: 700;
+  color: #f8fafc;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.card-coord-badge {
+  background: rgba(255, 255, 255, 0.1);
+  color: #38bdf8;
+  font-size: 0.78rem;
+  font-weight: 800;
+  padding: 0.1rem 0.45rem;
+  border-radius: 5px;
+  flex-shrink: 0;
+}
+
+.card-desc-text {
+  font-size: 0.78rem;
+  color: #94a3b8;
+  line-height: 1.3;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+}
+
+.card-capture-tag {
+  background: rgba(239, 68, 68, 0.2);
+  color: #f87171;
+  border: 1px solid rgba(239, 68, 68, 0.4);
+  font-size: 0.72rem;
+  font-weight: 700;
+  padding: 0.1rem 0.4rem;
+  border-radius: 4px;
+  flex-shrink: 0;
+}
+
+/* Modal Footer */
+.combat-log-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.85rem 1.6rem;
+  border-top: none;
+  background: transparent;
+}
+
+.replay-meta-text {
+  font-size: 0.82rem;
+  color: #94a3b8;
+  font-weight: 600;
+}
+
+/* Replay Board Highlight Pulse Animation in SVG */
+@keyframes replayStonePulse {
+  0% {
+    r: 16px;
+    opacity: 0.95;
+    stroke-width: 3px;
+  }
+  50% {
+    r: 25px;
+    opacity: 0.3;
+    stroke-width: 1px;
+  }
+  100% {
+    r: 16px;
+    opacity: 0.95;
+    stroke-width: 3px;
+  }
+}
+
+.replay-highlight-ring {
+  animation: replayStonePulse 1.4s infinite cubic-bezier(0.4, 0, 0.6, 1);
+}
+
+/* Responsive adjustments */
+@media (max-width: 900px) {
+  .combat-log-body {
+    grid-template-columns: 1fr;
+    overflow-y: auto;
+  }
+
+  .replay-board-column {
+    border-right: none;
+    border-bottom: none;
+    height: 480px;
+  }
+
+  .replay-timeline-column {
+    height: 380px;
+  }
+}

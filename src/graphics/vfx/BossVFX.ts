@@ -20,7 +20,7 @@ export class BossVFX {
             boardTarget.classList.add('vfx-screen-shake');
             setTimeout(() => boardTarget.classList.remove('vfx-screen-shake'), 750);
         }
-        SoundFX.playCapture();
+        SoundFX.playBossDragonBreath();
 
         const vfxLayer = document.createElementNS('http://www.w3.org/2000/svg', 'g');
         vfxLayer.setAttribute('class', 'vfx-grey-dragon-layer');

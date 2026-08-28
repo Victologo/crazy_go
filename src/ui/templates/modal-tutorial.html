@@ -1,39 +1,71 @@
     <!-- ================= MODAL: DOJO / TUTORIAL ================= -->
-    <div id="dojo-modal" class="modal-backdrop hidden">
+    <div id="dojo-modal" class="modal-backdrop modal-dojo-backdrop hidden">
       <div class="modal-card modal-dojo">
-        <div class="modal-header">
-          <h2>🥋 Dojo (Tutorial & Guides)</h2>
-          <p class="modal-desc">Learn Go rules and Crazy Go mechanics</p>
+        <div class="modal-header dojo-modal-header">
+          <div class="dojo-header-title-wrap">
+            <h2 id="dojo-modal-title">🥋 Dojo • Lecciones de Go</h2>
+          </div>
+          <p id="dojo-modal-desc" class="modal-desc">Aprende las reglas canónicas milenarias y domina los secretos tácticos de Crazy Go</p>
         </div>
-        <div class="modal-body-scroll">
-          <div class="setup-grid grid-1" id="dojo-chapter-list">
+        <div class="modal-body-scroll dojo-modal-body">
+          <div class="dojo-scroll-grid" id="dojo-chapter-list">
             <!-- Chapters generated dynamically here -->
           </div>
         </div>
-        <div class="modal-footer">
-          <button class="btn btn-secondary" id="btn-cancel-dojo">Close</button>
+        <div class="modal-footer dojo-modal-footer">
+          <button class="btn btn-dojo-close" id="btn-cancel-dojo">
+            <span id="dojo-modal-close-text">✕ Volver al Menú</span>
+          </button>
         </div>
       </div>
     </div>
 
     <!-- ================= MODAL: TUTORIAL LESSON COMPLETED ================= -->
-    <div id="modal-tutorial-complete" class="modal-backdrop hidden">
-      <div class="modal-card modal-tutorial-complete-card">
-        <div class="modal-header tutorial-complete-header">
-          <div class="tutorial-complete-badge">🎉</div>
-          <h2 id="tutorial-complete-title">Lesson Completed!</h2>
-          <p id="tutorial-complete-subtitle" class="modal-desc">You have assimilated the core concepts of this lesson.</p>
-        </div>
-        <div class="tutorial-complete-body">
-          <div id="tutorial-next-preview" class="tutorial-next-preview">
-            <span class="next-label">Next Lesson:</span>
-            <strong id="tutorial-next-title">2. Capturing & Atari</strong>
+    <div id="modal-tutorial-complete" class="modal-backdrop modal-tutorial-complete-backdrop hidden">
+      <div class="tutorial-complete-pane">
+        
+        <!-- Emblema de honor / finalización zen -->
+        <div class="tutorial-complete-emblem-wrap">
+          <div class="tutorial-complete-emblem-glow"></div>
+          <div class="tutorial-complete-emblem">
+            <span class="tutorial-complete-icon">✦</span>
           </div>
         </div>
-        <div class="modal-footer tutorial-complete-footer">
-          <button id="btn-tutorial-replay" class="btn btn-secondary">🔁 Replay</button>
-          <button id="btn-tutorial-list" class="btn btn-secondary">📜 Lesson List</button>
-          <button id="btn-tutorial-next" class="btn btn-primary btn-cta">▶ Next Lesson</button>
+
+        <!-- Encabezado / Título -->
+        <div class="tutorial-complete-header">
+          <span id="tutorial-complete-kicker" class="tutorial-complete-kicker">✦ LECCIÓN COMPLETADA ✦</span>
+          <h2 id="tutorial-complete-title" class="tutorial-complete-title">7. Captura Snapback</h2>
+          <p id="tutorial-complete-subtitle" class="tutorial-complete-subtitle">Has asimilado con éxito los conceptos fundamentales de esta lección.</p>
         </div>
+
+        <!-- Acciones / Botones -->
+        <div class="tutorial-complete-actions">
+          <!-- Botón Principal Prominente 2-en-1: Siguiente Lección + Título Explicativo -->
+          <button id="btn-tutorial-next" class="btn-tut-next">
+            <div class="btn-tut-next-content">
+              <span id="btn-tutorial-next-kicker" class="btn-tut-next-kicker">SIGUIENTE LECCIÓN ➔</span>
+              <strong id="btn-tutorial-next-title" class="btn-tut-next-title">8. Seki (Vida Mutua)</strong>
+            </div>
+            <span class="btn-tut-kbd">↵ Enter</span>
+          </button>
+
+          <!-- Acciones secundarias en barra sutil -->
+          <div class="tutorial-complete-subactions">
+            <button id="btn-tutorial-replay" class="btn-tut-sub">
+              <span class="btn-tut-sub-icon">↺</span>
+              <span class="btn-tut-sub-text">Repetir</span>
+              <span class="btn-tut-sub-kbd">[R]</span>
+            </button>
+            <button id="btn-tutorial-list" class="btn-tut-sub">
+              <span class="btn-tut-sub-icon">📜</span>
+              <span class="btn-tut-sub-text">Lista del Dojo</span>
+              <span class="btn-tut-sub-kbd">[Esc]</span>
+            </button>
+          </div>
+        </div>
+
       </div>
     </div>
+
+

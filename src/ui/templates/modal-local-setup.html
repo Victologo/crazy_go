@@ -73,16 +73,21 @@
           <h3 class="wizard-step-title" data-i18n="wizard.q_mode">🎮 Elige el Modo de Juego</h3>
           <p class="wizard-step-subtitle" data-i18n="wizard.sub_mode">Selecciona el modo y estilo de partida</p>
         </div>
-        <div class="setup-grid grid-2 wizard-big-grid">
+        <div class="setup-grid grid-3 wizard-big-grid">
           <button id="setup-mode-1via" class="btn btn-choice-card active">
             <span class="choice-card-icon">🤖</span>
-            <strong class="choice-card-title" id="label-mode-ai" data-i18n="wizard.mode_ai_title">Humano vs IA</strong>
-            <span class="choice-card-desc" data-i18n="wizard.mode_ai_desc">Compite en solitario contra el motor inteligente KataGo</span>
+            <strong class="choice-card-title" id="label-mode-ai" data-i18n="wizard.mode_ai_title">Human vs AI</strong>
+            <span class="choice-card-desc" data-i18n="wizard.mode_ai_desc">Compite en solitario contra el motor inteligente CrazyGoNet</span>
           </button>
           <button id="setup-mode-1v1" class="btn btn-choice-card">
             <span class="choice-card-icon">🎮</span>
-            <strong class="choice-card-title" id="label-mode-local" data-i18n="wizard.mode_local_title">Modo Local (Pasa y Juega)</strong>
+            <strong class="choice-card-title" id="label-mode-local" data-i18n="wizard.mode_local_title">Humano vs Humano</strong>
             <span class="choice-card-desc" data-i18n="wizard.mode_local_desc">Varios jugadores por turnos en la misma pantalla</span>
+          </button>
+          <button id="setup-mode-aivsai" class="btn btn-choice-card">
+            <span class="choice-card-icon">👀</span>
+            <strong class="choice-card-title" id="label-mode-aivsai" data-i18n="wizard.mode_aivsai_title">IA vs IA</strong>
+            <span class="choice-card-desc" data-i18n="wizard.mode_aivsai_desc">Modo espectador: Observa a las redes neuronales luchar entre sí</span>
           </button>
         </div>
       </div>
@@ -119,6 +124,9 @@
               <label class="setup-label" data-i18n="wizard.board_shape">Board Shape</label>
               <div class="setup-grid grid-4" id="setup-shapes-grid">
                 <button id="setup-shape-square" class="btn btn-choice active" data-shape="square">⏹️ Square</button>
+                <button id="setup-shape-volcano" class="btn btn-choice" data-shape="volcano">🌋 Volcano</button>
+                <button id="setup-shape-sky" class="btn btn-choice" data-shape="sky">☁️ Sky</button>
+                <button id="setup-shape-oni" class="btn btn-choice" data-shape="oni">👹 Oni Mask</button>
                 <button id="setup-shape-eroded" class="btn btn-choice" data-shape="eroded">🪨 Eroded</button>
                 <button id="setup-shape-islands_v1" class="btn btn-choice" data-shape="islands_v1">🏝️ Islands v1</button>
                 <button id="setup-shape-islands_v2" class="btn btn-choice" data-shape="islands_v2">🏝️ Islands v2</button>
@@ -141,12 +149,40 @@
 
           <!-- Right Column: Live Interactive Visual Preview -->
           <div class="wizard-board-preview-card">
-            <div id="wizard-board-preview-viewport" class="wizard-board-preview-viewport" style="background-image: url('./bg_combat.jpg');">
+            <div id="wizard-board-preview-viewport" class="wizard-board-preview-viewport" style="background-image: url('./bg_combat.jpg'); position: relative;">
               <svg id="wizard-board-preview-svg" class="wizard-board-preview-svg" viewBox="0 0 400 400"></svg>
+              
+              <!-- Centered Volcano Warning for Preview -->
+              <div id="setup-volcano-info" class="setup-volcano-center-warning">
+                <span class="volcano-emoji">🌋</span>
+                <div class="volcano-custom-tooltip">
+                  <strong data-i18n="volcano.warning_title">¡CUIDADO! Tablero Volcánico</strong><br/>
+                  <span data-i18n="volcano.warning_desc">Cada 10 turnos por jugador, un meteorito destruirá una casilla aleatoria permanentemente.</span>
+                </div>
+              </div>
+
+              <!-- Centered Sky Warning for Preview -->
+              <div id="setup-sky-info" class="setup-sky-center-warning">
+                <span class="sky-emoji">☁️</span>
+                <div class="sky-custom-tooltip">
+                  <strong data-i18n="sky.warning_title">¡CUIDADO! Tablero del Cielo</strong><br/>
+                  <span data-i18n="sky.warning_desc">Cada 10 turnos por jugador (20 totales), 5 nuevos bloques cuadrados (2x2) caerán del cielo expandiendo el goban indefinidamente.</span>
+                </div>
+              </div>
+
+              <!-- Centered Oni Warning for Preview -->
+              <div id="setup-oni-info" class="setup-oni-center-warning">
+                <span class="oni-emoji">👹</span>
+                <div class="oni-custom-tooltip">
+                  <strong data-i18n="oni.warning_title">👹 Tablero Máscara Oni (Inhalación & Festín)</strong><br/>
+                  <span data-i18n="oni.warning_desc">🌪️ Inhalación (cada 20 turnos): El vórtice arrastra 1 casilla hacia abajo las piedras sueltas o parejas (1-2 piedras); las cadenas sólidas (3+ piedras) resisten. 🩸 Festín de Almas: Capturar 2+ piedras enemigas a la vez otorga un Turno Extra Consecutivo inmediato.</span>
+                </div>
+              </div>
             </div>
             <div class="wizard-board-preview-info">
               <strong id="wizard-board-preview-title">9x9 Square Goban</strong>
               <span id="wizard-board-preview-desc">81 Intersections</span>
+              <div id="setup-board-hazard-banner" class="setup-board-hazard-banner hidden"></div>
             </div>
           </div>
         </div>
@@ -199,32 +235,32 @@
 
         <div class="hero-thumb-strip" id="setup-hero-thumb-strip">
           <button class="hero-thumb-btn active" data-hero="normal">
-            <img src="./heroes/normal_face.jpg" alt="Persona Normal" />
-            <span>Persona Normal</span>
+            <img src="./heroes/normal_face.jpg" alt="Normal" />
+            <span data-i18n="champion.normal.name">Persona Normal</span>
           </button>
           <button class="hero-thumb-btn" data-hero="tengu">
             <img src="./heroes/tengu_face.jpg" alt="Tengu" />
-            <span>Tengu</span>
+            <span data-i18n="champion.tengu.name">Tengu</span>
           </button>
           <button class="hero-thumb-btn" data-hero="himiko">
             <img src="./heroes/himiko_face.jpg" alt="Himiko" />
-            <span>Himiko</span>
+            <span data-i18n="champion.himiko.name">Himiko</span>
           </button>
           <button class="hero-thumb-btn" data-hero="kitsune">
             <img src="./heroes/kitsune_face.jpg" alt="Kitsune" />
-            <span>Kitsune</span>
+            <span data-i18n="champion.kitsune.name">Kitsune</span>
           </button>
           <button class="hero-thumb-btn" data-hero="ronin">
             <img src="./heroes/ronin_face.jpg" alt="Ronin" />
-            <span>Ronin</span>
+            <span data-i18n="champion.ronin.name">Ronin</span>
           </button>
           <button class="hero-thumb-btn" data-hero="alchemist">
-            <img src="./heroes/alchemist_face.jpg" alt="Alquimista" />
-            <span>Alquimista</span>
+            <img src="./heroes/alchemist_face.jpg" alt="Alchemist" />
+            <span data-i18n="champion.alchemist.name">Alquimista</span>
           </button>
           <button class="hero-thumb-btn" data-hero="ryujin">
             <img src="./heroes/ryujin_face.jpg" alt="Ryūjin" />
-            <span>Ryūjin</span>
+            <span data-i18n="champion.ryujin.name">Ryūjin</span>
           </button>
         </div>
       </div>
@@ -245,18 +281,11 @@
               <div class="duel-standee-box">
                 <img id="wizard-stage-player-img" src="./heroes/normal.png" alt="Tu Campeón" class="duel-standee-img" />
               </div>
-              <div class="duel-combatant-tag">
-                <strong id="wizard-stage-player-name">Persona Normal</strong>
-                <span class="duel-combatant-badge" data-i18n="wizard.you_player">TÚ (P1)</span>
-              </div>
             </div>
 
             <!-- Center: Floating Goban -->
             <div class="duel-stage-center-board">
               <svg id="wizard-stage-board-svg" class="wizard-stage-board-svg" viewBox="0 0 400 400"></svg>
-              <div class="duel-stage-board-pill">
-                <span id="wizard-stage-board-info">9x9 Cuadrado • 81 Pts</span>
-              </div>
             </div>
 
             <!-- Right Combatant: Rival (Mystery Box or Selected Champion) -->
@@ -267,15 +296,11 @@
                   <span class="duel-mystery-question">❓</span>
                 </div>
               </div>
-              <div class="duel-combatant-tag">
-                <strong id="wizard-stage-rival-name" data-i18n="wizard.unknown_rival">Rival Aleatorio 🎲</strong>
-                <span class="duel-combatant-badge rival-badge" data-i18n="wizard.mystery_rival">OPONENTE</span>
-              </div>
             </div>
           </div>
 
           <!-- Scenery Grid Selector -->
-          <div class="wizard-subgroup" style="margin-top: 0.25rem;">
+          <div class="wizard-subgroup" style="margin-top: 0.85rem;">
             <div class="setup-label-row">
               <label class="setup-label" data-i18n="wizard.scenery_atmosphere">🌄 Entorno de Batalla</label>
             </div>
@@ -307,7 +332,6 @@
       </div>
 
       <!-- STEP 6: OPPONENT SELECTION -->
-      <!-- STEP 6: OPPONENT SELECTION -->
       <div id="wizard-step-6" class="wizard-step-panel hidden">
         <div class="wizard-step-hero" style="margin-bottom: 0.3rem;">
           <h3 class="wizard-step-title" data-i18n="wizard.q_opponent">⚔️ Elige a tu Oponente</h3>
@@ -323,18 +347,11 @@
               <div class="duel-standee-box">
                 <img id="wizard-rival-player-img" src="./heroes/normal.png" alt="Tu Campeón" class="duel-standee-img" />
               </div>
-              <div class="duel-combatant-tag">
-                <strong id="wizard-rival-player-name">Persona Normal</strong>
-                <span class="duel-combatant-badge" data-i18n="wizard.you_player">TÚ (P1)</span>
-              </div>
             </div>
 
             <!-- Center: Board -->
             <div class="duel-stage-center-board">
               <svg id="wizard-rival-board-svg" class="wizard-stage-board-svg" viewBox="0 0 400 400"></svg>
-              <div class="duel-stage-board-pill">
-                <span id="wizard-rival-board-info">9x9 Cuadrado • 81 Pts</span>
-              </div>
             </div>
 
             <!-- Right Combatant: Rival(s) -->
@@ -353,10 +370,6 @@
                 <div class="duel-mystery-silhouette" id="wizard-rival-mystery">
                   <span class="duel-mystery-question">❓</span>
                 </div>
-              </div>
-              <div class="duel-combatant-tag">
-                <strong id="wizard-rival-name" data-i18n="wizard.unknown_rival">Rival Aleatorio 🎲</strong>
-                <span id="wizard-rival-badge" class="duel-combatant-badge rival-badge" data-i18n="wizard.mystery_rival">OPONENTE</span>
               </div>
             </div>
           </div>
@@ -441,24 +454,49 @@
             </button>
           </div>
 
-          <label class="setup-label" style="margin-top: 0.75rem;">AI Difficulty (Calibrated KataGo Engine)</label>
-          <div class="setup-grid grid-4">
-            <button id="setup-diff-easy" class="btn btn-choice" title="Beginner (25-28 Kyu)">
-              <span>🟢 Easy</span>
-              <small style="display:block;font-size:0.7rem;opacity:0.75;">25 Kyu</small>
+          <div class="setup-label-row" style="margin-top: 0.75rem;">
+            <label class="setup-label">AI Difficulty (CrazyGoNet Engine)</label>
+            <button type="button" id="btn-toggle-ai-granular" class="btn btn-switch" data-enabled="false">
+              <span id="label-toggle-ai-granular">Pack Mode 📦</span>
             </button>
-            <button id="setup-diff-medium" class="btn btn-choice active" title="Intermediate (16 Kyu)">
-              <span>🟡 Medium</span>
-              <small style="display:block;font-size:0.7rem;opacity:0.75;">16 Kyu</small>
-            </button>
-            <button id="setup-diff-hard" class="btn btn-choice" title="Advanced (4 Kyu)">
-              <span>🔴 Hard</span>
-              <small style="display:block;font-size:0.7rem;opacity:0.75;">4 Kyu</small>
-            </button>
-            <button id="setup-diff-dan" class="btn btn-choice btn-dan" title="Master (2 Dan)">
-              <span>🟣 Extreme</span>
-              <small style="display:block;font-size:0.7rem;opacity:0.75;">2 Dan</small>
-            </button>
+          </div>
+
+          <!-- Pack Mode Selector (Master) -->
+          <div id="ai-pack-mode-box">
+            <div class="setup-inline-row" style="margin-top: 0.5rem; justify-content: space-between; align-items: center; display: flex;">
+              <input type="range" id="ai-master-slider" min="1" max="40" value="16" class="custom-slider" style="flex-grow: 1; margin-right: 1rem;" />
+              <div class="inline-custom-box" style="min-width: 100px; justify-content: center;">
+                <strong id="ai-master-display" class="highlight-text" style="font-size: 1.1rem;">15 Kyu</strong>
+              </div>
+            </div>
+            <p style="font-size: 0.75rem; opacity: 0.7; margin-top: 0.25rem;">Sets the same level for all AI bots in the match. <br>30k-1k (Kyu - Beginner/Advanced) • 1d-10d (Dan - Master)</p>
+          </div>
+
+          <!-- Granular / Individual Mode Selector -->
+          <div id="ai-granular-mode-box" class="hidden" style="margin-top: 0.5rem;">
+            <div class="setup-komi-4p-grid">
+              <div class="komi-4p-row" id="ai-granular-p2-row">
+                <div class="komi-4p-header">
+                  <span class="komi-4p-tag">⚪ P2 AI Bot</span>
+                  <strong id="ai-granular-p2-display" class="highlight-text">15 Kyu</strong>
+                </div>
+                <input type="range" id="ai-granular-p2-slider" min="1" max="40" value="16" class="custom-slider" style="width: 100%; margin-top: 0.5rem;" />
+              </div>
+              <div class="komi-4p-row" id="ai-granular-p3-row" style="margin-top: 0.45rem;">
+                <div class="komi-4p-header">
+                  <span class="komi-4p-tag">🟢 P3 AI Bot</span>
+                  <strong id="ai-granular-p3-display" class="highlight-text">15 Kyu</strong>
+                </div>
+                <input type="range" id="ai-granular-p3-slider" min="1" max="40" value="16" class="custom-slider" style="width: 100%; margin-top: 0.5rem;" />
+              </div>
+              <div class="komi-4p-row" id="ai-granular-p4-row" style="margin-top: 0.45rem;">
+                <div class="komi-4p-header">
+                  <span class="komi-4p-tag">🟣 P4 AI Bot</span>
+                  <strong id="ai-granular-p4-display" class="highlight-text">15 Kyu</strong>
+                </div>
+                <input type="range" id="ai-granular-p4-slider" min="1" max="40" value="16" class="custom-slider" style="width: 100%; margin-top: 0.5rem;" />
+              </div>
+            </div>
           </div>
         </div>
 

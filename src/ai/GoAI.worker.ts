@@ -3,6 +3,7 @@ import { GameState } from '../core/GameState';
 import { BoardGenerators } from '../graphics/BoardGenerators';
 import { RulesEngine } from '../core/RulesEngine';
 import { GoAI, type AIDifficulty, type AIMoveChoice } from './GoAI';
+import { NeuralNetAdapter } from './NeuralNetAdapter';
 import type { PlayerId } from '../core/GraphBoard';
 
 // Internal mirror state
@@ -71,13 +72,105 @@ self.onmessage = (e: MessageEvent<AIWorkerIncomingMessage>) => {
                     }
                 }
 
-                // Update komi in case it changed (handicap, items, etc.)
-                state.komi = msg.komi;
-                
-                const bestMove = GoAI.getBestMove(board, state, msg.aiPlayerId, msg.difficulty);
-                
-                const response: AIWorkerOutgoingMessage = { type: 'MOVE_RESULT', payload: bestMove };
-                self.postMessage(response);
+                // Parse Kyu/Dan string
+                let isNeural = false;
+                let isEasy = false;
+                let isMedium = false;
+                let isHard = false;
+                let temperature = 0; // 0 = argmax
+
+                const diffStr = msg.difficulty as string;
+                if (diffStr.endsWith('k')) {
+                    const k = parseInt(diffStr);
+                    if (k >= 20) {
+                        isEasy = true;
+                    } else if (k >= 10) {
+                        isMedium = true;
+                    } else {
+                        isHard = true;
+                    }
+                } else if (diffStr.endsWith('d')) {
+                    isNeural = true;
+                    const d = parseInt(diffStr);
+                    // 1d to 9d
+                    if (d <= 3) {
+                        temperature = 0.6; // High randomness
+                    } else if (d <= 6) {
+                        temperature = 0.3; // Low randomness
+                    } else {
+                        temperature = 0; // Argmax (Max strength)
+                    }
+                } else {
+                    // Fallbacks for old strings
+                    if (diffStr === 'easy') isEasy = true;
+                    else if (diffStr === 'medium') isMedium = true;
+                    else if (diffStr === 'hard') isHard = true;
+                    else if (diffStr === 'dan') { isNeural = true; temperature = 0.1; }
+                }
+
+                const heuristicDiff = isEasy ? 'easy' : (isMedium ? 'medium' : (isHard ? 'hard' : 'dan'));
+
+                if (isNeural) {
+                    NeuralNetAdapter.evaluate(board, state, msg.aiPlayerId).then((neuralResult) => {
+                        if (neuralResult) {
+                            let chosenMoveId = neuralResult.bestMoveId;
+                            let chosenProb = neuralResult.bestMoveProb;
+
+                            // Apply temperature if needed
+                            if (temperature > 0 && neuralResult.policyProbabilities) {
+                                let total = 0;
+                                const legalMoves: {id: string, w: number}[] = [];
+                                
+                                for (const [id, prob] of neuralResult.policyProbabilities.entries()) {
+                                    if (id === 'PASS') continue;
+                                    const node = board!.nodes.get(id);
+                                    if (node && node.stone === null && node.terrain !== 'DESTROYED' && node.terrain !== 'OBSTACLE') {
+                                        // Aumentar el peso de jugadas subóptimas basado en la temperatura
+                                        const weight = Math.pow(prob, 1 / temperature);
+                                        legalMoves.push({ id, w: weight });
+                                        total += weight;
+                                    }
+                                }
+
+                                if (total > 0 && legalMoves.length > 0) {
+                                    let rand = Math.random() * total;
+                                    for (const m of legalMoves) {
+                                        rand -= m.w;
+                                        if (rand <= 0) {
+                                            chosenMoveId = m.id;
+                                            chosenProb = neuralResult.policyProbabilities.get(m.id) || 0;
+                                            break;
+                                        }
+                                    }
+                                }
+                            }
+
+                            const response: AIWorkerOutgoingMessage = {
+                                type: 'MOVE_RESULT',
+                                payload: {
+                                    nodeId: chosenMoveId !== undefined ? chosenMoveId : null,
+                                    reason: `CrazyGoNet Neural (P=${Math.round(chosenProb * 100)}%, Win=${neuralResult.winRates[msg.aiPlayerId]}%, Temp=${temperature})`,
+                                    score: Math.round(chosenProb * 1000)
+                                }
+                            };
+                            self.postMessage(response);
+                        } else {
+                            // Fallback if neural net fails
+                            const bestMove = GoAI.getBestMove(board!, state!, msg.aiPlayerId, heuristicDiff);
+                            const response: AIWorkerOutgoingMessage = { type: 'MOVE_RESULT', payload: bestMove };
+                            self.postMessage(response);
+                        }
+                    }).catch(() => {
+                        const bestMove = GoAI.getBestMove(board!, state!, msg.aiPlayerId, heuristicDiff);
+                        const response: AIWorkerOutgoingMessage = { type: 'MOVE_RESULT', payload: bestMove };
+                        self.postMessage(response);
+                    });
+                } else {
+                    // Use standard Heuristics/Minimax for Kyu levels
+                    const bestMove = GoAI.getBestMove(board!, state!, msg.aiPlayerId, heuristicDiff);
+                    const response: AIWorkerOutgoingMessage = { type: 'MOVE_RESULT', payload: bestMove };
+                    self.postMessage(response);
+                }
                 break;
         }
     } catch (err: any) {

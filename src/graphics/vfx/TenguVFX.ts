@@ -76,7 +76,7 @@ export class TenguVFX {
 
                     // ¡DESTRUYE LA PIEDRA FÍSICA EN TIEMPO REAL!
                     onImpactNode(idx);
-                    SoundFX.playCapture();
+                    SoundFX.playMeteorImpact();
                     
                     const boardTarget = document.getElementById('board-container') || document.getElementById('game-screen');
                     if (boardTarget) {

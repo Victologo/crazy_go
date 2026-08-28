@@ -3,6 +3,9 @@ import { RoguelikeRunManager } from '../core/RoguelikeRunManager';
 import type { RogueliteDifficulty } from '../types';
 import { BGMGenerator } from '../audio/BGMGenerator';
 import { getLanguage } from '../i18n/i18n';
+import { MenuCameraController } from '../controllers/MenuCameraController';
+import { StoryModeController } from '../story/StoryModeController';
+import { TutorialManager } from '../tutorial/TutorialManager';
 
 export type AppScreen = 'main-menu' | 'roguelike-map' | 'game';
 
@@ -18,43 +21,76 @@ export class ScreenManager {
         return this.currentScreen;
     }
 
-    public static showMainMenu() {
-        this.currentScreen = 'main-menu';
-        document.getElementById('main-menu-screen')?.classList.remove('hidden');
-        document.getElementById('game-screen')?.classList.add('hidden');
-        document.getElementById('roguelike-map-screen')?.classList.add('hidden');
+    public static isTransitioning = false;
 
-        BGMGenerator.playMenu();
+    public static async transitionTo(targetScreen: AppScreen, onMidpoint?: () => void, instant: boolean = false): Promise<void> {
+        if (this.currentScreen === targetScreen && !document.getElementById(`${targetScreen}-screen`)?.classList.contains('hidden')) {
+            if (onMidpoint) onMidpoint();
+            return;
+        }
+
+        const overlay = document.getElementById('screen-transition-overlay');
+
+        if (!instant && overlay) {
+            this.isTransitioning = true;
+            overlay.classList.add('transition-active');
+            await new Promise(r => setTimeout(r, 240));
+        }
+
+        // Punto ciego (Midpoint): Conmutación del DOM de pantallas
+        document.getElementById('main-menu-screen')?.classList.toggle('hidden', targetScreen !== 'main-menu');
+        document.getElementById('roguelike-map-screen')?.classList.toggle('hidden', targetScreen !== 'roguelike-map');
+        document.getElementById('game-screen')?.classList.toggle('hidden', targetScreen !== 'game');
+
+        this.currentScreen = targetScreen;
+
+        if (targetScreen === 'main-menu') {
+            if (StoryModeController.isStoryActive) {
+                StoryModeController.stopCampaign();
+            }
+            if (TutorialManager.isActive) {
+                TutorialManager.stopTutorial();
+            }
+            MenuCameraController.reset();
+            BGMGenerator.playMenu();
+        } else if (targetScreen === 'roguelike-map') {
+            if (StoryModeController.isStoryActive) {
+                StoryModeController.stopCampaign();
+            }
+            this.updateMapHUD();
+            BGMGenerator.playMap();
+        }
+
+        if (onMidpoint) {
+            try {
+                onMidpoint();
+            } catch (err) {
+                console.error('[ScreenManager] Error during onMidpoint callback:', err);
+            }
+        }
 
         if (this.onScreenChangeCallback) {
-            this.onScreenChangeCallback('main-menu');
+            this.onScreenChangeCallback(targetScreen);
+        }
+
+        if (!instant && overlay) {
+            await new Promise(r => setTimeout(r, 40));
+            overlay.classList.remove('transition-active');
+            await new Promise(r => setTimeout(r, 300));
+            this.isTransitioning = false;
         }
     }
 
-    public static showRoguelikeMapScreen() {
-        this.currentScreen = 'roguelike-map';
-        document.getElementById('main-menu-screen')?.classList.add('hidden');
-        document.getElementById('game-screen')?.classList.add('hidden');
-        document.getElementById('roguelike-map-screen')?.classList.remove('hidden');
-
-        // Actualizar HUD del mapa
-        this.updateMapHUD();
-        BGMGenerator.playMap();
-
-        if (this.onScreenChangeCallback) {
-            this.onScreenChangeCallback('roguelike-map');
-        }
+    public static showMainMenu(instant: boolean = false) {
+        this.transitionTo('main-menu', undefined, instant);
     }
 
-    public static showGameScreen() {
-        this.currentScreen = 'game';
-        document.getElementById('main-menu-screen')?.classList.add('hidden');
-        document.getElementById('roguelike-map-screen')?.classList.add('hidden');
-        document.getElementById('game-screen')?.classList.remove('hidden');
+    public static showRoguelikeMapScreen(instant: boolean = false) {
+        this.transitionTo('roguelike-map', undefined, instant);
+    }
 
-        if (this.onScreenChangeCallback) {
-            this.onScreenChangeCallback('game');
-        }
+    public static showGameScreen(onMidpoint?: () => void, instant: boolean = false) {
+        this.transitionTo('game', onMidpoint, instant);
     }
 
     public static updateMapHUD() {
@@ -66,18 +102,20 @@ export class ScreenManager {
         if (avatarEl) avatarEl.innerText = hero.icon;
         if (nameEl) nameEl.innerText = hero.name;
         if (diffEl) {
-            const diffLabels: Record<RogueliteDifficulty, string> = isEn ? {
-                easy: '🟢 Easy',
-                normal: '🟡 Normal',
-                hard: '🔴 Hard',
-                extreme: '🟣 Grandmaster'
+            const diff = RoguelikeRunManager.runDifficulty || 'normal';
+            const diffConfigs: Record<RogueliteDifficulty, { label: string; flameClass: string }> = isEn ? {
+                easy: { label: 'Easy', flameClass: 'flame-easy' },
+                normal: { label: 'Medium', flameClass: 'flame-normal' },
+                hard: { label: 'Hard', flameClass: 'flame-hard' },
+                extreme: { label: 'Grandmaster', flameClass: 'flame-extreme' }
             } : {
-                easy: '🟢 Fácil',
-                normal: '🟡 Normal',
-                hard: '🔴 Difícil',
-                extreme: '🟣 Gran Maestro'
+                easy: { label: 'Fácil', flameClass: 'flame-easy' },
+                normal: { label: 'Medio', flameClass: 'flame-normal' },
+                hard: { label: 'Difícil', flameClass: 'flame-hard' },
+                extreme: { label: 'Gran Maestro', flameClass: 'flame-extreme' }
             };
-            diffEl.innerText = diffLabels[RoguelikeRunManager.runDifficulty] || (isEn ? '🟢 Easy' : '🟢 Fácil');
+            const cfg = diffConfigs[diff] || diffConfigs['normal'];
+            diffEl.innerHTML = `<span class="diff-flame ${cfg.flameClass}" style="font-size: 1rem; vertical-align: middle; margin-right: 4px;">🔥</span><span>${cfg.label}</span>`;
         }
     }
 }

@@ -10,6 +10,7 @@
 > 3. Revisa `docs/ai_wiki/task.md` para entender el Roadmap global.
 > 4. **Lee `docs/ai_wiki/codebase_map.md`** — es el índice completo del proyecto: qué hace cada archivo, sus responsabilidades y los flujos de jugada principales. Úsalo para navegar el código sin buscar a ciegas.
 > 5. Si necesitas contexto sobre reglas especiales de Crazy Go o decisiones arquitectónicas pasadas, busca en `docs/ai_wiki/game_design/rules.md` y la carpeta `docs/ai_wiki/ADRs/`.
+> 6. **Regla de Empaquetado**: En los paquetes distribuibles y ejecutables portables de Windows (`CrazyGo_Portable`, `.zip`), el archivo de instrucciones NUNCA debe llamarse `LEEME.txt` ni estar en español; **SIEMPRE debe llamarse `README.txt` y estar completamente en inglés**.
 > 
 > **Tu tarea final en cada sesión grande:**
 > Antes de terminar tu trabajo, asegúrate de actualizar `active_context.md` y marcar las tareas en `task.md`.

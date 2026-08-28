@@ -14,88 +14,309 @@
   box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
 }
 
-.modal-dojo {
-  max-width: 980px;
-  width: 95%;
+/* ==========================================================================
+   DOJO / TUTORIAL MODAL (DISEÑO ORGÁNICO DIEGÉTICO)
+   ========================================================================== */
+
+.modal-dojo-backdrop {
+  background: radial-gradient(ellipse at center, rgba(12, 16, 28, 0.76) 0%, rgba(6, 9, 16, 0.94) 85%);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
-.modal-dojo .modal-body-scroll {
+.modal-dojo {
+  max-width: 1140px;
+  width: min(96vw, 1140px);
+  max-height: 94vh;
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  display: flex;
+  flex-direction: column;
+  padding: 0.5rem 0.5rem;
+}
+
+.dojo-modal-header {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  padding: 0.4rem 1rem 1rem 1rem;
+  position: relative;
+}
+
+.dojo-header-title-wrap {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+}
+
+.dojo-modal-header h2 {
+  font-family: var(--font-oriental);
+  font-size: 2.2rem;
+  font-weight: 900;
+  color: #fbbf24;
+  text-shadow: 0 0 30px rgba(245, 158, 11, 0.45), 0 3px 12px rgba(0, 0, 0, 0.9);
+  letter-spacing: 0.06em;
+  margin: 0;
+}
+
+.dojo-modal-header .modal-desc {
+  font-family: var(--font-main);
+  font-size: 0.96rem;
+  color: var(--text-secondary);
+  margin-top: 0.35rem;
+  max-width: 680px;
+  letter-spacing: 0.02em;
+}
+
+.dojo-modal-body {
   max-height: 68vh;
   overflow-y: auto;
-  padding: 0.5rem 0.25rem;
+  padding: 0.8rem 1.4rem;
+  display: flex;
+  flex-direction: column;
 }
 
-#dojo-chapter-list {
+#dojo-chapter-list.dojo-scroll-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1.6rem 2.2rem;
+  width: 100%;
+}
+
+@media (max-width: 960px) {
+  #dojo-chapter-list.dojo-scroll-grid {
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 1.3rem;
+  }
+}
+
+/* ==========================================================================
+   ELEMENTOS DE LECCIÓN (SIN CONTENEDOR RÍGIDO NI BOTONES ENCAPSULADOS)
+   ========================================================================== */
+.dojo-card-btn.dojo-lesson-item {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  background: transparent !important;
+  border: 1px solid transparent !important;
+  border-radius: 14px;
+  box-shadow: none !important;
+  padding: 1rem 1.1rem;
+  cursor: var(--cursor-pointer);
+  text-align: left;
+  position: relative;
+  transition: all 0.28s cubic-bezier(0.34, 1.56, 0.64, 1);
+  outline: none;
+}
+
+.dojo-lesson-inner {
+  display: flex;
+  flex-direction: column;
+  gap: 0.55rem;
+  width: 100%;
+}
+
+.dojo-lesson-top {
+  display: flex;
+  align-items: flex-start;
   gap: 0.95rem;
   width: 100%;
 }
 
-.dojo-card-btn {
-  display: flex;
-  align-items: center;
-  gap: 1.15rem;
-  padding: 1.1rem 1.35rem;
-  background: var(--bg-card, rgba(30, 41, 59, 0.85));
-  border: 1.5px solid rgba(255, 255, 255, 0.12);
-  border-radius: var(--radius-lg, 14px);
-  cursor: pointer;
-  text-align: left;
-  transition: all 0.22s cubic-bezier(0.4, 0, 0.2, 1);
-  position: relative;
-  overflow: hidden;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
-}
-
-.dojo-card-btn:hover {
-  background: rgba(51, 65, 85, 0.95);
-  border-color: #f59e0b;
-  transform: translateY(-3px);
-  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.4), 0 0 18px rgba(245, 158, 11, 0.25);
-}
-
-.dojo-card-btn:active {
-  transform: translateY(-1px) scale(0.99);
-}
-
-.dojo-num-badge {
+/* Anillo Zen Ensō para la numeración */
+.dojo-zen-ring {
+  width: 40px;
+  height: 40px;
+  min-width: 40px;
+  border-radius: 50%;
+  border: 1.5px solid rgba(245, 158, 11, 0.45);
+  background: radial-gradient(circle at center, rgba(245, 158, 11, 0.15) 0%, transparent 80%);
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 44px;
-  height: 44px;
-  min-width: 44px;
-  border-radius: 12px;
-  background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
-  color: #0f172a;
-  font-family: var(--font-mono, monospace);
-  font-size: 1.25rem;
-  font-weight: 900;
-  box-shadow: 0 4px 12px rgba(245, 158, 11, 0.35);
+  transition: all 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+  box-shadow: 0 0 14px rgba(245, 158, 11, 0.15);
+  flex-shrink: 0;
+  margin-top: 1px;
 }
 
-.dojo-card-content {
+.dojo-zen-num {
+  font-family: var(--font-oriental);
+  font-weight: 900;
+  font-size: 1.2rem;
+  color: #fbbf24;
+  text-shadow: 0 0 10px rgba(245, 158, 11, 0.4);
+  line-height: 1;
+}
+
+.dojo-lesson-titles {
   display: flex;
   flex-direction: column;
-  justify-content: center;
+  gap: 0.15rem;
   flex: 1;
   min-width: 0;
 }
 
-.dojo-card-title {
-  font-size: 1.1rem;
-  font-weight: 700;
-  color: #f8fafc;
-  line-height: 1.3;
-  margin: 0;
+.dojo-lesson-tag {
+  font-family: var(--font-mono);
+  font-size: 0.65rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  color: var(--accent-gold);
+  text-transform: uppercase;
+  opacity: 0.88;
 }
 
-.dojo-card-desc {
-  font-size: 0.82rem;
-  color: #94a3b8;
-  line-height: 1.4;
+.dojo-lesson-title {
+  font-family: var(--font-oriental);
+  font-size: 1.15rem;
+  font-weight: 800;
+  color: #f8fafc;
+  line-height: 1.25;
   margin: 0;
+  letter-spacing: 0.02em;
+  transition: color 0.25s ease, text-shadow 0.25s ease;
+}
+
+.dojo-lesson-desc {
+  font-family: var(--font-main);
+  font-size: 0.86rem;
+  color: #94a3b8;
+  line-height: 1.48;
+  margin: 0;
+  padding-left: 0.15rem;
+  transition: color 0.25s ease;
+}
+
+/* ==========================================================================
+   ESTADOS DE HOVER (INTERACCIÓN FLUIDA Y RESPLANDOR ZEN)
+   ========================================================================== */
+.dojo-card-btn.dojo-lesson-item:hover {
+  transform: translateY(-4px);
+  background: radial-gradient(ellipse at center, rgba(245, 158, 11, 0.1) 0%, rgba(245, 158, 11, 0.02) 75%) !important;
+  border-color: rgba(245, 158, 11, 0.3) !important;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5), 0 0 20px rgba(245, 158, 11, 0.15) !important;
+}
+
+.dojo-card-btn.dojo-lesson-item:hover .dojo-zen-ring {
+  border-color: #fbbf24;
+  background: radial-gradient(circle at center, rgba(245, 158, 11, 0.35) 0%, rgba(217, 119, 6, 0.1) 80%);
+  box-shadow: 0 0 22px rgba(245, 158, 11, 0.65);
+  transform: scale(1.12);
+}
+
+.dojo-card-btn.dojo-lesson-item:hover .dojo-lesson-title {
+  color: #ffffff;
+  text-shadow: 0 0 16px rgba(251, 191, 36, 0.65), 0 2px 6px rgba(0, 0, 0, 0.9);
+}
+
+.dojo-card-btn.dojo-lesson-item:hover .dojo-lesson-desc {
+  color: #e2e8f0;
+}
+
+.dojo-card-btn.dojo-lesson-item:active {
+  transform: translateY(-1px) scale(0.99);
+}
+
+/* ==========================================================================
+   FOOTER DEL DOJO (BOTÓN FLOTANTE MINIMALISTA)
+   ========================================================================== */
+.dojo-modal-footer {
+  display: flex;
+  justify-content: center;
+  padding: 1rem 0 0.4rem 0;
+  border-top: none !important;
+}
+
+.btn-dojo-close {
+  background: transparent !important;
+  border: 1.5px solid rgba(255, 255, 255, 0.25) !important;
+  border-radius: var(--radius-full) !important;
+  padding: 0.65rem 2.4rem !important;
+  color: #f8fafc !important;
+  font-family: var(--font-main);
+  font-size: 0.95rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  cursor: var(--cursor-pointer);
+  transition: all 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.35);
+}
+
+.btn-dojo-close:hover {
+  border-color: #fbbf24 !important;
+  color: #fbbf24 !important;
+  background: rgba(245, 158, 11, 0.12) !important;
+  box-shadow: 0 0 25px rgba(245, 158, 11, 0.3) !important;
+  transform: translateY(-2px);
+}
+
+.btn-dojo-close:active {
+  transform: translateY(0) scale(0.98);
+}
+
+/* ==========================================================================
+   MODO CLARO (TATAMI Y TINTA SUMI-E)
+   ========================================================================== */
+body[data-theme="light"] .modal-dojo-backdrop {
+  background: radial-gradient(ellipse at center, rgba(248, 244, 236, 0.82) 0%, rgba(235, 224, 207, 0.96) 85%);
+}
+
+body[data-theme="light"] .dojo-modal-header h2 {
+  color: #92400e;
+  text-shadow: 0 2px 10px rgba(255, 255, 255, 0.9);
+}
+
+body[data-theme="light"] .dojo-zen-ring {
+  border-color: rgba(180, 83, 9, 0.6);
+  background: radial-gradient(circle at center, rgba(217, 119, 6, 0.12) 0%, transparent 80%);
+}
+
+body[data-theme="light"] .dojo-zen-num {
+  color: #92400e;
+  text-shadow: none;
+}
+
+body[data-theme="light"] .dojo-lesson-title {
+  color: #0f172a;
+}
+
+body[data-theme="light"] .dojo-lesson-desc {
+  color: #475569;
+}
+
+body[data-theme="light"] .dojo-card-btn.dojo-lesson-item:hover {
+  background: radial-gradient(ellipse at center, rgba(217, 119, 6, 0.1) 0%, transparent 75%) !important;
+  border-color: rgba(180, 83, 9, 0.3) !important;
+}
+
+body[data-theme="light"] .dojo-card-btn.dojo-lesson-item:hover .dojo-lesson-title {
+  color: #78350f;
+  text-shadow: 0 0 10px rgba(217, 119, 6, 0.35);
+}
+
+body[data-theme="light"] .dojo-card-btn.dojo-lesson-item:hover .dojo-lesson-desc {
+  color: #1e293b;
+}
+
+body[data-theme="light"] .btn-dojo-close {
+  border-color: rgba(60, 40, 20, 0.35) !important;
+  color: #1e293b !important;
+}
+
+body[data-theme="light"] .btn-dojo-close:hover {
+  border-color: #92400e !important;
+  color: #92400e !important;
+  background: rgba(217, 119, 6, 0.12) !important;
+  box-shadow: 0 0 20px rgba(217, 119, 6, 0.25) !important;
 }
 
 .tutorial-overlay {
@@ -199,6 +420,15 @@ body[data-theme="light"] .tutorial-continue-btn:hover {
 }
 
 /* Modo Tutorial: Limpieza total de la barra superior dejando exclusivamente el botón 'Menú' */
+body.tutorial-active #btn-game-combat-log,
+body.tutorial-active .topbar-center,
+body.tutorial-active .topbar-right,
+body.tutorial-active #btn-game-undo,
+body.tutorial-active #btn-game-redo,
+body.tutorial-active #btn-game-reset,
+body.tutorial-active #ui-online-status,
+body.tutorial-active #ui-rogue-stage-badge,
+#game-topbar.tutorial-active #btn-game-combat-log,
 #game-topbar.tutorial-active .topbar-center,
 #game-topbar.tutorial-active .topbar-right,
 #game-topbar.tutorial-active #btn-game-undo,
@@ -216,7 +446,7 @@ body[data-theme="light"] .tutorial-continue-btn:hover {
   stroke-width: 3px !important;
   stroke-dasharray: 6 4;
   animation: pulseTarget 1.5s infinite;
-  cursor: pointer !important;
+  cursor: var(--cursor-pointer) !important;
 }
 
 @keyframes pulseTarget {
@@ -226,74 +456,287 @@ body[data-theme="light"] .tutorial-continue-btn:hover {
 }
 
 /* ==========================================================================
-   MODAL DE LECCIÓN DE TUTORIAL COMPLETADA & BADGES DE LIBERTADES
+   MODAL DE LECCIÓN DE TUTORIAL COMPLETADA (DISEÑO FLOTANTE MINIMALISTA)
    ========================================================================== */
-.modal-tutorial-complete-card {
-  max-width: 520px;
-  width: 92%;
-  background: var(--bg-card, #1e293b);
-  border: 2px solid #f59e0b;
-  border-radius: var(--radius-xl, 20px);
-  padding: 1.8rem;
-  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.6), 0 0 30px rgba(245, 158, 11, 0.25);
-  display: flex;
-  flex-direction: column;
-  gap: 1.25rem;
-  animation: modalPopIn 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+.modal-tutorial-complete-backdrop {
+  background: radial-gradient(ellipse at center, rgba(10, 14, 24, 0.78) 0%, rgba(5, 8, 14, 0.92) 85%) !important;
+  backdrop-filter: blur(16px) !important;
+  -webkit-backdrop-filter: blur(16px) !important;
+  z-index: 1200;
 }
 
-.tutorial-complete-header {
+.tutorial-complete-pane {
+  max-width: 580px;
+  width: min(92vw, 580px);
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+  padding: 1.5rem 1rem;
   display: flex;
   flex-direction: column;
   align-items: center;
   text-align: center;
-  gap: 0.4rem;
+  gap: 1.25rem;
+  animation: tutCompleteAppear 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 
-.tutorial-complete-badge {
-  font-size: 2.8rem;
-  line-height: 1;
-  filter: drop-shadow(0 4px 10px rgba(245, 158, 11, 0.4));
+@keyframes tutCompleteAppear {
+  0% {
+    opacity: 0;
+    transform: scale(0.92) translateY(12px);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+/* Emblema Zen de Honor / Finalización */
+.tutorial-complete-emblem-wrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   margin-bottom: 0.2rem;
 }
 
-.tutorial-complete-body {
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
+.tutorial-complete-emblem-glow {
+  position: absolute;
+  width: 100px;
+  height: 100px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(245, 158, 11, 0.4) 0%, rgba(245, 158, 11, 0) 70%);
+  filter: blur(14px);
+  animation: emblemPulse 3s infinite ease-in-out;
+  pointer-events: none;
 }
 
-.tutorial-next-preview {
+@keyframes emblemPulse {
+  0%, 100% { transform: scale(1); opacity: 0.6; }
+  50% { transform: scale(1.2); opacity: 0.95; }
+}
+
+.tutorial-complete-emblem {
+  width: 54px;
+  height: 54px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, rgba(245, 158, 11, 0.18), rgba(217, 119, 6, 0.32));
+  border: 1.5px solid rgba(251, 191, 36, 0.65);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 0 20px rgba(245, 158, 11, 0.35), inset 0 0 10px rgba(251, 191, 36, 0.25);
+  position: relative;
+  z-index: 2;
+}
+
+.tutorial-complete-icon {
+  font-size: 1.45rem;
+  color: #fef08a;
+  text-shadow: 0 0 10px rgba(253, 224, 71, 0.85);
+  line-height: 1;
+}
+
+/* Encabezado y Textos */
+.tutorial-complete-header {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 0.3rem;
-  background: rgba(51, 65, 85, 0.4);
-  border-radius: 10px;
-  padding: 0.8rem 1rem;
-  border-left: 3px solid #38bdf8;
+  gap: 0.35rem;
 }
 
-.tutorial-next-preview .next-label {
+.tutorial-complete-kicker {
   font-size: 0.78rem;
   font-weight: 700;
-  color: #94a3b8;
+  letter-spacing: 0.24em;
+  color: #fbbf24;
   text-transform: uppercase;
-  letter-spacing: 0.05em;
+  text-shadow: 0 0 12px rgba(251, 191, 36, 0.35);
 }
 
-.tutorial-next-preview strong {
-  font-size: 1.05rem;
-  color: #38bdf8;
+.tutorial-complete-title {
+  font-family: var(--font-oriental, 'Cinzel', serif);
+  font-size: 2rem;
+  font-weight: 800;
+  color: #f8fafc;
+  letter-spacing: 0.02em;
+  margin: 0;
+  line-height: 1.25;
+  text-shadow: 0 4px 20px rgba(0, 0, 0, 0.8);
 }
 
-.tutorial-complete-footer {
+.tutorial-complete-subtitle {
+  font-size: 0.95rem;
+  color: #94a3b8;
+  margin: 0;
+  max-width: 460px;
+  line-height: 1.45;
+}
+
+/* Acciones y Botones */
+.tutorial-complete-actions {
   display: flex;
-  justify-content: flex-end;
-  gap: 0.75rem;
-  flex-wrap: wrap;
-  padding-top: 0.5rem;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.85rem;
+  width: 100%;
+  max-width: 440px;
+  margin-top: 0.5rem;
 }
+
+.btn-tut-next {
+  width: 100%;
+  padding: 0.9rem 1.35rem;
+  border-radius: 16px;
+  border: 1px solid rgba(255, 255, 255, 0.35);
+  background: linear-gradient(135deg, #f59e0b 0%, #d97706 50%, #b45309 100%);
+  color: #ffffff !important;
+  font-family: var(--font-main);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.9rem;
+  box-shadow: 0 8px 26px rgba(245, 158, 11, 0.42), inset 0 1px 0 rgba(255, 255, 255, 0.35);
+  cursor: var(--cursor-pointer);
+  transition: all 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.35);
+}
+
+.btn-tut-next:hover {
+  transform: translateY(-2px) scale(1.02);
+  box-shadow: 0 12px 32px rgba(245, 158, 11, 0.6), inset 0 1px 0 rgba(255, 255, 255, 0.5);
+  filter: brightness(1.08);
+}
+
+.btn-tut-next:active {
+  transform: translateY(0) scale(0.99);
+}
+
+.btn-tut-next-content {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  text-align: left;
+  gap: 0.15rem;
+  min-width: 0;
+  flex: 1;
+}
+
+.btn-tut-next-kicker {
+  font-size: 0.68rem;
+  font-weight: 800;
+  letter-spacing: 0.14em;
+  color: rgba(255, 255, 255, 0.85);
+  text-transform: uppercase;
+}
+
+.btn-tut-next-title {
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: #ffffff;
+  line-height: 1.25;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
+}
+
+.btn-tut-kbd {
+  font-size: 0.74rem;
+  font-weight: 700;
+  color: rgba(255, 255, 255, 0.95);
+  background: rgba(0, 0, 0, 0.28);
+  padding: 0.25rem 0.55rem;
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  letter-spacing: 0.04em;
+  white-space: nowrap;
+}
+
+.tutorial-complete-subactions {
+  display: flex;
+  gap: 0.65rem;
+  width: 100%;
+}
+
+.btn-tut-sub {
+  flex: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  padding: 0.6rem 0.85rem;
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(255, 255, 255, 0.05);
+  color: #cbd5e1 !important;
+  font-family: var(--font-main);
+  font-size: 0.86rem;
+  font-weight: 600;
+  cursor: var(--cursor-pointer);
+  transition: all 0.2s ease;
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+}
+
+.btn-tut-sub:hover {
+  background: rgba(255, 255, 255, 0.12);
+  border-color: rgba(255, 255, 255, 0.28);
+  color: #ffffff !important;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.3);
+}
+
+.btn-tut-sub-icon {
+  font-size: 0.9rem;
+  opacity: 0.9;
+}
+
+.btn-tut-sub-kbd {
+  font-size: 0.7rem;
+  color: #64748b;
+  margin-left: 0.15rem;
+}
+
+.btn-tut-sub:hover .btn-tut-sub-kbd {
+  color: #94a3b8;
+}
+
+/* Soporte Tema Claro */
+body[data-theme="light"] .modal-tutorial-complete-backdrop {
+  background: radial-gradient(ellipse at center, rgba(241, 245, 249, 0.82) 0%, rgba(226, 232, 240, 0.94) 85%) !important;
+}
+
+body[data-theme="light"] .tutorial-complete-title {
+  color: #0f172a;
+  text-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+}
+
+body[data-theme="light"] .tutorial-complete-subtitle {
+  color: #475569;
+}
+
+body[data-theme="light"] .tutorial-next-pill {
+  background: rgba(2, 132, 199, 0.08);
+  border-color: rgba(2, 132, 199, 0.28);
+}
+
+body[data-theme="light"] .next-pill-title {
+  color: #0369a1;
+}
+
+body[data-theme="light"] .btn-tut-sub {
+  background: rgba(0, 0, 0, 0.04);
+  border-color: rgba(0, 0, 0, 0.12);
+  color: #1e293b !important;
+}
+
+body[data-theme="light"] .btn-tut-sub:hover {
+  background: rgba(0, 0, 0, 0.08);
+  border-color: rgba(0, 0, 0, 0.2);
+  color: #0f172a !important;
+}
+
 
 /* Badges de libertades en SVG */
 .tutorial-annotation-badge {
@@ -310,9 +753,41 @@ body[data-theme="light"] .tutorial-continue-btn:hover {
 }
 
 /* Modificadores de Layout cuando el Tutorial está activo */
-body.tutorial-active:not(.tutorial-show-spellbar) .game-footer,
-body.tutorial-active:not(.tutorial-show-spellbar) .spellbar {
+body.tutorial-active:not(.tutorial-show-spellbar):not(.tutorial-show-pass-only) .game-footer,
+body.tutorial-active:not(.tutorial-show-spellbar):not(.tutorial-show-pass-only) .spellbar {
   display: none !important;
+}
+
+body.tutorial-active.tutorial-show-pass-only .game-footer,
+body.tutorial-active.tutorial-show-pass-only .spellbar {
+  display: flex !important;
+  justify-content: center !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  border: none !important;
+}
+
+body.tutorial-active.tutorial-show-pass-only .spellbar-group-spells,
+body.tutorial-active.tutorial-show-pass-only .spellbar-group-poly,
+body.tutorial-active.tutorial-show-pass-only .spellbar-divider {
+  display: none !important;
+}
+
+body.tutorial-active.tutorial-show-pass-only #btn-pass {
+  display: flex !important;
+  margin: 0 auto;
+  min-width: 160px;
+  background: linear-gradient(135deg, rgba(245, 158, 11, 0.25), rgba(217, 119, 6, 0.35)) !important;
+  border: 2px solid #fbbf24 !important;
+  box-shadow: 0 0 20px rgba(245, 158, 11, 0.4), inset 0 0 10px rgba(251, 191, 36, 0.2) !important;
+  animation: pulsePassBtn 1.8s infinite;
+  cursor: var(--cursor-pointer) !important;
+}
+
+@keyframes pulsePassBtn {
+  0% { transform: scale(1); box-shadow: 0 0 15px rgba(245, 158, 11, 0.3); }
+  50% { transform: scale(1.04); box-shadow: 0 0 25px rgba(245, 158, 11, 0.6); }
+  100% { transform: scale(1); box-shadow: 0 0 15px rgba(245, 158, 11, 0.3); }
 }
 
 body.tutorial-active #board-container {
@@ -320,3 +795,7 @@ body.tutorial-active #board-container {
   transform-origin: center center;
 }
 
+
+.dojo-module-header {
+  grid-column: 1 / -1;
+}

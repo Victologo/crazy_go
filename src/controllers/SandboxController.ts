@@ -32,6 +32,10 @@ export type SandboxBrush =
     | 'terrain_vortex'
     | 'terrain_sanctuary'
     | 'terrain_destroyed'
+    | 'entity_chest'
+    | 'entity_hostage'
+    | 'entity_scroll'
+    | 'entity_spirit'
     | 'eraser';
 
 export type PresetScenario = 'ko_test' | 'atari_chain' | 'sacred_test' | 'islands_sprout' | 'two_eyes_alive' | 'ronin_slash_demo' | 'empty_clean';
@@ -156,18 +160,20 @@ export class SandboxController {
 
             case 'poly_domino': {
                 const targetNodeIds = PolyominoManager.getPolyominoTargetNodes(board, nodeId, 'domino', PolyominoManager.orientation);
+                const polyGroupId = `poly_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`;
                 for (const tid of targetNodeIds) {
                     const tn = board.nodes.get(tid);
-                    if (tn) this.placeCustomStone(tn, board, state, state.currentPlayer, false, 'domino');
+                    if (tn) this.placeCustomStone(tn, board, state, state.currentPlayer, false, 'domino', undefined, polyGroupId);
                 }
                 break;
             }
 
             case 'poly_monolith': {
                 const targetNodeIds = PolyominoManager.getPolyominoTargetNodes(board, nodeId, 'monolith', 'horizontal');
+                const polyGroupId = `poly_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`;
                 for (const tid of targetNodeIds) {
                     const tn = board.nodes.get(tid);
-                    if (tn) this.placeCustomStone(tn, board, state, state.currentPlayer, false, 'monolith');
+                    if (tn) this.placeCustomStone(tn, board, state, state.currentPlayer, false, 'monolith', undefined, polyGroupId);
                 }
                 break;
             }
@@ -193,6 +199,14 @@ export class SandboxController {
                 SoundFX.playPlaceStone();
                 break;
 
+            case 'entity_chest':
+            case 'entity_hostage':
+            case 'entity_scroll':
+            case 'entity_spirit':
+                this.placeEntity(nodeId, state, this.currentBrush.replace('entity_', '') as any);
+                SoundFX.playPlaceStone();
+                break;
+
             default:
                 break;
         }
@@ -208,6 +222,32 @@ export class SandboxController {
                 node.stone = null;
             }
         }
+        state.captives = [];
+    }
+
+    private static placeEntity(nodeId: string, state: GameState, type: 'chest' | 'hostage' | 'scroll_relic' | 'spirit') {
+        if (!state.captives) state.captives = [];
+        
+        // Remove existing captive at node if any
+        state.captives = state.captives.filter(c => c.nodeId !== nodeId && !c.nodeIds?.includes(nodeId));
+
+        let name = "Entidad";
+        let icon = "🎁";
+        if (type === 'chest') { name = "Cofre Místico"; icon = "🎁"; }
+        if (type === 'hostage') { name = "Monje Cautivo"; icon = "🧙"; }
+        if (type === 'scroll_relic') { name = "Pergamino Sagrado"; icon = "📜"; }
+        if (type === 'spirit') { name = "Espíritu Guardián"; icon = "✨"; }
+
+        state.captives.push({
+            id: `entity_${Date.now()}_${Math.random()}`,
+            nodeId: nodeId,
+            type: type,
+            name: name,
+            icon: icon,
+            description: `Entidad de prueba generada en sandbox`,
+            rewardType: type === 'chest' ? 'poly' : 'spell',
+            isCaptured: false
+        });
     }
 
     private static placeCustomStone(
@@ -217,7 +257,8 @@ export class SandboxController {
         playerId: PlayerId, 
         isIndestructible: boolean,
         stoneType: 'single' | 'sprouting' | 'domino' | 'monolith',
-        sproutBirthTurn?: number
+        sproutBirthTurn?: number,
+        polyGroupId?: string
     ) {
         if (node.stone) {
             state.entityManager.destroyEntity(node.stone.id);
@@ -230,7 +271,8 @@ export class SandboxController {
             isIndestructible: isIndestructible,
             isFrozen: false,
             stoneType: stoneType,
-            sproutBirthTurn: sproutBirthTurn
+            sproutBirthTurn: sproutBirthTurn,
+            polyGroupId: polyGroupId
         };
         SoundFX.playPlaceStone();
     }
@@ -320,14 +362,24 @@ export class SandboxController {
     /**
      * Cambia el campeón activo en vivo
      */
-    public static changeChampion(heroId: HeroId, onRefresh: () => void) {
-        ChampionManager.resetForMatch(heroId);
-        ChampionManager.activeChargesLeft = 99;
-        ChampionManager.isPassiveSkillAvailable = true;
-        HUDController.updateDuelists(true, heroId);
+    public static changeChampion(heroId: HeroId | 'grey_dragon_boss', onRefresh: () => void) {
+        if (heroId === 'grey_dragon_boss') {
+            ChampionManager.currentHero = 'grey_dragon_boss' as any;
+            BossManager.bossChargesLeft = 99;
+            HUDController.updateDuelists(true, 'grey_dragon_boss' as any);
+        } else {
+            ChampionManager.resetForMatch(heroId);
+            ChampionManager.activeChargesLeft = 99;
+            ChampionManager.isPassiveSkillAvailable = true;
+            if (heroId === 'alchemist') {
+                ChampionManager.alchemistInversionsRemaining = 99;
+                ChampionManager.alchemistUsedThisTurn = false;
+            }
+            HUDController.updateDuelists(true, heroId);
+        }
         onRefresh();
-        const hero = RoguelikeRunManager.HEROES[heroId];
-        HUDController.showAlert(`🧙‍♂️ Campeón cambiado en vivo a: ${hero ? hero.name : heroId}`);
+        const heroName = heroId === 'grey_dragon_boss' ? 'Grey Wise Dragon' : (RoguelikeRunManager.HEROES[heroId as HeroId]?.name || heroId);
+        HUDController.showAlert(`🧙‍♂️ Campeón cambiado en vivo a: ${heroName}`);
         SoundFX.playPlaceStone();
     }
 
@@ -339,33 +391,24 @@ export class SandboxController {
         const hero = (ChampionManager.currentHero || 'tengu') as string;
 
         if (hero === 'tengu') {
-            ChampionManager.currentTargetingMode = 'meteor_5x5';
-            HUDController.showAlert("☄️ [Lluvia Meteórica de Tengu]: Haz clic en cualquier casilla para impactar el área.");
+            this.forceMeteorRainTarget(onRefresh);
         } else if (hero === 'kitsune') {
-            ChampionManager.currentTargetingMode = 'shield_target';
-            HUDController.showAlert("🛡️ [Escudo Divino de Kitsune]: Haz clic en una piedra aliada para otorgarle 3 turnos de protección sagrada.");
-        } else if (hero === 'ronin') {
-            ChampionManager.currentTargetingMode = 'convert_enemy';
-            HUDController.showAlert("🌪️ [Inversión Cromática de Ronin]: Haz clic en una piedra enemiga para convertirla a tu bando.");
+            this.forceDivineShieldTarget(onRefresh);
+        } else if (hero === 'alchemist') {
+            this.forceChromaticConversion(onRefresh);
         } else if (hero === 'ryujin') {
-            ChampionManager.dragonBurnKillsRemaining = 2;
-            ChampionManager.currentTargetingMode = 'dragon_burn_2';
-            HUDController.showAlert("🐉🔥 [Llamas de Ryūjin]: Haz clic en 2 piedras enemigas para calcinarlas.");
+            this.forceDragonBreathTarget(onRefresh);
         } else if (hero === 'grey_dragon_boss') {
             this.forceDragonCornerBurn(board, state, onRefresh);
-            return;
         } else if (hero === 'himiko') {
             this.forceStoneRain(board, state, onRefresh);
-            return;
+        } else if (hero === 'ronin') {
+            this.forceRoninSlash(board, state, onRefresh);
+        } else if (hero === 'normal') {
+            this.addRewinds(state, 5, onRefresh);
         } else {
-            ChampionManager.currentTargetingMode = 'meteor_5x5';
-            HUDController.showAlert("⚔️ Habilidad activa activada. Haz clic en el tablero.");
+            this.forceMeteorRainTarget(onRefresh);
         }
-
-        this.isBrushActive = false;
-        ModalManager.closeSandboxModal();
-        onRefresh();
-        SoundFX.playPlaceStone();
     }
 
     /**
@@ -378,22 +421,58 @@ export class SandboxController {
         if (hero === 'himiko') {
             this.forceStoneRain(board, state, onRefresh);
         } else if (hero === 'ryujin') {
-            ChampionManager.dragonBurnKillsRemaining = 2;
-            ChampionManager.currentTargetingMode = 'dragon_burn_2';
-            this.isBrushActive = false;
-            ModalManager.closeSandboxModal();
-            onRefresh();
-            HUDController.showAlert("🐉🔥 [Furia del Dragón Forzada]: Selecciona 2 piedras enemigas en el tablero para calcinarlas.");
-            SoundFX.playPlaceStone();
+            this.forceDragonBreathTarget(onRefresh);
         } else if (hero === 'grey_dragon_boss') {
             this.forceDragonCornerBurn(board, state, onRefresh);
         } else if (hero === 'ronin') {
             this.forceRoninSlash(board, state, onRefresh);
         } else if (hero === 'kitsune') {
             this.forceDivineShieldTarget(onRefresh);
+        } else if (hero === 'alchemist') {
+            this.forceChromaticConversion(onRefresh);
+        } else if (hero === 'tengu') {
+            this.forceMeteorRainTarget(onRefresh);
         } else {
-            this.forceStoneRain(board, state, onRefresh);
+            this.addRewinds(state, 5, onRefresh);
         }
+    }
+
+    /**
+     * Activa el modo de objetivo para Lluvia Meteórica de Tengu
+     */
+    public static forceMeteorRainTarget(onRefresh: () => void) {
+        ChampionManager.activeChargesLeft = 99;
+        ChampionManager.currentTargetingMode = 'meteor_5x5';
+        this.isBrushActive = false;
+        ModalManager.closeSandboxModal();
+        onRefresh();
+        HUDController.showAlert("☄️ [Lluvia Meteórica de Tengu]: Haz clic en cualquier casilla para impactar el área 5x5.");
+        SoundFX.playPlaceStone();
+    }
+
+    /**
+     * Activa el modo de objetivo para Llamas de Ryūjin
+     */
+    public static forceDragonBreathTarget(onRefresh: () => void) {
+        ChampionManager.dragonBurnKillsRemaining = 2;
+        ChampionManager.currentTargetingMode = 'dragon_burn_2';
+        this.isBrushActive = false;
+        ModalManager.closeSandboxModal();
+        onRefresh();
+        HUDController.showAlert("🐉🔥 [Llamas de Ryūjin]: Haz clic en 2 piedras enemigas para calcinarlas.");
+        SoundFX.playPlaceStone();
+    }
+
+    /**
+     * Otorga cargas de Rebobinado
+     */
+    public static addRewinds(_state?: GameState, count: number = 5, onRefresh?: () => void) {
+        RogueliteManager.addSpell('rewind', count);
+        const card = RogueliteManager.playerSpells.get('rewind');
+        const uses = card ? card.usesLeft : count;
+        if (onRefresh) onRefresh();
+        HUDController.showAlert(`⏳ [Rebobinado]: +${count} Cargas añadidas (Total: ${uses}).`);
+        SoundFX.playPlaceStone();
     }
 
     /**
@@ -674,8 +753,9 @@ export class SandboxController {
 
         const toggleBtn = document.getElementById('btn-toggle-sandbox-brush');
         if (toggleBtn) {
-            toggleBtn.innerText = this.isBrushActive ? "🖌️ Desactivar Pincel (Volver a Juego)" : "🖌️ Activar Pincel Libre";
+            toggleBtn.innerText = this.isBrushActive ? "🖌️ Pincel ON" : "🖌️ Pincel OFF";
             toggleBtn.classList.toggle('active', this.isBrushActive);
+            toggleBtn.title = this.isBrushActive ? "Pincel libre activo: clica en el tablero para colocar" : "Pincel inactivo: clica para activar";
         }
 
         // Sincronizar badge visual del botón sandbox en el topbar
@@ -702,6 +782,10 @@ export class SandboxController {
             case 'terrain_sanctuary': return '⛩️ Santuario Sagrado';
             case 'terrain_destroyed': return '🪨 Terreno Destruido';
             case 'terrain_normal': return '⏹️ Casilla Normal';
+            case 'entity_chest': return '🎁 Cofre Místico';
+            case 'entity_hostage': return '🧙 Monje Cautivo';
+            case 'entity_scroll': return '📜 Pergamino Sagrado';
+            case 'entity_spirit': return '✨ Espíritu Guardián';
             case 'eraser': return '🧹 Borrador';
             default: return 'Ninguno';
         }

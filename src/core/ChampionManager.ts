@@ -12,6 +12,9 @@ import { AlchemistActiveSkill, AlchemistChampion } from './champions/AlchemistCh
 import { RoninChampion } from './champions/RoninChampion';
 import { RyujinPassiveSkill, RyujinChampion } from './champions/RyujinChampion';
 import { BossActiveSkill } from './champions/BossChampion';
+import { SoundFX } from '../audio/SoundFX';
+import { KitsuneVFX } from '../graphics/vfx/KitsuneVFX';
+import { CombatLogManager } from './CombatLogManager';
 
 export type { TargetingMode, ChampionActiveSkill, ChampionPassiveSkill };
 
@@ -113,19 +116,23 @@ export class ChampionManager {
         return this.activeChargesLeft > 0;
     }
 
-    public static getKitsuneShieldCharges(boardOrSize?: GraphBoard | BoardSize | number | null): number {
+    public static getKitsuneShieldCharges(boardOrSize?: GraphBoard | BoardSize | number | { shape?: string; size?: number } | null): number {
         return KitsuneChampion.getShieldCharges(boardOrSize);
     }
 
-    public static getAlchemistInversionCount(boardOrSize?: GraphBoard | BoardSize | number | null): number {
+    public static getAlchemistInversionCount(boardOrSize?: GraphBoard | BoardSize | number | { shape?: string; size?: number } | null): number {
         return AlchemistChampion.getInversionCount(boardOrSize);
     }
 
-    public static getRoninInversionCount(boardOrSize?: GraphBoard | BoardSize | number | null): number {
+    public static getRoninInversionCount(boardOrSize?: GraphBoard | BoardSize | number | { shape?: string; size?: number } | null): number {
         return AlchemistChampion.getInversionCount(boardOrSize);
     }
 
-    public static resetForMatch(heroId: HeroId | null, boardOrSize?: GraphBoard | BoardSize | number | null) {
+    public static resetForMatch(
+        heroId: HeroId | null, 
+        boardOrSize?: GraphBoard | BoardSize | number | { shape?: string; size?: number } | null,
+        heroOwnerId: PlayerId = 1
+    ) {
         this.currentHero = heroId;
         this.isPassiveSkillAvailable = true;
         this.currentTargetingMode = 'none';
@@ -133,8 +140,8 @@ export class ChampionManager {
         this.alchemistInversionsRemaining = heroId === 'alchemist' ? this.getAlchemistInversionCount(boardOrSize) : 0;
         this.ryujinEarnedBurns19x19 = 0;
         this.alchemistUsedThisTurn = false;
-        this.targetingPlayerId = 1;
-        this.heroOwnerId = 1;
+        this.targetingPlayerId = heroOwnerId;
+        this.heroOwnerId = heroOwnerId;
 
         if (heroId === 'kitsune') {
             this.activeChargesLeft = this.getKitsuneShieldCharges(boardOrSize);
@@ -147,8 +154,12 @@ export class ChampionManager {
         }
     }
 
-    public static setHero(heroId: HeroId | null, boardOrSize?: GraphBoard | BoardSize | number | null) {
-        this.resetForMatch(heroId, boardOrSize);
+    public static setHero(
+        heroId: HeroId | null, 
+        boardOrSize?: GraphBoard | BoardSize | number | { shape?: string; size?: number } | null,
+        heroOwnerId: PlayerId = 1
+    ) {
+        this.resetForMatch(heroId, boardOrSize, heroOwnerId);
     }
 
     /**
@@ -197,6 +208,8 @@ export class ChampionManager {
                 this.ryujinEarnedBurns19x19 = res.newEarnedBurns19x19;
                 this.currentTargetingMode = 'dragon_burn_2';
                 this.targetingPlayerId = playerId;
+                SoundFX.playDragonFlame();
+                SoundFX.playSkillActivate();
             }
         }
     }
@@ -212,82 +225,69 @@ export class ChampionManager {
         svgElement: SVGSVGElement | null,
         onSuccess: (msg: string) => void,
         onError: (msg: string) => void,
-        onComplete: () => void
+        onComplete: () => void,
+        remoteHeroId?: string
     ): Promise<boolean> {
-        // 1. Tengu: Lluvia Meteórica
-        if (this.currentHero === 'tengu') {
-            const ok = TenguChampion.executeSkill(board, targetNodeId, svgElement, onSuccess, () => {
-                this.activeChargesLeft = Math.max(0, this.activeChargesLeft - 1);
-                this.currentTargetingMode = 'none';
-                onComplete();
-            });
-            return ok;
-        }
+        const effectiveHero = remoteHeroId || this.currentHero;
+        const isRemote = !!remoteHeroId;
+        // console.log('🎯 [ChampionManager] executeTargetedSkill invoked:', { targetNodeId, playerId, currentTargetingMode: this.currentTargetingMode, effectiveHero, isRemote });
 
-        // 2. Kitsune: Escudo Divino
-        if (this.currentHero === 'kitsune') {
-            const ok = KitsuneChampion.executeSkill(
-                board,
-                targetNodeId,
-                playerId,
-                this.activeChargesLeft,
-                onSuccess,
-                onError
-            );
-            if (ok) {
-                this.activeChargesLeft = Math.max(0, this.activeChargesLeft - 1);
-                this.currentTargetingMode = 'none';
-                onComplete();
-            }
-            return ok;
-        }
-
-        // 3. Alquimista: Inversión Cromática / Transmutación Yin-Yang
-        if (this.currentHero === 'alchemist' || this.currentTargetingMode === 'convert_enemy') {
+        // 1. Alquimista: Inversión Cromática / Transmutación Yin-Yang
+        if (this.currentTargetingMode === 'convert_enemy' || effectiveHero === 'alchemist') {
+            // console.log('🎯 [ChampionManager] Calling AlchemistChampion.executeSkill...');
             const res = await AlchemistChampion.executeSkill(
                 board,
                 state,
                 targetNodeId,
                 playerId,
-                this.alchemistInversionsRemaining,
+                isRemote ? 999 : this.alchemistInversionsRemaining,
                 svgElement,
                 onSuccess,
                 onError
             );
-
+            // console.log('🎯 [ChampionManager] AlchemistChampion.executeSkill returned result:', res);
             if (res.success) {
-                this.alchemistInversionsRemaining = res.newInversionsRemaining;
-                if (res.isFinished) {
-                    this.activeChargesLeft = Math.max(0, this.activeChargesLeft - 1);
-                    // CRÍTICO: poner el flag ANTES de advanceTurn para que onTurnAdvanced()
-                    // no lo destruya. El flag sobrevivirá al turno de la IA porque
-                    // onTurnAdvanced() solo lo resetea cuando le vuelve a tocar al dueño del héroe.
-                    this.alchemistUsedThisTurn = true;
-                    this.currentTargetingMode = 'none';
-                    // Avanzar turno sin incrementar consecutivePasses:
-                    // La Inversión Cromática NO es un pase voluntario — es una acción táctica.
-                    // Usar advanceTurn() directamente evita que la IA vea consecutivePasses>=1
-                    // y pase su turno de forma prematura en respuesta.
+                CombatLogManager.logChampionSkill(board, state, 'alchemist', 'Inversión Cromática', targetNodeId, [targetNodeId], playerId);
+                if (!isRemote) {
+                    this.alchemistInversionsRemaining = res.newInversionsRemaining;
+                    if (res.isFinished) {
+                        this.activeChargesLeft = Math.max(0, this.activeChargesLeft - 1);
+                        this.alchemistUsedThisTurn = true;
+                        this.currentTargetingMode = 'none';
+                        state.advanceTurn();
+                    }
+                } else if (res.isFinished) {
                     state.advanceTurn();
                 }
                 onComplete();
+                return true;
+            } else {
+                if (res.cancelled) {
+                    // El usuario canceló explícitamente el modal de selección de color
+                    // console.log('🎯 [ChampionManager] Skill cancelled by user modal close');
+                    this.currentTargetingMode = 'none';
+                    onComplete();
+                }
+                // Si fue un clic inválido (ej. casilla vacía o piedra indestructible),
+                // el modo de apuntar permanece activo para que pueda clicar en la piedra deseada.
+                return false;
             }
-            return res.success;
         }
 
-        // 4. Ryūjin: Furia del Dragón
-        if (this.currentTargetingMode === 'dragon_burn_2') {
+        // 2. Ryūjin: Furia del Dragón
+        if (this.currentTargetingMode === 'dragon_burn_2' || (isRemote && effectiveHero === 'ryujin')) {
             const res = RyujinChampion.executeBurn(
                 board,
                 targetNodeId,
                 playerId,
-                this.dragonBurnKillsRemaining,
+                isRemote ? 999 : this.dragonBurnKillsRemaining,
                 svgElement,
                 onSuccess,
                 onError
             );
 
             if (res.success) {
+                CombatLogManager.logChampionSkill(board, state, 'ryujin', 'Furia del Dragón', targetNodeId, [targetNodeId], playerId, 1);
                 this.dragonBurnKillsRemaining = res.newBurnsRemaining;
                 if (res.isFinished) {
                     this.currentTargetingMode = 'none';
@@ -295,6 +295,57 @@ export class ChampionManager {
                 onComplete();
             }
             return res.success;
+        }
+
+        // 3. Kitsune: Escudo Divino
+        if (this.currentTargetingMode === 'shield_target' || effectiveHero === 'kitsune') {
+            // Check cost before execution
+            const chain = board.getChain(targetNodeId);
+            const cost = isRemote ? 0 : Math.ceil(chain.size / 5);
+
+            if (!isRemote && cost > this.activeChargesLeft) {
+                onError(`Not enough charges! Shielding this group of ${chain.size} stones requires ${cost} charges.`);
+                return false;
+            }
+
+            const ok = KitsuneChampion.executeSkill(
+                board,
+                targetNodeId,
+                playerId,
+                isRemote ? 999 : this.activeChargesLeft,
+                cost,
+                onSuccess,
+                onError
+            );
+            if (ok) {
+                CombatLogManager.logChampionSkill(board, state, 'kitsune', 'Escudo Divino', targetNodeId, Array.from(chain), playerId);
+                if (svgElement) {
+                    chain.forEach(nid => {
+                        const n = board.nodes.get(nid);
+                        if (n) KitsuneVFX.triggerDivineShieldAura({ x: n.x, y: n.y }, svgElement);
+                    });
+                }
+                SoundFX.playDivineShieldCast();
+                if (!isRemote) {
+                    this.activeChargesLeft = Math.max(0, this.activeChargesLeft - cost);
+                    this.currentTargetingMode = 'none';
+                }
+                onComplete();
+            }
+            return ok;
+        }
+
+        // 4. Tengu: Lluvia Meteórica
+        if (this.currentTargetingMode === 'meteor_5x5' || effectiveHero === 'tengu') {
+            const ok = TenguChampion.executeSkill(board, targetNodeId, svgElement, onSuccess, () => {
+                CombatLogManager.logChampionSkill(board, state, 'tengu', 'Lluvia Meteórica', targetNodeId, [targetNodeId], playerId);
+                if (!isRemote) {
+                    this.activeChargesLeft = Math.max(0, this.activeChargesLeft - 1);
+                    this.currentTargetingMode = 'none';
+                }
+                onComplete();
+            });
+            return ok;
         }
 
         return false;
@@ -308,7 +359,7 @@ export class ChampionManager {
         return TenguChampion.getMeteorCount(board);
     }
 
-    public static getStoneRainCount(boardOrSize?: GraphBoard | BoardSize | number | null): number {
+    public static getStoneRainCount(boardOrSize?: GraphBoard | BoardSize | number | { shape?: string; size?: number } | null): number {
         return HimikoChampion.getStoneRainCount(boardOrSize);
     }
 
@@ -328,3 +379,4 @@ export class ChampionManager {
         return false;
     }
 }
+

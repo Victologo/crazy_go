@@ -112,25 +112,98 @@ export class RoguelikeController {
         SoundFX.playPlaceStone();
     }
 
-    public static abandonRun() {
+    public static async abandonRun(force: boolean = false) {
+        const isEn = getLanguage() === 'en';
+        
+        if (!force && RoguelikeRunManager.gameMode === 'coop') {
+            try {
+                const { NetworkManager } = await import('../network/NetworkManager');
+                if (NetworkManager.currentConfig?.isCoopRogue && NetworkManager.sendFn) {
+                    NetworkManager.sendFn({ type: 'VOTE_ABANDON' });
+                    HUDController.showAlert(isEn ? "Vote to abandon run sent to partner..." : "Votación para abandonar enviada al compañero...");
+                    SoundFX.playPlaceStone();
+                    return;
+                }
+            } catch (e) {}
+        }
+
+        if (!force && RoguelikeRunManager.gameMode !== 'coop') {
+            const msg = isEn ? "Are you sure you want to abandon this expedition?" : "¿Estás seguro de que quieres abandonar esta expedición?";
+            if (!confirm(msg)) return;
+        }
+        
         RoguelikeRunManager.clearSavedRun();
         RoguelikeRunManager.isRunActive = false;
         ScreenManager.showMainMenu();
-        const isEn = getLanguage() === 'en';
         HUDController.showAlert(isEn ? "Expedition cancelled." : "Expedición cancelada.");
         SoundFX.playPlaceStone();
     }
 
-    public static startNewExpedition() {
+    public static async startNewExpedition() {
         ModalManager.closeRoguelikeSetupModal();
         RoguelikeRunManager.startRun(this.tempRogueDifficulty, this.tempRogueHero, this.tempRogueMode);
         ChampionManager.resetForMatch(this.tempRogueHero);
+
+        try {
+            const { NetworkManager } = await import('../network/NetworkManager');
+            const { OnlineController } = await import('./OnlineController');
+            if (NetworkManager.isHost && OnlineController.onlineGameType === 'coop_rogue') {
+                NetworkManager.currentConfig = {
+                    isCoopRogue: true,
+                    difficulty: this.tempRogueDifficulty,
+                    hostHero: this.tempRogueHero,
+                    rogueSeed: Math.floor(Math.random() * 9999999),
+                    playerCount: 2,
+                    hostColor: 1,
+                    shape: 'square',
+                    size: 9,
+                    komi: 6.5
+                };
+                NetworkManager.requestStartGame();
+            }
+        } catch (e) {
+            console.warn('Network modules not available', e);
+        }
 
         ScreenManager.showRoguelikeMapScreen();
         this.renderMap();
         const isEn = getLanguage() === 'en';
         HUDController.showAlert(isEn ? `🗺️ New expedition started with ${RoguelikeRunManager.HEROES[this.tempRogueHero].name}!` : `🗺️ ¡Nueva expedición iniciada con ${RoguelikeRunManager.HEROES[this.tempRogueHero].name}!`);
         SoundFX.playPlaceStone();
+
+        if (RoguelikeRunManager.gameMode === 'coop') {
+            this.showCoopBriefing();
+        }
+    }
+
+    public static showCoopBriefing() {
+        const isEn = getLanguage() === 'en';
+        ModalManager.showEventModal(
+            '🤝',
+            isEn ? '⚔️ Co-op Roguelike Protocol' : '⚔️ Protocolo de Expedición Cooperativa',
+            isEn
+                ? 'Welcome to the Co-op Roguelike Expedition! Important expedition rules:\n\n' +
+                  '• 👑 <strong>Host Privileges:</strong> The Host chooses the difficulty, leads map navigation, and selects rewards in Shrines, Shops, and Events (rewards synchronize automatically to both players).\n' +
+                  '• 👥 <strong>Guest Role:</strong> The Guest accompanies the journey, viewing all path choices, map updates, and rewards in real-time.\n' +
+                  '• ⚫ <strong>Shared Combat:</strong> Both players share the Black stones (P1) against the AI with strictly alternating sub-turns (1 move each).\n' +
+                  '• 🏳️ <strong>Mutual Abandon:</strong> Quitting the expedition requires mutual agreement via a vote prompt.'
+                : '¡Bienvenidos a la Expedición Cooperativa Online! Reglas importantes del viaje:\n\n' +
+                  '• 👑 <strong>Privilegios del Anfitrión (Host):</strong> El Host elige la dificultad, lidera el camino en el mapa y selecciona los botines en Santuarios, Tiendas y Eventos (se sincronizan automáticamente para ambos).\n' +
+                  '• 👥 <strong>Rol del Invitado (Guest):</strong> El Invitado acompaña la expedición visualizando la ruta, avances y recompensas en tiempo real.\n' +
+                  '• ⚫ <strong>Combate Compartido:</strong> Ambos controlan el bando de Negras (P1) contra la IA en sub-turnos estrictamente alternos (1 jugada cada uno).\n' +
+                  '• 🏳️ <strong>Abandono Mutuo:</strong> Salir de la expedición requiere votación y consentimiento mutuo.',
+            [
+                {
+                    id: 'btn_coop_start',
+                    label: isEn ? '⛩️ Enter Expedition' : '⛩️ Entrar a la Expedición',
+                    sub: isEn ? 'Begin the co-op journey!' : '¡Comenzar la travesía cooperativa!',
+                    icon: '⚔️',
+                    onClick: () => {
+                        ModalManager.closeEventModal();
+                    }
+                }
+            ]
+        );
     }
 
     public static resumeMap() {
@@ -149,8 +222,25 @@ export class RoguelikeController {
         ScreenManager.updateMapHUD();
     }
 
-    public static handleMapNodeClick(node: any) {
+    public static async handleMapNodeClick(node: any, isRemote: boolean = false) {
         const isEn = getLanguage() === 'en';
+
+        // Check if we are in coop mode and this is a local click
+        if (!isRemote && RoguelikeRunManager.gameMode === 'coop') {
+            try {
+                const { NetworkManager } = await import('../network/NetworkManager');
+                // Si NO somos el host, bloqueamos el click local en el mapa
+                if (NetworkManager.currentConfig?.isCoopRogue && !NetworkManager.isHost) {
+                    HUDController.showAlert(isEn ? "Only the Host can choose the path." : "Solo el Anfitrión puede elegir el camino.");
+                    return;
+                }
+                
+                if (NetworkManager.currentConfig?.isCoopRogue && NetworkManager.sendFn && NetworkManager.isHost) {
+                    NetworkManager.sendFn({ type: 'MAP_CLICK', nodeId: node.id });
+                }
+            } catch (e) {}
+        }
+
         if (node.status !== 'available' && node.status !== 'current') {
             HUDController.showAlert(isEn ? "This node is not currently available." : "Este nodo no está disponible para avanzar.");
             SoundFX.playIllegal();
@@ -178,12 +268,22 @@ export class RoguelikeController {
         }
     }
 
-    private static startBattle(node: MapNode) {
+    private static async startBattle(node: MapNode) {
         ScreenManager.showGameScreen();
         const totalKomi = RoguelikeRunManager.getTotalKomi();
         const isCoop = RoguelikeRunManager.gameMode === 'coop';
         const heroForBattle = this.tempLoanHero || RoguelikeRunManager.selectedHero;
-        this.tempLoanHero = null; // Se consume para la batalla actual
+        this.tempLoanHero = null;
+
+        let isOnline = false;
+        let localRole: 1 | 2 = 1;
+        try {
+            const { NetworkManager } = await import('../network/NetworkManager');
+            if (NetworkManager.currentConfig?.isCoopRogue) {
+                isOnline = true;
+                localRole = NetworkManager.isHost ? 1 : 2;
+            }
+        } catch(e) {}
 
         GameController.initGame({
             playerCount: 2,
@@ -191,6 +291,7 @@ export class RoguelikeController {
             isCoopRogue: isCoop,
             isRoguelikeMatch: true,
             coopSubTurn: isCoop ? 1 : undefined,
+            localCoopRole: isOnline ? localRole : undefined,
             humanColor: 1, // En expediciones Roguelike el jugador siempre inicia con Negras
             difficulty: node.battleConfig?.aiDifficulty || 'easy',
             shape: node.battleConfig?.shape || 'square',

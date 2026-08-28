@@ -8,14 +8,13 @@ import { RogueliteManager } from './RogueliteManager';
 export interface MoveResult {
     success: boolean;
     capturedCount: number;
+    capturedNodeIds?: string[];
     errorReason?: 'OCCUPIED' | 'INVALID_TERRAIN' | 'SUICIDE' | 'KO' | 'GAME_OVER';
 }
 
 export class RulesEngine {
     
-    /**
-     * Comprueba si una jugada es legal (no ocupada, terreno válido, no suicidio y no violación de Ko)
-     */
+    // Comprueba si una jugada es legal (no ocupada, terreno válido, no suicidio y no violación de Ko)
     static isMoveLegal(
         board: GraphBoard,
         state: GameState,
@@ -72,8 +71,12 @@ export class RulesEngine {
             }
         }
 
-        // Chequeo de Ko
-        if (nodesToCapture.size > 0 && state.boardHistory.length >= 2) {
+        // Chequeo de Ko (Simple Ko canónico)
+        // Simula capturas para construir el estado candidato y lo compara con el estado
+        // anterior al último movimiento (boardHistory[length-2]).
+        // La condición aplica SIEMPRE que haya historial suficiente, con o sin capturas,
+        // para ser consistente con tryPlaceStone y cubrir edge-cases futuros.
+        if (state.boardHistory.length >= 2) {
             const capturedBackup = new Map<string, StoneInfo>();
             for (const capId of nodesToCapture) {
                 const capNode = board.nodes.get(capId);
@@ -230,7 +233,7 @@ export class RulesEngine {
         state.lastMoveNodeId = nodeId;
         state.consecutivePasses = 0;
 
-        return { success: true, capturedCount };
+        return { success: true, capturedCount, capturedNodeIds: Array.from(nodesToCapture) };
     }
 
     /**
@@ -360,8 +363,10 @@ export class RulesEngine {
         state.lastMoveNodeId = nodeIds[0];
         state.consecutivePasses = 0;
 
-        return { success: true, capturedCount };
+        return { success: true, capturedCount, capturedNodeIds: Array.from(nodesToCapture) };
     }
+
+    public static lastResolvedCapturedNodeIds: string[] = [];
 
     /**
      * Evalúa y ejecuta la captura en cascada de todas las piedras o grupos que se hayan quedado
@@ -373,6 +378,7 @@ export class RulesEngine {
         state: GameState, 
         capturingPlayerId: PlayerId
     ): number {
+        this.lastResolvedCapturedNodeIds = [];
         const visited = new Set<string>();
         const stonesToCapture = new Set<string>();
 
@@ -400,6 +406,7 @@ export class RulesEngine {
         }
 
         // 2. Ejecutar captura de piedras enemigas
+        this.lastResolvedCapturedNodeIds = Array.from(stonesToCapture);
         let capturedCount = 0;
         for (const capId of stonesToCapture) {
             const capNode = board.nodes.get(capId);
@@ -635,7 +642,74 @@ export class RulesEngine {
             node.stone.playerId = newPlayerId;
             transmutedNodeIds.push(node.id);
         }
-
         return transmutedNodeIds;
+    }
+
+    public static destroyTopology(
+        board: GraphBoard, 
+        state: GameState, 
+        targetIds: string[],
+        svgElement?: SVGSVGElement | null
+    ): { directDestroyed: number; collateralCaptured: number; shieldedDirectHits: number } {
+        let directDestroyed = 0;
+        let shieldedDirectHits = 0;
+
+        for (const id of targetIds) {
+            const node = board.nodes.get(id);
+            if (!node) continue;
+            if (node.stone) {
+                if (node.stone.isIndestructible) {
+                    shieldedDirectHits++;
+                    if (svgElement) {
+                        import('../graphics/VFXManager').then(({ VFXManager }) => {
+                            VFXManager.triggerDivineShieldShatter({ x: node.x, y: node.y }, svgElement);
+                        });
+                    }
+                }
+                state.entityManager.destroyEntity(node.stone.id);
+                node.stone = null;
+                directDestroyed++;
+            }
+            board.removeNode(id);
+        }
+
+        const nodesToCapture = new Set<string>();
+        const evaluatedChains = new Set<string>();
+
+        for (const node of board.nodes.values()) {
+            if (node.stone && node.terrain !== 'DESTROYED') {
+                if (evaluatedChains.has(node.id)) continue;
+                const chain = board.getChain(node.id);
+                for (const c of chain) evaluatedChains.add(c);
+
+                if (board.getLiberties(node.id).size === 0) {
+                    // Si alguna piedra de la cadena posee Escudo Divino de Kitsune, la cadena sobrevive a la pérdida de libertades
+                    let isProtected = false;
+                    for (const chainNodeId of chain) {
+                        const chainNode = board.nodes.get(chainNodeId);
+                        if (chainNode?.stone?.isIndestructible) {
+                            isProtected = true;
+                            break;
+                        }
+                    }
+
+                    if (!isProtected) {
+                        for (const c of chain) {
+                            nodesToCapture.add(c);
+                        }
+                    }
+                }
+            }
+        }
+
+        for (const captureId of nodesToCapture) {
+            const capturedNode = board.nodes.get(captureId);
+            if (capturedNode && capturedNode.stone) {
+                state.entityManager.destroyEntity(capturedNode.stone.id);
+                capturedNode.stone = null;
+            }
+        }
+
+        return { directDestroyed, collateralCaptured: nodesToCapture.size, shieldedDirectHits };
     }
 }

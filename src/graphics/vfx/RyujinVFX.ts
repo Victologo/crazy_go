@@ -15,7 +15,7 @@ export class RyujinVFX {
             boardTarget.classList.add('vfx-screen-shake');
             setTimeout(() => boardTarget.classList.remove('vfx-screen-shake'), 380);
         }
-        SoundFX.playCapture();
+        SoundFX.playDragonFlame();
 
         const flameLayer = document.createElementNS('http://www.w3.org/2000/svg', 'g');
         flameLayer.setAttribute('class', 'vfx-dragon-flame-live-layer');

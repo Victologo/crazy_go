@@ -140,6 +140,43 @@ export class HUDController {
             purpleCaps.innerHTML = `${state.purpleCaptures}${komiText}`;
         }
 
+        let scoringBanner = document.getElementById('ui-scoring-banner');
+        if (state.isScoringPhase) {
+            if (!scoringBanner) {
+                scoringBanner = document.createElement('div');
+                scoringBanner.id = 'ui-scoring-banner';
+                scoringBanner.innerHTML = `
+                    <div style="background: rgba(0,0,0,0.85); border: 2px solid #fbbf24; border-radius: 8px; padding: 12px; margin: 10px; display: flex; align-items: center; justify-content: space-between; gap: 16px; position: absolute; z-index: 1000; top: 60px; left: 50%; transform: translateX(-50%); width: max-content;">
+                        <span style="color: #fbbf24; font-weight: bold;">⚖️ Fase de Disputa: Marca los grupos vivos/muertos</span>
+                        <div>
+                            <button id="btn-scoring-resume" class="btn btn-secondary btn-sm" style="margin-right: 8px; padding: 4px 12px; cursor: pointer;">Reanudar</button>
+                            <button id="btn-scoring-accept" class="btn btn-primary btn-sm" style="padding: 4px 12px; cursor: pointer;">Aceptar</button>
+                        </div>
+                    </div>
+                `;
+                document.body.appendChild(scoringBanner);
+                
+                document.getElementById('btn-scoring-resume')?.addEventListener('click', () => {
+                    import('../controllers/GameController').then(gc => {
+                        gc.GameController.state.passTurn(); // Abort scoring
+                        gc.GameController.updateInGameUI();
+                        gc.GameController.renderer.render();
+                    });
+                });
+
+                document.getElementById('btn-scoring-accept')?.addEventListener('click', () => {
+                    import('../controllers/GameController').then(gc => {
+                        gc.GameController.state.isScoringPhase = false;
+                        gc.GameController.state.isGameOver = true;
+                        gc.GameController.updateInGameUI();
+                    });
+                });
+            }
+            scoringBanner.style.display = 'block';
+        } else if (scoringBanner) {
+            scoringBanner.style.display = 'none';
+        }
+
         // Mostrar / ocultar 4P
         if (state.playerCount === 4) {
             capP3?.classList.remove('hidden');
@@ -152,16 +189,99 @@ export class HUDController {
         this.updateChampionUI(currentRuleStyle, isLocalTurn, state.isGameOver);
         this.updatePolyominoUI(isLocalTurn, state.isGameOver, state.currentPlayer);
         this.updateSpellbarUI(currentRuleStyle, isLocalTurn, state.isGameOver);
+
+        // Toggle Stage Hazard Warning Icons in HUD immediately and synchronously
+        import('../controllers/GameController').then(gc => {
+            const b = gc.GameController.board;
+            if (b) {
+                const volcanoWarning = document.getElementById('ui-volcano-warning');
+                if (volcanoWarning) volcanoWarning.classList.toggle('hidden', b.shape !== 'volcano');
+
+                const skyWarning = document.getElementById('ui-sky-warning');
+                if (skyWarning) skyWarning.classList.toggle('hidden', b.shape !== 'sky');
+
+                const oniWarning = document.getElementById('ui-oni-warning');
+                if (oniWarning) oniWarning.classList.toggle('hidden', b.shape !== 'oni');
+            }
+        });
+
+        // Win Rate Bar (Llamada al motor de análisis para N jugadores - Se desactiva en Modo Historia)
+        const isStoryMode = currentMode === 'story' || (typeof window !== 'undefined' && !!((window as any).StoryModeController?.isStoryActive || (window as any).__isStoryLoading));
+        if (!isStoryMode) {
+            import('../core/AnalysisEngine').then(m => {
+                import('../controllers/GameController').then(gc => {
+                    const b = gc.GameController.board;
+                    if (b && state) {
+                        const { playerWinRates } = m.AnalysisEngine.calculateWinRate(b, state);
+                        this.updateWinRates(playerWinRates, state.playerCount);
+                    }
+                });
+            });
+        } else {
+            const wrapper = document.getElementById('winrate-bar-wrapper');
+            if (wrapper) wrapper.classList.add('hidden');
+        }
+    }
+
+    public static updateWinRates(winRates: Record<PlayerId, number>, playerCount: number) {
+        const wrapper = document.getElementById('winrate-bar-wrapper');
+        if (!wrapper) return;
+
+        const isStory = typeof window !== 'undefined' && !!((window as any).StoryModeController?.isStoryActive || (window as any).__isStoryLoading);
+
+        if (playerCount < 2 || TutorialManager.isActive || isStory) {
+            wrapper.classList.add('hidden');
+            return;
+        } else {
+            wrapper.classList.remove('hidden');
+        }
+
+        const seg1 = document.getElementById('winrate-segment-1');
+        const seg2 = document.getElementById('winrate-segment-2');
+        const seg3 = document.getElementById('winrate-segment-3');
+        const seg4 = document.getElementById('winrate-segment-4');
+        
+        const lbl1 = document.getElementById('winrate-label-1');
+        const lbl2 = document.getElementById('winrate-label-2');
+        const lbl3 = document.getElementById('winrate-label-3');
+        const lbl4 = document.getElementById('winrate-label-4');
+
+        if (seg1 && lbl1) {
+            const v = Math.round(winRates[1] || 0);
+            seg1.style.width = `${v}%`;
+            lbl1.style.width = `${v}%`;
+            lbl1.innerText = `${v}%`;
+            lbl1.style.display = v > 0 ? 'block' : 'none';
+        }
+        if (seg2 && lbl2) {
+            const v = Math.round(winRates[2] || 0);
+            seg2.style.width = `${v}%`;
+            lbl2.style.width = `${v}%`;
+            lbl2.innerText = `${v}%`;
+            lbl2.style.display = v > 0 ? 'block' : 'none';
+        }
+        
+        if (seg3 && lbl3) {
+            const v = Math.round(winRates[3] || 0);
+            seg3.style.width = playerCount >= 3 ? `${v}%` : '0%';
+            seg3.style.display = playerCount >= 3 ? 'block' : 'none';
+            lbl3.style.width = playerCount >= 3 ? `${v}%` : '0%';
+            lbl3.innerText = `${v}%`;
+            lbl3.style.display = (playerCount >= 3 && v > 0) ? 'block' : 'none';
+        }
+        if (seg4 && lbl4) {
+            const v = Math.round(winRates[4] || 0);
+            seg4.style.width = playerCount >= 4 ? `${v}%` : '0%';
+            seg4.style.display = playerCount >= 4 ? 'block' : 'none';
+            lbl4.style.width = playerCount >= 4 ? `${v}%` : '0%';
+            lbl4.innerText = `${v}%`;
+            lbl4.style.display = (playerCount >= 4 && v > 0) ? 'block' : 'none';
+        }
     }
 
     public static updateWinRate(blackWinRate: number, whiteWinRate: number) {
-        const wrBlackVal = document.getElementById('ui-wr-black-val');
-        const wrWhiteVal = document.getElementById('ui-wr-white-val');
-        const wrBarBlack = document.getElementById('ui-wr-bar-black');
-
-        if (wrBlackVal) wrBlackVal.innerText = `${blackWinRate}%`;
-        if (wrWhiteVal) wrWhiteVal.innerText = `${whiteWinRate}%`;
-        if (wrBarBlack) wrBarBlack.style.width = `${blackWinRate}%`;
+        // Redirigir la llamada clásica de 2 jugadores al nuevo sistema unificado
+        this.updateWinRates({ 1: blackWinRate, 2: whiteWinRate } as Record<PlayerId, number>, 2);
     }
 
     public static setHintButtonActive(active: boolean) {
@@ -382,6 +502,7 @@ export class HUDController {
         isGameOver: boolean,
         currentPlayer: PlayerId = 1
     ) {
+        PolyominoManager.syncCardsWithInventory(currentPlayer);
         const polyDock = document.getElementById('polyomino-dock-section');
         const sproutCard = PolyominoManager.polyominoCards.get('sprouting');
         const dominoCard = PolyominoManager.polyominoCards.get('domino');
@@ -643,21 +764,45 @@ export class HUDController {
     public static setBoardBackground(bg?: string) {
         const viewport = document.getElementById('board-viewport');
         if (viewport) {
-            const activeBg = bg || 'combat';
+            // Mapeo seguro de alias de escenarios a imágenes JPG reales existentes en /public
+            const bgMapping: Record<string, string> = {
+                combat: 'combat',
+                dojo: 'combat',
+                meadow: 'meadow',
+                sunset: 'sunset',
+                night: 'night',
+                story: 'story',
+                void: 'story',
+                tutorial: 'tutorial',
+                zen: 'tutorial',
+                boss: 'boss',
+                volcano: 'boss',
+                oni: 'combat',
+                sky: 'combat'
+            };
+
+            const rawBg = bg || 'combat';
+            const activeBg = bgMapping[rawBg] || 'combat';
+
             viewport.setAttribute('data-bg', activeBg);
-            viewport.style.backgroundImage = `radial-gradient(circle at center, rgb(12 16 26 / 45%) 0%, rgb(6 9 15 / 0%) 100%), url('./bg_${activeBg}.jpg')`;
+            viewport.style.backgroundImage = `radial-gradient(circle at center, rgb(12 16 26 / 45%) 0%, rgb(6 9 15 / 0%) 100%), url('/bg_${activeBg}.jpg')`;
             viewport.style.backgroundSize = 'cover';
             viewport.style.backgroundPosition = 'center center';
             viewport.style.backgroundRepeat = 'no-repeat';
+
+            // Cambiar música de fondo asociada
+            import('../audio/BGMGenerator').then(m => m.BGMGenerator.playBackground(activeBg as any));
         }
     }
 
-    private static getDifficultyLabel(difficulty: AIDifficulty): string {
+    private static getDifficultyLabel(difficulty: string): string {
+        if (!difficulty) return '(15k)';
         switch (difficulty) {
             case 'easy': return '(25k)';
             case 'medium': return '(16k)';
             case 'hard': return '(4k)';
             case 'dan': return '(2 Dan)';
+            default: return `(${difficulty})`;
         }
     }
 }

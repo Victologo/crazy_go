@@ -5,6 +5,8 @@ import { RulesEngine } from './RulesEngine';
 import { SoundFX } from '../audio/SoundFX';
 import { VFXManager } from '../graphics/VFXManager';
 import { getLanguage } from '../i18n/i18n';
+import { CombatLogManager } from './CombatLogManager';
+
 
 export interface CornerQuadrantInfo {
     cornerName: 'top_left' | 'top_right' | 'bottom_left' | 'bottom_right';
@@ -158,7 +160,22 @@ export class BossManager {
             // Resolver capturas en cascada si la nueva piedra del centro encierra piedras enemigas
             const capturedCount = RulesEngine.resolveBoardCaptures(board, state, bossPlayerId);
 
-            SoundFX.playCapture();
+            CombatLogManager.logChampionSkill(
+                board,
+                state,
+                'boss',
+                'Aliento Calcinante del Dragón',
+                quadrant.centerNode.id,
+                quadrant.nodes.map(n => n.id),
+                bossPlayerId,
+                capturedCount
+            );
+
+            if (capturedCount > 0) {
+                SoundFX.playCapture();
+            } else {
+                SoundFX.playBossDragonBreath();
+            }
             const isEn = getLanguage() === 'en';
             const captureExtra = capturedCount > 0 
                 ? (isEn ? ` (and captured ${capturedCount} stone(s) with 0 liberties!)` : ` (¡y capturó ${capturedCount} piedra(s) por libertades!)`) 
@@ -216,5 +233,53 @@ export class BossManager {
         }
 
         return false;
+    }
+
+    /**
+     * Devastación Pasiva (A partir del turno 22):
+     * Cae aleatoriamente 4 bolas de fuego destruyendo casillas y aristas (rompe topología).
+     */
+    public static checkAIPassiveDevastation(
+        board: GraphBoard,
+        state: GameState,
+        bossPlayerId: PlayerId,
+        svgElement: SVGSVGElement | null,
+        onComplete: () => void
+    ): boolean {
+        // bossPlayerId can be used to style the devastation maybe, or ignored for now
+        if (!bossPlayerId) return false;
+        
+        if (!this.isBossBattle || state.isGameOver) return false;
+        if (state.currentTurn < 22) return false; // Solo a partir del turno global 22
+
+        const availableNodes = Array.from(board.nodes.values()).filter(n => n.terrain !== 'DESTROYED' && n.terrain !== 'OBSTACLE');
+        if (availableNodes.length < 4) return false;
+
+        // Mezclar y elegir 4 nodos aleatorios
+        for (let i = availableNodes.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [availableNodes[i], availableNodes[j]] = [availableNodes[j], availableNodes[i]];
+        }
+        
+        const targets = availableNodes.slice(0, 4);
+        const targetIds = targets.map(n => n.id);
+        const impactCoords = targets.map(n => ({ x: n.x, y: n.y }));
+
+        Promise.all([
+            import('../graphics/VFXManager'),
+            import('./RulesEngine')
+        ]).then(([{ VFXManager }, { RulesEngine }]) => {
+            if (svgElement) {
+                VFXManager.triggerMeteorShower(impactCoords, svgElement, () => {}, () => {
+                    RulesEngine.destroyTopology(board, state, targetIds);
+                    onComplete();
+                }, 18);
+            } else {
+                RulesEngine.destroyTopology(board, state, targetIds);
+                onComplete();
+            }
+        });
+
+        return true;
     }
 }

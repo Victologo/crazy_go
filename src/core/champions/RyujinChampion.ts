@@ -26,7 +26,9 @@ export class RyujinChampion {
         const livingGroups = board.getLivingGroupsInfo(playerId).filter(g => g.eyesCount >= 2);
         const isEn = getLanguage() === 'en';
 
-        if (totalNodes <= 100) {
+        const is19x19Scale = board.shape === 'oni' || totalNodes > 220;
+
+        if (!is19x19Scale && totalNodes <= 100) {
             // 9x9: 1 grupo vivo de 2 ojos -> 2 piedras enemigas calcinadas
             if (livingGroups.length >= 1 && isPassiveAvailable) {
                 onNotify(isEn 
@@ -35,7 +37,7 @@ export class RyujinChampion {
                 onBoardUpdated();
                 return { triggered: true, burnsGranted: 2, newEarnedBurns19x19: 0 };
             }
-        } else if (totalNodes <= 220) {
+        } else if (!is19x19Scale && totalNodes <= 220) {
             // 13x13: Grupo vivo de 3+ ojos -> 4 piedras enemigas calcinadas
             const has3Eyes = livingGroups.some(g => g.eyesCount >= 3);
 
@@ -47,7 +49,7 @@ export class RyujinChampion {
                 return { triggered: true, burnsGranted: 4, newEarnedBurns19x19: 0 };
             }
         } else {
-            // 19x19: 1 quema por cada grupo de 2 ojos, y +1 quema por cada ojo adicional (2->3, 3->4, etc.)
+            // 19x19 / Máscara Oni: 1 quema por cada grupo de 2 ojos, y +1 quema por cada ojo adicional (2->3, 3->4, etc.)
             let totalPotentialBurns = 0;
             for (const g of livingGroups) {
                 totalPotentialBurns += (g.eyesCount - 1);

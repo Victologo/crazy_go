@@ -6,6 +6,8 @@ import { RoninVFX } from './vfx/RoninVFX';
 import { AlchemistVFX } from './vfx/AlchemistVFX';
 import { RyujinVFX } from './vfx/RyujinVFX';
 import { BossVFX } from './vfx/BossVFX';
+import { OniVFX, type OniStoneShift } from './vfx/OniVFX';
+import type { PlayerId } from '../core/GraphBoard';
 
 export class VFXManager {
     /**
@@ -17,7 +19,7 @@ export class VFXManager {
             '.vfx-stone-rain-layer, .vfx-grey-dragon-layer, .vfx-dragon-flame-anim, ' +
             '.vfx-meteor-layer, .vfx-shockwave-anim, .vfx-wind-slash-anim, .alchemist-transmute-vfx, .vfx-ripple, ' +
             '.vfx-capture-dissolve, .targeting-overlay, #ghost-preview, .vfx-meteor-burst, ' +
-            '.vfx-dragon-flame-live-layer'
+            '.vfx-dragon-flame-live-layer, .vfx-oni-inhalation-layer'
         );
         lingering.forEach(el => el.remove());
     }
@@ -115,5 +117,85 @@ export class VFXManager {
         onComplete: () => void
     ) {
         BossVFX.triggerGreyDragonBreath(quadrantCoords, centerCoord, svgElement, onComplete);
+    }
+
+    /**
+     * Animación: Inhalación del Demonio / Vórtice Gravitacional (Máscara Oni)
+     */
+    public static triggerOniInhalation(
+        mouthCenter: { x: number; y: number },
+        shifts: OniStoneShift[],
+        svgElement: SVGSVGElement,
+        onComplete: () => void,
+        stoneRadius: number = 18
+    ) {
+        OniVFX.triggerOniInhalation(mouthCenter, shifts, svgElement, onComplete, stoneRadius);
+    }
+
+    /**
+     * Feedback Visual: Festín de Almas (Turno Extra Consecutivo)
+     */
+    public static triggerSoulFeast(playerId: PlayerId = 1) {
+        OniVFX.triggerSoulFeast(playerId);
+    }
+
+    /**
+     * Animación: Disolución Zen de Piedras Capturadas (desintegración in-situ con micro-anillo de Qi y partículas de tinta Sumi-e)
+     */
+    public static triggerZenDissolution(
+        coords: { x: number; y: number }[],
+        svgElement: SVGSVGElement | null,
+        stoneRadius: number = 18
+    ) {
+        if (!svgElement || coords.length === 0) return;
+
+        const vfxLayer = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+        vfxLayer.setAttribute('class', 'vfx-capture-dissolve-layer');
+        vfxLayer.style.pointerEvents = 'none';
+
+        coords.forEach(pt => {
+            const g = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+            g.setAttribute('transform', `translate(${pt.x}, ${pt.y})`);
+
+            // 1. Anillo de onda expansiva de Qi suave
+            const ring = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+            ring.setAttribute('r', `${stoneRadius * 0.75}`);
+            ring.setAttribute('class', 'zen-dissolve-ring');
+            g.appendChild(ring);
+
+            // 2. Núcleo de humo de tinta / éter que se desvanece
+            const core = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+            core.setAttribute('r', `${stoneRadius * 0.95}`);
+            core.setAttribute('class', 'zen-dissolve-core');
+            g.appendChild(core);
+
+            // 3. Micro-partículas de Qi que se dispersan radialmente
+            const particleCount = 6;
+            for (let i = 0; i < particleCount; i++) {
+                const angle = (i / particleCount) * Math.PI * 2 + (Math.random() * 0.5 - 0.25);
+                const dist = stoneRadius * (1.2 + Math.random() * 0.6);
+                const pX = Math.cos(angle) * dist;
+                const pY = Math.sin(angle) * dist;
+                const pR = 2.2 + Math.random() * 1.8;
+
+                const particle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+                particle.setAttribute('cx', '0');
+                particle.setAttribute('cy', '0');
+                particle.setAttribute('r', `${pR}`);
+                particle.setAttribute('class', 'zen-dissolve-particle');
+                particle.style.setProperty('--dx', `${pX}px`);
+                particle.style.setProperty('--dy', `${pY}px`);
+                particle.style.animationDelay = `${Math.random() * 0.05}s`;
+                g.appendChild(particle);
+            }
+
+            vfxLayer.appendChild(g);
+        });
+
+        svgElement.appendChild(vfxLayer);
+
+        setTimeout(() => {
+            vfxLayer.remove();
+        }, 450);
     }
 }

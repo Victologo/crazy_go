@@ -14,6 +14,8 @@ import { HUDController } from '../ui/HUDController';
 import { GameController } from './GameController';
 import { getLanguage } from '../i18n/i18n';
 
+import { joinRoom as joinMqttRoom, selfId } from '@trystero-p2p/mqtt';
+
 export class OnlineController {
     public static onlinePlayerCount: 2 | 4 = 2;
     public static onlineHostColor: PlayerId = 1;
@@ -25,7 +27,126 @@ export class OnlineController {
     public static onlineBackground: BoardBackground = 'combat';
     public static onlineHostHero: HeroId | null = null;
     public static onlineGuestHero: HeroId | null = null;
+    public static onlineAIDifficulty: string = '15k';
+    public static onlineAISlots: Record<number, string> = { 2: '15k', 3: '15k', 4: '15k' };
     public static currentShareUrl: string = '';
+    public static isMatchmaking: boolean = false;
+    private static matchmakingInterval: number | null = null;
+
+    public static startMatchmaking(playerCount: 2 | 4) {
+        this.isMatchmaking = true;
+        this.onlinePlayerCount = playerCount;
+        document.getElementById('btn-matchmaking-2p')?.parentElement?.classList.add('hidden');
+        document.getElementById('matchmaking-status-box')?.classList.remove('hidden');
+        const statusEl = document.getElementById('matchmaking-status-text');
+        if (statusEl) {
+            const isEn = getLanguage() === 'en';
+            statusEl.innerText = isEn ? 'Searching for an opponent...' : 'Buscando oponente...';
+        }
+        
+        // Disconnect from any existing room
+        NetworkManager.disconnect();
+
+        // Use a dynamic matchmaking room based on current hour to avoid stale peers
+        const hourKey = new Date().toISOString().slice(0, 13);
+        const mmCode = `MATCHMAKING_${playerCount}P_${hourKey}`;
+        
+        try {
+            const mmRoom = joinMqttRoom(
+                {
+                    appId: 'crazygo-v6',
+                    relayConfig: {
+                        urls: [
+                            'wss://broker.emqx.io:8084/mqtt',
+                            'wss://broker.hivemq.com:8884/mqtt'
+                        ]
+                    },
+                    turnConfig: [
+                        {
+                            urls: 'turn:openrelay.metered.ca:80',
+                            username: 'openrelayproject',
+                            credential: 'openrelayproject'
+                        },
+                        {
+                            urls: 'turn:openrelay.metered.ca:443',
+                            username: 'openrelayproject',
+                            credential: 'openrelayproject'
+                        }
+                    ]
+                }, 
+                mmCode
+            );
+            
+            // Listen for matchmaking custom messages via Trystero makeAction
+            const matchAction = mmRoom.makeAction<{ code: string; hostColor: number }>('match');
+            
+            mmRoom.onPeerJoin = (peerId: string) => {
+                if (this.isMatchmaking) {
+                    // Arbitraje determinista: el peer con menor ID genera la sala y hostea
+                    if (selfId < peerId) {
+                        const privateCode = `GO-${Math.floor(1000 + Math.random() * 9000)}`;
+                        matchAction.send({ code: privateCode, hostColor: 2 }, { target: peerId });
+                        this.finalizeMatchmaking(privateCode, true);
+                        try { mmRoom.leave(); } catch (_) {}
+                    }
+                }
+            };
+            
+            matchAction.onMessage = (data: { code: string; hostColor: number }) => {
+                if (this.isMatchmaking && data && data.code) {
+                    // El anfitrión nos envió el código de la sala privada
+                    this.finalizeMatchmaking(data.code, false);
+                    try { mmRoom.leave(); } catch (_) {}
+                }
+            };
+            
+            // Store cleanup
+            this.matchmakingInterval = window.setInterval(() => {
+                if (!this.isMatchmaking) {
+                    try { mmRoom.leave(); } catch (_) {}
+                    if (this.matchmakingInterval) clearInterval(this.matchmakingInterval);
+                }
+            }, 1000) as unknown as number;
+        } catch (err) {
+            console.error('[Matchmaking Error]:', err);
+            const isEn = getLanguage() === 'en';
+            if (statusEl) statusEl.innerText = isEn ? 'Error starting matchmaking.' : 'Error al buscar partida.';
+        }
+    }
+
+    public static cancelMatchmaking() {
+        this.isMatchmaking = false;
+        if (this.matchmakingInterval) clearInterval(this.matchmakingInterval);
+        document.getElementById('matchmaking-status-box')?.classList.add('hidden');
+        document.getElementById('btn-matchmaking-2p')?.parentElement?.classList.remove('hidden');
+        NetworkManager.disconnect();
+    }
+
+    private static finalizeMatchmaking(privateCode: string, isHost: boolean) {
+        if (this.matchmakingInterval) clearInterval(this.matchmakingInterval);
+        this.isMatchmaking = false;
+        document.getElementById('matchmaking-status-text')!.innerText = '¡Oponente encontrado! Conectando...';
+        
+        setTimeout(() => {
+            if (isHost) {
+                // Config predeterminada para matchmaking (9x9 Clásico)
+                this.onlineHostColor = 1;
+                this.onlineShape = 'square';
+                this.onlineSize = 9;
+                
+                // Empezar a hostear la sala privada en el lobby
+                ModalManager.switchOnlineTab('create');
+                ModalManager.setOnlineWizardStep(6);
+                this.startHostingRoom(privateCode);
+            } else {
+                // Unirse a la sala privada
+                ModalManager.switchOnlineTab('join');
+                const input = document.getElementById('input-join-room-code') as HTMLInputElement | null;
+                if (input) input.value = privateCode;
+                this.joinOnlineRoom(privateCode);
+            }
+        }, 1000);
+    }
 
     public static sanitizeRoomCode(raw: string): string {
         if (!raw) return '';
@@ -73,35 +194,49 @@ export class OnlineController {
         // Callbacks de NetworkManager
         NetworkManager.onPlayerConnected = (assignedColor: PlayerId, playerCount: 2 | 4) => {
             ModalManager.closeOnlineModal();
-            ScreenManager.showGameScreen();
 
             const isCoop = !!NetworkManager.currentConfig?.isCoopRogue;
-            const myHero = (assignedColor === (NetworkManager.currentConfig?.hostColor || 1))
-                ? (NetworkManager.currentConfig?.hostHero || null)
-                : (NetworkManager.currentConfig?.guestHeroes ? NetworkManager.currentConfig.guestHeroes[assignedColor] : null) || this.onlineGuestHero;
-
             GameController.localOnlineColor = assignedColor;
-
-            GameController.initGame({
-                gameMode: 'online',
-                ruleStyle: isCoop ? 'roguelite' : 'classic',
-                isCoopRogue: isCoop,
-                coopSubTurn: 1,
-                playerCount: isCoop ? 2 : playerCount,
-                humanColor: isCoop ? 1 : assignedColor,
-                komi: this.onlineKomi,
-                shape: this.onlineShape,
-                size: this.onlineSize,
-                seed: this.onlineSeed,
-                background: NetworkManager.currentConfig?.background || this.onlineBackground || 'combat',
-                heroId: myHero
-            });
-
-            const isEn = getLanguage() === 'en';
+            
             if (isCoop) {
-                const roleLabel = assignedColor === 1 ? (isEn ? 'Host (Turn 1)' : 'Anfitrión (Turno 1)') : (isEn ? 'Partner (Turn 2)' : 'Compañero (Turno 2)');
-                HUDController.showAlert(isEn ? `🤝 Co-op Roguelike Expedition started! Sharing ⚫ Black stones. Role: ${roleLabel}.` : `🤝 ¡Expedición Roguelike Cooperativa iniciada! Compartís el bando ⚫ Negras. Rol: ${roleLabel}.`);
+                if (!NetworkManager.isHost) {
+                    import('./RoguelikeController').then(({ RoguelikeController }) => {
+                        import('../core/RoguelikeRunManager').then(({ RoguelikeRunManager }) => {
+                            RoguelikeRunManager.startRun(
+                                NetworkManager.currentConfig?.difficulty || 'normal',
+                                NetworkManager.currentConfig?.hostHero || 'normal',
+                                'coop'
+                            );
+                            RoguelikeController.resumeMap();
+                            RoguelikeController.showCoopBriefing();
+                            
+                            const isEn = getLanguage() === 'en';
+                            HUDController.showAlert(isEn ? `🤝 Co-op Roguelike Expedition started! Sharing ⚫ Black stones.` : `🤝 ¡Expedición Roguelike Cooperativa iniciada! Compartís el bando ⚫ Negras.`);
+                            SoundFX.playPlaceStone();
+                        });
+                    });
+                }
             } else {
+                ScreenManager.showGameScreen();
+                const myHero = (assignedColor === (NetworkManager.currentConfig?.hostColor || 1))
+                    ? (NetworkManager.currentConfig?.hostHero || null)
+                    : (NetworkManager.currentConfig?.guestHeroes ? NetworkManager.currentConfig.guestHeroes[assignedColor] : null) || this.onlineGuestHero;
+
+                GameController.initGame({
+                    gameMode: 'online',
+                    ruleStyle: 'classic',
+                    isCoopRogue: false,
+                    playerCount: playerCount,
+                    humanColor: assignedColor,
+                    komi: this.onlineKomi,
+                    shape: this.onlineShape,
+                    size: this.onlineSize,
+                    seed: this.onlineSeed,
+                    background: NetworkManager.currentConfig?.background || this.onlineBackground || 'combat',
+                    heroId: myHero
+                });
+
+                const isEn = getLanguage() === 'en';
                 const colorNames: Record<PlayerId, string> = isEn ? {
                     1: 'Black ⚫ (P1)',
                     2: 'White ⚪ (P2)',
@@ -114,8 +249,8 @@ export class OnlineController {
                     4: 'Amatista 🟣 (P4)'
                 };
                 HUDController.showAlert(isEn ? `🎮 Online match started (${playerCount}P)! Playing as ${colorNames[assignedColor]}.` : `🎮 ¡Partida en red iniciada (${playerCount}P)! Juegas como ${colorNames[assignedColor]}.`);
+                SoundFX.playPlaceStone();
             }
-            SoundFX.playPlaceStone();
         };
 
         NetworkManager.onLobbyUpdated = (connectedCount: number, slots: PlayerSlotInfo[]) => {
@@ -131,6 +266,8 @@ export class OnlineController {
             if (GameController.renderer) {
                 GameController.renderer.handleNodeClick(nodeId, false);
                 GameController.renderer.isInteractive = GameController.isLocalPlayerTurn();
+                GameController.renderer.render();
+                GameController.updateInGameUI();
             }
         };
 
@@ -138,6 +275,8 @@ export class OnlineController {
             GameController.handlePass(false);
             if (GameController.renderer) {
                 GameController.renderer.isInteractive = GameController.isLocalPlayerTurn();
+                GameController.renderer.render();
+                GameController.updateInGameUI();
             }
         };
 
@@ -145,9 +284,65 @@ export class OnlineController {
             GameController.showFinalScoreModal();
         };
 
+        NetworkManager.onMapClickReceived = (nodeId: string) => {
+            if (OnlineController.onlineGameType === 'coop_rogue') {
+                import('./RoguelikeController').then(({ RoguelikeController }) => {
+                    import('../core/RoguelikeRunManager').then(({ RoguelikeRunManager }) => {
+                        const targetNode = RoguelikeRunManager.map?.nodes.get(nodeId);
+                        if (targetNode) {
+                            RoguelikeController.handleMapNodeClick(targetNode, true);
+                        }
+                    });
+                });
+            }
+        };
+
+        NetworkManager.onEventOptionClickReceived = (optionId: string) => {
+            if (OnlineController.onlineGameType === 'coop_rogue') {
+                const btn = document.querySelector(`[data-option-id="${optionId}"]`) as HTMLButtonElement | null;
+                if (btn) {
+                    btn.click();
+                } else {
+                    console.warn('Network sync: Event option not found', optionId);
+                }
+            }
+        };
+
         NetworkManager.onPeerDisconnected = () => {
             const isEn = getLanguage() === 'en';
             HUDController.showAlert(isEn ? "⚠️ A player has disconnected from the match." : "⚠️ Un jugador se ha desconectado de la partida.");
+        };
+
+        NetworkManager.onVoteAbandonReceived = () => {
+            const isEn = getLanguage() === 'en';
+            const msg = isEn 
+                ? "Your partner wants to abandon the Co-op Expedition. Do you agree?" 
+                : "Tu compañero quiere abandonar la Expedición Cooperativa. ¿Estás de acuerdo?";
+            
+            // Usar confirm nativo para bloquear y forzar la respuesta
+            const accepted = confirm(msg);
+            
+            if (NetworkManager.sendFn) {
+                NetworkManager.sendFn({ type: 'VOTE_ABANDON_REPLY', accepted });
+            }
+            
+            if (accepted) {
+                import('./RoguelikeController').then(({ RoguelikeController }) => {
+                    RoguelikeController.abandonRun(true);
+                });
+            }
+        };
+
+        NetworkManager.onVoteAbandonReplyReceived = (accepted: boolean) => {
+            const isEn = getLanguage() === 'en';
+            if (accepted) {
+                HUDController.showAlert(isEn ? "Partner agreed. Abandoning run." : "Compañero aceptó. Abandonando expedición.");
+                import('./RoguelikeController').then(({ RoguelikeController }) => {
+                    RoguelikeController.abandonRun(true);
+                });
+            } else {
+                HUDController.showAlert(isEn ? "Partner declined to abandon the run." : "El compañero rechazó abandonar la expedición.");
+            }
         };
 
         NetworkManager.onError = (msg: string) => {
@@ -156,8 +351,10 @@ export class OnlineController {
     }
 
     public static openOnlineModal() {
+        NetworkManager.disconnect();
         ModalManager.openOnlineModal();
         ModalManager.switchOnlineTab('create');
+        ModalManager.setOnlineWizardStep(1);
         ModalManager.updateOnlineModalUI(
             this.onlineHostColor, 
             this.onlineShape, 
@@ -168,10 +365,9 @@ export class OnlineController {
             this.onlineBackground
         );
         ModalManager.updateOnlineGuestHeroUI(this.onlineGuestHero);
-        this.startHostingRoom();
     }
 
-    public static startHostingRoom() {
+    public static startHostingRoom(forceRoomCode?: string) {
         const codeBox = document.getElementById('display-room-code') || document.getElementById('online-room-code-display');
         const statusBox = document.getElementById('host-waiting-status') || document.getElementById('online-status-box');
         const statusText = document.getElementById('online-lobby-status-text') || document.getElementById('online-status-text');
@@ -190,8 +386,19 @@ export class OnlineController {
             hostColor: this.onlinePlayerCount === 4 ? 1 : this.onlineHostColor,
             playerCount: this.onlineGameType === 'coop_rogue' ? 2 : this.onlinePlayerCount,
             hostHero: this.onlineHostHero,
-            isCoopRogue: this.onlineGameType === 'coop_rogue'
+            isCoopRogue: this.onlineGameType === 'coop_rogue',
+            slots: { 
+                1: { slotId: 1, teamId: 1, type: 'human_local', aiDifficulty: this.onlineAIDifficulty },
+                2: { slotId: 2, teamId: 2, type: 'human_remote', aiDifficulty: this.onlineAISlots[2] || this.onlineAIDifficulty },
+                3: { slotId: 3, teamId: 1, type: 'human_remote', aiDifficulty: this.onlineAISlots[3] || this.onlineAIDifficulty },
+                4: { slotId: 4, teamId: 2, type: 'human_remote', aiDifficulty: this.onlineAISlots[4] || this.onlineAIDifficulty }
+            }
         };
+
+        // Asignamos el host según el color escogido
+        if (config.slots && config.hostColor) {
+            config.slots[config.hostColor].type = 'human_local';
+        }
 
         NetworkManager.hostRoom(
             config,
@@ -213,7 +420,8 @@ export class OnlineController {
                 if (statusText) {
                     statusText.innerText = `Error: ${errMsg}`;
                 }
-            }
+            },
+            forceRoomCode
         );
     }
 
@@ -230,6 +438,11 @@ export class OnlineController {
         if (statusBox && statusText) {
             statusBox.classList.remove('hidden');
             statusText.innerText = isEn ? `Connecting to room ${cleanCode}...` : `Conectando a la sala ${cleanCode}...`;
+        }
+
+        const slotsGrid = document.getElementById('join-lobby-slots-grid');
+        if (slotsGrid) {
+            slotsGrid.innerHTML = '';
         }
 
         NetworkManager.joinRoom(
@@ -286,28 +499,42 @@ export class OnlineController {
     }
 
     public static forceStartOnlineGame() {
-        NetworkManager.requestStartGame();
+        if (this.onlineGameType === 'coop_rogue' && NetworkManager.isHost) {
+            ModalManager.closeOnlineModal();
+            import('../ui/ModalManager').then(({ ModalManager: MM }) => {
+                MM.openRoguelikeSetupModal();
+            });
+        } else {
+            NetworkManager.requestStartGame();
+        }
     }
 
     public static copyRoomLink() {
-        if (this.currentShareUrl) {
-            const isEn = getLanguage() === 'en';
-            const onSuccess = () => {
-                const btn = document.getElementById('btn-copy-room-link');
-                if (btn) btn.innerHTML = isEn ? '<span>Copied! ✅</span>' : '<span>¡Copiado! ✅</span>';
-                setTimeout(() => {
-                    if (btn) btn.innerHTML = isEn ? '<span>📋 Copy Link</span>' : '<span>📋 Copiar Enlace</span>';
-                }, 2000);
-                HUDController.showAlert(isEn ? "Link copied to clipboard. Share it with your friends!" : "Enlace copiado al portapapeles. ¡Pásaselo a tus amigos!");
-            };
+        const roomCode = NetworkManager.currentRoomCode || '';
+        if (!roomCode) return;
+        const isEn = getLanguage() === 'en';
 
-            if (navigator.clipboard && navigator.clipboard.writeText) {
-                navigator.clipboard.writeText(this.currentShareUrl).then(onSuccess).catch(() => {
-                    HUDController.showAlert(isEn ? `Room code: ${NetworkManager.currentRoomCode}` : `Código de sala: ${NetworkManager.currentRoomCode}`);
-                });
-            } else {
-                onSuccess();
-            }
+        // Siempre copiamos solo el código GO-XXXX (no la URL completa),
+        // para que sea fácil de compartir en chats sin confundir a nadie.
+        const textToCopy = roomCode;
+
+        const onSuccess = () => {
+            const btn = document.getElementById('btn-copy-room-link');
+            if (btn) btn.innerHTML = isEn ? '<span>Copied! ✅</span>' : '<span>¡Copiado! ✅</span>';
+            setTimeout(() => {
+                if (btn) btn.innerHTML = isEn ? '<span>📋 Copy Code</span>' : '<span>📋 Copiar Código</span>';
+            }, 2000);
+            HUDController.showAlert(
+                isEn ? `Room code copied: ${roomCode}` : `Código de sala copiado: ${roomCode}`
+            );
+        };
+
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+            navigator.clipboard.writeText(textToCopy).then(onSuccess).catch(() => {
+                HUDController.showAlert(isEn ? `Room code: ${roomCode}` : `Código de sala: ${roomCode}`);
+            });
+        } else {
+            onSuccess();
         }
     }
 }

@@ -12,7 +12,7 @@ import { GameState } from '../core/GameState';
 import { RulesEngine } from '../core/RulesEngine';
 import { TerritoryScorer } from '../core/TerritoryScorer';
 
-export type AIDifficulty = 'easy' | 'medium' | 'hard' | 'dan';
+export type AIDifficulty = string;
 
 export interface AIMoveChoice {
     nodeId: string | null; // null si la IA decide pasar
@@ -490,16 +490,24 @@ export class GoAI {
         }
         const effectiveValidNodes = Math.max(1, validNodesCount);
 
-        // 2. Índice de Resolución Topológica: Proporción de tablero resuelto (Piedras + Territorio sellado)
-        const resolvedNodesCount = stonesCount + currentScore.territoryMap.size;
+        // 2. Índice de Resolución Topológica: solo se usan PIEDRAS reales.
+        //    NOTA: Se excluye territoryMap.size del cálculo porque en el early game (pocas piedras colocadas)
+        //    el BFS de territorio asigna casi todo el tablero vacío a un solo jugador aunque no esté cerrado,
+        //    lo que infla falsamente graphResolutionRate a ~1.0 en turno 3 y provoca un Game Over prematuro.
+        const resolvedNodesCount = stonesCount;
         const graphResolutionRate = resolvedNodesCount / effectiveValidNodes;
 
         // 3. Turno mínimo dinámico proporcional al tamaño y topología del grafo
         const minTurnsProportional = Math.max(8, Math.floor(effectiveValidNodes * 0.22));
 
         // 4. Criterio de Madurez del Tablero (adaptativo para 9x9, 13x13, 19x19, Islas, Reloj de Arena, etc.)
-        const isBoardMatured = (graphResolutionRate >= 0.65 && state.currentTurn >= minTurnsProportional) 
-                            || (graphResolutionRate >= 0.82);
+        //    GUARD: nunca declarar madurez antes del turno 10 absoluto para evitar Game Over en la apertura
+        //    incluso si el jugador pasa turno inmediatamente (turno 2-5).
+        const ABSOLUTE_MIN_TURNS = 10;
+        const isBoardMatured = state.currentTurn >= ABSOLUTE_MIN_TURNS && (
+            (graphResolutionRate >= 0.65 && state.currentTurn >= minTurnsProportional)
+            || (graphResolutionRate >= 0.82)
+        );
 
         const hasUrgentCombat = myChainsInAtari.length > 0 || enemyChainsInAtari.length > 0;
 
@@ -639,7 +647,9 @@ export class GoAI {
 
         let sizeCategory: 9 | 13 | 19 = 19;
         const totalNodes = board.nodes.size;
-        if (totalNodes <= 95 || (maxCol <= 8 && maxRow <= 8)) {
+        if (board.shape === 'oni') {
+            sizeCategory = 19;
+        } else if (totalNodes <= 95 || (maxCol <= 8 && maxRow <= 8)) {
             sizeCategory = 9;
         } else if (totalNodes <= 185 || (maxCol <= 12 && maxRow <= 12)) {
             sizeCategory = 13;

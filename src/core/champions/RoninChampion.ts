@@ -1,5 +1,6 @@
 // champions/RoninChampion.ts - Habilidad Pasiva: Filo del Samurai (cada 25 turnos elimina 1 piedra enemiga)
 import type { GraphBoard, PlayerId } from '../GraphBoard';
+import { SeededRandom } from '../SeededRandom';
 import type { GameState } from '../GameState';
 import { RulesEngine } from '../RulesEngine';
 import { RoninVFX } from '../../graphics/vfx/RoninVFX';
@@ -40,7 +41,7 @@ export class RoninChampion {
         if (enemyNodes.length === 0) return false;
 
         // Seleccionar una piedra enemiga aleatoria
-        const target = enemyNodes[Math.floor(Math.random() * enemyNodes.length)];
+        const target = enemyNodes[SeededRandom.nextInt(enemyNodes.length)];
         const targetNode = board.nodes.get(target.id);
         if (!targetNode || !targetNode.stone) return false;
 
@@ -54,8 +55,6 @@ export class RoninChampion {
 
             // Evaluar si la eliminación rompió libertades y causó capturas en cadena
             const extraCaptured = RulesEngine.resolveBoardCaptures(board, state, playerId);
-            const otherPid = (state.playerCount === 2 ? (playerId === 1 ? 2 : 1) : (((playerId % state.playerCount) + 1) as PlayerId));
-            RulesEngine.resolveBoardCaptures(board, state, otherPid);
 
             if (onBoardUpdated) {
                 onBoardUpdated();

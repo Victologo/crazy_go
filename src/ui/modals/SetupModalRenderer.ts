@@ -107,9 +107,15 @@ export class SetupModalRenderer {
         const playersText = config.playerCount === 4 
             ? (isEn ? '4 Players (4P FFA Go)' : '4 Jugadores (FFA Cuádruple)') 
             : (isEn ? '2 Players (1v1 Duel)' : '2 Jugadores (Duelo 1v1)');
-        const modeText = config.gameMode === '1via' 
-            ? (config.playerCount === 4 ? (isEn ? '1 Human vs 3 AIs' : '1 Humano vs 3 IAs') : (isEn ? 'Human vs AI' : 'Humano vs IA')) 
-            : (isEn ? 'Local Mode (Pass & Play)' : 'Modo Local (Pasa y Juega)');
+            
+        let modeText = '';
+        if (config.gameMode === 'aivsai') {
+            modeText = isEn ? 'AI vs AI' : 'IA vs IA';
+        } else if (config.gameMode === '1via') {
+            modeText = (config.playerCount === 4 ? (isEn ? '1 Human vs 3 AIs' : '1 Humano vs 3 IAs') : (isEn ? 'Human vs AI' : 'Humano vs IA'));
+        } else {
+            modeText = (isEn ? 'Local Mode (Pass & Play)' : 'Modo Local (Pasa y Juega)');
+        }
         
         if (titleEl) {
             titleEl.innerText = `${playersText} • ${modeText}`;
@@ -117,11 +123,22 @@ export class SetupModalRenderer {
 
         const shapeLabels: Record<string, string> = {
             square: isEn ? 'Square' : 'Cuadrado',
+            volcano: isEn ? 'Volcano' : 'Volcánico',
+            sky: isEn ? 'Sky' : 'Cielo',
+            oni: isEn ? 'Oni Mask' : 'Máscara Oni',
             triangle: isEn ? 'Triangular' : 'Triangular',
             hex: isEn ? 'Hexagonal' : 'Hexagonal',
             eroded: isEn ? 'Eroded' : 'Erosionado',
             islands: isEn ? 'Islands / Chasms' : 'Islas / Abismos',
+            islands_v1: isEn ? 'Islands v1' : 'Islas v1',
+            islands_v2: isEn ? 'Islands v2' : 'Islas v2',
             cross: isEn ? 'Cross / Diamond' : 'Cruz / Diamante',
+            hourglass: isEn ? 'Hourglass' : 'Reloj de Arena',
+            geode: isEn ? 'Geode' : 'Geoda',
+            spiral: isEn ? 'Spiral' : 'Espiral',
+            rings: isEn ? 'Rings' : 'Anillos',
+            star_5: isEn ? 'Star (5P)' : 'Estrella (5P)',
+            star_6: isEn ? 'Star of David' : 'Estrella de David',
             procedural: isEn ? 'Infinite Procedural' : 'Procedural Infinito'
         };
         const shapeName = shapeLabels[config.shape] || config.shape;
@@ -135,13 +152,13 @@ export class SetupModalRenderer {
             hard: isEn ? 'Hard (4k)' : 'Difícil (4k)',
             dan: isEn ? 'Supreme (2 Dan)' : 'Extremo (2 Dan)'
         };
-        const diffText = config.gameMode === '1via' ? ` • ${isEn ? 'Difficulty' : 'Dificultad'} ${diffLabels[config.difficulty] || (isEn ? 'Medium' : 'Medio')}` : '';
+        const diffText = (config.gameMode === '1via' || config.gameMode === 'aivsai') ? ` • ${isEn ? 'Difficulty' : 'Dificultad'} ${diffLabels[config.difficulty] || (isEn ? 'Medium' : 'Medio')}` : '';
 
         const special = config.specialStones;
         let specialSummary = isEn ? 'Pure Canonical Go' : 'Go Clásico Puro';
         if (special && special.enabled) {
             specialSummary = `${isEn ? 'Specials' : 'Especiales'}: ${special.playerSprouting}🌿 ${special.playerDomino}🀄 ${special.playerMonolith}🧱`;
-            if (config.gameMode === '1via') {
+            if (config.gameMode === '1via' || config.gameMode === 'aivsai') {
                 specialSummary += special.aiEnabled ? ` (AI: ${special.aiSprouting}🌿 ${special.aiDomino}🀄 ${special.aiMonolith}🧱)` : ' (AI: ❌)';
             }
         }
@@ -177,7 +194,8 @@ export class SetupModalRenderer {
         // Setup Board Name/Size in Preview Panel
         const previewTitle = document.getElementById('wizard-board-preview-title');
         const previewDesc = document.getElementById('wizard-board-preview-desc');
-        if (previewTitle) previewTitle.innerText = `${config.size}x${config.size} ${shapeName}`;
+        const effectiveSize = config.shape === 'oni' ? 25 : config.size;
+        if (previewTitle) previewTitle.innerText = `${effectiveSize}x${effectiveSize} ${shapeName}`;
         if (previewDesc) previewDesc.innerText = `... Intersections`;
 
         // Duel Stage Character Images & Names
@@ -242,6 +260,7 @@ export class SetupModalRenderer {
         const btnP4 = document.getElementById('setup-players-4');
         const btn1v1 = document.getElementById('setup-mode-1v1');
         const btn1via = document.getElementById('setup-mode-1via');
+        const btnAivsai = document.getElementById('setup-mode-aivsai');
         const aiBox = document.getElementById('setup-ai-options');
         const labelLocal = document.getElementById('label-mode-local');
         const labelAI = document.getElementById('label-mode-ai');
@@ -254,22 +273,104 @@ export class SetupModalRenderer {
 
         btn1v1?.classList.toggle('active', config.gameMode === '1v1');
         btn1via?.classList.toggle('active', config.gameMode === '1via');
-        aiBox?.classList.toggle('hidden', config.gameMode !== '1via');
+        btnAivsai?.classList.toggle('active', config.gameMode === 'aivsai');
+        aiBox?.classList.toggle('hidden', config.gameMode !== '1via' && config.gameMode !== 'aivsai');
 
         document.getElementById('setup-color-black')?.classList.toggle('active', config.humanColor === 1);
         document.getElementById('setup-color-white')?.classList.toggle('active', config.humanColor === 2);
 
-        document.getElementById('setup-diff-easy')?.classList.toggle('active', config.difficulty === 'easy');
-        document.getElementById('setup-diff-medium')?.classList.toggle('active', config.difficulty === 'medium');
-        document.getElementById('setup-diff-hard')?.classList.toggle('active', config.difficulty === 'hard');
-        document.getElementById('setup-diff-dan')?.classList.toggle('active', config.difficulty === 'dan');
+        // Update Slider Values
+        const parseKyuDanToNumber = (diff: string): number => {
+            if (!diff) return 16;
+            if (diff === 'easy') return 6;
+            if (diff === 'medium') return 15;
+            if (diff === 'hard') return 27;
+            if (diff === 'dan') return 32;
+            if (diff.endsWith('k')) return 31 - parseInt(diff);
+            if (diff.endsWith('d')) return 30 + parseInt(diff);
+            return 16;
+        };
+        const parseDifficultyString = (diff: string): string => {
+            if (!diff) return '15k';
+            if (diff === 'easy') return '25k';
+            if (diff === 'medium') return '15k';
+            if (diff === 'hard') return '4k';
+            if (diff === 'dan') return '2d';
+            return diff;
+        };
+
+        const masterVal = parseKyuDanToNumber(config.difficulty);
+        const masterStr = parseDifficultyString(config.difficulty);
+        
+        const mSlider = document.getElementById('ai-master-slider') as HTMLInputElement;
+        const mDisplay = document.getElementById('ai-master-display');
+        if (mSlider) mSlider.value = masterVal.toString();
+        if (mDisplay) mDisplay.innerText = masterStr;
+
+        // Individual Bot Sliders
+        const slots = config.slots || ({} as Record<import('../../core/GraphBoard').PlayerId, import('../../types').PlayerSlot>);
+        [2, 3, 4].forEach(p => {
+            const playerId = p as import('../../core/GraphBoard').PlayerId;
+            const pDiff = slots[playerId]?.aiDifficulty || config.difficulty;
+            const pVal = parseKyuDanToNumber(pDiff);
+            const pStr = parseDifficultyString(pDiff);
+            
+            const slider = document.getElementById(`ai-granular-p${p}-slider`) as HTMLInputElement;
+            const display = document.getElementById(`ai-granular-p${p}-display`);
+            
+            if (slider) slider.value = pVal.toString();
+            if (display) display.innerText = pStr;
+        });
+
+        // Hide P3/P4 rows if 2P mode
+        const p3Row = document.getElementById('ai-granular-p3-row');
+        const p4Row = document.getElementById('ai-granular-p4-row');
+        if (p3Row) p3Row.style.display = config.playerCount === 2 ? 'none' : 'flex';
+        if (p4Row) p4Row.style.display = config.playerCount === 2 ? 'none' : 'flex';
 
         this.renderHeroShowcaseElements('setup', config.heroId || null);
 
-        const allShapes = ['square', 'triangle', 'hex', 'eroded', 'islands_v1', 'islands_v2', 'islands', 'cross', 'hourglass', 'geode', 'spiral', 'rings', 'star_5', 'star_6', 'procedural'];
+        const allShapes = ['square', 'volcano', 'sky', 'oni', 'triangle', 'hex', 'eroded', 'islands_v1', 'islands_v2', 'islands', 'cross', 'hourglass', 'geode', 'spiral', 'rings', 'star_5', 'star_6', 'procedural'];
         allShapes.forEach(sh => {
             document.getElementById(`setup-shape-${sh}`)?.classList.toggle('active', config.shape === sh);
         });
+
+        // Toggle Volcano Info Icon Display
+        const volcanoInfo = document.getElementById('setup-volcano-info');
+        if (volcanoInfo) {
+            volcanoInfo.style.display = config.shape === 'volcano' ? 'flex' : 'none';
+        }
+
+        // Toggle Sky Info Icon Display
+        const skyInfo = document.getElementById('setup-sky-info');
+        if (skyInfo) {
+            skyInfo.style.display = config.shape === 'sky' ? 'flex' : 'none';
+        }
+
+        // Toggle Oni Info Icon Display
+        const oniInfo = document.getElementById('setup-oni-info');
+        if (oniInfo) {
+            oniInfo.style.display = config.shape === 'oni' ? 'flex' : 'none';
+        }
+
+        // Render Prominent Hazard Banner under Board Preview
+        const hazardBanner = document.getElementById('setup-board-hazard-banner');
+        if (hazardBanner) {
+            const isEn = getLanguage() === 'en';
+            if (config.shape === 'volcano') {
+                hazardBanner.classList.remove('hidden');
+                hazardBanner.innerHTML = `<span>🌋 <strong>${isEn ? 'Volcano:' : 'Volcán:'}</strong> ${isEn ? 'Every 10 turns per player (20 total), a meteor destroys 1 intersection.' : 'Cada 10 turnos por jugador (20 totales), un meteorito destruye 1 casilla.'}</span>`;
+            } else if (config.shape === 'sky') {
+                hazardBanner.classList.remove('hidden');
+                hazardBanner.innerHTML = `<span>☁️ <strong>${isEn ? 'Sky Board:' : 'Cielo:'}</strong> ${isEn ? 'Every 10 turns per player (20 total), 5 square blocks (2x2) fall from the sky expanding the goban.' : 'Cada 10 turnos por jugador (20 totales), 5 nuevos bloques (2x2) caen del cielo expandiendo el goban.'}</span>`;
+            } else if (config.shape === 'oni') {
+                hazardBanner.classList.remove('hidden');
+                hazardBanner.innerHTML = `<span>👹 <strong>${isEn ? 'Oni Mask:' : 'Máscara Oni:'}</strong> ${isEn ? '🌪️ <strong>Inhalation</strong> (every 14 turns: vortex pulls 1-3 stone groups from all sides towards the mouth and devours them; 4+ stones resist) & 🩸 <strong>Soul Feast</strong> (capturing 2+ stones grants +1 extra turn).' : '🌪️ <strong>Inhalación</strong> (cada 14 turnos: atrae grupos de 1 a 3 piedras hacia la boca y las devora; 4+ piedras resisten) y 🩸 <strong>Festín de Almas</strong> (capturar 2+ piedras otorga +1 turno extra).'}</span>`;
+            } else {
+                hazardBanner.classList.add('hidden');
+                hazardBanner.innerHTML = '';
+            }
+        }
 
         document.getElementById('setup-size-9')?.classList.toggle('active', config.size === 9);
         document.getElementById('setup-size-13')?.classList.toggle('active', config.size === 13);
@@ -318,7 +419,7 @@ export class SetupModalRenderer {
         // Control IA de especiales
         const aiSpecialBox = document.getElementById('special-stones-ai-box');
         if (aiSpecialBox) {
-            aiSpecialBox.style.display = config.gameMode === '1via' ? 'block' : 'none';
+            aiSpecialBox.style.display = (config.gameMode === '1via' || config.gameMode === 'aivsai') ? 'block' : 'none';
         }
 
         const btnToggleAISpecial = document.getElementById('btn-toggle-ai-special');
@@ -488,12 +589,13 @@ export class SetupModalRenderer {
         const previewDesc = document.getElementById('wizard-board-preview-desc');
         if (previewDesc) previewDesc.innerText = `${board.nodes.size} Intersecciones`;
         const stageBoardInfo = document.getElementById('wizard-stage-board-info');
-        const shapeLabels: Record<string, string> = { square: 'Cuadrado', triangle: 'Triangular', hex: 'Hexagonal', eroded: 'Erosionado', islands: 'Islas / Abismos', cross: 'Cruz / Diamante', procedural: 'Procedural Infinito' };
-        if (stageBoardInfo) stageBoardInfo.innerText = `${config.size}x${config.size} ${shapeLabels[config.shape] || config.shape} • ${board.nodes.size} Pts`;
+        const shapeLabels: Record<string, string> = { square: 'Cuadrado', triangle: 'Triangular', hex: 'Hexagonal', eroded: 'Erosionado', islands: 'Islas / Abismos', cross: 'Cruz / Diamante', oni: 'Máscara Oni', procedural: 'Procedural Infinito' };
+        const effectiveSize = config.shape === 'oni' ? 25 : config.size;
+        if (stageBoardInfo) stageBoardInfo.innerText = `${effectiveSize}x${effectiveSize} ${shapeLabels[config.shape] || config.shape} • ${board.nodes.size} Pts`;
 
         // Mismo info para el paso 6
         const rivalBoardInfo = document.getElementById('wizard-rival-board-info');
-        if (rivalBoardInfo) rivalBoardInfo.innerText = `${config.size}x${config.size} ${shapeLabels[config.shape] || config.shape} • ${board.nodes.size} Pts`;
+        if (rivalBoardInfo) rivalBoardInfo.innerText = `${effectiveSize}x${effectiveSize} ${shapeLabels[config.shape] || config.shape} • ${board.nodes.size} Pts`;
 
         // Renderizar Previsualización Paso 3 — SIN escenario: fondo blanco con cuadrícula gris sutil
         const previewViewport1 = document.getElementById('wizard-board-preview-viewport');

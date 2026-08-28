@@ -39,6 +39,7 @@ export class BoardNode {
 export class GraphBoard {
     nodes: Map<string, BoardNode>;
     shape?: string;
+    size?: number;
 
     constructor() {
         this.nodes = new Map();
@@ -62,6 +63,30 @@ export class GraphBoard {
             node1.neighbors.add(id2);
             node2.neighbors.add(id1);
         }
+    }
+
+    removeEdge(id1: string, id2: string) {
+        const node1 = this.nodes.get(id1);
+        const node2 = this.nodes.get(id2);
+        if (node1) node1.neighbors.delete(id2);
+        if (node2) node2.neighbors.delete(id1);
+    }
+
+    removeNode(id: string) {
+        const node = this.nodes.get(id);
+        if (!node) return;
+        // Eliminar aristas de los vecinos
+        for (const neighborId of node.neighbors) {
+            const neighbor = this.nodes.get(neighborId);
+            if (neighbor) {
+                neighbor.neighbors.delete(id);
+            }
+        }
+        // Limpiar aristas del nodo
+        node.neighbors.clear();
+        node.stone = null;
+        // Marcar como destruido
+        node.terrain = 'DESTROYED';
     }
 
     getLiberties(startNodeId: string): Set<string> {

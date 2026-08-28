@@ -1,5 +1,6 @@
 import type { ChampionActiveSkill } from './types';
-import type { GraphBoard, BoardNode } from '../GraphBoard';
+import { GraphBoard, BoardNode } from '../GraphBoard';
+import { SeededRandom } from '../SeededRandom';
 import { RulesEngine } from '../RulesEngine';
 import { TenguVFX } from '../../graphics/vfx/TenguVFX';
 import { getLanguage } from '../../i18n/i18n';
@@ -49,6 +50,9 @@ export class TenguChampion {
      * - Se adapta de forma continua y proporcional al recuento exacto de intersecciones válidas del tablero.
      */
     public static getMeteorCount(board: GraphBoard): number {
+        if (board.shape === 'oni') {
+            return 27; // Máscara Oni siempre escala como 19x19 (27 meteoros)
+        }
         const validCount = Array.from(board.nodes.values()).filter(
             n => n.terrain !== 'DESTROYED' && n.terrain !== 'OBSTACLE'
         ).length;
@@ -78,7 +82,7 @@ export class TenguChampion {
         const actualMeteorCount = Math.min(meteorCount, availableNodes.length);
         
         for (let i = 0; i < actualMeteorCount; i++) {
-            const randIndex = Math.floor(Math.random() * availableNodes.length);
+            const randIndex = SeededRandom.nextInt(availableNodes.length);
             impactNodes.push(availableNodes[randIndex]);
             availableNodes.splice(randIndex, 1); // Remover para evitar duplicados
         }

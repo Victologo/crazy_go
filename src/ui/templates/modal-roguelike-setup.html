@@ -11,27 +11,23 @@
         <div class="modal-body-scroll rogue-body-panoramic">
           <!-- Expedition Difficulty -->
           <div class="setup-section rogue-diff-section">
-            <label class="setup-label">Expedition Difficulty</label>
+            <label class="setup-label" data-i18n="rogue.diff_label">Expedition Difficulty</label>
             <div class="setup-grid grid-4 rogue-diff-grid">
-              <button id="rogue-diff-easy" class="btn btn-choice active" data-diff="easy">
-                <span class="choice-icon">🟢</span>
-                <span class="choice-title">Easy</span>
-                <small class="diff-sub">Beginner</small>
+              <button id="rogue-diff-easy" class="btn btn-choice rogue-diff-btn diff-btn-easy active" data-diff="easy">
+                <span class="diff-flame flame-easy">🔥</span>
+                <span class="choice-title" data-i18n="rogue.diff_easy">Easy</span>
               </button>
-              <button id="rogue-diff-normal" class="btn btn-choice" data-diff="normal">
-                <span class="choice-icon">🟡</span>
-                <span class="choice-title">Normal</span>
-                <small class="diff-sub">Warrior</small>
+              <button id="rogue-diff-normal" class="btn btn-choice rogue-diff-btn diff-btn-normal diff-btn-medium" data-diff="normal">
+                <span class="diff-flame flame-normal flame-medium">🔥</span>
+                <span class="choice-title" data-i18n="rogue.diff_normal">Medium</span>
               </button>
-              <button id="rogue-diff-hard" class="btn btn-choice" data-diff="hard">
-                <span class="choice-icon">🔴</span>
-                <span class="choice-title">Hard</span>
-                <small class="diff-sub">Master</small>
+              <button id="rogue-diff-hard" class="btn btn-choice rogue-diff-btn diff-btn-hard" data-diff="hard">
+                <span class="diff-flame flame-hard">🔥</span>
+                <span class="choice-title" data-i18n="rogue.diff_hard">Hard</span>
               </button>
-              <button id="rogue-diff-extreme" class="btn btn-choice btn-dan" data-diff="extreme">
-                <span class="choice-icon">🟣</span>
-                <span class="choice-title">Grandmaster</span>
-                <small class="diff-sub">Supreme Dan</small>
+              <button id="rogue-diff-extreme" class="btn btn-choice rogue-diff-btn diff-btn-extreme btn-dan" data-diff="extreme">
+                <span class="diff-flame flame-extreme">🔥</span>
+                <span class="choice-title" data-i18n="rogue.diff_extreme">Grandmaster</span>
               </button>
             </div>
           </div>
@@ -79,31 +75,31 @@
           <div class="hero-thumb-strip" id="rogue-hero-thumb-strip">
             <button class="hero-thumb-btn active" data-hero="normal">
               <img src="./heroes/normal_face.jpg" alt="Normal" />
-              <span>Normal</span>
+              <span data-i18n="champion.normal.name">Normal</span>
             </button>
             <button class="hero-thumb-btn" data-hero="tengu">
               <img src="./heroes/tengu_face.jpg" alt="Tengu" />
-              <span>Tengu</span>
+              <span data-i18n="champion.tengu.name">Tengu</span>
             </button>
             <button class="hero-thumb-btn" data-hero="himiko">
               <img src="./heroes/himiko_face.jpg" alt="Himiko" />
-              <span>Himiko</span>
+              <span data-i18n="champion.himiko.name">Himiko</span>
             </button>
             <button class="hero-thumb-btn" data-hero="kitsune">
               <img src="./heroes/kitsune_face.jpg" alt="Kitsune" />
-              <span>Kitsune</span>
+              <span data-i18n="champion.kitsune.name">Kitsune</span>
             </button>
             <button class="hero-thumb-btn" data-hero="ronin">
               <img src="./heroes/ronin_face.jpg" alt="Ronin" />
-              <span>Ronin</span>
+              <span data-i18n="champion.ronin.name">Ronin</span>
             </button>
             <button class="hero-thumb-btn" data-hero="alchemist">
               <img src="./heroes/alchemist_face.jpg" alt="Alchemist" />
-              <span>Alchemist</span>
+              <span data-i18n="champion.alchemist.name">Alchemist</span>
             </button>
             <button class="hero-thumb-btn" data-hero="ryujin">
               <img src="./heroes/ryujin_face.jpg" alt="Ryūjin" />
-              <span>Ryūjin</span>
+              <span data-i18n="champion.ryujin.name">Ryūjin</span>
             </button>
           </div>
         </div>

@@ -28,15 +28,20 @@ export class TutorialManager {
         }
 
         this.isActive = true;
+        if (typeof window !== 'undefined') (window as any).__isTutorialActive = true;
         document.body.classList.add('tutorial-active');
+        document.getElementById('game-topbar')?.classList.add('tutorial-active');
         this.currentChapter = chapter;
         this.currentStepIndex = 0;
         this.isAdvancing = false;
 
         const isPolySpellChapter = chapter.id === 'cap_8_hechizos_poliminos';
-        const isChampionChapter = chapter.id === 'cap_7_campeones';
+        const isPassChapter = chapter.id === 'cap_seki' || chapter.steps.some(s => s.expectedAction.type === 'pass');
+        const heroId = chapter.heroId || 'normal';
+        const isChampionMode = heroId !== 'normal';
         
         document.body.classList.toggle('tutorial-show-spellbar', isPolySpellChapter);
+        document.body.classList.toggle('tutorial-show-pass-only', isPassChapter);
 
         // Configurar la partida para el tutorial
         GameController.config = {
@@ -63,25 +68,32 @@ export class TutorialManager {
 
         PolyominoManager.resetForMatch(false, GameController.config);
 
-        if (isChampionChapter) {
-            ChampionManager.resetForMatch('tengu', GameController.board);
-            ChampionManager.setHero('tengu');
+        if (isChampionMode) {
+            ChampionManager.resetForMatch(heroId, GameController.board);
+            ChampionManager.setHero(heroId);
             ChampionManager.activeChargesLeft = 1;
             ChampionManager.isPassiveSkillAvailable = true;
             RogueliteManager.resetSpells({});
             HUDController.updateDuelists(
                 false,
-                'tengu',
+                heroId,
                 undefined,
                 '1via',
                 'easy'
             );
         } else {
             ChampionManager.resetForMatch('normal', GameController.board);
+            HUDController.updateDuelists(
+                false,
+                'normal',
+                undefined,
+                '1via',
+                'easy'
+            );
         }
 
         if (isPolySpellChapter) {
-            RogueliteManager.resetSpells({ meteor: 1, rewind: 1 });
+            RogueliteManager.resetSpells({ meteor: 2, rewind: 1 });
             const inv = new Map<import('../types').PolyominoType, number>();
             inv.set('sprouting', 1);
             inv.set('domino', 1);
@@ -125,8 +137,14 @@ export class TutorialManager {
             this.finishTimeout = null;
         }
         this.isActive = false;
+        if (typeof window !== 'undefined') {
+            (window as any).__isTutorialActive = false;
+            (window as any).__tutorialForceMeteorAlly = false;
+            (window as any).__tutorialForceMeteorEnemy = false;
+        }
         document.body.classList.remove('tutorial-active');
         document.body.classList.remove('tutorial-show-spellbar');
+        document.body.classList.remove('tutorial-show-pass-only');
         this.currentChapter = null;
         this.currentStepIndex = 0;
         this.isAdvancing = false;
@@ -272,31 +290,61 @@ export class TutorialManager {
             ? TUTORIAL_CHAPTERS[currentIndex + 1]
             : null;
 
+        const kickerEl = document.getElementById('tutorial-complete-kicker');
         const titleEl = document.getElementById('tutorial-complete-title');
         const subtitleEl = document.getElementById('tutorial-complete-subtitle');
-        const nextPreview = document.getElementById('tutorial-next-preview');
-        const nextTitle = document.getElementById('tutorial-next-title');
         const nextBtn = document.getElementById('btn-tutorial-next');
+        const replayBtn = document.getElementById('btn-tutorial-replay');
+        const listBtn = document.getElementById('btn-tutorial-list');
 
-        if (titleEl) titleEl.innerText = isEn ? `Lesson ${this.currentChapter.chapterNumber} Completed!` : `¡Lección ${this.currentChapter.chapterNumber} Completada!`;
-        if (subtitleEl) subtitleEl.innerText = isEn ? `You have successfully mastered: "${this.currentChapter.title}".` : `Has dominado con éxito: "${this.currentChapter.title}".`;
+        if (kickerEl) {
+            kickerEl.innerText = isEn ? `✦ LESSON ${this.currentChapter.chapterNumber} COMPLETED ✦` : `✦ LECCIÓN ${this.currentChapter.chapterNumber} COMPLETADA ✦`;
+        }
+        if (titleEl) {
+            titleEl.innerText = `${this.currentChapter.chapterNumber}. ${this.currentChapter.title}`;
+        }
+        if (subtitleEl) {
+            subtitleEl.innerText = isEn 
+                ? `You have successfully assimilated the core concepts of this lesson.` 
+                : `Has asimilado con éxito los conceptos fundamentales de esta lección.`;
+        }
 
-        if (nextChapter) {
-            if (nextPreview) nextPreview.style.display = 'block';
-            if (nextTitle) nextTitle.innerText = `${nextChapter.chapterNumber}. ${nextChapter.title}`;
-            if (nextBtn) {
-                nextBtn.style.display = 'inline-flex';
-                nextBtn.innerText = isEn ? `▶ Next Lesson (${nextChapter.chapterNumber})` : `▶ Siguiente Lección (${nextChapter.chapterNumber})`;
+        if (replayBtn) {
+            replayBtn.innerHTML = isEn 
+                ? `<span class="btn-tut-sub-icon">↺</span><span class="btn-tut-sub-text">Replay</span><span class="btn-tut-sub-kbd">[R]</span>` 
+                : `<span class="btn-tut-sub-icon">↺</span><span class="btn-tut-sub-text">Repetir</span><span class="btn-tut-sub-kbd">[R]</span>`;
+        }
+        if (listBtn) {
+            listBtn.innerHTML = isEn 
+                ? `<span class="btn-tut-sub-icon">📜</span><span class="btn-tut-sub-text">Dojo List</span><span class="btn-tut-sub-kbd">[Esc]</span>` 
+                : `<span class="btn-tut-sub-icon">📜</span><span class="btn-tut-sub-text">Lista del Dojo</span><span class="btn-tut-sub-kbd">[Esc]</span>`;
+        }
+
+        if (nextBtn) {
+            if (nextChapter) {
+                const nextKicker = isEn ? "NEXT LESSON ➔" : "SIGUIENTE LECCIÓN ➔";
+                const nextLessonFullTitle = `${nextChapter.chapterNumber}. ${nextChapter.title}`;
+                nextBtn.innerHTML = `
+                    <div class="btn-tut-next-content">
+                        <span class="btn-tut-next-kicker">${nextKicker}</span>
+                        <strong class="btn-tut-next-title">${nextLessonFullTitle}</strong>
+                    </div>
+                    <span class="btn-tut-kbd">↵ Enter</span>
+                `;
                 nextBtn.onclick = () => {
                     modal.classList.add('hidden');
                     this.initTutorial(nextChapter.id);
                 };
-            }
-        } else {
-            if (nextPreview) nextPreview.style.display = 'none';
-            if (nextBtn) {
-                nextBtn.style.display = 'inline-flex';
-                nextBtn.innerText = isEn ? `🎓 Finish Dojo` : `🎓 Finalizar Dojo`;
+            } else {
+                const finishKicker = isEn ? "DOJO MASTERED ✦" : "DOJO COMPLETADO ✦";
+                const finishTitle = isEn ? "🎓 Finish Dojo" : "🎓 Finalizar Dojo";
+                nextBtn.innerHTML = `
+                    <div class="btn-tut-next-content">
+                        <span class="btn-tut-next-kicker">${finishKicker}</span>
+                        <strong class="btn-tut-next-title">${finishTitle}</strong>
+                    </div>
+                    <span class="btn-tut-kbd">↵ Enter</span>
+                `;
                 nextBtn.onclick = () => {
                     modal.classList.add('hidden');
                     this.stopTutorial();
@@ -306,6 +354,7 @@ export class TutorialManager {
         }
 
         modal.classList.remove('hidden');
+        SoundFX.playVictoryFanfare();
         HUDController.showAlert(isEn ? "🎉 Chapter Completed Successfully!" : "🎉 ¡Lección completada con éxito!");
     }
 

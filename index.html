@@ -11,65 +11,93 @@
       
       <!-- ================= SCREEN 1: MAIN MENU ================= -->
       <section id="main-menu-screen" class="screen">
-        <!-- Theme Toggle (Top Right) -->
-        <button id="btn-menu-theme" class="btn-theme-toggle btn-theme-floating" title="Toggle Light / Dark Mode">
-          <span class="theme-icon">☀️</span>
-        </button>
+        <div id="menu-camera">
+          <div id="menu-camera-bg"></div>
+          <div class="menu-backdrop-overlay"></div>
+          
+          <div id="dojo-spatial-scene" class="aspect-ratio-16-9">
 
-        <div class="menu-backdrop-overlay"></div>
-        <div class="menu-card">
-          <div class="menu-brand">
-            <h1 class="main-title">CRAZY GO</h1>
-          </div>
+            <!-- Elementos de Mobiliario Modular (Decoración con Transparencia Pura) -->
+            <!-- Estantería de madera tradicional de 3 baldas -->
+            <img id="furniture-bookshelf" src="furniture_bookshelf.png" style="position:absolute; top:18%; left:71%; width:24%; height:72%; object-fit:contain; filter: drop-shadow(4px 8px 14px rgba(0,0,0,0.6)); pointer-events:none; z-index:1; transform: scale(1.6); transform-origin: center center;" />
 
-          <div class="menu-actions">
-            <button id="btn-menu-roguelike" class="btn btn-hero">
-              <span class="btn-icon">⚔️</span>
-              <span class="btn-text" data-i18n="menu.expedition">Roguelike Expedition</span>
-            </button>
-          </div>
-          <div class="menu-grid">
-            <button id="btn-menu-free" class="btn btn-menu-classic">
-              <span class="btn-icon">📜</span>
-              <span class="btn-text" data-i18n="menu.custom">Custom Match / Local</span>
-            </button>
-            <button id="btn-menu-online" class="btn btn-menu-online">
-              <span class="btn-icon">🌐</span>
-              <span class="btn-text" data-i18n="menu.online">Online Multiplayer</span>
-            </button>
-            <button id="btn-menu-story" class="btn btn-menu-story" title="Goban Chronicles & Tactical Rescue Missions">
-              <span class="btn-icon">📖</span>
-              <span class="btn-text" data-i18n="menu.story">Story Mode</span>
-              <span class="badge-menu-wip" data-i18n="menu.story_wip">⚠️ En Desarrollo</span>
-            </button>
-            <button id="btn-menu-dojo" class="btn btn-menu-dojo" title="Learn to play, master rules, and special skills">
-              <span class="btn-icon">🥋</span>
-              <span class="btn-text" data-i18n="menu.tutorial">Tutorial Dojo</span>
-            </button>
+            <!-- Soporte de suelo tradicional para pergamino / mapa (Emakimono Stand) -->
+            <img id="furniture-stand" src="furniture_stand.png" style="position:absolute; top: calc(54% - 2px); left:6.5%; width:26%; height:42%; object-fit:contain; filter: drop-shadow(0 0 15px rgba(245, 158, 11, 0.35)) drop-shadow(4px 8px 14px rgba(0,0,0,0.7)); opacity:0.95; pointer-events:none; z-index:2; transform: scale(1.3); transform-origin: center center;" />
 
-            <button id="btn-menu-options" class="btn btn-menu-secondary">
-              <span class="btn-icon">⚙️</span>
-              <span class="btn-text" data-i18n="menu.options">Options</span>
-            </button>
-          </div>
+            <!-- Objetos Interactivos Espaciales -->
+            <!-- Cartel / Placa de Madera Tradicional CRAZY GO (No interactuable, integrado con el fondo) -->
+            <div id="menu-title-board" style="position:absolute; top: 1.5%; left: 31%; width: 38%; height: 16%; z-index:5; display:flex; align-items:center; justify-content:center; pointer-events:none; user-select:none;">
+              <img src="title_board_crazy_go.png" alt="Crazy Go" style="width:100%; height:100%; object-fit:contain; filter: drop-shadow(0 8px 20px rgba(0,0,0,0.85)) drop-shadow(0 0 25px rgba(245, 158, 11, 0.2)); pointer-events:none;" />
+            </div>
 
-          <div class="menu-actions" style="margin-top: 0.85rem;">
-            <button id="btn-menu-feedback" class="btn btn-menu-secondary btn-feedback">
-              <span class="btn-icon">✉️</span>
-              <span class="btn-text" data-i18n="menu.feedback">Feedback & Bugs</span>
-            </button>
+            <!-- Roguelike Map (Pergamino sobre soporte en el lateral izquierdo) -->
+            <div id="btn-menu-roguelike" class="dojo-item" style="top: calc(53% - 2px); left: 12%; width: 18%; height: 42%; z-index:10; display:flex; flex-direction:column; align-items:center; justify-content:space-between;">
+              <img src="item_map_roguelike_1787399828008.png" style="width:100%; height:82%; object-fit:contain; filter: drop-shadow(2px 6px 12px rgba(0,0,0,0.6));" />
+              <span style="color:#34d399; font-weight:900; font-size:1.75rem; line-height:1; transform: translateY(-22px);">ROGUELIKE</span>
+            </div>
+            
+            <!-- Custom Match Local (Farolillo Izquierdo con Brillo Ámbar) -->
+            <div id="btn-menu-free" class="dojo-item" style="top: 6.5%; left: 3.5%; width: 10%; height: 31%; z-index:10; display:flex; flex-direction:column; align-items:center; justify-content:space-between;">
+              <img src="item_lantern_local_1787399788940.png" style="width:100%; height:82%; object-fit:contain; filter: drop-shadow(0px 0px 20px rgba(251, 191, 36, 0.7));" />
+              <span style="color:#fbbf24; font-weight:900; font-size:1.75rem; line-height:1;">LOCAL</span>
+            </div>
+            
+            <!-- Versus Online (Farolillo Derecho con Brillo Azul) -->
+            <div id="btn-menu-online" class="dojo-item" style="top: 9.5%; left: calc(15% + 30px); width: 10%; height: 31%; z-index:10; display:flex; flex-direction:column; align-items:center; justify-content:space-between;">
+              <img src="item_lantern_online_1787399992642.png" style="width:100%; height:82%; object-fit:contain; filter: drop-shadow(0px 0px 20px rgba(56, 189, 248, 0.75));" />
+              <span style="color:#38bdf8; font-weight:900; font-size:1.75rem; line-height:1;">ONLINE</span>
+            </div>
+
+            <!-- Social / Perfil (Farolillo o texto cerca de Online) -->
+            <div id="btn-menu-social" class="dojo-item" style="top: 25.5%; left: calc(30% + 30px); width: 10%; height: 15%; z-index:10; display:flex; flex-direction:column; align-items:center; justify-content:center;">
+              <span style="color:#fb7185; font-weight:900; font-size:1.5rem; line-height:1; background: rgba(0,0,0,0.6); padding: 5px 12px; border-radius: 8px; border: 1px solid #fb7185; box-shadow: 0 0 10px rgba(251, 113, 133, 0.5);">👥 SOCIAL</span>
+            </div>
+
+            <!-- Story Mode (En la balda superior - Libro a la izquierda, texto a la derecha) -->
+            <div id="btn-menu-story" class="dojo-item" style="top: 29%; left: calc(73.5% + 6px); width: 20%; height: 17%; z-index:10; display:flex; flex-direction:row; align-items:center; justify-content:flex-start; gap:8px;">
+              <img src="item_book_story_1787399966087.png" style="width:48%; height:90%; object-fit:contain; filter: drop-shadow(2px 4px 6px rgba(0,0,0,0.5));" />
+              <span style="white-space:nowrap; color:#c084fc; font-weight:900; font-size:1.75rem;">STORY</span>
+            </div>
+
+            <!-- Feedback (En la balda media - Texto a la izquierda, grulla a la derecha) -->
+            <div id="btn-menu-feedback" class="dojo-item" style="top: 46%; left: calc(71.5% + 9px); width: 22%; height: 17%; z-index:10; display:flex; flex-direction:row; align-items:center; justify-content:flex-end; gap:8px;">
+              <span style="white-space:nowrap; color:#f87171; font-weight:900; font-size:1.75rem;">FEEDBACK</span>
+              <img src="item_feedback_crane_1787400071528.png" style="width:48%; height:90%; object-fit:contain; filter: drop-shadow(0px 0px 10px rgba(255,255,255,0.4));" />
+            </div>
+
+            <!-- Tutorial Dojo (Suelo Centro-Derecha, Muñeco Tradicional) -->
+            <div id="btn-menu-dojo" class="dojo-item" style="top: calc(47% - 10px); left: 44.5%; width: 19%; height: 49%; z-index:10; display:flex; flex-direction:column; align-items:center; justify-content:space-between;">
+              <img src="item_dummy_tutorial_1787400017841.png" style="width:100%; height:87%; object-fit:contain; filter: drop-shadow(2px 4px 6px rgba(0,0,0,0.5));" />
+              <span style="color:#fcd34d; font-weight:900; font-size:1.75rem; line-height:1; transform: translateY(-25px);">TUTORIAL</span>
+            </div>
+            
+            <!-- Options (En la balda inferior - Ábaco a la izquierda, texto a la derecha) -->
+            <div id="btn-menu-options" class="dojo-item" style="top: 64%; left: calc(71.5% + 9px); width: 22%; height: 17%; z-index:10; display:flex; flex-direction:row; align-items:center; justify-content:flex-start; gap:8px;">
+              <img src="item_options_1787400045954.png" style="width:55%; height:85%; object-fit:contain; filter: drop-shadow(2px 4px 6px rgba(0,0,0,0.5));" />
+              <span style="white-space:nowrap; color:#e2e8f0; font-weight:900; font-size:1.75rem;">OPTIONS</span>
+            </div>
+
+            <!-- Author Credit / Signature Watermark -->
+            <div id="menu-creator-signature" class="menu-creator-signature" title="Crazy Go • Roguelite Board Engine">
+              <span class="signature-icon">⛩️</span>
+              <span class="signature-text">Created by <strong class="signature-name">Víctor Alonso</strong></span>
+            </div>
           </div>
         </div>
       </section>
 
       <!-- ================= SCREEN 2: GAME SCREEN ================= -->
       <section id="game-screen" class="screen hidden">
+
         <!-- Minimalist In-Game Topbar HUD -->
         <header id="game-topbar">
-          <!-- Left Group: Navigation, Reset and Undo/Redo -->
+          <!-- Left Group: Navigation, Reset, Log and Undo/Redo -->
           <div class="topbar-group topbar-left">
             <button id="btn-game-back" class="btn btn-topbar" title="Return to Main Menu">
               <span>🏠 Menu</span>
+            </button>
+            <button id="btn-game-combat-log" class="btn btn-topbar btn-combat-log" title="Combat Log & Interactive Replay (L Key)">
+              <span>📜 Log</span>
             </button>
             <button id="btn-game-undo" class="btn btn-topbar btn-undo" title="Undo last move (Rewind)">
               <span>⏪ Undo</span>
@@ -80,6 +108,79 @@
             <button id="btn-game-reset" class="btn btn-topbar" title="Restart Match">
               <span>🔄</span>
             </button>
+            <div id="story-debug-panel" class="hidden" style="position:relative; display:inline-flex; align-items:center;">
+              <button id="btn-story-debug-toggle" class="btn btn-topbar" style="
+                display:inline-flex; align-items:center; gap:5px;
+                padding:4px 10px; border-radius:6px; border:1px solid #f59e0b;
+                background:#0f172a; color:#fbbf24; cursor:pointer;
+                font-size:0.78rem; font-weight:700;
+                box-shadow:0 0 10px rgba(245,158,11,0.25);
+              ">🛠️ Story Debug <span id="story-debug-arrow" style="opacity:.7;font-size:.65rem;">▼</span></button>
+
+              <div id="story-debug-body" class="hidden" style="
+                position:absolute; top:calc(100% + 8px); left:0;
+                background:#0f172a; border:1px solid #475569;
+                border-radius:8px; padding:10px; width:215px;
+                box-shadow:0 12px 32px rgba(0,0,0,.95); backdrop-filter:blur(12px);
+                font-family:var(--font-body,sans-serif); z-index:100000;
+              ">
+                <label style="color:#94a3b8;font-size:.68rem;display:block;margin-bottom:3px;font-weight:600;">CHAPTER SELECT</label>
+                <select id="story-debug-chapter" style="
+                  width:100%;padding:4px 6px;font-size:0.74rem;
+                  background:#1e293b;color:#f1f5f9;border:1px solid #475569;border-radius:5px;
+                ">
+                  <option value="0">Cap. 1: The Shattered Goban</option>
+                  <option value="1">Cap. 2: The Crystal Fault</option>
+                  <option value="2">Cap. 3: The Three Quake Islands</option>
+                </select>
+                <button id="btn-story-debug-jump" style="
+                  width:100%;margin-top:4px;padding:4px 0;border-radius:5px;border:none;
+                  background:#334155;color:#e2e8f0;font-size:.73rem;font-weight:600;cursor:pointer;
+                ">⏭ Jump to Chapter</button>
+
+                <div style="border-top:1px solid #1e293b;margin:8px 0;"></div>
+
+                <div style="display:flex;gap:5px;margin-bottom:6px;">
+                  <button id="btn-story-debug-win" style="
+                    flex:1;padding:6px 0;border:none;border-radius:5px;
+                    background:#14532d;color:#bbf7d0;font-size:.73rem;font-weight:700;cursor:pointer;
+                  ">🏆 Win</button>
+                  <button id="btn-story-debug-lose" style="
+                    flex:1;padding:6px 0;border:none;border-radius:5px;
+                    background:#7f1d1d;color:#fecaca;font-size:.73rem;font-weight:700;cursor:pointer;
+                  ">💀 Lose</button>
+                </div>
+
+                <div style="border-top:1px solid #1e293b;margin:8px 0;"></div>
+
+                <label style="color:#94a3b8;font-size:.68rem;display:block;margin-bottom:4px;font-weight:600;">TEST IN-GAME EFFECTS</label>
+                <button id="btn-story-debug-earthquake" style="
+                  width:100%;margin-bottom:3px;padding:4px 0;border:none;border-radius:5px;
+                  background:#7c2d12;color:#fed7aa;font-size:.72rem;font-weight:600;cursor:pointer;
+                ">⚡ Quake (Split Board)</button>
+                <button id="btn-story-debug-dialogue-left" style="
+                  width:100%;margin-bottom:3px;padding:4px 0;border:none;border-radius:5px;
+                  background:#1e3a5f;color:#bfdbfe;font-size:.72rem;font-weight:600;cursor:pointer;
+                ">💬 Weaver (L)</button>
+                <button id="btn-story-debug-dialogue-right" style="
+                  width:100%;margin-bottom:3px;padding:4px 0;border:none;border-radius:5px;
+                  background:#3b0764;color:#e9d5ff;font-size:.72rem;font-weight:600;cursor:pointer;
+                ">🌑 Void (R)</button>
+                <button id="btn-story-debug-alert" style="
+                  width:100%;margin-bottom:3px;padding:4px 0;border:none;border-radius:5px;
+                  background:#1e293b;color:#cbd5e1;font-size:.72rem;font-weight:600;cursor:pointer;
+                ">📣 Alert Banner</button>
+                <button id="btn-story-debug-shatter" style="
+                  width:100%;margin-bottom:3px;padding:4px 0;border:none;border-radius:5px;
+                  background:#4a044e;color:#f0abfc;font-size:.72rem;font-weight:600;cursor:pointer;
+                ">💥 Shatter Stones</button>
+                <div style="border-top:1px solid #1e293b;margin:8px 0;"></div>
+                <button id="btn-story-debug-intro" style="
+                  width:100%;padding:5px 0;border:none;border-radius:5px;
+                  background:#1c1917;color:#d6d3d1;font-size:.72rem;font-weight:600;cursor:pointer;
+                ">🌌 Replay Cosmic Intro</button>
+              </div>
+            </div>
             <div id="ui-online-status" class="online-status-pill hidden">
               <span class="status-dot"></span>
               <span id="ui-online-status-text">P2P Online</span>
@@ -104,6 +205,33 @@
               <div id="ui-ai-badge" class="ai-badge hidden">🤖 Thinking...</div>
             </div>
 
+            <!-- Volcano Warning Icon -->
+            <div id="ui-volcano-warning" class="hud-pill hidden volcano-warning-icon">
+              <span class="volcano-emoji">🌋</span>
+              <div class="volcano-custom-tooltip">
+                <strong data-i18n="volcano.warning_title">¡CUIDADO! Tablero Volcánico</strong><br/>
+                <span data-i18n="volcano.warning_desc">Cada 10 turnos por jugador, un meteorito destruirá una casilla aleatoria permanentemente.</span>
+              </div>
+            </div>
+
+            <!-- Sky Board Warning Icon -->
+            <div id="ui-sky-warning" class="hud-pill hidden sky-warning-icon">
+              <span class="sky-emoji">☁️</span>
+              <div class="sky-custom-tooltip">
+                <strong data-i18n="sky.warning_title">¡CUIDADO! Tablero del Cielo</strong><br/>
+                <span data-i18n="sky.warning_desc">Cada 10 turnos por jugador (20 totales), 5 nuevos bloques cuadrados (2x2) caerán del cielo expandiendo el goban indefinidamente.</span>
+              </div>
+            </div>
+
+            <!-- Oni Mask Board Warning Icon -->
+            <div id="ui-oni-warning" class="hud-pill hidden oni-warning-icon">
+              <span class="oni-emoji">👹</span>
+              <div class="oni-custom-tooltip">
+                <strong data-i18n="oni.warning_title">👹 Tablero Máscara Oni (Inhalación & Festín)</strong><br/>
+                <span data-i18n="oni.warning_desc">🌪️ Inhalación (cada 20 turnos): El vórtice arrastra 1 casilla hacia abajo las piedras sueltas o parejas (1-2 piedras); las cadenas sólidas (3+ piedras) resisten. 🩸 Festín de Almas: Capturar 2+ piedras enemigas a la vez otorga un Turno Extra Consecutivo inmediato.</span>
+              </div>
+            </div>
+
             <!-- Capture Counter (Supports 2 and 4 Players) -->
             <div id="ui-captures-container" class="hud-pill hud-captures-pill">
               <div class="cap-item" id="cap-item-p1">
@@ -125,17 +253,9 @@
               </div>
             </div>
 
-            <!-- Real-Time AI Win Rate % Bar -->
-            <div id="ui-winrate-container" class="hud-winrate-container" title="Estimated Win Probability (Go Tactical Engine)">
-              <span class="winrate-label winrate-black" id="ui-wr-black-val">50%</span>
-              <div class="winrate-bar-track">
-                <div class="winrate-bar-fill-black" id="ui-wr-bar-black" style="width: 50%;"></div>
-              </div>
-              <span class="winrate-label winrate-white" id="ui-wr-white-val">50%</span>
             </div>
-          </div>
 
-          <!-- Right Group: Sandbox, Return to Results and Theme Switcher -->
+            <!-- Right Group: Sandbox, Return to Results and Theme Switcher -->
           <div class="topbar-group topbar-right">
             <button id="floating-inspect-btn" class="btn btn-topbar btn-return-topbar hidden" title="Return to Match Results" style="background: var(--accent-cyan); color: #000;">
               <span>📊 Back to Victory Results</span>
@@ -144,9 +264,6 @@
               <span class="sandbox-btn-icon">🧪</span>
               <span class="sandbox-btn-label">Sandbox</span>
               <span class="sandbox-dev-badge">DEV</span>
-            </button>
-            <button id="btn-game-theme" class="btn-theme-toggle btn-theme-topbar" title="Toggle Light / Dark Mode">
-              <span class="theme-icon">☀️</span>
             </button>
           </div>
         </header>
@@ -167,12 +284,13 @@
                   <strong id="duel-player-name">Ronin</strong>
                 </div>
               </div>
+              <small id="duel-player-sub" class="duel-plate-sub hidden"></small>
               <div id="duel-player-timer" class="duel-timer-badge hidden">
                 <span class="timer-icon">⏱️</span>
                 <span id="duel-player-timer-digits" class="timer-digits">00:30</span>
               </div>
               <!-- Champion's Unique Active Skill Button -->
-              <button id="btn-duel-champion-skill" class="btn-card-skill" title="Execute Unique Active Skill (C Key)">
+              <button id="btn-duel-champion-skill" class="btn-card-skill" title="Execute Unique Active Skill (C Key)" style="display: none;">
                 <span id="duel-skill-icon">🌪️</span>
                 <span id="duel-skill-text">Chromatic Inversion</span>
               </button>
@@ -180,7 +298,9 @@
           </div>
 
           <div id="board-container">
-            <svg id="game-svg" xmlns="http://www.w3.org/2000/svg"></svg>
+            <div id="story-world-container" style="width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; position: relative; transition: transform 1.5s cubic-bezier(0.16, 1, 0.3, 1);">
+              <svg id="game-svg" xmlns="http://www.w3.org/2000/svg" style="width: 100%; height: 100%; display: block; overflow: visible;"></svg>
+            </div>
           </div>
 
           <!-- Right Duelist: Rival / Unique Enemy (1v1) -->
@@ -263,6 +383,22 @@
           </div>
         </main>
 
+          <!-- Win Rate Bar -->
+          <div id="winrate-bar-wrapper" class="winrate-bar-wrapper hidden">
+              <div id="winrate-bar-container" class="winrate-bar-container">
+                  <div id="winrate-segment-1" class="winrate-segment winrate-black" style="width: 25%"></div>
+                  <div id="winrate-segment-2" class="winrate-segment winrate-white" style="width: 25%"></div>
+                  <div id="winrate-segment-3" class="winrate-segment winrate-emerald" style="width: 25%"></div>
+                  <div id="winrate-segment-4" class="winrate-segment winrate-amethyst" style="width: 25%"></div>
+              </div>
+              <div class="winrate-labels-container">
+                  <span id="winrate-label-1" class="winrate-lbl text-black" style="width: 25%">50%</span>
+                  <span id="winrate-label-2" class="winrate-lbl text-white" style="width: 25%">50%</span>
+                  <span id="winrate-label-3" class="winrate-lbl text-emerald" style="width: 25%; display: none;"></span>
+                  <span id="winrate-label-4" class="winrate-lbl text-amethyst" style="width: 25%; display: none;"></span>
+              </div>
+          </div>
+
         <!-- Spell and Polyomino Bottom Bar -->
         <footer id="game-spellbar" class="spellbar hidden">
           <div class="spellbar-inner">
@@ -325,8 +461,6 @@
 
         <!-- Floating Toast Notification -->
         <div id="ui-alert" class="ui-toast hidden"></div>
-
-        <!-- Element deleted (moved to topbar) -->
       </section>
 
       <!-- ================= SCREEN 3: PROCEDURAL ROGUELIKE MAP ================= -->
@@ -341,7 +475,7 @@
               <span id="map-hero-name" class="map-hero-name">Tengu</span>
             </div>
             <div id="map-diff-badge" class="hud-pill rogue-diff-pill">
-              <span id="map-diff-text">🟢 Easy</span>
+              <span id="map-diff-text"><span class="diff-flame flame-easy" style="font-size: 1rem; vertical-align: middle; margin-right: 4px;">🔥</span><span>Easy</span></span>
             </div>
           </div>
 
@@ -350,11 +484,7 @@
             <span class="map-screen-subtitle">Select an available node to advance</span>
           </div>
 
-          <div class="map-topbar-right">
-            <button id="btn-map-theme" class="btn-theme-toggle btn-theme-topbar" title="Toggle Light / Dark Mode">
-              <span class="theme-icon">☀️</span>
-            </button>
-          </div>
+          <div class="map-topbar-right"></div>
         </header>
 
         <!-- Scrollable Parchment Map Viewport -->
@@ -363,13 +493,93 @@
         </main>
       </section>
 
-    </div>
-
       <!-- ================= MODALS CONTAINER (Loaded dynamically by UITemplateLoader) ================= -->
       <div id="modals-container"></div>
 
+      <!-- Global Cinematic Screen Transition Overlay -->
+      <div id="screen-transition-overlay" class="screen-transition-overlay"></div>
+
     </div>
 
-    <script type="module" src="/src/main.ts"></script>
+      <!-- ================= STORY CINEMATIC INTRO ================= -->
+      <div id="story-cinematic-intro" class="hidden" style="
+        position:fixed; inset:0; z-index:99999;
+        background:#000; display:flex; align-items:center; justify-content:center;
+        overflow:hidden; cursor:pointer;
+      ">
+        <!-- Cosmos BG — zooms in dramatically -->
+        <div id="story-intro-cosmos" style="
+          position:absolute; inset:-20%; background:url('/bg_story.jpg') center/cover no-repeat;
+          transform:scale(1); transform-origin:center center;
+          transition: transform 3.5s cubic-bezier(0.2, 0, 0.8, 1), opacity 0.8s ease;
+          filter: brightness(0.35) saturate(1.4);
+        "></div>
+
+        <!-- Vignette overlay -->
+        <div style="
+          position:absolute; inset:0;
+          background:radial-gradient(ellipse at center, transparent 30%, rgba(0,0,0,0.85) 100%);
+          pointer-events:none;
+        "></div>
+
+        <!-- Text container -->
+        <div id="story-intro-text" style="
+          position:relative; z-index:2; max-width:700px; text-align:center;
+          padding:40px; pointer-events:none;
+        ">
+          <div id="story-intro-line1" style="
+            font-family:var(--font-display,'Cinzel',serif);
+            font-size:clamp(1.6rem,4vw,2.6rem); font-weight:800;
+            color:#e2e8f0; letter-spacing:.08em; margin-bottom:28px;
+            opacity:0; transform:translateY(16px);
+            transition: opacity 1.1s ease, transform 1.1s ease;
+          ">BEFORE TIME ITSELF...</div>
+
+          <div id="story-intro-line2" style="
+            font-family:var(--font-body,sans-serif);
+            font-size:clamp(1rem,2.2vw,1.25rem); line-height:1.75;
+            color:#94a3b8; max-width:580px; margin:0 auto 28px;
+            opacity:0; transform:translateY(12px);
+            transition: opacity 1.1s ease, transform 1.1s ease;
+          ">There was an infinite weave of intersections —<br>
+          the <strong style="color:#e2e8f0">Great Goban</strong>. A cosmos of pure order<br>
+          where vital energy, the <em>Qi</em>, flowed endlessly.</div>
+
+          <div id="story-intro-line3" style="
+            font-family:var(--font-body,sans-serif);
+            font-size:clamp(1rem,2.2vw,1.2rem); line-height:1.75;
+            color:#f87171; max-width:580px; margin:0 auto 32px;
+            opacity:0; transform:translateY(12px);
+            transition: opacity 1.1s ease, transform 1.1s ease;
+          ">Then came <strong>The Void</strong>.<br>
+          It fractured everything. The cosmos split into floating islands,<br>
+          disconnected and dying.</div>
+
+          <div id="story-intro-line4" style="
+            font-family:var(--font-display,'Cinzel',serif);
+            font-size:clamp(1.1rem,2.6vw,1.5rem); font-weight:700;
+            color:#fbbf24; letter-spacing:.04em; margin-bottom:36px;
+            opacity:0; transform:translateY(12px);
+            transition: opacity 1.1s ease, transform 1.1s ease;
+          ">You are the Cosmic Weaver.<br>Only you can sew the cracks.</div>
+
+          <button id="story-intro-skip" style="
+            font-family:var(--font-body,sans-serif);
+            font-size:0.9rem; font-weight:bold;
+            color:#fbbf24; background:rgba(15,23,42,0.85);
+            border:1px solid rgba(251,191,36,0.6); border-radius:6px;
+            padding:10px 24px; cursor:pointer;
+            letter-spacing:0.05em; text-transform:uppercase;
+            opacity:1; transition:all 0.3s ease;
+            backdrop-filter:blur(6px); pointer-events:auto;
+            box-shadow:0 0 15px rgba(251,191,36,0.3);
+          " onmouseover="this.style.background='rgba(251,191,36,0.2)'" onmouseout="this.style.background='rgba(15,23,42,0.85)'">
+            SKIP INTRO ⏩
+          </button>
+        </div>
+      </div>
+
+      <script type="module" src="/src/main.ts"></script>
+
   </body>
 </html>

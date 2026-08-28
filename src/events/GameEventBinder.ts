@@ -69,5 +69,35 @@ export class GameEventBinder {
         document.getElementById('floating-inspect-btn')?.addEventListener('click', () => {
             ModalManager.restoreScoreModal();
         });
+
+        // Botón de Registro de Combate y Repetición (In-game e Inspección Final)
+        document.getElementById('btn-game-combat-log')?.addEventListener('click', () => {
+            ModalManager.openCombatLogModal();
+        });
+
+        document.getElementById('btn-modal-combat-log')?.addEventListener('click', () => {
+            ModalManager.openCombatLogModal();
+        });
+
+        // Previsualización Dinámica de Vectores de Inhalación del Tablero Oni en Hover
+        const oniWarningIcon = document.getElementById('ui-oni-warning');
+        if (oniWarningIcon) {
+            oniWarningIcon.addEventListener('mouseenter', () => {
+                if (GameController.board && GameController.board.shape === 'oni' && GameController.renderer) {
+                    import('../graphics/vfx/OniInhalationPreview').then(m => {
+                        m.OniInhalationPreview.show(GameController.board, GameController.renderer.svgElement);
+                    });
+                }
+            });
+
+            oniWarningIcon.addEventListener('mouseleave', () => {
+                if (GameController.renderer) {
+                    import('../graphics/vfx/OniInhalationPreview').then(m => {
+                        m.OniInhalationPreview.hide(GameController.renderer.svgElement);
+                    });
+                }
+            });
+        }
     }
 }
+

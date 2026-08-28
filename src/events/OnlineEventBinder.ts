@@ -17,7 +17,8 @@ export class OnlineEventBinder {
                 OnlineController.onlineKomi, 
                 OnlineController.onlinePlayerCount,
                 OnlineController.onlineHostHero,
-                OnlineController.onlineBackground
+                OnlineController.onlineBackground,
+                OnlineController.onlineSeed
             );
         };
 
@@ -25,33 +26,79 @@ export class OnlineEventBinder {
         document.getElementById('btn-online-wizard-prev')?.addEventListener('click', () => {
             if (ModalManager.currentOnlineWizardStep === 1) {
                 ModalManager.closeOnlineModal();
+                NetworkManager.disconnect();
             } else {
-                ModalManager.setOnlineWizardStep(ModalManager.currentOnlineWizardStep - 1);
+                let targetStep = ModalManager.currentOnlineWizardStep - 1;
+                if (OnlineController.onlineGameType === 'coop_rogue' && ModalManager.currentOnlineWizardStep === 6) {
+                    targetStep = 1; // Volver al inicio directo en Roguelike
+                }
+                ModalManager.setOnlineWizardStep(targetStep);
+                if (targetStep < 6 && NetworkManager.isHost) {
+                    NetworkManager.disconnect();
+                }
             }
             SoundFX.playPlaceStone();
         });
 
         document.getElementById('btn-online-wizard-next')?.addEventListener('click', () => {
-            ModalManager.setOnlineWizardStep(ModalManager.currentOnlineWizardStep + 1);
+            let targetStep = ModalManager.currentOnlineWizardStep + 1;
+            if (OnlineController.onlineGameType === 'coop_rogue' && ModalManager.currentOnlineWizardStep === 1) {
+                targetStep = 6; // Ir directo al Lobby en Roguelike
+            }
+            ModalManager.setOnlineWizardStep(targetStep);
+            if (targetStep === 6) {
+                OnlineController.startHostingRoom();
+            }
             SoundFX.playPlaceStone();
         });
 
         document.querySelectorAll('#online-wizard-stepper .wizard-step-node').forEach(node => {
             node.addEventListener('click', () => {
-                const targetStep = parseInt(node.getAttribute('data-step') || '1', 10);
+                let targetStep = parseInt(node.getAttribute('data-step') || '1', 10);
+                if (OnlineController.onlineGameType === 'coop_rogue' && targetStep > 1 && targetStep < 6) {
+                    targetStep = 6;
+                }
                 ModalManager.setOnlineWizardStep(targetStep);
+                if (targetStep === 6) {
+                    OnlineController.startHostingRoom();
+                } else if (NetworkManager.isHost) {
+                    NetworkManager.disconnect();
+                }
                 SoundFX.playPlaceStone();
             });
         });
 
+        document.getElementById('tab-btn-matchmaking')?.addEventListener('click', () => {
+            ModalManager.switchOnlineTab('matchmaking');
+            NetworkManager.disconnect();
+            SoundFX.playPlaceStone();
+        });
+
+        document.getElementById('btn-matchmaking-2p')?.addEventListener('click', () => {
+            OnlineController.startMatchmaking(2);
+            SoundFX.playPlaceStone();
+        });
+
+        document.getElementById('btn-matchmaking-4p')?.addEventListener('click', () => {
+            OnlineController.startMatchmaking(4);
+            SoundFX.playPlaceStone();
+        });
+
+        document.getElementById('btn-cancel-matchmaking')?.addEventListener('click', () => {
+            OnlineController.cancelMatchmaking();
+            SoundFX.playPlaceStone();
+        });
+
         document.getElementById('tab-btn-create-room')?.addEventListener('click', () => {
             ModalManager.switchOnlineTab('create');
-            OnlineController.startHostingRoom();
+            ModalManager.setOnlineWizardStep(1);
+            NetworkManager.disconnect();
             SoundFX.playPlaceStone();
         });
 
         document.getElementById('tab-btn-join-room')?.addEventListener('click', () => {
             ModalManager.switchOnlineTab('join');
+            NetworkManager.disconnect();
             SoundFX.playPlaceStone();
             const input = document.getElementById('input-join-room-code') as HTMLInputElement | null;
             if (input) {
@@ -68,8 +115,7 @@ export class OnlineEventBinder {
             OnlineController.onlineGameType = 'standard';
             document.getElementById('online-mode-standard')?.classList.add('active');
             document.getElementById('online-mode-roguelike')?.classList.remove('active');
-            document.getElementById('online-players-count-section')?.classList.remove('hidden');
-            OnlineController.startHostingRoom();
+            refreshHostUI();
             SoundFX.playPlaceStone();
             setTimeout(() => ModalManager.setOnlineWizardStep(2), 160);
         });
@@ -79,26 +125,23 @@ export class OnlineEventBinder {
             OnlineController.onlinePlayerCount = 2;
             document.getElementById('online-mode-roguelike')?.classList.add('active');
             document.getElementById('online-mode-standard')?.classList.remove('active');
-            document.getElementById('online-players-count-section')?.classList.add('hidden');
-            OnlineController.startHostingRoom();
+            refreshHostUI();
             SoundFX.playPlaceStone();
-            setTimeout(() => ModalManager.setOnlineWizardStep(2), 160);
+            setTimeout(() => ModalManager.setOnlineWizardStep(6), 160);
         });
 
         document.getElementById('online-players-2')?.addEventListener('click', () => {
             OnlineController.onlinePlayerCount = 2;
             refreshHostUI();
-            OnlineController.startHostingRoom();
             SoundFX.playPlaceStone();
-            setTimeout(() => ModalManager.setOnlineWizardStep(2), 160);
+            setTimeout(() => ModalManager.setOnlineWizardStep(3), 160);
         });
 
         document.getElementById('online-players-4')?.addEventListener('click', () => {
             OnlineController.onlinePlayerCount = 4;
             refreshHostUI();
-            OnlineController.startHostingRoom();
             SoundFX.playPlaceStone();
-            setTimeout(() => ModalManager.setOnlineWizardStep(2), 160);
+            setTimeout(() => ModalManager.setOnlineWizardStep(3), 160);
         });
 
         document.getElementById('btn-online-force-start')?.addEventListener('click', () => {
@@ -111,21 +154,26 @@ export class OnlineEventBinder {
             SoundFX.playPlaceStone();
         });
 
+        // Opciones del Paso 6 (Lobby): actualizan configuración y sincronizan sala
         document.getElementById('online-color-black')?.addEventListener('click', () => {
             OnlineController.onlineHostColor = 1;
             refreshHostUI();
-            OnlineController.startHostingRoom();
+            if (ModalManager.currentOnlineWizardStep === 6) {
+                OnlineController.startHostingRoom();
+            }
             SoundFX.playPlaceStone();
         });
 
         document.getElementById('online-color-white')?.addEventListener('click', () => {
             OnlineController.onlineHostColor = 2;
             refreshHostUI();
-            OnlineController.startHostingRoom();
+            if (ModalManager.currentOnlineWizardStep === 6) {
+                OnlineController.startHostingRoom();
+            }
             SoundFX.playPlaceStone();
         });
 
-        const shapes: BoardShape[] = ['square', 'triangle', 'hex', 'eroded', 'islands_v1', 'islands_v2', 'islands', 'cross', 'hourglass', 'geode', 'spiral', 'rings', 'star_5', 'star_6', 'procedural'];
+        const shapes: BoardShape[] = ['square', 'volcano', 'sky', 'oni', 'triangle', 'hex', 'eroded', 'islands_v1', 'islands_v2', 'islands', 'cross', 'hourglass', 'geode', 'spiral', 'rings', 'star_5', 'star_6', 'procedural'];
         shapes.forEach(sh => {
             document.getElementById(`online-shape-${sh}`)?.addEventListener('click', () => {
                 OnlineController.onlineShape = sh;
@@ -133,7 +181,6 @@ export class OnlineEventBinder {
                     OnlineController.onlineSeed = Math.floor(Math.random() * 9999999);
                 }
                 refreshHostUI();
-                OnlineController.startHostingRoom();
                 SoundFX.playPlaceStone();
             });
         });
@@ -146,7 +193,6 @@ export class OnlineEventBinder {
             onlineRerollBtn.classList.add('spin-anim');
             setTimeout(() => onlineRerollBtn.classList.remove('spin-anim'), 400);
             refreshHostUI();
-            OnlineController.startHostingRoom();
             SoundFX.playPlaceStone();
         });
 
@@ -155,29 +201,30 @@ export class OnlineEventBinder {
             document.getElementById(`online-size-${sz}`)?.addEventListener('click', () => {
                 OnlineController.onlineSize = sz;
                 refreshHostUI();
-                OnlineController.startHostingRoom();
                 SoundFX.playPlaceStone();
             });
         });
 
-        // Escenarios / Fondos Online
+        // Escenarios / Fondos Online (Paso 5)
         document.querySelectorAll('.btn-online-bg').forEach(btn => {
             btn.addEventListener('click', () => {
                 const bg = btn.getAttribute('data-bg') as BoardBackground | null;
                 if (bg) {
                     OnlineController.onlineBackground = bg;
                     refreshHostUI();
-                    OnlineController.startHostingRoom();
                     SoundFX.playPlaceStone();
                 }
             });
         });
 
+        // Komi (Paso 6)
         document.querySelectorAll('.btn-online-komi').forEach(btn => {
             btn.addEventListener('click', () => {
                 OnlineController.onlineKomi = parseFloat(btn.getAttribute('data-komi') || '6.5');
                 refreshHostUI();
-                OnlineController.startHostingRoom();
+                if (ModalManager.currentOnlineWizardStep === 6) {
+                    OnlineController.startHostingRoom();
+                }
                 SoundFX.playPlaceStone();
             });
         });
@@ -187,8 +234,62 @@ export class OnlineEventBinder {
             if (!isNaN(val) && val >= 0) {
                 OnlineController.onlineKomi = val;
                 refreshHostUI();
+                if (ModalManager.currentOnlineWizardStep === 6) {
+                    OnlineController.startHostingRoom();
+                }
+            }
+        });
+
+        // --- SELECTORES DE DIFICULTAD DE IA (ONLINE) ---
+        const getKyuDanString = (val: number): string => {
+            if (val <= 30) return `${31 - val}k`;
+            return `${val - 30}d`;
+        };
+        let isOnlineGranularAI = false;
+
+        document.getElementById('btn-toggle-online-ai-granular')?.addEventListener('click', () => {
+            isOnlineGranularAI = !isOnlineGranularAI;
+            const btn = document.getElementById('btn-toggle-online-ai-granular');
+            const label = document.getElementById('label-toggle-online-ai-granular');
+            if (btn) {
+                btn.setAttribute('data-enabled', isOnlineGranularAI ? 'true' : 'false');
+                btn.classList.toggle('active', isOnlineGranularAI);
+            }
+            if (label) label.innerText = isOnlineGranularAI ? 'Granular ⚙️' : 'Pack Mode 📦';
+            
+            document.getElementById('online-ai-pack-mode-box')?.classList.toggle('hidden', isOnlineGranularAI);
+            document.getElementById('online-ai-granular-mode-box')?.classList.toggle('hidden', !isOnlineGranularAI);
+            
+            refreshHostUI();
+            SoundFX.playPlaceStone();
+        });
+
+        document.getElementById('online-ai-master-slider')?.addEventListener('input', (e) => {
+            const val = parseInt((e.target as HTMLInputElement).value, 10);
+            const str = getKyuDanString(val);
+            document.getElementById('online-ai-master-display')!.innerText = str;
+            OnlineController.onlineAIDifficulty = str;
+            [2, 3, 4].forEach(p => { OnlineController.onlineAISlots[p] = str; });
+            
+            if (ModalManager.currentOnlineWizardStep === 6 && NetworkManager.isHost) {
                 OnlineController.startHostingRoom();
             }
+            refreshHostUI();
+        });
+
+        [2, 3, 4].forEach(p => {
+            document.getElementById(`online-ai-granular-p${p}-slider`)?.addEventListener('input', (e) => {
+                const val = parseInt((e.target as HTMLInputElement).value, 10);
+                const str = getKyuDanString(val);
+                document.getElementById(`online-ai-granular-p${p}-display`)!.innerText = str;
+                OnlineController.onlineAISlots[p] = str;
+                OnlineController.onlineAIDifficulty = str;
+                
+                if (ModalManager.currentOnlineWizardStep === 6 && NetworkManager.isHost) {
+                    OnlineController.startHostingRoom();
+                }
+                refreshHostUI();
+            });
         });
 
         const handleJoinAction = () => {

@@ -1,6 +1,7 @@
 // champions/HimikoChampion.ts - Habilidad Pasiva: Lluvia Pétrea Celestial
 import type { ChampionPassiveSkill } from './types';
 import type { GraphBoard, PlayerId } from '../GraphBoard';
+import { SeededRandom } from '../SeededRandom';
 import type { GameState } from '../GameState';
 import { RulesEngine } from '../RulesEngine';
 import { HimikoVFX } from '../../graphics/vfx/HimikoVFX';
@@ -27,17 +28,21 @@ export class HimikoChampion {
      *   - 19x19 (361 intersections): round(361 * 4 / 81) = round(17.827) = 18 stones
      *   - Any future / procedural size (N intersections): Math.max(1, Math.min(validCount, Math.round((validCount * 4) / 81)))
      */
-    public static getStoneRainCount(boardOrSize?: GraphBoard | BoardSize | number | null): number {
+    public static getStoneRainCount(boardOrSize?: GraphBoard | BoardSize | number | { shape?: string; size?: number } | null): number {
         if (!boardOrSize) return 4;
+
+        if (typeof boardOrSize === 'object' && boardOrSize && 'shape' in boardOrSize && (boardOrSize as any).shape === 'oni') {
+            return 18; // Máscara Oni siempre escala como 19x19 (18 piedras celestiales)
+        }
 
         let validCount: number;
         if (typeof boardOrSize === 'number') {
-            if (boardOrSize === 19) validCount = 361;
-            else if (boardOrSize === 13) validCount = 169;
+            if (boardOrSize >= 19) validCount = 361;
+            else if (boardOrSize >= 13) validCount = 169;
             else if (boardOrSize === 9) validCount = 81;
             else validCount = boardOrSize;
         } else if (typeof boardOrSize === 'object' && 'nodes' in boardOrSize) {
-            validCount = Array.from(boardOrSize.nodes.values()).filter(
+            validCount = Array.from((boardOrSize as GraphBoard).nodes.values()).filter(
                 n => n.terrain !== 'DESTROYED' && n.terrain !== 'OBSTACLE'
             ).length;
         } else {
@@ -65,7 +70,7 @@ export class HimikoChampion {
         // Fisher-Yates shuffle
         const shuffled = [...emptyNodes];
         for (let i = shuffled.length - 1; i > 0; i--) {
-            const j = Math.floor(Math.random() * (i + 1));
+            const j = SeededRandom.nextInt(i + 1);
             [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
         }
 
@@ -91,8 +96,8 @@ export class HimikoChampion {
         const onAllFinished = () => {
             const isEn = getLanguage() === 'en';
             onNotify(isEn
-                ? `🌧️✨ Himiko’s Celestial Stone Rain! Upon finishing personal turn 15, ${chosen.length} blessed allied stones descended onto the Goban.`
-                : `🌧️✨ ¡Lluvia Pétrea Celestial de Himiko! Al finalizar el turno 15, ${chosen.length} piedras aliadas bendecidas descendieron sobre el Goban.`);
+                ? `🌧️✨ Himiko’s Celestial Stone Rain! Upon finishing personal turn 20, ${chosen.length} blessed allied stones descended onto the Goban.`
+                : `🌧️✨ ¡Lluvia Pétrea Celestial de Himiko! Al finalizar el turno 20, ${chosen.length} piedras aliadas bendecidas descendieron sobre el Goban.`);
             onBoardUpdated();
         };
 

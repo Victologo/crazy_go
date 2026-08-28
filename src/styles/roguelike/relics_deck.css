@@ -259,7 +259,7 @@
   padding: 1.15rem 1.25rem;
   border-radius: var(--radius-lg);
   border: 2px solid transparent;
-  cursor: pointer;
+  cursor: var(--cursor-pointer);
   text-align: left;
   transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
   font-family: inherit;
@@ -351,7 +351,7 @@ body[data-theme="light"] .btn-fresh-run:hover {
   align-items: center;
   justify-content: center;
   z-index: 999;
-  cursor: pointer;
+  cursor: var(--cursor-pointer);
   opacity: 0;
   visibility: hidden;
   transition: opacity 0.5s cubic-bezier(0.16, 1, 0.3, 1), 

@@ -36,11 +36,11 @@ mkdir "CrazyGo_Portable\dist"
 xcopy /E /I /Y "dist" "CrazyGo_Portable\dist" >nul
 copy /Y "CrazyGo.exe" "CrazyGo_Portable\CrazyGo.exe" >nul
 
-echo CRAZY GO - JUEGO PORTABLE > "CrazyGo_Portable\LEEME.txt"
-echo. >> "CrazyGo_Portable\LEEME.txt"
-echo INSTRUCCIONES: >> "CrazyGo_Portable\LEEME.txt"
-echo 1. Haz doble clic en CrazyGo.exe para jugar. >> "CrazyGo_Portable\LEEME.txt"
-echo 2. No requiere instalar nada ni tener Node.js instalado. >> "CrazyGo_Portable\LEEME.txt"
+echo CRAZY GO - OFFICIAL PORTABLE GAME (WINDOWS) > "CrazyGo_Portable\README.txt"
+echo. >> "CrazyGo_Portable\README.txt"
+echo HOW TO PLAY: >> "CrazyGo_Portable\README.txt"
+echo 1. Double-click CrazyGo.exe to start playing immediately. >> "CrazyGo_Portable\README.txt"
+echo 2. No installation or Node.js required. >> "CrazyGo_Portable\README.txt"
 
 echo.
 echo [4/4] Creando archivo comprimido ZIP listo para enviar a tus amigos...

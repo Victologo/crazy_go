@@ -1,10 +1,10 @@
-// ui/modals/RogueModalRenderer.ts - Renderizado de Modales de la Expedición Roguelike (Showcase de Campeones, Recompensas, Eventos y Mazo)
 import type { HeroId, RogueliteDifficulty } from '../../types';
 import { RoguelikeRunManager } from '../../core/RoguelikeRunManager';
 import { RogueliteManager } from '../../core/RogueliteManager';
 
 import { ModalManager } from '../ModalManager';
-import { getLanguage } from '../../i18n/i18n';
+import { getLanguage, t, translateEnemyName, applyTranslationsToDOM } from '../../i18n/i18n';
+import { RogueChoiceCameraController } from '../../controllers/RogueChoiceCameraController';
 
 export class RogueModalRenderer {
     public static openRoguelikeSetupModal() {
@@ -21,35 +21,98 @@ export class RogueModalRenderer {
 
         const isEn = getLanguage() === 'en';
         const hero = RoguelikeRunManager.HEROES[RoguelikeRunManager.selectedHero || 'tengu'];
-        const imgEl = document.getElementById('saved-run-hero-img') as HTMLImageElement | null;
+        
+        // 1. Set Left and Right Hero Images
+        const leftImg = document.getElementById('rogue-hero-img-left') as HTMLImageElement | null;
+        const rightImg = document.getElementById('rogue-hero-img-right') as HTMLImageElement | null;
+
+        if (hero) {
+            if (leftImg) {
+                // Character seen from behind returning to the Dojo (tilted left)
+                leftImg.src = `./heroes/${hero.id}_back.png`;
+                leftImg.style.transform = 'scaleX(-1) rotate(-3deg)'; 
+            }
+            if (rightImg) {
+                // Character seen from behind advancing forward into the expedition
+                rightImg.src = `./heroes/${hero.id}_back.png`;
+                rightImg.style.transform = 'scale(1)';
+            }
+        }
+
+        // 2. Populate Central Run Information Plaque
         const nameEl = document.getElementById('saved-run-hero-name');
+        const iconEl = document.getElementById('saved-run-hero-icon');
         const diffEl = document.getElementById('saved-run-diff');
         const progEl = document.getElementById('saved-run-progress');
 
-        if (imgEl && hero) imgEl.src = hero.faceImage || hero.image;
-        if (nameEl && hero) nameEl.innerText = `${hero.icon} ${hero.name}`;
+        if (nameEl && hero) nameEl.innerText = hero.name;
+        if (iconEl && hero) iconEl.innerText = hero.icon;
+        
         if (diffEl) {
-            const diffMap: Record<string, string> = isEn ? { 
-                easy: 'Easy (Apprentice)', 
-                normal: 'Normal (Warrior)', 
-                hard: 'Hard (Master)', 
-                extreme: 'Extreme (Grandmaster)' 
-            } : { 
-                easy: 'Fácil (Principiante)', 
-                normal: 'Normal (Guerrero)', 
-                hard: 'Difícil (Maestro)', 
-                extreme: 'Extremo (Gran Maestro)' 
+            const diff = RoguelikeRunManager.runDifficulty || 'normal';
+            const diffConfig: Record<string, { label: string; flameClass: string; bg: string; color: string; border: string }> = {
+                easy: {
+                    label: isEn ? 'Easy' : 'Fácil',
+                    flameClass: 'flame-easy',
+                    bg: 'rgba(34, 197, 94, 0.18)',
+                    color: '#86efac',
+                    border: 'rgba(34, 197, 94, 0.4)'
+                },
+                normal: {
+                    label: isEn ? 'Medium' : 'Medio',
+                    flameClass: 'flame-normal',
+                    bg: 'rgba(245, 158, 11, 0.18)',
+                    color: '#fde68a',
+                    border: 'rgba(245, 158, 11, 0.4)'
+                },
+                hard: {
+                    label: isEn ? 'Hard' : 'Difícil',
+                    flameClass: 'flame-hard',
+                    bg: 'rgba(239, 68, 68, 0.18)',
+                    color: '#f87171',
+                    border: 'rgba(239, 68, 68, 0.4)'
+                },
+                extreme: {
+                    label: isEn ? 'Grandmaster' : 'Gran Maestro',
+                    flameClass: 'flame-extreme',
+                    bg: 'rgba(168, 85, 247, 0.18)',
+                    color: '#d8b4fe',
+                    border: 'rgba(168, 85, 247, 0.4)'
+                }
             };
-            diffEl.innerText = diffMap[RoguelikeRunManager.runDifficulty] || 'Normal';
+
+            const currentDiff = diffConfig[diff] || diffConfig['normal'];
+            diffEl.style.background = currentDiff.bg;
+            diffEl.style.color = currentDiff.color;
+            diffEl.style.borderColor = currentDiff.border;
+            diffEl.style.display = 'inline-flex';
+            diffEl.style.alignItems = 'center';
+            diffEl.style.gap = '6px';
+            diffEl.innerHTML = `<span class="diff-flame ${currentDiff.flameClass}" style="font-size: 1.1rem; vertical-align: middle;">🔥</span><span>${currentDiff.label}</span>`;
         }
+
         if (progEl) {
             const node = RoguelikeRunManager.getCurrentNode();
-            progEl.innerText = node 
-                ? (isEn ? `📍 Position: ${node.title}` : `📍 Posición: ${node.title}`) 
-                : (isEn ? '📍 Expedition ready to resume' : '📍 Expedición lista para continuar');
+            if (node) {
+                let translatedTitle = node.title;
+                if (node.battleConfig?.enemyName) {
+                    const translatedEnemy = translateEnemyName(node.battleConfig.enemyName);
+                    translatedTitle = translatedEnemy;
+                }
+                progEl.innerText = t('rogue.choice_node_tier', { tier: node.tier + 1, title: translatedTitle });
+            } else {
+                progEl.innerText = t('rogue.choice_ready_advance');
+            }
         }
 
         modal.classList.remove('hidden');
+
+        // Apply HTML data-i18n translations
+        applyTranslationsToDOM();
+
+        // 3. Initialize the 2.5D camera and spatial hover behavior
+        const choiceCamera = new RogueChoiceCameraController();
+        choiceCamera.init();
     }
 
     public static closeRogueChoiceModal() {
@@ -141,12 +204,16 @@ export class RogueModalRenderer {
 
         if (iconEl) iconEl.innerText = icon;
         if (titleEl) titleEl.innerText = title;
-        if (descEl) descEl.innerText = desc;
+        if (descEl) descEl.innerHTML = desc.replace(/\n/g, '<br/>');
+
+        const btnLeave = document.getElementById('btn-event-leave');
+        if (btnLeave) {
+            btnLeave.classList.add('hidden');
+        }
 
         if (actionsContainer) {
             actionsContainer.innerHTML = '';
             const isFloatingImageMode = actions.some(a => !!a.image);
-
             if (isFloatingImageMode) {
                 const grid = document.createElement('div');
                 grid.className = 'event-floating-grid';
@@ -154,6 +221,7 @@ export class RogueModalRenderer {
                     const itemBtn = document.createElement('button');
                     itemBtn.className = `btn-floating-item ${act.selected ? 'active selected' : ''}`;
                     itemBtn.disabled = !!act.disabled;
+                    itemBtn.setAttribute('data-option-id', act.id);
                     itemBtn.innerHTML = `
                         <div class="floating-item-art">
                             ${act.image ? `<img src="${act.image}" class="floating-item-img" alt="${act.label}"/>` : `<span class="floating-item-emoji">${act.icon}</span>`}
@@ -164,8 +232,28 @@ export class RogueModalRenderer {
                             ${act.sub ? `<span class="floating-item-desc">${act.sub}</span>` : ''}
                         </div>
                     `;
-                    itemBtn.addEventListener('click', () => {
-                        act.onClick();
+                    itemBtn.addEventListener('click', (e) => {
+                        const isInfoBtn = act.id === 'btn_coop_start' || act.id.startsWith('btn_info');
+                        if (e.isTrusted) {
+                            import('../../network/NetworkManager').then(({ NetworkManager }) => {
+                                if (NetworkManager.currentConfig?.isCoopRogue) {
+                                    if (!NetworkManager.isHost && !isInfoBtn) {
+                                        const isEn = getLanguage() === 'en';
+                                        import('../HUDController').then(({ HUDController }) => HUDController.showAlert(isEn ? "Only the Host can select rewards." : "Solo el Anfitrión puede elegir las recompensas."));
+                                        return;
+                                    } else {
+                                        if (NetworkManager.isHost) {
+                                            NetworkManager.sendFn?.({ type: 'EVENT_OPTION_CLICK', optionId: act.id });
+                                        }
+                                        act.onClick();
+                                    }
+                                } else {
+                                    act.onClick();
+                                }
+                            });
+                        } else {
+                            act.onClick();
+                        }
                     });
                     grid.appendChild(itemBtn);
                 });
@@ -177,6 +265,7 @@ export class RogueModalRenderer {
                     const btn = document.createElement('button');
                     btn.className = `btn-event-option ${act.selected ? 'active' : ''}`;
                     btn.disabled = !!act.disabled;
+                    btn.setAttribute('data-option-id', act.id);
                     btn.innerHTML = `
                         <div class="event-option-icon">${act.icon}</div>
                         <div class="event-option-info">
@@ -184,8 +273,28 @@ export class RogueModalRenderer {
                             ${act.sub ? `<span class="event-option-desc">${act.sub}</span>` : ''}
                         </div>
                     `;
-                    btn.addEventListener('click', () => {
-                        act.onClick();
+                    btn.addEventListener('click', (e) => {
+                        const isInfoBtn = act.id === 'btn_coop_start' || act.id.startsWith('btn_info');
+                        if (e.isTrusted) {
+                            import('../../network/NetworkManager').then(({ NetworkManager }) => {
+                                if (NetworkManager.currentConfig?.isCoopRogue) {
+                                    if (!NetworkManager.isHost && !isInfoBtn) {
+                                        const isEn = getLanguage() === 'en';
+                                        import('../HUDController').then(({ HUDController }) => HUDController.showAlert(isEn ? "Only the Host can select rewards." : "Solo el Anfitrión puede elegir las recompensas."));
+                                        return;
+                                    } else {
+                                        if (NetworkManager.isHost) {
+                                            NetworkManager.sendFn?.({ type: 'EVENT_OPTION_CLICK', optionId: act.id });
+                                        }
+                                        act.onClick();
+                                    }
+                                } else {
+                                    act.onClick();
+                                }
+                            });
+                        } else {
+                            act.onClick();
+                        }
                     });
                     list.appendChild(btn);
                 });

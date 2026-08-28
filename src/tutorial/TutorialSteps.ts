@@ -36,6 +36,7 @@ export interface TutorialStep {
 export interface TutorialChapter {
     id: string;
     chapterNumber: number;
+    category: 'classic' | 'special' | 'tsumego';
     tag: string;
     title: string;
     description: string;
@@ -50,6 +51,7 @@ export const TUTORIAL_CHAPTERS_ES: TutorialChapter[] = [
     {
         id: 'cap_1_libertades',
         chapterNumber: 1,
+        category: 'classic',
         tag: 'REGLA FUNDAMENTAL',
         title: 'Libertades y Grupos',
         description: 'Aprende cómo respiran las piedras a través de las intersecciones y forman grupos interconectados.',
@@ -131,6 +133,7 @@ export const TUTORIAL_CHAPTERS_ES: TutorialChapter[] = [
     {
         id: 'cap_2_capturas',
         chapterNumber: 2,
+        category: 'classic',
         tag: 'COMBATE BÁSICO',
         title: 'Capturas y Atari',
         description: 'Cuando a un grupo le queda solo 1 libertad (Atari), la jugada que lo rodea por completo lo retira del tablero.',
@@ -176,6 +179,7 @@ export const TUTORIAL_CHAPTERS_ES: TutorialChapter[] = [
     {
         id: 'cap_3_ojos',
         chapterNumber: 3,
+        category: 'classic',
         tag: 'VIDA Y MUERTE',
         title: 'Grupos Vivos y Dos Ojos',
         description: 'La regla de oro de la inmortalidad: un grupo con dos ojos separados jamás puede ser capturado.',
@@ -254,9 +258,72 @@ export const TUTORIAL_CHAPTERS_ES: TutorialChapter[] = [
             }
         ]
     },
+
+    {
+        id: 'cap_ojos_falsos',
+        chapterNumber: 4,
+        category: 'classic',
+        tag: 'VIDA Y MUERTE',
+        title: 'Ojos Falsos y Muerte',
+        description: 'Creer que tienes 2 ojos cuando uno es falso es la trampa más letal del Go. Si un ojo colapsa, todo tu grupo muere.',
+        boardSize: 9,
+        heroId: 'normal',
+        komi: 0,
+        initialStones: [
+            { id: '2,3', player: 1 }, { id: '3,3', player: 1 }, { id: '4,3', player: 1 }, { id: '5,3', player: 1 },
+            { id: '2,4', player: 1 }, { id: '4,4', player: 1 }, { id: '6,4', player: 1 },
+            { id: '2,5', player: 1 }, { id: '3,5', player: 1 }, { id: '4,5', player: 1 }, { id: '5,5', player: 1 },
+            { id: '1,3', player: 2 }, { id: '1,4', player: 2 }, { id: '1,5', player: 2 },
+            { id: '2,2', player: 2 }, { id: '3,2', player: 2 }, { id: '4,2', player: 2 }, { id: '5,2', player: 2 }, { id: '6,2', player: 2 },
+            { id: '2,6', player: 2 }, { id: '3,6', player: 2 }, { id: '4,6', player: 2 }, { id: '5,6', player: 2 }, { id: '6,6', player: 2 },
+            { id: '6,3', player: 2 }, { id: '7,4', player: 2 }, { id: '6,5', player: 2 }
+        ],
+        steps: [
+            {
+                id: 'cof_s1',
+                messageTitle: '1. La Falsa Inmortalidad (2 Ojos)',
+                messageBody: 'Recuerda: necesitas <strong>2 ojos reales</strong> para que un grupo viva eternamente. Tu grupo parece seguro porque tiene 2 huecos: el <strong>Ojo 1</strong> en (3,4) y el <strong>Ojo 2</strong> en (5,4).',
+                expectedAction: { type: 'dialog_only' },
+                annotations: [
+                    { nodeId: '3,4', label: '1', color: '#10b981' },
+                    { nodeId: '5,4', label: '2', color: '#f59e0b' }
+                ]
+            },
+            {
+                id: 'cof_s2',
+                messageTitle: '2. La Esquina Vulnerable',
+                messageBody: 'El Ojo 1 está protegido en todas sus diagonales. Pero mira la piedra negra en (6,4): Blancas ha rodeado todas sus libertades exteriores en (6,3), (7,4) y (6,5). ¡Está en <strong>Atari</strong> con solo 1 libertad en (5,4)!',
+                expectedAction: { type: 'dialog_only' },
+                annotations: [
+                    { nodeId: '6,4', label: '⚠️', color: '#ef4444' },
+                    { nodeId: '5,4', label: '⚔️', color: '#ef4444' }
+                ]
+            },
+            {
+                id: 'cof_s3',
+                messageTitle: '3. Defender la Piedra',
+                messageBody: 'Si Blancas juega en (5,4), capturará tu piedra (6,4) y entrará a tu grupo. Debes jugar tú mismo en (5,4) para conectarla y evitar que muera. ¡Juega en (5,4)!',
+                expectedAction: { type: 'place_stone', nodeId: '5,4' },
+                annotations: [
+                    { nodeId: '5,4', label: '🔗', color: '#38bdf8' }
+                ]
+            },
+            {
+                id: 'cof_s4',
+                messageTitle: '4. Muerte por Ojo Falso',
+                messageBody: '¡Tragedia! Al tener que rellenar el hueco, <strong>tu segundo ojo ha desaparecido</strong>. Ahora a tu grupo <strong>solo le queda 1 ojo</strong> en (3,4). Como un grupo con un solo ojo no puede sobrevivir, ¡el enemigo capturará todo tu grupo entero!',
+                expectedAction: { type: 'dialog_only' },
+                annotations: [
+                    { nodeId: '3,4', label: '💀', color: '#ef4444' }
+                ]
+            }
+        ]
+    },
+    
     {
         id: 'cap_4_suicidio',
-        chapterNumber: 4,
+        chapterNumber: 5,
+        category: 'classic',
         tag: 'REGLA CANÓNICA',
         title: 'Suicidio Prohibido',
         description: 'No puedes jugar donde no tengas libertades, a menos que esa jugada capture inmediatamente piedras enemigas.',
@@ -307,7 +374,8 @@ export const TUTORIAL_CHAPTERS_ES: TutorialChapter[] = [
     },
     {
         id: 'cap_5_ko',
-        chapterNumber: 5,
+        chapterNumber: 6,
+        category: 'classic',
         tag: 'REGLA CANÓNICA',
         title: 'La Regla del Ko (Eternidad)',
         description: 'Prohíbe la repetición infinita de la misma posición en el tablero.',
@@ -346,9 +414,141 @@ export const TUTORIAL_CHAPTERS_ES: TutorialChapter[] = [
             }
         ]
     },
+{
+        id: 'cap_snapback',
+        chapterNumber: 7,
+        category: 'classic',
+        tag: 'TÁCTICA BÁSICA',
+        title: 'Captura en Snapback (Uttegaeshi)',
+        description: 'Sacrifica una piedra deliberadamente en las fauces del enemigo para recapturar un grupo más grande inmediatamente.',
+        boardSize: 9,
+        heroId: 'normal',
+        komi: 0,
+        initialStones: [
+            { id: '3,2', player: 2 }, { id: '4,2', player: 2 }, { id: '5,2', player: 2 },
+            { id: '3,3', player: 2 }, { id: '3,4', player: 2 }, { id: '4,4', player: 2 },
+            { id: '3,1', player: 1 }, { id: '4,1', player: 1 }, { id: '5,1', player: 1 },
+            { id: '2,2', player: 1 }, { id: '6,2', player: 1 },
+            { id: '2,3', player: 1 }, { id: '6,3', player: 1 },
+            { id: '2,4', player: 1 }, { id: '5,4', player: 1 },
+            { id: '3,5', player: 1 }, { id: '4,5', player: 1 }
+        ],
+        steps: [
+            {
+                id: 'csb_s1',
+                messageTitle: '1. La Trampa de la Herradura',
+                messageBody: 'El grupo blanco de 6 piedras está casi completamente rodeado. Solo le quedan dos libertades: (4,3) y (5,3).',
+                expectedAction: { type: 'dialog_only' },
+                annotations: [
+                    { nodeId: '4,3', label: '★', color: '#f59e0b' },
+                    { nodeId: '5,3', label: '★', color: '#f59e0b' }
+                ]
+            },
+            {
+                id: 'csb_s2',
+                messageTitle: '2. El Sacrificio',
+                messageBody: 'Juega en (4,3). Tu piedra entra como cebo con 1 sola libertad en (5,3), pero deja al grupo blanco entero también con 1 sola libertad.',
+                expectedAction: { type: 'place_stone', nodeId: '4,3' },
+                annotations: [
+                    { nodeId: '4,3', label: '★', color: '#38bdf8' }
+                ]
+            },
+            {
+                id: 'csb_s3',
+                messageTitle: '3. El Cebo Mordido',
+                messageBody: '¡El blanco ha mordido el anzuelo capturando tu piedra en (5,3)! Pero fíjate: al hacerlo, sus 7 piedras han quedado con UNA SOLA libertad de nuevo en (4,3).',
+                expectedAction: { type: 'dialog_only' },
+                annotations: [
+                    { nodeId: '4,3', label: '1', color: '#ef4444' }
+                ],
+                onStart: (board: any, state: any) => {
+                    import('../core/RulesEngine').then(m => {
+                        m.RulesEngine.tryPlaceStone(board, state, '5,3', 2);
+                        import('../controllers/GameController').then(gc => {
+                            gc.GameController.renderer?.render();
+                            gc.GameController.updateInGameUI();
+                        });
+                    });
+                }
+            },
+            {
+                id: 'csb_s4',
+                messageTitle: '4. El Snapback (Uttegaeshi)',
+                messageBody: '¡Recaptura inmediatamente jugando en (4,3)! Al capturar 7 piedras de golpe, la regla del Ko no lo impide.',
+                expectedAction: { type: 'place_stone', nodeId: '4,3' },
+                annotations: [
+                    { nodeId: '4,3', label: '⚔️', color: '#ef4444' }
+                ]
+            },
+            {
+                id: 'csb_s5',
+                messageTitle: '5. ¡Golpe Maestro!',
+                messageBody: '¡Increíble! Has sacrificado 1 piedra para aniquilar 7 piedras enemigas. Esta técnica táctica milenaria se llama <strong>Snapback (Uttegaeshi)</strong>.',
+                expectedAction: { type: 'dialog_only' }
+            }
+        ]
+    },
+    {
+        id: 'cap_seki',
+        chapterNumber: 8,
+        category: 'classic',
+        tag: 'VIDA Y MUERTE',
+        title: 'Seki (Vida Mutua)',
+        description: 'Cuando dos grupos enemigos comparten libertades y ninguno puede atacar sin suicidarse, ambos conviven en paz (Seki).',
+        boardSize: 9,
+        heroId: 'normal',
+        komi: 0,
+        initialStones: [
+            { id: '2,2', player: 2 }, { id: '3,2', player: 2 }, { id: '4,2', player: 2 }, { id: '5,2', player: 2 },
+            { id: '2,3', player: 2 }, { id: '5,3', player: 2 },
+            { id: '2,4', player: 2 }, { id: '3,4', player: 1 }, { id: '4,4', player: 1 }, { id: '5,4', player: 2 },
+            { id: '2,5', player: 2 }, { id: '3,5', player: 1 }, { id: '4,5', player: 1 }, { id: '5,5', player: 2 },
+            { id: '2,6', player: 2 }, { id: '3,6', player: 2 }, { id: '4,6', player: 2 }, { id: '5,6', player: 2 }
+        ],
+        steps: [
+            {
+                id: 'csk_s1',
+                messageTitle: '1. Ojos Insuficientes',
+                messageBody: 'Mira tu bloque de 4 piedras negras. Están totalmente rodeadas por el blanco y solo comparten 2 libertades vacías en (3,3) y (4,3). Ninguno tiene ojos reales.',
+                expectedAction: { type: 'dialog_only' },
+                annotations: [
+                    { nodeId: '3,3', label: '?', color: '#f59e0b' },
+                    { nodeId: '4,3', label: '?', color: '#f59e0b' }
+                ]
+            },
+            {
+                id: 'csk_s2',
+                messageTitle: '2. Suicidio Táctico',
+                messageBody: 'Si intentas jugar en una de las libertades compartidas para atacar, te pondrás a ti mismo en Atari y el blanco te capturará.',
+                expectedAction: { type: 'dialog_only' },
+                annotations: [
+                    { nodeId: '3,3', label: '🚫', color: '#ef4444' }
+                ]
+            },
+            {
+                id: 'csk_s3',
+                messageTitle: '3. Parálisis Mutua',
+                messageBody: 'Igualmente, si el blanco juega ahí, él se pondrá en Atari y tú lo capturarás a él. Ninguno de los dos jugadores tiene incentivo para jugar.',
+                expectedAction: { type: 'dialog_only' }
+            },
+            {
+                id: 'csk_s4',
+                messageTitle: '4. Pasar el Turno (Paz)',
+                messageBody: 'A este estado se le llama <strong>Seki (Vida Mutua)</strong>. Los grupos sobreviven pacíficamente. Pasa tu turno usando el botón inferior o la tecla [P].',
+                expectedAction: { type: 'pass' }
+            },
+            {
+                id: 'csk_s5',
+                messageTitle: '5. Fin de Partida en Seki',
+                messageBody: 'Al terminar la partida, las piedras en Seki se consideran "vivas", pero sus libertades compartidas no suman puntos de territorio para nadie.',
+                expectedAction: { type: 'dialog_only' }
+            }
+        ]
+    },
     {
         id: 'cap_6_territorio',
-        chapterNumber: 6,
+        chapterNumber: 9,
+        category: 'classic',
         tag: 'PUNTUACIÓN FINAL',
         title: 'Territorio y Reglas Japonesas',
         description: 'Gana quien domine más territorio cercado sumando prisioneros y la compensación de Komi.',
@@ -356,82 +556,117 @@ export const TUTORIAL_CHAPTERS_ES: TutorialChapter[] = [
         heroId: 'normal',
         komi: 6.5,
         initialStones: [
-            { id: '0,3', player: 1 }, { id: '1,3', player: 1 }, { id: '2,3', player: 1 },
-            { id: '3,0', player: 1 }, { id: '3,1', player: 1 }, { id: '3,2', player: 1 }
+            { id: '1,4', player: 1 }, { id: '2,4', player: 1 }, { id: '4,4', player: 1 }, { id: '5,4', player: 1 },
+            { id: '5,1', player: 1 }, { id: '5,2', player: 1 }, { id: '5,3', player: 1 },
+            { id: '2,2', player: 2 },
+            { id: '6,6', player: 2 }, { id: '6,7', player: 2 }, { id: '6,8', player: 2 }, { id: '6,9', player: 2 },
+            { id: '7,6', player: 2 }, { id: '8,6', player: 2 }, { id: '9,6', player: 2 }
         ],
         steps: [
             {
                 id: 'c6_s1',
-                messageTitle: '1. ¿Qué es el Territorio?',
-                messageBody: 'En Go, el <strong>Territorio</strong> son las intersecciones vacías cercadas por tus piedras conectadas hasta los bordes del tablero.',
+                messageTitle: '1. El Objetivo Sagrado del Go',
+                messageBody: 'En Go, ganar no consiste en capturar todas las fichas, sino en **cercar la mayor cantidad de tierra vacía (Territorio)**. Mira el tablero: ambos bandos están trazando sus fronteras.',
                 expectedAction: { type: 'dialog_only' },
                 annotations: [
-                    { nodeId: '1,1', label: '?', color: '#f59e0b' },
-                    { nodeId: '2,2', label: '?', color: '#f59e0b' }
+                    { nodeId: '3,2', label: '⚫', color: '#10b981' },
+                    { nodeId: '8,8', label: '⚪', color: '#38bdf8' }
                 ]
             },
             {
                 id: 'c6_s2',
-                messageTitle: '2. Valor del Territorio',
-                messageBody: 'Cada intersección vacía dentro de tus fronteras cerradas vale <strong>1 Punto de Victoria</strong>.',
-                expectedAction: { type: 'dialog_only' },
+                messageTitle: '2. Sellar la Muralla',
+                messageBody: 'Mira tu muralla negra en la esquina superior izquierda: hay una **brecha abierta en (3,4)**. Si no la cierras, el territorio no está cercado y no sumará ningún punto. ¡Juega en (3,4) para sellar tu frontera!',
+                expectedAction: { type: 'place_stone', nodeId: '3,4' },
                 annotations: [
-                    { nodeId: '0,0', label: '1pt', color: '#f59e0b' },
-                    { nodeId: '1,0', label: '1pt', color: '#f59e0b' },
-                    { nodeId: '0,1', label: '1pt', color: '#f59e0b' },
-                    { nodeId: '1,1', label: '1pt', color: '#f59e0b' }
+                    { nodeId: '3,4', label: '★', color: '#10b981' }
                 ]
             },
             {
                 id: 'c6_s3',
-                messageTitle: '3. Detectar la Fisura',
-                messageBody: 'Mira la esquina superior izquierda: tu muralla tiene una <strong>brecha en (2,2)</strong>. Sin cerrar esa esquina, el territorio no te pertenece.',
+                messageTitle: '3. +11 Puntos de Territorio',
+                messageBody: '¡Muralla sellada! Has cercado herméticamente las intersecciones vacías de tu esquina. Bajo las <strong>Reglas Japonesas</strong>, cada casilla vacía dentro de tu muralla vale exactamente <strong>1 Punto de Victoria</strong> (+11 puntos).',
                 expectedAction: { type: 'dialog_only' },
                 annotations: [
-                    { nodeId: '2,2', label: '⚠️', color: '#ef4444' }
+                    { nodeId: '1,1', label: '+1', color: '#10b981' }, { nodeId: '2,1', label: '+1', color: '#10b981' }, { nodeId: '3,1', label: '+1', color: '#10b981' }, { nodeId: '4,1', label: '+1', color: '#10b981' },
+                    { nodeId: '1,2', label: '+1', color: '#10b981' }, { nodeId: '3,2', label: '+1', color: '#10b981' }, { nodeId: '4,2', label: '+1', color: '#10b981' },
+                    { nodeId: '1,3', label: '+1', color: '#10b981' }, { nodeId: '2,3', label: '+1', color: '#10b981' }, { nodeId: '3,3', label: '+1', color: '#10b981' }, { nodeId: '4,3', label: '+1', color: '#10b981' }
                 ]
             },
             {
                 id: 'c6_s4',
-                messageTitle: '4. Sellar la Frontera',
-                messageBody: 'Juega tu piedra en <strong>(2,2)</strong> para unir tu muralla y sellar herméticamente el territorio.',
-                expectedAction: { type: 'place_stone', nodeId: '2,2' },
+                messageTitle: '4. Piedras Muertas (+1 Prisionero)',
+                messageBody: 'Mira la piedra blanca solitaria atrapada en (2,2) dentro de tu muralla. No puede crear 2 ojos ni escapar: es una <strong>Piedra Muerta</strong>. Al final de la partida se retira sin necesidad de gastar jugadas y suma <strong>+1 Prisionero</strong> a tu favor.',
+                expectedAction: { type: 'dialog_only' },
                 annotations: [
-                    { nodeId: '2,2', label: '★', color: '#10b981' }
+                    { nodeId: '2,2', label: '💀 +1', color: '#ef4444' }
                 ]
             },
             {
                 id: 'c6_s5',
-                messageTitle: '5. Territorio Conquistado',
-                messageBody: '¡Frontera sellada! Has conquistado <strong>4 intersecciones vacías</strong> (1 a 4). Cada una te otorga +1 punto de territorio.',
-                expectedAction: { type: 'dialog_only' },
-                annotations: [
-                    { nodeId: '0,0', label: '1', color: '#10b981' },
-                    { nodeId: '1,0', label: '2', color: '#10b981' },
-                    { nodeId: '0,1', label: '3', color: '#10b981' },
-                    { nodeId: '1,1', label: '4', color: '#10b981' }
-                ]
-            },
-            {
-                id: 'c6_s6',
-                messageTitle: '6. Prisioneros y Komi',
-                messageBody: 'Cada piedra enemiga capturada otorga <strong>+1 punto adicional</strong>. Además, Blancas recibe <strong>+6.5 puntos de Komi</strong> por jugar en segundo lugar.',
+                messageTitle: '5. El Komi (+6.5 Puntos para Blancas)',
+                messageBody: 'Como Negras juega primero y tiene la ventaja de la iniciativa, Blancas recibe una compensación fija al final: <strong>+6.5 Puntos de Komi</strong>. El 0.5 decimal evita empates para siempre.',
                 expectedAction: { type: 'dialog_only' }
             },
             {
-                id: 'c6_s7',
-                messageTitle: '7. Fórmula Canónica de Victoria',
-                messageBody: 'Al terminar la partida:<br><strong>Puntuación = Territorio Cercado + Prisioneros + Komi</strong>.<br>¡Quien sume más puntos gana!',
+                id: 'c6_s6',
+                messageTitle: '6. Puntuación Final Japonesa',
+                messageBody: 'Hagamos el recuento final:<br>⚫ <strong>Negras</strong>: 11 Territorio + 1 Prisionero (piedra muerta) = <strong>12 Puntos</strong>.<br>⚪ <strong>Blancas</strong>: 9 Territorio + 0 Prisioneros + 6.5 Komi = <strong>15.5 Puntos</strong>.<br>¡Blancas gana por 3.5 puntos! Así se calcula cada partida milenaria de Go.',
                 expectedAction: { type: 'dialog_only' }
             }
         ]
     },
+
+    {
+        id: 'cap_topologia',
+        chapterNumber: 10,
+        category: 'special',
+        tag: 'MECÁNICA CRAZY GO',
+        title: 'Topologías y el Vacío',
+        description: 'Descubre cómo los tableros asimétricos o destruidos cambian las reglas de supervivencia. El vacío no da libertades.',
+        boardSize: 9,
+        heroId: 'normal',
+        komi: 0,
+        initialStones: [
+            { id: '2,2', player: 2 }, { id: '3,2', player: 2 }, { id: '4,2', player: 2 }
+        ],
+        steps: [
+            {
+                id: 'ctp_s1',
+                messageTitle: '1. El Abismo',
+                messageBody: 'En Crazy Go, los meteoritos y ciertos tableros pueden tener casillas <strong>destruidas</strong> (sin suelo). Estas casillas desaparecen del mapa.',
+                expectedAction: { type: 'dialog_only' },
+                onStart: (_board: any, state: any) => {
+                    import('../core/RulesEngine').then(m => {
+                        m.RulesEngine.destroyTopology(_board, state, ['3,1', '2,1', '4,1']);
+                    });
+                }
+            },
+            {
+                id: 'ctp_s2',
+                messageTitle: '2. El Vacío no respira',
+                messageBody: 'Las piedras blancas están al borde del vacío. Los huecos destruidos <strong>no cuentan como libertades</strong>. Empújalas hacia el abismo jugando en (3,3).',
+                expectedAction: { type: 'place_stone', nodeId: '3,3' },
+                annotations: [
+                    { nodeId: '3,3', label: '★', color: '#f59e0b' }
+                ]
+            },
+            {
+                id: 'ctp_s3',
+                messageTitle: '3. Asfixia Acelerada',
+                messageBody: 'Como ves, es mucho más fácil capturar a un enemigo acorralado contra zonas destruidas. ¡Aprovecha la topología a tu favor!',
+                expectedAction: { type: 'dialog_only' }
+            }
+        ]
+    },
+    
     {
         id: 'cap_7_campeones',
-        chapterNumber: 7,
+        chapterNumber: 11,
+        category: 'special',
         tag: 'MECÁNICA CRAZY GO',
         title: 'Campeones y Lluvia Meteórica',
-        description: 'Desata las habilidades místicas de los Campeones de Crazy Go sobre el tablero.',
+        description: 'Desata las habilidades místicas de los Campeones y comprende el alcance, probabilidades y fuego amigo de la Lluvia Meteórica.',
         boardSize: 9,
         heroId: 'tengu',
         komi: 0,
@@ -447,7 +682,7 @@ export const TUTORIAL_CHAPTERS_ES: TutorialChapter[] = [
             {
                 id: 'c7_s1',
                 messageTitle: '1. El Bastión Rival',
-                messageBody: 'El rival ha construido una fortaleza masiva de 25 piedras blancas en la derecha difícil de invadir mediante reglas estándar.',
+                messageBody: 'El rival ha construido una fortaleza masiva de 25 piedras blancas a la derecha. En el Go tradicional requeriría decenas de turnos penetrarla, pero en Crazy Go los <strong>Campeones</strong> poseen habilidades devastadoras.',
                 expectedAction: { type: 'dialog_only' },
                 annotations: [
                     { nodeId: '6,4', label: '⚔️', color: '#ef4444' }
@@ -455,33 +690,40 @@ export const TUTORIAL_CHAPTERS_ES: TutorialChapter[] = [
             },
             {
                 id: 'c7_s2',
-                messageTitle: '2. Campeón Tengu',
-                messageBody: 'Como <strong>Tengu</strong>, posees la habilidad activa <strong>☄️ Lluvia Meteórica</strong>. Pulsa la tecla [C] o haz clic en el botón de habilidad de tu tarjeta.',
+                messageTitle: '2. Habilidad Activa: ☄️ Lluvia Meteórica',
+                messageBody: 'Como <strong>Tengu</strong>, dominas la habilidad activa <strong>☄️ Lluvia Meteórica</strong>. Cubre un <strong>25% del tablero</strong> alrededor de la casilla que elijas (unas 20 casillas en 9x9) y descarga <strong>6 meteoros orbitales</strong> (13 en 13x13 y 27 en 19x19).',
                 expectedAction: { type: 'dialog_only' }
             },
             {
                 id: 'c7_s3',
-                messageTitle: '3. Invocar Meteoros',
-                messageBody: 'Haz clic en el centro de la fortaleza rival (6,4) para desatar la lluvia de meteoros cósmicos y destruir su bastión.',
+                messageTitle: '3. Probabilidad y Daño Indiscriminado (¡Fuego Amigo!)',
+                messageBody: '<strong>⚠️ Regla Crítica:</strong> Los meteoros caen de forma estocástica en casillas únicas de la zona (~30% de probabilidad por casilla). <strong>¡Destruyen cualquier ficha desprotegida, sea ENEMIGA O ALIADA!</strong> Apunta lejos de tus propias cadenas o protégelas con <strong>🛡️ Escudo Divino</strong> (inmune al impacto).',
+                expectedAction: { type: 'dialog_only' }
+            },
+            {
+                id: 'c7_s4',
+                messageTitle: '4. Invocar el Bombardeo Cósmico',
+                messageBody: 'Pulsa la tecla [C] (o haz clic en el botón de habilidad de tu tarjeta) y selecciona el centro del bastión enemigo en <strong>(6,4)</strong> para desatar el ataque orbital.',
                 expectedAction: { type: 'use_skill', nodeId: '6,4' },
                 annotations: [
                     { nodeId: '6,4', label: '☄️', color: '#ef4444' }
                 ]
             },
             {
-                id: 'c7_s4',
-                messageTitle: '4. Impacto Devastador',
-                messageBody: '¡Increíble! La lluvia meteórica pulverizó las piedras desprotegidas en el área de impacto, abriendo el tablero para tu victoria.',
+                id: 'c7_s5',
+                messageTitle: '5. Fortaleza Pulverizada',
+                messageBody: '¡Impacto devastador! La lluvia meteórica pulverizó múltiples piedras en la zona de impacto, abriendo brechas letales en su estructura. ¡Aprovecha la oportunidad para invadir!',
                 expectedAction: { type: 'dialog_only' }
             }
         ]
     },
     {
         id: 'cap_8_hechizos_poliminos',
-        chapterNumber: 8,
+        chapterNumber: 12,
+        category: 'special',
         tag: 'MECÁNICA CRAZY GO',
         title: 'Hechizos y Fichas Poliminó',
-        description: 'Domina el arsenal completo: Rebobinar, Meteorito, Piedra Germinante, Ficha Duplicidad y Monolito.',
+        description: 'Domina el arsenal completo: Meteorito (80% enemigo / 20% fuego amigo), Rebobinar, Piedra Germinante, Duplicidad y Monolito.',
         boardSize: 9,
         heroId: 'normal',
         komi: 0,
@@ -493,43 +735,58 @@ export const TUTORIAL_CHAPTERS_ES: TutorialChapter[] = [
             {
                 id: 'c8_s1',
                 messageTitle: '1. El Arsenal Místico',
-                messageBody: 'En la barra inferior posees <strong>Pergaminos Mágicos</strong> y <strong>Fichas Poliminó</strong> que te permitirán cambiar el curso de la partida.',
+                messageBody: 'En la barra inferior dispones de <strong>Pergaminos Mágicos</strong> y <strong>Fichas Poliminó</strong> que te permitirán cambiar el rumbo de la partida.',
                 expectedAction: { type: 'dialog_only' }
             },
             {
                 id: 'c8_s2',
-                messageTitle: '2. Hechizo Meteorito (☄️)',
-                messageBody: 'Selecciona el <strong>Meteorito (tecla 2)</strong> y haz clic en la piedra blanca solitaria en (4,4) para destruirla.',
+                messageTitle: '2. Ejemplo 1: Meteorito (Acierto Seguro)',
+                messageBody: 'El pergamino <strong>Meteorito (tecla 2)</strong> destruye 1 piedra vulnerable en el Goban. Al no haber piedras aliadas en riesgo inmediato, úsalo ahora para pulverizar la piedra blanca en (4,4).',
                 expectedAction: { type: 'use_spell', spellId: 'meteor' },
+                onStart: () => {
+                    if (typeof window !== 'undefined') {
+                        (window as any).__tutorialForceMeteorEnemy = true;
+                        (window as any).__tutorialForceMeteorAlly = false;
+                    }
+                },
                 annotations: [
                     { nodeId: '4,4', label: '☄️', color: '#ef4444' }
                 ]
             },
             {
                 id: 'c8_s3',
-                messageTitle: '3. Poder Instantáneo',
-                messageBody: '¡Piedra eliminada! Los hechizos se ejecutan de forma instantánea sin consumir tu turno de colocación estándar.',
+                messageTitle: '3. Acierto Directo y Probabilidades',
+                messageBody: '¡Piedra enemiga destruida! El pergamino de Meteorito tiene un <strong>80% de probabilidad de impactar al enemigo y un 20% de probabilidad de fuego amigo (impactar a una ficha aliada)</strong>.',
                 expectedAction: { type: 'dialog_only' }
             },
             {
                 id: 'c8_s4',
-                messageTitle: '4. Error Táctico Deliberado',
-                messageBody: 'Coloca una piedra normal en la casilla marcada (7,2) para simular una jugada equivocada.',
-                expectedAction: { type: 'place_stone', nodeId: '7,2' },
-                annotations: [
-                    { nodeId: '7,2', label: '★', color: '#f59e0b' }
-                ]
+                messageTitle: '4. Ejemplo 2: Riesgo del 20% (Fuego Amigo)',
+                messageBody: 'Ahora hay piedras aliadas y enemigas en juego. Usa tu segundo <strong>Meteorito (tecla 2)</strong> para comprobar qué sucede cuando ocurre el 20% de desvío estocástico.',
+                expectedAction: { type: 'use_spell', spellId: 'meteor' },
+                onStart: () => {
+                    if (typeof window !== 'undefined') {
+                        (window as any).__tutorialForceMeteorAlly = true;
+                        (window as any).__tutorialForceMeteorEnemy = false;
+                    }
+                }
             },
             {
                 id: 'c8_s5',
-                messageTitle: '5. Hechizo Rebobinar (⏳)',
-                messageBody: '¡Te has equivocado de posición! Usa el pergamino <strong>Rebobinar (tecla 1 o U)</strong> para retroceder el tiempo.',
-                expectedAction: { type: 'use_spell', spellId: 'rewind' }
+                messageTitle: '5. ¡Fuego Amigo y Rebobinado Temporal!',
+                messageBody: '¡El meteorito impactó en tu propia piedra aliada! Este riesgo del 20% exige prudencia al invocarlo. ¡Afortunadamente dispones del pergamino <strong>⏳ Rebobinar (tecla 1 o U)</strong>! Úsalo para revertir el tiempo y recuperar tu piedra.',
+                expectedAction: { type: 'use_spell', spellId: 'rewind' },
+                onComplete: () => {
+                    if (typeof window !== 'undefined') {
+                        (window as any).__tutorialForceMeteorAlly = false;
+                        (window as any).__tutorialForceMeteorEnemy = false;
+                    }
+                }
             },
             {
                 id: 'c8_s6',
                 messageTitle: '6. Fichas Poliminó',
-                messageBody: 'Las fichas poliminó son piezas especiales con formas geométricas únicas: Germinante (1x1), Duplicidad (2x1) y Monolito (2x2).',
+                messageBody: '¡Tiempo restaurado y piedra recuperada! Ahora continuemos con las <strong>Fichas Poliminó</strong>: piezas con formas geométricas especiales: Germinante (1x1), Duplicidad (2x1) y Monolito (2x2).',
                 expectedAction: { type: 'dialog_only' }
             },
             {
@@ -568,14 +825,59 @@ export const TUTORIAL_CHAPTERS_ES: TutorialChapter[] = [
             {
                 id: 'c8_s10',
                 messageTitle: '10. ¡Arsenal Dominado!',
-                messageBody: '¡Extraordinario! Has dominado el Meteorito, el Rebobinado temporal y las tres fichas poliminó tácticas.',
+                messageBody: '¡Extraordinario! Has dominado el Meteorito (con su 80% de acierto y 20% de fuego amigo), el Rebobinado temporal y las tres fichas poliminó tácticas.',
+                expectedAction: { type: 'dialog_only' }
+            }
+        ]
+    },
+    {
+        id: 'cap_magia',
+        chapterNumber: 13,
+        category: 'special',
+        tag: 'MECÁNICA CRAZY GO',
+        title: 'Sinergias de Magia',
+        description: 'Usa la Inversión Cromática del Alquimista para transmutar piedras clave y capturar desde dentro.',
+        boardSize: 9,
+        heroId: 'alchemist',
+        komi: 0,
+        initialStones: [
+            { id: '5,4', player: 2 }, { id: '5,5', player: 2 }, { id: '5,6', player: 2 },
+            { id: '4,4', player: 1 }, { id: '4,5', player: 1 }, { id: '4,6', player: 1 },
+            { id: '6,4', player: 1 }, { id: '6,6', player: 1 },
+            { id: '5,3', player: 1 }, { id: '5,7', player: 1 }
+        ],
+        steps: [
+            {
+                id: 'cmg_s1',
+                messageTitle: '1. El Muro de Corte Enemigo',
+                messageBody: 'El enemigo ha colocado una columna de 3 piedras en (5,4), (5,5) y (5,6) que corta y separa a tus grupos negros. Al grupo blanco solo le queda <strong>1 libertad exterior en (6,5)</strong>.',
+                expectedAction: { type: 'dialog_only' },
+                annotations: [
+                    { nodeId: '5,5', label: '⚔️', color: '#ef4444' },
+                    { nodeId: '6,5', label: '1lib', color: '#f59e0b' }
+                ]
+            },
+            {
+                id: 'cmg_s2',
+                messageTitle: '2. Inversión Cromática Letal',
+                messageBody: 'Como <strong>Alquimista</strong>, tu magia te permite cambiar el color de cualquier piedra. Activa tu habilidad [C] e invierte la piedra central enemiga en <strong>(5,5)</strong>.',
+                expectedAction: { type: 'use_skill', nodeId: '5,5' },
+                annotations: [
+                    { nodeId: '5,5', label: '✨', color: '#a855f7' }
+                ]
+            },
+            {
+                id: 'cmg_s3',
+                messageTitle: '3. ¡Implosión y Captura Total!',
+                messageBody: '¡Magia pura! Al transmutar la piedra central (5,5) a tu color, las dos piedras blancas vecinas (5,4) y (5,6) se quedaron con <strong>0 libertades</strong> y fueron <strong>capturadas y eliminadas del tablero</strong> al instante. Tu nueva piedra conecta ambos grupos en una fortaleza invencible.',
                 expectedAction: { type: 'dialog_only' }
             }
         ]
     },
     {
         id: 'cap_9_entidades',
-        chapterNumber: 9,
+        chapterNumber: 14,
+        category: 'special',
         tag: 'MODO ROGUELIKE',
         title: 'Entidades y Cautivos del Goban',
         description: 'Rescata rehenes, abre cofres místicos y reclama pergaminos sagrados cercando sus libertades.',
@@ -614,6 +916,43 @@ export const TUTORIAL_CHAPTERS_ES: TutorialChapter[] = [
                 expectedAction: { type: 'dialog_only' }
             }
         ]
+    },
+    {
+        id: 'cap_tsumego_1',
+        chapterNumber: 15,
+        category: 'tsumego',
+        tag: 'TSUMEGO (VIDA Y MUERTE)',
+        title: 'Tsumego 1: Las Negras Viven',
+        description: 'Encuentra el punto vital para salvar a tu grupo negro creando dos ojos reales.',
+        boardSize: 9,
+        heroId: 'normal',
+        komi: 0,
+        initialStones: [
+            { id: '2,1', player: 2 }, { id: '3,1', player: 2 }, { id: '4,1', player: 2 },
+            { id: '2,2', player: 1 }, { id: '3,2', player: 1 }, { id: '5,2', player: 2 },
+            { id: '2,3', player: 1 }, { id: '4,3', player: 1 }, { id: '5,3', player: 2 },
+            { id: '2,4', player: 2 }, { id: '3,4', player: 2 }, { id: '4,4', player: 2 }
+        ],
+        steps: [
+            {
+                id: 'cts_1_s1',
+                messageTitle: '1. El Desafío (Tsumego)',
+                messageBody: 'En los "Tsumegos" (Puzzles de Go), debes encontrar la jugada exacta (Tesuji) para vivir o matar. Tu grupo negro está asediado.',
+                expectedAction: { type: 'dialog_only' }
+            },
+            {
+                id: 'cts_1_s2',
+                messageTitle: '2. Encuentra el Tesuji',
+                messageBody: 'Juega en la intersección vital que garantiza la formación de dos ojos reales para salvar a tu grupo.',
+                expectedAction: { type: 'place_stone', nodeId: '3,3' }
+            },
+            {
+                id: 'cts_1_s3',
+                messageTitle: '3. ¡Grupo Salvado!',
+                messageBody: '¡Excelente! Al jugar en (3,3), has creado dos ojos reales independientes. Tu grupo es ahora matemáticamente inmortal.',
+                expectedAction: { type: 'dialog_only' }
+            }
+        ]
     }
 ];
 
@@ -621,6 +960,7 @@ export const TUTORIAL_CHAPTERS_EN: TutorialChapter[] = [
     {
         id: 'cap_1_libertades',
         chapterNumber: 1,
+        category: 'classic',
         tag: 'FUNDAMENTAL RULE',
         title: 'Liberties & Groups',
         description: 'Learn how stones breathe through intersections and form interconnected groups with shared liberties.',
@@ -702,6 +1042,7 @@ export const TUTORIAL_CHAPTERS_EN: TutorialChapter[] = [
     {
         id: 'cap_2_capturas',
         chapterNumber: 2,
+        category: 'classic',
         tag: 'BASIC COMBAT',
         title: 'Captures & Atari',
         description: 'When a group is down to only 1 liberty (Atari), the final surrounding move removes it from the board.',
@@ -747,6 +1088,7 @@ export const TUTORIAL_CHAPTERS_EN: TutorialChapter[] = [
     {
         id: 'cap_3_ojos',
         chapterNumber: 3,
+        category: 'classic',
         tag: 'LIFE & DEATH',
         title: 'Living Groups & Two Eyes',
         description: 'The golden rule of immortality: a group with two separate eyes can never be captured.',
@@ -825,9 +1167,72 @@ export const TUTORIAL_CHAPTERS_EN: TutorialChapter[] = [
             }
         ]
     },
+
+    {
+        id: 'cap_ojos_falsos',
+        chapterNumber: 4,
+        category: 'classic',
+        tag: 'LIFE & DEATH',
+        title: 'False Eyes & Death',
+        description: 'Believing you have 2 eyes when one is false is the deadliest trap in Go. If one eye collapses, your entire group dies.',
+        boardSize: 9,
+        heroId: 'normal',
+        komi: 0,
+        initialStones: [
+            { id: '2,3', player: 1 }, { id: '3,3', player: 1 }, { id: '4,3', player: 1 }, { id: '5,3', player: 1 },
+            { id: '2,4', player: 1 }, { id: '4,4', player: 1 }, { id: '6,4', player: 1 },
+            { id: '2,5', player: 1 }, { id: '3,5', player: 1 }, { id: '4,5', player: 1 }, { id: '5,5', player: 1 },
+            { id: '1,3', player: 2 }, { id: '1,4', player: 2 }, { id: '1,5', player: 2 },
+            { id: '2,2', player: 2 }, { id: '3,2', player: 2 }, { id: '4,2', player: 2 }, { id: '5,2', player: 2 }, { id: '6,2', player: 2 },
+            { id: '2,6', player: 2 }, { id: '3,6', player: 2 }, { id: '4,6', player: 2 }, { id: '5,6', player: 2 }, { id: '6,6', player: 2 },
+            { id: '6,3', player: 2 }, { id: '7,4', player: 2 }, { id: '6,5', player: 2 }
+        ],
+        steps: [
+            {
+                id: 'cof_s1',
+                messageTitle: '1. The False Immortality (2 Eyes)',
+                messageBody: 'Remember: you need <strong>2 real eyes</strong> for a group to live forever. Your group seems safe with 2 holes: <strong>Eye 1</strong> at (3,4) and <strong>Eye 2</strong> at (5,4).',
+                expectedAction: { type: 'dialog_only' },
+                annotations: [
+                    { nodeId: '3,4', label: '1', color: '#10b981' },
+                    { nodeId: '5,4', label: '2', color: '#f59e0b' }
+                ]
+            },
+            {
+                id: 'cof_s2',
+                messageTitle: '2. The Vulnerable Corner',
+                messageBody: 'Eye 1 is protected on all its corners. But look at the black stone at (6,4): White has surrounded all its outside liberties at (6,3), (7,4), and (6,5). It is in <strong>Atari</strong> with only 1 liberty inside at (5,4)!',
+                expectedAction: { type: 'dialog_only' },
+                annotations: [
+                    { nodeId: '6,4', label: '⚠️', color: '#ef4444' },
+                    { nodeId: '5,4', label: '⚔️', color: '#ef4444' }
+                ]
+            },
+            {
+                id: 'cof_s3',
+                messageTitle: '3. Defend the Stone',
+                messageBody: 'If White plays at (5,4), they will capture your stone at (6,4) and break inside. You must play at (5,4) yourself to connect it and prevent capture. Play at (5,4)!',
+                expectedAction: { type: 'place_stone', nodeId: '5,4' },
+                annotations: [
+                    { nodeId: '5,4', label: '🔗', color: '#38bdf8' }
+                ]
+            },
+            {
+                id: 'cof_s4',
+                messageTitle: '4. Death by False Eye',
+                messageBody: 'Tragedy! By being forced to fill the hole, <strong>your second eye has vanished</strong>. Now your group <strong>only has 1 eye left</strong> at (3,4). Since a group with only 1 eye cannot survive, the enemy will capture your entire group!',
+                expectedAction: { type: 'dialog_only' },
+                annotations: [
+                    { nodeId: '3,4', label: '💀', color: '#ef4444' }
+                ]
+            }
+        ]
+    },
+    
     {
         id: 'cap_4_suicidio',
-        chapterNumber: 4,
+        chapterNumber: 5,
+        category: 'classic',
         tag: 'CANONICAL RULE',
         title: 'Prohibited Suicide',
         description: 'You cannot play where you have no liberties, unless that move immediately captures enemy stones.',
@@ -878,7 +1283,8 @@ export const TUTORIAL_CHAPTERS_EN: TutorialChapter[] = [
     },
     {
         id: 'cap_5_ko',
-        chapterNumber: 5,
+        chapterNumber: 6,
+        category: 'classic',
         tag: 'CANONICAL RULE',
         title: 'The Rule of Ko (Eternity)',
         description: 'Prohibits the infinite repetition of the exact same board position.',
@@ -917,9 +1323,141 @@ export const TUTORIAL_CHAPTERS_EN: TutorialChapter[] = [
             }
         ]
     },
+{
+        id: 'cap_snapback',
+        chapterNumber: 7,
+        category: 'classic',
+        tag: 'BASIC TACTICS',
+        title: 'Snapback Capture',
+        description: 'Deliberately sacrifice a stone into the jaws of the enemy to recapture a larger group immediately.',
+        boardSize: 9,
+        heroId: 'normal',
+        komi: 0,
+        initialStones: [
+            { id: '3,2', player: 2 }, { id: '4,2', player: 2 }, { id: '5,2', player: 2 },
+            { id: '3,3', player: 2 }, { id: '3,4', player: 2 }, { id: '4,4', player: 2 },
+            { id: '3,1', player: 1 }, { id: '4,1', player: 1 }, { id: '5,1', player: 1 },
+            { id: '2,2', player: 1 }, { id: '6,2', player: 1 },
+            { id: '2,3', player: 1 }, { id: '6,3', player: 1 },
+            { id: '2,4', player: 1 }, { id: '5,4', player: 1 },
+            { id: '3,5', player: 1 }, { id: '4,5', player: 1 }
+        ],
+        steps: [
+            {
+                id: 'csb_s1',
+                messageTitle: '1. The Horseshoe Trap',
+                messageBody: 'The 6-stone white group is nearly surrounded. It only has two liberties left: (4,3) and (5,3).',
+                expectedAction: { type: 'dialog_only' },
+                annotations: [
+                    { nodeId: '4,3', label: '★', color: '#f59e0b' },
+                    { nodeId: '5,3', label: '★', color: '#f59e0b' }
+                ]
+            },
+            {
+                id: 'csb_s2',
+                messageTitle: '2. The Sacrifice',
+                messageBody: 'Play at (4,3). Your stone enters as bait with 1 liberty at (5,3), while reducing the entire white group to just 1 liberty as well.',
+                expectedAction: { type: 'place_stone', nodeId: '4,3' },
+                annotations: [
+                    { nodeId: '4,3', label: '★', color: '#38bdf8' }
+                ]
+            },
+            {
+                id: 'csb_s3',
+                messageTitle: '3. Taking the Bait',
+                messageBody: 'White took the bait and captured your stone by playing at (5,3)! But look closely: by doing so, all 7 white stones now have only ONE liberty remaining at (4,3).',
+                expectedAction: { type: 'dialog_only' },
+                annotations: [
+                    { nodeId: '4,3', label: '1', color: '#ef4444' }
+                ],
+                onStart: (board: any, state: any) => {
+                    import('../core/RulesEngine').then(m => {
+                        m.RulesEngine.tryPlaceStone(board, state, '5,3', 2);
+                        import('../controllers/GameController').then(gc => {
+                            gc.GameController.renderer?.render();
+                            gc.GameController.updateInGameUI();
+                        });
+                    });
+                }
+            },
+            {
+                id: 'csb_s4',
+                messageTitle: '4. The Snapback',
+                messageBody: 'Recapture immediately by playing at (4,3)! Since you are capturing 7 stones in return, the Ko Rule does not apply.',
+                expectedAction: { type: 'place_stone', nodeId: '4,3' },
+                annotations: [
+                    { nodeId: '4,3', label: '⚔️', color: '#ef4444' }
+                ]
+            },
+            {
+                id: 'csb_s5',
+                messageTitle: '5. Trap Closed',
+                messageBody: 'Masterful! You sacrificed 1 stone to eliminate 7 enemy stones. This legendary tactic is called <strong>Snapback (Uttegaeshi)</strong>.',
+                expectedAction: { type: 'dialog_only' }
+            }
+        ]
+    },
+    {
+        id: 'cap_seki',
+        chapterNumber: 8,
+        category: 'classic',
+        tag: 'LIFE & DEATH',
+        title: 'Seki (Mutual Life)',
+        description: 'When two enemy groups share liberties and neither can attack without committing suicide, they live in peace (Seki).',
+        boardSize: 9,
+        heroId: 'normal',
+        komi: 0,
+        initialStones: [
+            { id: '2,2', player: 2 }, { id: '3,2', player: 2 }, { id: '4,2', player: 2 }, { id: '5,2', player: 2 },
+            { id: '2,3', player: 2 }, { id: '5,3', player: 2 },
+            { id: '2,4', player: 2 }, { id: '3,4', player: 1 }, { id: '4,4', player: 1 }, { id: '5,4', player: 2 },
+            { id: '2,5', player: 2 }, { id: '3,5', player: 1 }, { id: '4,5', player: 1 }, { id: '5,5', player: 2 },
+            { id: '2,6', player: 2 }, { id: '3,6', player: 2 }, { id: '4,6', player: 2 }, { id: '5,6', player: 2 }
+        ],
+        steps: [
+            {
+                id: 'csk_s1',
+                messageTitle: '1. Insufficient Eyes',
+                messageBody: 'Look at your 4 black stones. They are fully surrounded by white and only share 2 empty liberties at (3,3) and (4,3). Neither group has real eyes.',
+                expectedAction: { type: 'dialog_only' },
+                annotations: [
+                    { nodeId: '3,3', label: '?', color: '#f59e0b' },
+                    { nodeId: '4,3', label: '?', color: '#f59e0b' }
+                ]
+            },
+            {
+                id: 'csk_s2',
+                messageTitle: '2. Tactical Suicide',
+                messageBody: 'If you try to play in one of the shared liberties to attack, you will put yourself in Atari and White will capture you.',
+                expectedAction: { type: 'dialog_only' },
+                annotations: [
+                    { nodeId: '3,3', label: '🚫', color: '#ef4444' }
+                ]
+            },
+            {
+                id: 'csk_s3',
+                messageTitle: '3. Mutual Paralysis',
+                messageBody: 'Likewise, if White plays there, they will put themselves in Atari and you will capture them. Neither player has an incentive to play.',
+                expectedAction: { type: 'dialog_only' }
+            },
+            {
+                id: 'csk_s4',
+                messageTitle: '4. Passing the Turn (Peace)',
+                messageBody: 'This state is called <strong>Seki (Mutual Life)</strong>. The groups survive peacefully. Pass your turn using the bottom button or [P] key.',
+                expectedAction: { type: 'pass' }
+            },
+            {
+                id: 'csk_s5',
+                messageTitle: '5. Endgame in Seki',
+                messageBody: 'At the end of the game, stones in Seki are considered "alive", but their shared liberties do not count as territory points for anyone.',
+                expectedAction: { type: 'dialog_only' }
+            }
+        ]
+    },
     {
         id: 'cap_6_territorio',
-        chapterNumber: 6,
+        chapterNumber: 9,
+        category: 'classic',
         tag: 'FINAL SCORING',
         title: 'Territory & Japanese Rules',
         description: 'The player with the most surrounded territory plus prisoners and Komi wins.',
@@ -927,82 +1465,117 @@ export const TUTORIAL_CHAPTERS_EN: TutorialChapter[] = [
         heroId: 'normal',
         komi: 6.5,
         initialStones: [
-            { id: '0,3', player: 1 }, { id: '1,3', player: 1 }, { id: '2,3', player: 1 },
-            { id: '3,0', player: 1 }, { id: '3,1', player: 1 }, { id: '3,2', player: 1 }
+            { id: '1,4', player: 1 }, { id: '2,4', player: 1 }, { id: '4,4', player: 1 }, { id: '5,4', player: 1 },
+            { id: '5,1', player: 1 }, { id: '5,2', player: 1 }, { id: '5,3', player: 1 },
+            { id: '2,2', player: 2 },
+            { id: '6,6', player: 2 }, { id: '6,7', player: 2 }, { id: '6,8', player: 2 }, { id: '6,9', player: 2 },
+            { id: '7,6', player: 2 }, { id: '8,6', player: 2 }, { id: '9,6', player: 2 }
         ],
         steps: [
             {
                 id: 'c6_s1',
-                messageTitle: '1. What is Territory?',
-                messageBody: 'In Go, <strong>Territory</strong> consists of the empty intersections completely enclosed by your connected stones against the board edges.',
+                messageTitle: '1. The True Goal of Go',
+                messageBody: 'In Go, winning is not about capturing all enemy stones, but about **enclosing the most empty land (Territory)**. Look at the board: both sides are drawing their borders.',
                 expectedAction: { type: 'dialog_only' },
                 annotations: [
-                    { nodeId: '1,1', label: '?', color: '#f59e0b' },
-                    { nodeId: '2,2', label: '?', color: '#f59e0b' }
+                    { nodeId: '3,2', label: '⚫', color: '#10b981' },
+                    { nodeId: '8,8', label: '⚪', color: '#38bdf8' }
                 ]
             },
             {
                 id: 'c6_s2',
-                messageTitle: '2. Value of Territory',
-                messageBody: 'Each empty intersection safely inside your borders awards <strong>1 Victory Point</strong>.',
-                expectedAction: { type: 'dialog_only' },
+                messageTitle: '2. Sealing the Border',
+                messageBody: 'Look at your black wall in the top-left corner: there is an **open gap at (3,4)**. Without closing it, your territory is open and will not score any points. Play at (3,4) to seal your border!',
+                expectedAction: { type: 'place_stone', nodeId: '3,4' },
                 annotations: [
-                    { nodeId: '0,0', label: '1pt', color: '#f59e0b' },
-                    { nodeId: '1,0', label: '1pt', color: '#f59e0b' },
-                    { nodeId: '0,1', label: '1pt', color: '#f59e0b' },
-                    { nodeId: '1,1', label: '1pt', color: '#f59e0b' }
+                    { nodeId: '3,4', label: '★', color: '#10b981' }
                 ]
             },
             {
                 id: 'c6_s3',
-                messageTitle: '3. Spotting the Breach',
-                messageBody: 'Look at the top-left corner: your wall has a <strong>gap at (2,2)</strong>. Without sealing it, the corner does not count as your territory.',
+                messageTitle: '3. +11 Territory Points',
+                messageBody: 'Border sealed! You have safely enclosed the empty intersections of your corner. Under <strong>Japanese Rules</strong>, each empty intersection inside your wall is worth exactly <strong>1 Victory Point</strong> (+11 points).',
                 expectedAction: { type: 'dialog_only' },
                 annotations: [
-                    { nodeId: '2,2', label: '⚠️', color: '#ef4444' }
+                    { nodeId: '1,1', label: '+1', color: '#10b981' }, { nodeId: '2,1', label: '+1', color: '#10b981' }, { nodeId: '3,1', label: '+1', color: '#10b981' }, { nodeId: '4,1', label: '+1', color: '#10b981' },
+                    { nodeId: '1,2', label: '+1', color: '#10b981' }, { nodeId: '3,2', label: '+1', color: '#10b981' }, { nodeId: '4,2', label: '+1', color: '#10b981' },
+                    { nodeId: '1,3', label: '+1', color: '#10b981' }, { nodeId: '2,3', label: '+1', color: '#10b981' }, { nodeId: '3,3', label: '+1', color: '#10b981' }, { nodeId: '4,3', label: '+1', color: '#10b981' }
                 ]
             },
             {
                 id: 'c6_s4',
-                messageTitle: '4. Sealing the Border',
-                messageBody: 'Place your stone at <strong>(2,2)</strong> to complete the enclosure and safely secure the territory.',
-                expectedAction: { type: 'place_stone', nodeId: '2,2' },
+                messageTitle: '4. Dead Stones (+1 Prisoner)',
+                messageBody: 'Look at the lonely white stone trapped at (2,2) inside your wall. It cannot make 2 eyes and cannot escape: it is a <strong>Dead Stone</strong>. At the end of the game, it is removed without wasting extra moves and counts as <strong>+1 Prisoner</strong> for you.',
+                expectedAction: { type: 'dialog_only' },
                 annotations: [
-                    { nodeId: '2,2', label: '★', color: '#10b981' }
+                    { nodeId: '2,2', label: '💀 +1', color: '#ef4444' }
                 ]
             },
             {
                 id: 'c6_s5',
-                messageTitle: '5. Secured Territory',
-                messageBody: 'Enclosure complete! You have secured <strong>4 empty intersections</strong> (1 to 4). Each grants +1 territory point.',
-                expectedAction: { type: 'dialog_only' },
-                annotations: [
-                    { nodeId: '0,0', label: '1', color: '#10b981' },
-                    { nodeId: '1,0', label: '2', color: '#10b981' },
-                    { nodeId: '0,1', label: '3', color: '#10b981' },
-                    { nodeId: '1,1', label: '4', color: '#10b981' }
-                ]
-            },
-            {
-                id: 'c6_s6',
-                messageTitle: '6. Prisoners & Komi',
-                messageBody: 'Each captured opponent stone grants <strong>+1 extra point</strong>. In addition, White receives <strong>+6.5 Komi points</strong> for moving second.',
+                messageTitle: '5. Komi (+6.5 Points for White)',
+                messageBody: 'Since Black plays first and enjoys initiative advantage, White receives a fixed compensation at the end: <strong>+6.5 Komi Points</strong>. The 0.5 decimal eliminates ties forever.',
                 expectedAction: { type: 'dialog_only' }
             },
             {
-                id: 'c6_s7',
-                messageTitle: '7. Canonical Victory Formula',
-                messageBody: 'At match conclusion:<br><strong>Final Score = Enclosed Territory + Prisoners + Komi</strong>.<br>The player with the highest total wins!',
+                id: 'c6_s6',
+                messageTitle: '6. Japanese Final Scoring',
+                messageBody: 'Let us calculate the final score:<br>⚫ <strong>Black</strong>: 11 Territory + 1 Prisoner (dead stone) = <strong>12 Points</strong>.<br>⚪ <strong>White</strong>: 9 Territory + 0 Prisoners + 6.5 Komi = <strong>15.5 Points</strong>.<br>White wins by 3.5 points! This is how every game of Go is scored.',
                 expectedAction: { type: 'dialog_only' }
             }
         ]
     },
+
+    {
+        id: 'cap_topologia',
+        chapterNumber: 10,
+        category: 'special',
+        tag: 'CRAZY GO MECHANIC',
+        title: 'Topologies & The Void',
+        description: 'Discover how asymmetrical or destroyed boards change survival rules. The void grants no liberties.',
+        boardSize: 9,
+        heroId: 'normal',
+        komi: 0,
+        initialStones: [
+            { id: '2,2', player: 2 }, { id: '3,2', player: 2 }, { id: '4,2', player: 2 }
+        ],
+        steps: [
+            {
+                id: 'ctp_s1',
+                messageTitle: '1. The Abyss',
+                messageBody: 'In Crazy Go, meteors and certain boards can have <strong>destroyed</strong> tiles (no ground). These intersections disappear from the map.',
+                expectedAction: { type: 'dialog_only' },
+                onStart: (_board: any, state: any) => {
+                    import('../core/RulesEngine').then(m => {
+                        m.RulesEngine.destroyTopology(_board, state, ['3,1', '2,1', '4,1']);
+                    });
+                }
+            },
+            {
+                id: 'ctp_s2',
+                messageTitle: '2. The Void Does Not Breathe',
+                messageBody: 'The white stones are at the edge of the void. Destroyed gaps <strong>do not count as liberties</strong>. Push them towards the abyss by playing at (3,3).',
+                expectedAction: { type: 'place_stone', nodeId: '3,3' },
+                annotations: [
+                    { nodeId: '3,3', label: '★', color: '#f59e0b' }
+                ]
+            },
+            {
+                id: 'ctp_s3',
+                messageTitle: '3. Accelerated Asphyxiation',
+                messageBody: 'As you can see, it is much easier to capture an enemy cornered against destroyed areas. Use the topology to your advantage!',
+                expectedAction: { type: 'dialog_only' }
+            }
+        ]
+    },
+    
     {
         id: 'cap_7_campeones',
-        chapterNumber: 7,
+        chapterNumber: 11,
+        category: 'special',
         tag: 'CRAZY GO MECHANIC',
         title: 'Champions & Meteor Strike',
-        description: 'Unleash the supernatural skills of Crazy Go champions on the board.',
+        description: 'Unleash supernatural Champion skills and master the strike area, hit chances, and friendly fire of Meteor Strike.',
         boardSize: 9,
         heroId: 'tengu',
         komi: 0,
@@ -1018,7 +1591,7 @@ export const TUTORIAL_CHAPTERS_EN: TutorialChapter[] = [
             {
                 id: 'c7_s1',
                 messageTitle: '1. The Rival Bastion',
-                messageBody: 'Your opponent built a massive fortress of 25 white stones on the right side, nearly impossible to breach with basic moves.',
+                messageBody: 'Your opponent built a massive fortress of 25 white stones on the right. In classic Go this would require dozens of turns to breach, but in Crazy Go <strong>Champions</strong> wield devastating active powers.',
                 expectedAction: { type: 'dialog_only' },
                 annotations: [
                     { nodeId: '6,4', label: '⚔️', color: '#ef4444' }
@@ -1026,33 +1599,40 @@ export const TUTORIAL_CHAPTERS_EN: TutorialChapter[] = [
             },
             {
                 id: 'c7_s2',
-                messageTitle: '2. Tengu Champion',
-                messageBody: 'As <strong>Tengu</strong>, you wield the active skill <strong>☄️ Meteor Strike</strong>. Press the [C] key or click the skill button on your portrait.',
+                messageTitle: '2. Active Skill: ☄️ Meteor Strike',
+                messageBody: 'As <strong>Tengu</strong>, you command the active skill <strong>☄️ Meteor Strike</strong>. It targets <strong>25% of the board</strong> around your chosen center (~20 intersections on 9x9) and unleashes <strong>6 orbital meteors</strong> (13 on 13x13, 27 on 19x19).',
                 expectedAction: { type: 'dialog_only' }
             },
             {
                 id: 'c7_s3',
-                messageTitle: '3. Summon Meteors',
-                messageBody: 'Click on the center of the enemy fortress (6,4) to unleash orbital meteorites and destroy their stronghold.',
+                messageTitle: '3. Hit Chances & Indiscriminate Damage (Friendly Fire!)',
+                messageBody: '<strong>⚠️ Critical Rule:</strong> Meteors strike random unique intersections within the zone (~30% hit chance per tile). <strong>They destroy ANY unprotected stone, whether ENEMY OR ALLIED!</strong> Avoid targeting your own key groups unless they are safeguarded by <strong>🛡️ Divine Shield</strong> (100% immune).',
+                expectedAction: { type: 'dialog_only' }
+            },
+            {
+                id: 'c7_s4',
+                messageTitle: '4. Summon the Cosmic Barrage',
+                messageBody: 'Press [C] (or click the skill button on your champion portrait) and click the center of the enemy fortress at <strong>(6,4)</strong> to trigger the orbital bombardment.',
                 expectedAction: { type: 'use_skill', nodeId: '6,4' },
                 annotations: [
                     { nodeId: '6,4', label: '☄️', color: '#ef4444' }
                 ]
             },
             {
-                id: 'c7_s4',
-                messageTitle: '4. Devastating Impact',
-                messageBody: 'Incredible! The meteor strike pulverized the unprotected stones in the impact zone, opening the field for your victory.',
+                id: 'c7_s5',
+                messageTitle: '5. Fortress Pulverized',
+                messageBody: 'Devastating impact! The meteor barrage pulverized multiple stones across the impact zone, creating lethal openings in the enemy structure. Seize the momentum and advance!',
                 expectedAction: { type: 'dialog_only' }
             }
         ]
     },
     {
         id: 'cap_8_hechizos_poliminos',
-        chapterNumber: 8,
+        chapterNumber: 12,
+        category: 'special',
         tag: 'CRAZY GO MECHANIC',
         title: 'Spells & Polyomino Stones',
-        description: 'Master the full mystical arsenal: Time Rewind, Meteor, Sprouting Stone, Duplicity Stone, and Monolith.',
+        description: 'Master the full mystical arsenal: Meteor Strike (80% enemy / 20% friendly fire), Time Rewind, Sprouting Stone, Duplicity, and Monolith.',
         boardSize: 9,
         heroId: 'normal',
         komi: 0,
@@ -1069,38 +1649,53 @@ export const TUTORIAL_CHAPTERS_EN: TutorialChapter[] = [
             },
             {
                 id: 'c8_s2',
-                messageTitle: '2. Meteor Strike (☄️)',
-                messageBody: 'Select the <strong>Meteor Strike (Key 2)</strong> and click on the solitary white stone at (4,4) to destroy it.',
+                messageTitle: '2. Example 1: Guaranteed Hit (100% Enemy)',
+                messageBody: 'The <strong>Meteor Strike scroll (Key 2)</strong> searches and destroys 1 vulnerable stone on the Goban. With no allied stones in immediate danger, use the scroll now to obliterate the white stone at (4,4).',
                 expectedAction: { type: 'use_spell', spellId: 'meteor' },
+                onStart: () => {
+                    if (typeof window !== 'undefined') {
+                        (window as any).__tutorialForceMeteorEnemy = true;
+                        (window as any).__tutorialForceMeteorAlly = false;
+                    }
+                },
                 annotations: [
                     { nodeId: '4,4', label: '☄️', color: '#ef4444' }
                 ]
             },
             {
                 id: 'c8_s3',
-                messageTitle: '3. Instant Casting',
-                messageBody: 'Stone destroyed! Spells execute instantly without consuming your standard stone placement turn.',
+                messageTitle: '3. Direct Hit & Probabilities',
+                messageBody: 'Enemy stone destroyed! Meteor Strike has an <strong>80% chance to strike an enemy stone and a 20% chance of friendly fire (striking an allied stone)</strong>.',
                 expectedAction: { type: 'dialog_only' }
             },
             {
                 id: 'c8_s4',
-                messageTitle: '4. Deliberate Mistake',
-                messageBody: 'Place a normal stone on the marked node (7,2) to simulate an unintended tactical error.',
-                expectedAction: { type: 'place_stone', nodeId: '7,2' },
-                annotations: [
-                    { nodeId: '7,2', label: '★', color: '#f59e0b' }
-                ]
+                messageTitle: '4. Example 2: The 20% Risk (Friendly Fire)',
+                messageBody: 'Now both allied and enemy stones share the Goban. Use your second <strong>Meteor Strike (Key 2)</strong> to experience what happens when the 20% stochastic deviation occurs.',
+                expectedAction: { type: 'use_spell', spellId: 'meteor' },
+                onStart: () => {
+                    if (typeof window !== 'undefined') {
+                        (window as any).__tutorialForceMeteorAlly = true;
+                        (window as any).__tutorialForceMeteorEnemy = false;
+                    }
+                }
             },
             {
                 id: 'c8_s5',
-                messageTitle: '5. Time Rewind (⏳)',
-                messageBody: 'You placed the stone in the wrong spot! Use the <strong>Time Rewind (Key 1 or U)</strong> scroll to reverse time.',
-                expectedAction: { type: 'use_spell', spellId: 'rewind' }
+                messageTitle: '5. Friendly Fire & Temporal Rescue!',
+                messageBody: 'The meteor hit your own allied stone! This 20% risk requires tactical care. Fortunately, you hold the <strong>⏳ Time Rewind scroll (Key 1 or U)</strong>! Cast it now to reverse time and restore your stone.',
+                expectedAction: { type: 'use_spell', spellId: 'rewind' },
+                onComplete: () => {
+                    if (typeof window !== 'undefined') {
+                        (window as any).__tutorialForceMeteorAlly = false;
+                        (window as any).__tutorialForceMeteorEnemy = false;
+                    }
+                }
             },
             {
                 id: 'c8_s6',
                 messageTitle: '6. Polyomino Stones',
-                messageBody: 'Polyominoes are multi-stone geometrical shapes: Sprouting (1x1), Duplicity (2x1), and Monolith (2x2).',
+                messageBody: 'Time restored and stone saved! Now let us learn <strong>Polyomino Stones</strong>: multi-stone geometrical pieces (1x1, 2x1, and 2x2).',
                 expectedAction: { type: 'dialog_only' }
             },
             {
@@ -1139,14 +1734,59 @@ export const TUTORIAL_CHAPTERS_EN: TutorialChapter[] = [
             {
                 id: 'c8_s10',
                 messageTitle: '10. Arsenal Mastered!',
-                messageBody: 'Outstanding! You have mastered Meteor Strike, Time Rewind, and all three tactical polyomino stones.',
+                messageBody: 'Outstanding! You have mastered Meteor Strike (with its 80% hit and 20% friendly fire rates), Time Rewind rescue, and all three tactical polyomino stones.',
+                expectedAction: { type: 'dialog_only' }
+            }
+        ]
+    },
+    {
+        id: 'cap_magia',
+        chapterNumber: 13,
+        category: 'special',
+        tag: 'CRAZY GO MECHANIC',
+        title: 'Magic Synergies',
+        description: "Use the Alchemist's Chromatic Inversion to transmute key enemy stones and trigger internal captures.",
+        boardSize: 9,
+        heroId: 'alchemist',
+        komi: 0,
+        initialStones: [
+            { id: '5,4', player: 2 }, { id: '5,5', player: 2 }, { id: '5,6', player: 2 },
+            { id: '4,4', player: 1 }, { id: '4,5', player: 1 }, { id: '4,6', player: 1 },
+            { id: '6,4', player: 1 }, { id: '6,6', player: 1 },
+            { id: '5,3', player: 1 }, { id: '5,7', player: 1 }
+        ],
+        steps: [
+            {
+                id: 'cmg_s1',
+                messageTitle: '1. The Cutting Wall',
+                messageBody: 'The enemy has placed a 3-stone column at (5,4), (5,5), and (5,6) cutting your black groups apart. The white block only has <strong>1 outside liberty at (6,5)</strong>.',
+                expectedAction: { type: 'dialog_only' },
+                annotations: [
+                    { nodeId: '5,5', label: '⚔️', color: '#ef4444' },
+                    { nodeId: '6,5', label: '1lib', color: '#f59e0b' }
+                ]
+            },
+            {
+                id: 'cmg_s2',
+                messageTitle: '2. Deadly Chromatic Inversion',
+                messageBody: 'As an <strong>Alchemist</strong>, your magic allows you to change the color of any stone. Activate your skill [C] and invert the central enemy stone at <strong>(5,5)</strong>.',
+                expectedAction: { type: 'use_skill', nodeId: '5,5' },
+                annotations: [
+                    { nodeId: '5,5', label: '✨', color: '#a855f7' }
+                ]
+            },
+            {
+                id: 'cmg_s3',
+                messageTitle: '3. Total Implosion & Capture!',
+                messageBody: 'Pure magic! By transmuting the center stone (5,5) to your color, the two neighboring white stones (5,4) and (5,6) were left with <strong>0 liberties</strong> and were <strong>instantly captured and removed</strong>. Your new stone connects both your groups into an unbreakable fortress.',
                 expectedAction: { type: 'dialog_only' }
             }
         ]
     },
     {
         id: 'cap_9_entidades',
-        chapterNumber: 9,
+        chapterNumber: 14,
+        category: 'special',
         tag: 'ROGUELIKE MODE',
         title: 'Goban Entities & Captives',
         description: 'Rescue hostages, unlock shrine chests, and recover sacred scrolls by surrounding their liberties.',
