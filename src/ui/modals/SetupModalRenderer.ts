@@ -309,7 +309,7 @@ export class SetupModalRenderer {
 
         // Individual Bot Sliders
         const slots = config.slots || ({} as Record<import('../../core/GraphBoard').PlayerId, import('../../types').PlayerSlot>);
-        [2, 3, 4].forEach(p => {
+        [1, 2, 3, 4].forEach(p => {
             const playerId = p as import('../../core/GraphBoard').PlayerId;
             const pDiff = slots[playerId]?.aiDifficulty || config.difficulty;
             const pVal = parseKyuDanToNumber(pDiff);
@@ -322,19 +322,32 @@ export class SetupModalRenderer {
             if (display) display.innerText = pStr;
         });
 
-        // Hide P3/P4 rows if 2P mode
+        // Toggle rows based on mode and player count
+        const p1Row = document.getElementById('ai-granular-p1-row');
         const p3Row = document.getElementById('ai-granular-p3-row');
         const p4Row = document.getElementById('ai-granular-p4-row');
+        
+        // P3 and P4 only visible in 4P mode
         if (p3Row) p3Row.style.display = config.playerCount === 2 ? 'none' : 'flex';
         if (p4Row) p4Row.style.display = config.playerCount === 2 ? 'none' : 'flex';
 
+        // P1 only visible in AI vs AI mode
+        if (p1Row) p1Row.style.display = config.gameMode === 'aivsai' ? 'flex' : 'none';
+
         const granularToggleBtn = document.getElementById('btn-toggle-ai-granular');
+        
+        // The granular button is ONLY useful if there are MULTIPLE AIs.
+        // - 4P mode has multiple bots.
+        // - 2P aivsai mode has multiple bots (2 bots).
+        // - 2P 1via mode has only 1 bot, so granular toggle should be hidden.
+        const hasMultipleAIs = config.playerCount === 4 || config.gameMode === 'aivsai';
+        
         if (granularToggleBtn) {
-            granularToggleBtn.style.display = config.playerCount === 2 ? 'none' : 'inline-flex';
+            granularToggleBtn.style.display = hasMultipleAIs ? 'inline-flex' : 'none';
         }
 
-        // If in 2P mode, force Pack Mode (hide granular box, show pack box)
-        if (config.playerCount === 2) {
+        // If not multiple AIs, force Pack Mode (hide granular box, show pack box)
+        if (!hasMultipleAIs) {
             document.getElementById('ai-pack-mode-box')?.classList.remove('hidden');
             document.getElementById('ai-granular-mode-box')?.classList.add('hidden');
             if (granularToggleBtn) {

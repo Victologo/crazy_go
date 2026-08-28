@@ -224,7 +224,7 @@ export class SetupEventBinder {
             
             if (isGranularAI) {
                 if (!tempConfig.slots) tempConfig.slots = {} as any;
-                [2, 3, 4].forEach(p => {
+                [1, 2, 3, 4].forEach(p => {
                     const playerId = p as import('../core/GraphBoard').PlayerId;
                     if (!tempConfig.slots![playerId]) {
                         tempConfig.slots![playerId] = { slotId: playerId, teamId: (p%2===0?2:1) as import('../types').TeamId, type: 'ai', aiDifficulty: tempConfig.difficulty };
@@ -247,7 +247,7 @@ export class SetupEventBinder {
 
             // Actualizar todos los slots
             if (!tempConfig.slots) tempConfig.slots = {} as any;
-            [2, 3, 4].forEach(p => {
+            [1, 2, 3, 4].forEach(p => {
                 const playerId = p as import('../core/GraphBoard').PlayerId;
                 if (!tempConfig.slots![playerId]) {
                     tempConfig.slots![playerId] = { slotId: playerId, teamId: (p%2===0?2:1) as import('../types').TeamId, type: 'ai', aiDifficulty: str };
@@ -259,7 +259,7 @@ export class SetupEventBinder {
         });
 
         // Eventos Sliders Individuales
-        [2, 3, 4].forEach(p => {
+        [1, 2, 3, 4].forEach(p => {
             document.getElementById(`ai-granular-p${p}-slider`)?.addEventListener('input', (e) => {
                 const val = parseInt((e.target as HTMLInputElement).value, 10);
                 const str = getKyuDanString(val);
