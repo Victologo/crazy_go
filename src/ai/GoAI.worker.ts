@@ -78,17 +78,27 @@ self.onmessage = (e: MessageEvent<AIWorkerIncomingMessage>) => {
 
                 if (diffStr.endsWith('k')) {
                     const k = parseInt(diffStr);
-                    // Kyu levels (Beginners): High temperature (randomness, tactical mistakes)
-                    if (k >= 30) temperature = 2.0;       // 30 Kyu: Caótico, juega en cualquier parte legal con algo de sentido
-                    else if (k >= 20) temperature = 1.5;  // 20 Kyu: Entiende conceptos básicos, pero muy errático
-                    else if (k >= 10) temperature = 1.0;  // 10 Kyu: Juega bien, pero comete errores tácticos ocasionales
-                    else temperature = 0.8;               // 1 Kyu: Casi experto, ligera duda
+                    const clampedK = Math.max(1, Math.min(k, 30));
+                    
+                    // Interpolación precisa definida por el usuario:
+                    // 30 Kyu -> 2.0
+                    // 20 Kyu -> 1.3
+                    // 10 Kyu -> 1.0
+                    // 1 Kyu  -> 0.7
+                    if (clampedK >= 20) {
+                        temperature = 1.3 + ((clampedK - 20) / 10) * 0.7;
+                    } else if (clampedK >= 10) {
+                        temperature = 1.0 + ((clampedK - 10) / 10) * 0.3;
+                    } else {
+                        temperature = 0.7 + ((clampedK - 1) / 9) * 0.3;
+                    }
                 } else if (diffStr.endsWith('d')) {
                     const d = parseInt(diffStr);
-                    // Dan levels (Experts): Low temperature (calculado, preciso)
-                    if (d <= 3) temperature = 0.5;        // 1d-3d: Muy preciso, pequeña aleatoriedad
-                    else if (d <= 6) temperature = 0.2;   // 4d-6d: Letal
-                    else temperature = 0;                 // 7d-9d: Argmax puro (la jugada matemáticamente perfecta)
+                    const clampedD = Math.max(1, Math.min(d, 9));
+                    // Interpolación Dan:
+                    // 1 Dan -> 0.5
+                    // 9 Dan -> 0.0
+                    temperature = 0.5 * (1 - ((clampedD - 1) / 8));
                 } else {
                     // Fallbacks para strings viejos (Story mode, Roguelike)
                     if (diffStr === 'easy') temperature = 1.6;
