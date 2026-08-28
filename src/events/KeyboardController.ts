@@ -942,6 +942,16 @@ export class KeyboardController {
                     return;
                 }
 
+                // Turbo Mode para IA (T) - Modo super rápido para testing
+                if (key === 't' || key === 'T') {
+                    e.preventDefault();
+                    const win = window as any;
+                    win.AI_TURBO_MODE = !win.AI_TURBO_MODE;
+                    const status = win.AI_TURBO_MODE ? "activado (x10)" : "desactivado";
+                    HUDController.showAlert(`🚀 Modo Turbo IA ${status}`);
+                    return;
+                }
+
                 // Sugerencia / Ojo del Maestro y Proyección Astral (H)
                 if (key === 'h' || key === 'H') {
                     e.preventDefault();

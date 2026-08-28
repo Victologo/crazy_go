@@ -16,8 +16,8 @@
 
 - **Auditoría e Internacionalización Universal (i18n)**:
   - Resueltas y añadidas todas las claves de traducción faltantes en `src/i18n/translations.ts` para Español e Inglés:
+    - **Configuración de Partida y Asistente Local (Paso 7 & Paso 3)** (`wizard.step7_*`, `wizard.handicap_*`, `wizard.unit_stones`, `wizard.default_val*`, `wizard.btn_enabled`, `wizard.btn_disabled`, `wizard.timer_*`, `wizard.pack_mode`, `wizard.granular_mode`, `wizard.ai_bot_p*`, `shape.*`, `wizard.size_*_desc`): Reactividad completa en tiempo real de botones de activación (Habilitado/Desactivado, Sin Límite/Activo, Modo Pack/Individual), visualización y presets de hándicap, komi por defecto y todas las topologías geométricas.
     - **Pestaña Social y Perfil Online** (`online.tab_social`, `social.*`): Integración completa de la vista `#view-social` en el modal online con cambio de nombre, visualización de ID de amigo, agregar amigos y lista local reactiva con botones de invitación en ambos idiomas.
-    - **Configuración de Partida y Asistente Local** (`wizard.timer_*`, `wizard.your_special_poly`, `poly.*`, `wizard.ai_*`): Reloj de Go (Byo-yomi puro, japonés, Fischer, absoluto), piedras especiales de poliminós para jugador e IA.
     - **Pantalla de Puntuación Final y Victoria** (`deck.*`, `score.rogue_reward_heading`, `combat_log.title_short`): Botones de inspección, mazo de expedición, reliquias y komi permanente.
     - **HUD y Menús de Juego** (`duel.role_you`, `duel.role_rival`, `btn.undo_short`, `btn.redo_short`, `btn.menu_short`, `btn.log_short`, `rogue.komi_*`, `story.skip_intro`).
     - Pantalla de Elección de Expedición Roguelike (`rogue.choice_active_badge`, `rogue.choice_node_tier`, `rogue.choice_start_new_title`, `rogue.choice_start_new_sub`, `rogue.choice_continue_title`, `rogue.choice_continue_sub`, `rogue.choice_return_menu`).

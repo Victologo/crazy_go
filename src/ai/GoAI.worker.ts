@@ -2,7 +2,7 @@ import { GraphBoard } from '../core/GraphBoard';
 import { GameState } from '../core/GameState';
 import { BoardGenerators } from '../graphics/BoardGenerators';
 import { RulesEngine } from '../core/RulesEngine';
-import { GoAI, type AIDifficulty, type AIMoveChoice } from './GoAI';
+import type { AIMoveChoice, AIDifficulty } from './GoAI';
 import { NeuralNetAdapter } from './NeuralNetAdapter';
 import type { PlayerId } from '../core/GraphBoard';
 
@@ -130,9 +130,7 @@ self.onmessage = (e: MessageEvent<AIWorkerIncomingMessage>) => {
                                 if (id === 'PASS') continue;
                                 const node = board!.nodes.get(id);
                                 if (node && node.stone === null && node.terrain !== 'DESTROYED' && node.terrain !== 'OBSTACLE') {
-                                    const simBoard = GoAI.cloneBoard(board!);
-                                    const simState = GoAI.cloneState(state!);
-                                    const isLegal = RulesEngine.tryPlaceStone(simBoard, simState, id, msg.aiPlayerId).success;
+                                    const isLegal = RulesEngine.isMoveLegal(board!, state!, id, msg.aiPlayerId);
                                     if (isLegal) {
                                         // Aumentar el peso de jugadas subóptimas basado en la temperatura
                                         const weight = Math.pow(prob, 1 / temperature);

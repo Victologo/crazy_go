@@ -164,7 +164,9 @@ export class AITurnManager {
         HUDController.setAIBadge(true);
 
         // Demora adaptativa constante (entre 0.6s y 1.2s para no ser instantánea pero tampoco bloquear)
-        const thinkDelay = Math.floor(600 + Math.random() * 600);
+        const isTurbo = (window as any).AI_TURBO_MODE === true;
+        const baseDelay = isTurbo ? 10 : Math.floor(600 + Math.random() * 600);
+        const thinkDelay = baseDelay;
 
         this.turnTimeout = window.setTimeout(() => {
             if (state.isGameOver) {
@@ -406,7 +408,7 @@ export class AITurnManager {
                                 );
                                 renderer.render();
                                 onUIUpdate();
-                                setTimeout(() => { executeCoreAITurn(); }, 1000);
+                                setTimeout(() => { executeCoreAITurn(); }, isTurbo ? 10 : 1000);
                             };
                             doBurn();
                         }
@@ -504,9 +506,7 @@ export class AITurnManager {
                             );
                             renderer.render();
                             onUIUpdate();
-                            setTimeout(() => {
-                                executeCoreAITurn();
-                            }, 1000);
+                            setTimeout(() => { executeCoreAITurn(); }, isTurbo ? 10 : 1000);
                         }
                     }
                 }
@@ -548,8 +548,7 @@ export class AITurnManager {
                         renderer.render();
                         onUIUpdate();
 
-                        setTimeout(() => {
-                            state.passTurn();
+                        setTimeout(() => { state.passTurn();
                             this.isRunning = false;
                             if (state.isGameOver) {
                                 onGameOver();
@@ -560,7 +559,7 @@ export class AITurnManager {
                                 HUDController.setAIBadge(false);
                                 onAITurnFinished();
                             }
-                        }, 1200);
+                        }, isTurbo ? 10 : 1200);
                     }
                 }
 
@@ -578,9 +577,7 @@ export class AITurnManager {
                         () => {
                             renderer.render();
                             onUIUpdate();
-                            setTimeout(() => {
-                                executeCoreAITurn();
-                            }, 1200);
+                            setTimeout(() => { executeCoreAITurn(); }, isTurbo ? 10 : isTurbo ? 10 : 1200);
                         }
                     );
                     if (didTrigger) {

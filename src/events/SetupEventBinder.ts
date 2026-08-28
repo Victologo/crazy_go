@@ -7,6 +7,7 @@ import { ScreenManager } from '../ui/ScreenManager';
 import { SoundFX } from '../audio/SoundFX';
 import { RoguelikeRunManager } from '../core/RoguelikeRunManager';
 import { SetupModalRenderer } from '../ui/modals/SetupModalRenderer';
+import { t } from '../i18n/i18n';
 
 export class SetupEventBinder {
     // Config temporal del wizard (antes en AppEventBinder.tempSetupConfig)
@@ -176,6 +177,36 @@ export class SetupEventBinder {
             SoundFX.playPlaceStone();
         });
 
+        // Split view (AI vs AI) buttons
+        document.getElementById("btn-setup-p1-prev")?.addEventListener("click", () => {
+            const currentHero = tempConfig.heroId || "normal";
+            let idx = heroes.indexOf(currentHero);
+            if (idx === -1) idx = 0;
+            tempConfig.heroId = heroes[(idx - 1 + heroes.length) % heroes.length];
+            refreshUI(); SoundFX.playPlaceStone();
+        });
+        document.getElementById("btn-setup-p1-next")?.addEventListener("click", () => {
+            const currentHero = tempConfig.heroId || "normal";
+            let idx = heroes.indexOf(currentHero);
+            if (idx === -1) idx = 0;
+            tempConfig.heroId = heroes[(idx + 1) % heroes.length];
+            refreshUI(); SoundFX.playPlaceStone();
+        });
+        document.getElementById("btn-setup-p2-prev")?.addEventListener("click", () => {
+            const currentHero = (tempConfig.enemyHeroId as any) || "normal";
+            let idx = heroes.indexOf(currentHero);
+            if (idx === -1) idx = 0;
+            tempConfig.enemyHeroId = heroes[(idx - 1 + heroes.length) % heroes.length];
+            refreshUI(); SoundFX.playPlaceStone();
+        });
+        document.getElementById("btn-setup-p2-next")?.addEventListener("click", () => {
+            const currentHero = (tempConfig.enemyHeroId as any) || "normal";
+            let idx = heroes.indexOf(currentHero);
+            if (idx === -1) idx = 0;
+            tempConfig.enemyHeroId = heroes[(idx + 1) % heroes.length];
+            refreshUI(); SoundFX.playPlaceStone();
+        });
+
         document.querySelectorAll('#setup-hero-thumb-strip .hero-thumb-btn').forEach(btn => {
             btn.addEventListener('click', () => {
                 const h = btn.getAttribute('data-hero') as HeroId;
@@ -217,7 +248,7 @@ export class SetupEventBinder {
                 btn.setAttribute('data-enabled', isGranularAI ? 'true' : 'false');
                 btn.classList.toggle('active', isGranularAI);
             }
-            if (label) label.innerText = isGranularAI ? 'Granular ⚙️' : 'Pack Mode 📦';
+            if (label) label.innerText = t(isGranularAI ? 'wizard.granular_mode' : 'wizard.pack_mode');
             
             document.getElementById('ai-pack-mode-box')?.classList.toggle('hidden', isGranularAI);
             document.getElementById('ai-granular-mode-box')?.classList.toggle('hidden', !isGranularAI);

@@ -54,6 +54,7 @@ export class SetupModalRenderer {
     }
     public static setWizardStep(step: number, config?: GameSetupConfig) {
         this.currentWizardStep = Math.max(1, Math.min(7, step));
+        applyTranslationsToDOM();
 
         // Actualizar visibilidad de paneles de pasos
         for (let i = 1; i <= 7; i++) {
@@ -355,7 +356,7 @@ export class SetupModalRenderer {
                 granularToggleBtn.classList.remove('active');
             }
             const label = document.getElementById('label-toggle-ai-granular');
-            if (label) label.innerText = 'Pack Mode 📦';
+            if (label) label.innerText = t('wizard.pack_mode');
         }
 
         this.renderHeroShowcaseElements('setup', config.heroId || null);
@@ -434,7 +435,7 @@ export class SetupModalRenderer {
             btnToggleSpecial.classList.toggle('active', special.enabled);
         }
         if (labelToggleSpecial) {
-            labelToggleSpecial.innerText = special.enabled ? 'Habilitado ✨' : 'Desactivado ❌';
+            labelToggleSpecial.innerText = t(special.enabled ? 'wizard.btn_enabled' : 'wizard.btn_disabled');
         }
         specialControls?.classList.toggle('hidden', !special.enabled);
 
@@ -461,13 +462,28 @@ export class SetupModalRenderer {
             btnToggleAISpecial.classList.toggle('active', special.aiEnabled);
         }
         if (labelToggleAISpecial) {
-            labelToggleAISpecial.innerText = special.aiEnabled ? 'IA: Habilitado ✨' : 'IA: Desactivado ❌';
+            labelToggleAISpecial.innerText = t(special.aiEnabled ? 'wizard.btn_ai_enabled' : 'wizard.btn_ai_disabled');
         }
         aiPolyCounters?.classList.toggle('hidden', !special.aiEnabled);
 
         setVal('display-poly-ai-sprouting', special.aiSprouting);
         setVal('display-poly-ai-domino', special.aiDomino);
         setVal('display-poly-ai-monolith', special.aiMonolith);
+
+        // Handicap Controls
+        const handicapVal = config.handicap || 0;
+        const handicapDisplay = document.getElementById('setup-handicap-display');
+        if (handicapDisplay) {
+            handicapDisplay.innerText = handicapVal === 0 
+                ? t('wizard.handicap_even_display') 
+                : t('wizard.handicap_stones_display', { count: handicapVal });
+        }
+        const handicapInput = document.getElementById('setup-handicap-input') as HTMLInputElement | null;
+        if (handicapInput) handicapInput.value = handicapVal.toString();
+        document.querySelectorAll('.btn-setup-handicap').forEach(btn => {
+            const v = parseInt(btn.getAttribute('data-handicap') || '0', 10);
+            btn.classList.toggle('active', v === handicapVal);
+        });
 
         // Komi Controls (2P vs 4P)
         const is4P = config.playerCount === 4;
@@ -536,7 +552,7 @@ export class SetupModalRenderer {
             btnToggleTimer.classList.toggle('active', timerEnabled);
         }
         if (labelToggleTimer) {
-            labelToggleTimer.innerText = timerEnabled ? 'Activo ⏱️' : 'Sin Límite ❌';
+            labelToggleTimer.innerText = t(timerEnabled ? 'wizard.timer_active' : 'wizard.timer_unlimited');
         }
         timerControls?.classList.toggle('hidden', !timerEnabled);
 
