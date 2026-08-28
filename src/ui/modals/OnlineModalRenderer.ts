@@ -254,6 +254,27 @@ export class OnlineModalRenderer {
         });
 
         SetupModalRenderer.renderHeroShowcaseElements('online-host', hostHero);
+
+        const p3Row = document.getElementById('online-ai-granular-p3-row');
+        const p4Row = document.getElementById('online-ai-granular-p4-row');
+        if (p3Row) p3Row.style.display = playerCount === 2 ? 'none' : 'flex';
+        if (p4Row) p4Row.style.display = playerCount === 2 ? 'none' : 'flex';
+
+        const granularToggleBtn = document.getElementById('btn-toggle-online-ai-granular');
+        if (granularToggleBtn) {
+            granularToggleBtn.style.display = playerCount === 2 ? 'none' : 'inline-flex';
+        }
+
+        if (playerCount === 2) {
+            document.getElementById('online-ai-pack-mode-box')?.classList.remove('hidden');
+            document.getElementById('online-ai-granular-mode-box')?.classList.add('hidden');
+            if (granularToggleBtn) {
+                granularToggleBtn.setAttribute('data-enabled', 'false');
+                granularToggleBtn.classList.remove('active');
+            }
+            const label = document.getElementById('label-toggle-online-ai-granular');
+            if (label) label.innerText = 'Pack Mode 📦';
+        }
     }
 
     public static updateOnlineGuestHeroUI(guestHero: HeroId | null = null) {

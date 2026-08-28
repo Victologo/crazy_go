@@ -2,11 +2,23 @@
 
 ## Version Actual: Fase 105 - 290. [x] **Selector Maestro y Granular de Dificultad (30k a 9d)** (Completado)
 291. [x] **Modo Espectador / Arena IA vs IA** (Completado)
-292. [ ] **Recolección final de modelos (.onnx)** (Pendiente) para IA Local y Online (28 Agosto 2026)
+292. [x] **Traducción Etiquetas Asistente Local** (Completado)
+293. [x] **Integración de Menú Social/Amigos** (Completado)
+294. [ ] **Recolección final de modelos (.onnx)** (Pendiente) para IA Local y Online (28 Agosto 2026)
 
 **Hitos Recientes:**
 
-### Sesión Actual (Sesión 153 — Selector Maestro y Granular de Dificultad de IA)
+### Sesión Actual (Sesión 154 — Modo Espectador, Red Social y Explicación de Red Neuronal)
+- **Modo Espectador (IA vs IA) Corregido**:
+  - Solucionado el bug en `GameController.ts` que interrumpía el bucle de turnos cuando la IA se enfrentaba a otra IA. `checkAITurn()` ahora valida correctamente `gameMode === 'aivsai'`.
+  - Añadidas las traducciones faltantes (`wizard.mode_aivsai` y descripciones) al archivo `translations.ts`.
+- **Integración Social / Amigos**:
+  - Se eliminó el botón flotante "SOCIAL" del Dojo.
+  - Se añadió la pestaña `👥 Perfil y Amigos` dentro del modal Online (`modal-online.html` y `OnlineModalRenderer.ts`), integrando el flujo de forma más limpia en la arquitectura existente de emparejamiento.
+- **Documentación de Dificultad (AlphaZero / CrazyGoNet)**:
+  - Explicado al usuario cómo la dificultad Kyu (30k-1k) usa Minimax/Heurísticas, mientras que Dan (1d-10d) usa la red neuronal ONNX calibrando matemáticamente la *Temperatura Softmax* de la Policy Head (0.6 para Dans bajos con alta aleatoriedad, 0.3 para intermedios, 0.0 Argmax para fuerza bruta máxima en 7d+).
+
+### Sesión Anterior (Sesión 153 — Selector Maestro y Granular de Dificultad de IA)
 - **Tarea 291 Completada Exitosamente**:
   - Implementación completa del **Selector de Dificultad Pack y Granular** para el Asistente Local (SetupModal) y Online (Lobby Host).
   - La dificultad ahora usa rangos estándar de Go (de **30 Kyu a 9 Dan**).

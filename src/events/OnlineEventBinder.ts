@@ -74,6 +74,12 @@ export class OnlineEventBinder {
             SoundFX.playPlaceStone();
         });
 
+        document.getElementById('tab-btn-social')?.addEventListener('click', () => {
+            ModalManager.switchOnlineTab('social');
+            NetworkManager.disconnect();
+            SoundFX.playPlaceStone();
+        });
+
         document.getElementById('btn-matchmaking-2p')?.addEventListener('click', () => {
             OnlineController.startMatchmaking(2);
             SoundFX.playPlaceStone();
@@ -260,6 +266,14 @@ export class OnlineEventBinder {
             document.getElementById('online-ai-pack-mode-box')?.classList.toggle('hidden', isOnlineGranularAI);
             document.getElementById('online-ai-granular-mode-box')?.classList.toggle('hidden', !isOnlineGranularAI);
             
+            if (isOnlineGranularAI) {
+                [2, 3, 4].forEach(p => {
+                    if (!OnlineController.onlineAISlots[p]) {
+                        OnlineController.onlineAISlots[p] = OnlineController.onlineAIDifficulty;
+                    }
+                });
+            }
+
             refreshHostUI();
             SoundFX.playPlaceStone();
         });
@@ -283,7 +297,6 @@ export class OnlineEventBinder {
                 const str = getKyuDanString(val);
                 document.getElementById(`online-ai-granular-p${p}-display`)!.innerText = str;
                 OnlineController.onlineAISlots[p] = str;
-                OnlineController.onlineAIDifficulty = str;
                 
                 if (ModalManager.currentOnlineWizardStep === 6 && NetworkManager.isHost) {
                     OnlineController.startHostingRoom();

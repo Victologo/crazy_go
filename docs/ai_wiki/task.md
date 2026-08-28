@@ -10,7 +10,9 @@
 - [x] **Tarea 289 (Integración en Motor de Juego)**: Creación de `NeuralNetAdapter.ts` con `onnxruntime-web` WASM SIMD, conexión en `GoAI.worker.ts` para cálculo de jugadas y en `AnalysisEngine.ts` para Winrate en tiempo real. Compilación exitosa (`npm run build`).
 - [/] **Tarea 290 (Fase 4 + 5 Nocturna - 700.000 Pasos)**: Entrenamiento autónomo en GPU de 19x19 y topologías asimétricas (circular, triangular, erosionado, vórtice Oni) hasta 700.000 pasos.
 - [x] **Tarea 291 (Selector Maestro y Granular de Dificultad 30k-9d en Partidas de 4P Local y Online)**: En partidas de hasta 4 jugadores con bots (1, 2 o 3 IAs), selector general que por defecto ajusta a todos los bots en pack y modo individual para personalizar el nivel específico de cada Bot conectando las simulaciones MCTS y la Red Neuronal (CrazyGoNet). Además de auto-escalado dinámico Kyu/Dan en el Modo Roguelike.
-- [ ] **Tarea 292 (Modo Espectador / Arena de Combate IA vs IA)**: Permitir iniciar combates automáticos de Bot vs Bot con control de velocidad, para depuración y observación del Winrate en vivo.
+- [x] **Tarea 292 (Modo Espectador / Arena de Combate IA vs IA)**: Implementado e integrado en Asistente Local. Corregido bug de congelación de turno en partidas exclusivas de IA.
+- [x] **Tarea 293 (Pestaña Social y de Amigos)**: Removido el botón flotante del Dojo e integrado el panel Social en el modal Online de forma limpia.
+- [ ] **Tarea 294 (Recolección Final de Modelos y Ajuste Server)**: Recoger los modelos de la fase 5 desde el servidor remoto para integrarlos a los binarios locales.
 
 ### Fase 104: Corrección de Multijugador Local 2P y 4P, Animación Universal del Tablero Oni y Cooperativo Completo (Completada)
 - [x] **Tarea 253 (StoryModeController reescrito)**: Reescritura completa con `gameMode: '1via'` (fix bug IA), array `STORY_CHAPTERS[]` tipado, sistema de eventos por turno vía `setInterval`, método `showCinematicIntro()`.

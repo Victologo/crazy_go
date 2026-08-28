@@ -328,6 +328,23 @@ export class SetupModalRenderer {
         if (p3Row) p3Row.style.display = config.playerCount === 2 ? 'none' : 'flex';
         if (p4Row) p4Row.style.display = config.playerCount === 2 ? 'none' : 'flex';
 
+        const granularToggleBtn = document.getElementById('btn-toggle-ai-granular');
+        if (granularToggleBtn) {
+            granularToggleBtn.style.display = config.playerCount === 2 ? 'none' : 'inline-flex';
+        }
+
+        // If in 2P mode, force Pack Mode (hide granular box, show pack box)
+        if (config.playerCount === 2) {
+            document.getElementById('ai-pack-mode-box')?.classList.remove('hidden');
+            document.getElementById('ai-granular-mode-box')?.classList.add('hidden');
+            if (granularToggleBtn) {
+                granularToggleBtn.setAttribute('data-enabled', 'false');
+                granularToggleBtn.classList.remove('active');
+            }
+            const label = document.getElementById('label-toggle-ai-granular');
+            if (label) label.innerText = 'Pack Mode 📦';
+        }
+
         this.renderHeroShowcaseElements('setup', config.heroId || null);
 
         const allShapes = ['square', 'volcano', 'sky', 'oni', 'triangle', 'hex', 'eroded', 'islands_v1', 'islands_v2', 'islands', 'cross', 'hourglass', 'geode', 'spiral', 'rings', 'star_5', 'star_6', 'procedural'];

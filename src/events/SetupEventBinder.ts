@@ -222,6 +222,18 @@ export class SetupEventBinder {
             document.getElementById('ai-pack-mode-box')?.classList.toggle('hidden', isGranularAI);
             document.getElementById('ai-granular-mode-box')?.classList.toggle('hidden', !isGranularAI);
             
+            if (isGranularAI) {
+                if (!tempConfig.slots) tempConfig.slots = {} as any;
+                [2, 3, 4].forEach(p => {
+                    const playerId = p as import('../core/GraphBoard').PlayerId;
+                    if (!tempConfig.slots![playerId]) {
+                        tempConfig.slots![playerId] = { slotId: playerId, teamId: (p%2===0?2:1) as import('../types').TeamId, type: 'ai', aiDifficulty: tempConfig.difficulty };
+                    } else if (!tempConfig.slots![playerId].aiDifficulty) {
+                        tempConfig.slots![playerId].aiDifficulty = tempConfig.difficulty;
+                    }
+                });
+            }
+
             refreshUI();
             SoundFX.playPlaceStone();
         });
@@ -261,8 +273,6 @@ export class SetupEventBinder {
                     tempConfig.slots![playerId].aiDifficulty = str;
                 }
                 
-                // Si es granular, usar P2 como el "maestro" visual de la sala o el más bajo
-                tempConfig.difficulty = str;
                 refreshUI();
             });
         });
