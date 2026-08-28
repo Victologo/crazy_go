@@ -76,6 +76,9 @@ export class OnlineEventBinder {
 
         document.getElementById('tab-btn-social')?.addEventListener('click', () => {
             ModalManager.switchOnlineTab('social');
+            import('../ui/modals/SocialModalRenderer').then(({ SocialModalRenderer }) => {
+                SocialModalRenderer.refreshTabContent();
+            });
             NetworkManager.disconnect();
             SoundFX.playPlaceStone();
         });

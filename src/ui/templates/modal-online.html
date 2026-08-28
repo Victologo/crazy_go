@@ -2,15 +2,15 @@
     <div id="online-modal" class="modal-backdrop hidden">
       <div class="modal-card modal-online">
         <div class="modal-header">
-          <h2>🌐 Online Multiplayer (P2P WebRTC)</h2>
-          <p class="modal-desc">Play 2 or 4 player real-time matches by sharing a code or direct link</p>
+          <h2 data-i18n="online.title">🌐 Multijugador Online (P2P WebRTC)</h2>
+          <p class="modal-desc" data-i18n="online.desc">Juega partidas de 2 o 4 jugadores en tiempo real compartiendo un código o enlace directo</p>
         </div>
 
         <div class="modal-tabs">
           <button id="tab-btn-matchmaking" class="btn-tab" style="background: linear-gradient(135deg, rgba(16,185,129,0.15) 0%, rgba(52,211,153,0.1) 100%); border-color: #10b981;" data-i18n="online.tab_matchmaking">🔍 Buscar Partida</button>
-          <button id="tab-btn-create-room" class="btn-tab active" data-i18n="online.tab_create">Create Room (Host)</button>
-          <button id="tab-btn-join-room" class="btn-tab">Join Room (Guest)</button>
-          <button id="tab-btn-social" class="btn-tab" style="background: linear-gradient(135deg, rgba(251,113,133,0.15) 0%, rgba(225,29,72,0.1) 100%); border-color: #fb7185;">👥 Perfil y Amigos</button>
+          <button id="tab-btn-create-room" class="btn-tab active" data-i18n="online.tab_create">Crear Sala (Host)</button>
+          <button id="tab-btn-join-room" class="btn-tab" data-i18n="online.tab_join">Unirse a Sala (Guest)</button>
+          <button id="tab-btn-social" class="btn-tab" style="background: linear-gradient(135deg, rgba(251,113,133,0.15) 0%, rgba(225,29,72,0.1) 100%); border-color: #fb7185;" data-i18n="online.tab_social">👥 Perfil y Amigos</button>
         </div>
 
         <div class="modal-body-scroll">
@@ -329,8 +329,8 @@
               <!-- STEP 6: LOBBY, COLOR, KOMI & PLAYER SLOTS -->
               <div id="online-host-step-6" class="wizard-step-panel hidden">
                 <div class="wizard-step-hero">
-                  <h3 class="wizard-step-title">⚔️ Online Lobby & Final Settings</h3>
-                  <p class="wizard-step-subtitle">Share your room code with peers and configure final match rules</p>
+                  <h3 class="wizard-step-title" data-i18n="online.lobby_title">⚔️ Online Lobby & Final Settings</h3>
+                  <p class="wizard-step-subtitle" data-i18n="online.lobby_subtitle">Share your room code with peers and configure final match rules</p>
                 </div>
 
                 <!-- Persistent Room Code & Link Sharing Banner inside Step 5 -->
@@ -370,7 +370,7 @@
                   <div class="setup-inline-row komi-single-row">
                     <button class="btn btn-choice btn-online-komi" data-komi="0.5">0.5</button>
                     <button class="btn btn-choice btn-online-komi" data-komi="5.5">5.5</button>
-                    <button class="btn btn-choice btn-online-komi active" data-komi="6.5">6.5 (Default)</button>
+                    <button class="btn btn-choice btn-online-komi active" data-komi="6.5">6.5</button>
                     <button class="btn btn-choice btn-online-komi" data-komi="7.5">7.5</button>
                     <div class="inline-custom-box">
                       <span class="custom-icon">✍️</span>
@@ -382,7 +382,7 @@
                 <!-- 2.5 AI Difficulty -->
                 <div class="setup-section setup-subbox" style="margin-top: 0.75rem;">
                   <div class="setup-label-row">
-                    <label class="setup-label">AI Difficulty (CrazyGoNet Engine)</label>
+                    <label class="setup-label" data-i18n="wizard.ai_diff">AI Difficulty (CrazyGoNet Engine)</label>
                     <button type="button" id="btn-toggle-online-ai-granular" class="btn btn-switch" data-enabled="false">
                       <span id="label-toggle-online-ai-granular">Pack Mode 📦</span>
                     </button>
@@ -442,13 +442,13 @@
           <!-- VIEW 2: JOIN ROOM (GUEST) -->
           <div id="view-join-room" class="tab-content hidden">
             <div class="wizard-step-hero" style="margin-bottom: 1rem;">
-              <h3 class="wizard-step-title">🧙‍♂️ Join Game: Choose Champion & Connect</h3>
-              <p class="wizard-step-subtitle">1. Select your mystic champion &nbsp;•&nbsp; 2. Enter room code and join</p>
+              <h3 class="wizard-step-title" data-i18n="online.join_title">🧙‍♂️ Unirse a Partida: Elige Campeón y Conecta</h3>
+              <p class="wizard-step-subtitle" data-i18n="online.join_subtitle">1. Elige tu campeón místico • 2. Introduce el código de sala y únete</p>
             </div>
 
             <!-- Step 1: Guest Champion Selection -->
             <div class="setup-section" style="margin-top: 0.5rem; margin-bottom: 1.5rem;">
-              <label class="setup-label">1. Choose Your Mystic Champion (Guest)</label>
+              <label class="setup-label" data-i18n="online.join_step1_label">1. Elige tu Campeón Místico (Invitado)</label>
 
               <div class="rogue-hero-panoramic-box setup-hero-panoramic-box">
                 <button id="btn-online-guest-hero-prev" class="btn-hero-nav" title="Previous Champion">◀</button>
@@ -522,21 +522,21 @@
 
             <!-- Step 2: Enter Room Code -->
             <div class="setup-section" style="margin-top: 1rem;">
-              <label class="setup-label">2. Enter Room Code & Connect</label>
+              <label class="setup-label" data-i18n="online.join_step2_label">2. Introduce el Código de la Sala y Conecta</label>
               <div class="join-input-group">
-                <input type="text" id="input-join-room-code" placeholder="E.g. GO-4821 or paste invite URL" maxlength="150" autocomplete="off" spellcheck="false" />
+                <input type="text" id="input-join-room-code" data-i18n-placeholder="online.enter_placeholder" placeholder="Ej: GO-4821 o pega el enlace de invitación" maxlength="150" autocomplete="off" spellcheck="false" />
                 <button id="btn-submit-join-room" class="btn btn-modal-primary">
-                  <span>Connect 🚀</span>
+                  <span data-i18n="btn.connect">Conectar 🚀</span>
                 </button>
               </div>
-              <p class="join-help" style="margin-top: 0.5rem; opacity: 0.75;">Ask the room host for their <strong>GO-XXXX</strong> code generated in their Lobby.</p>
+              <p class="join-help" style="margin-top: 0.5rem; opacity: 0.75;" data-i18n="online.join_help">Pídele al creador de la sala el código de sala o el enlace de invitación directo.</p>
             </div>
 
             <!-- Connection Status -->
             <div id="join-status-box" class="waiting-box hidden" style="margin-top: 1.25rem;">
               <div class="spinner"></div>
               <div class="lobby-status-content">
-                <span id="join-status-text">Connecting to P2P room...</span>
+                <span id="join-status-text" data-i18n="online.connecting">Conectando con la sala P2P...</span>
                 <div id="join-lobby-slots-grid" class="online-slots-grid"></div>
               </div>
             </div>
@@ -545,39 +545,64 @@
           <!-- VIEW 3: SOCIAL & PROFILE -->
           <div id="view-social" class="tab-content hidden">
             <div class="wizard-step-hero">
-              <h3 class="wizard-step-title" style="color: #fb7185;">👥 Perfil y Lista de Amigos</h3>
-              <p class="wizard-step-subtitle">Añade amigos mediante Friend Code para invitarles rápidamente a jugar o espetar partidas</p>
+              <h3 class="wizard-step-title" style="color: #fb7185;" data-i18n="social.title">👥 Perfil y Lista de Amigos</h3>
+              <p class="wizard-step-subtitle" data-i18n="social.subtitle">Añade amigos mediante Friend Code para invitarles rápidamente a jugar o espectar partidas</p>
             </div>
             
-            <div class="setup-grid grid-2 wizard-big-grid" style="margin-top:2rem;">
-              <button id="btn-social-profile" class="btn btn-choice-card">
-                <span class="choice-card-icon">🪪</span>
-                <strong class="choice-card-title">Mi Perfil (Friend Code)</strong>
-                <span class="choice-card-desc">Ver mis estadísticas y código para que me añadan</span>
-              </button>
+            <div class="setup-grid grid-2 wizard-big-grid" style="margin-top:1.5rem;">
+              <!-- My Profile Card -->
+              <div class="social-panel-card" style="background: rgba(15, 23, 42, 0.7); border: 1px solid rgba(251, 113, 133, 0.3); border-radius: 12px; padding: 1.25rem; display: flex; flex-direction: column; gap: 0.75rem;">
+                <div style="display: flex; align-items: center; gap: 0.75rem;">
+                  <span style="font-size: 1.8rem;">🪪</span>
+                  <div>
+                    <strong style="color: #fb7185; font-size: 1.1rem;" data-i18n="social.profile_title">Mi Perfil (Friend Code)</strong>
+                    <p style="font-size: 0.8rem; opacity: 0.7; margin: 0;" data-i18n="social.profile_desc">Ver mis estadísticas y código para que me añadan</p>
+                  </div>
+                </div>
+                <div style="background: rgba(0,0,0,0.3); padding: 0.75rem; border-radius: 8px; font-size: 0.85rem;">
+                  <div style="margin-bottom: 4px;"><span data-i18n="social.my_name">Nombre actual:</span> <strong id="social-tab-my-name" style="color: #6ee7b7;">Cargando...</strong></div>
+                  <div><span data-i18n="social.my_id">Tu ID:</span> <code id="social-tab-my-id" style="user-select: all; background: rgba(255,255,255,0.1); padding: 2px 6px; border-radius: 4px; color: #fde047;"></code></div>
+                </div>
+                <div style="display: flex; gap: 6px;">
+                  <input type="text" id="social-tab-name-input" data-i18n-placeholder="social.new_name_placeholder" placeholder="Nuevo nombre" class="lobby-input" style="flex: 1; font-size: 0.85rem; padding: 6px 10px;" maxlength="24" />
+                  <button id="btn-tab-change-name" class="btn btn-primary btn-sm" data-i18n="social.change_name_btn">Cambiar Nombre</button>
+                </div>
+                <small id="social-tab-name-msg" style="display: none; font-size: 0.75rem;"></small>
+              </div>
               
-              <button id="btn-social-add-friend" class="btn btn-choice-card">
-                <span class="choice-card-icon">➕</span>
-                <strong class="choice-card-title">Añadir Amigo</strong>
-                <span class="choice-card-desc">Introducir el código de un amigo para guardarlo</span>
-              </button>
+              <!-- Add Friend Card -->
+              <div class="social-panel-card" style="background: rgba(15, 23, 42, 0.7); border: 1px solid rgba(251, 113, 133, 0.3); border-radius: 12px; padding: 1.25rem; display: flex; flex-direction: column; gap: 0.75rem;">
+                <div style="display: flex; align-items: center; gap: 0.75rem;">
+                  <span style="font-size: 1.8rem;">➕</span>
+                  <div>
+                    <strong style="color: #fb7185; font-size: 1.1rem;" data-i18n="social.add_friend_title">Añadir Amigo</strong>
+                    <p style="font-size: 0.8rem; opacity: 0.7; margin: 0;" data-i18n="social.add_friend_desc">Introducir el código de un amigo para guardarlo</p>
+                  </div>
+                </div>
+                <div style="display: flex; gap: 6px; margin-top: auto;">
+                  <input type="text" id="social-tab-friend-input" data-i18n-placeholder="social.friend_id_placeholder" placeholder="ID del amigo" class="lobby-input" style="flex: 1; font-size: 0.85rem; padding: 6px 10px;" />
+                  <button id="btn-tab-add-friend" class="btn btn-primary btn-sm" data-i18n="social.add_btn">Añadir</button>
+                </div>
+                <small id="social-tab-friend-msg" style="display: none; font-size: 0.75rem;"></small>
+              </div>
             </div>
 
-            <div style="margin-top: 2rem; background: rgba(0,0,0,0.5); padding: 1.5rem; border-radius: 12px; border: 1px solid rgba(251,113,133,0.3);">
-              <h4 style="color: #fb7185; font-size: 1.1rem; margin-bottom: 1rem; border-bottom: 1px solid rgba(251,113,133,0.3); padding-bottom: 0.5rem;">Lista de Amigos</h4>
-              <p style="opacity: 0.6; font-style: italic; text-align: center; padding: 1rem 0;">Aún no tienes amigos añadidos en la lista local.</p>
-              <!-- Aquí se renderizaría la lista dinámica en el futuro -->
+            <!-- Friends List -->
+            <div style="margin-top: 1.5rem; background: rgba(0,0,0,0.5); padding: 1.25rem; border-radius: 12px; border: 1px solid rgba(251,113,133,0.3);">
+              <h4 style="color: #fb7185; font-size: 1.05rem; margin-bottom: 0.75rem; border-bottom: 1px solid rgba(251,113,133,0.3); padding-bottom: 0.4rem;" data-i18n="social.friends_list_title">Lista de Amigos</h4>
+              <p id="social-tab-friends-empty" style="opacity: 0.6; font-style: italic; text-align: center; padding: 1rem 0;" data-i18n="social.no_friends">Aún no tienes amigos añadidos en la lista local.</p>
+              <ul id="social-tab-friends-list" style="list-style: none; padding: 0; margin: 0; max-height: 180px; overflow-y: auto;"></ul>
             </div>
           </div>
         </div>
 
         <div class="modal-footer" style="display: flex; justify-content: space-between; align-items: center;">
-          <button id="btn-online-cancel" class="btn btn-modal-secondary">Cancel</button>
+          <button id="btn-online-cancel" class="btn btn-modal-secondary" data-i18n="btn.cancel">Cancelar</button>
           <div class="online-wizard-nav-btns" style="display: flex; gap: 0.6rem;">
-            <button id="btn-online-wizard-prev" class="btn btn-modal-secondary hidden">◀ Back</button>
-            <button id="btn-online-wizard-next" class="btn btn-modal-primary">Next ➔</button>
+            <button id="btn-online-wizard-prev" class="btn btn-modal-secondary hidden" data-i18n="btn.back">◄ Atrás</button>
+            <button id="btn-online-wizard-next" class="btn btn-modal-primary" data-i18n="btn.next">Siguiente ➔</button>
             <button id="btn-online-force-start" class="btn btn-modal-primary hidden" style="font-weight: 700; padding: 0.75rem 2rem;">
-              <span>▶️ Start Match!</span>
+              <span data-i18n="btn.start">⚔️ ¡Comenzar Batalla!</span>
             </button>
           </div>
         </div>

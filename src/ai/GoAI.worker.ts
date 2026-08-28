@@ -72,113 +72,104 @@ self.onmessage = (e: MessageEvent<AIWorkerIncomingMessage>) => {
                     }
                 }
 
-                // Parse Kyu/Dan string
-                let isNeural = false;
-                let isEasy = false;
-                let isMedium = false;
-                let isHard = false;
-                let temperature = 0; // 0 = argmax
-
+                // Analizar la dificultad y convertirla puramente a "Temperatura" de la Red Neuronal
+                let temperature = 0.3; // Default 
                 const diffStr = msg.difficulty as string;
+
                 if (diffStr.endsWith('k')) {
                     const k = parseInt(diffStr);
-                    if (k >= 20) {
-                        isEasy = true;
-                    } else if (k >= 10) {
-                        isMedium = true;
-                    } else {
-                        isHard = true;
-                    }
+                    // Kyu levels (Beginners): High temperature (randomness, tactical mistakes)
+                    if (k >= 30) temperature = 2.0;       // 30 Kyu: Caótico, juega en cualquier parte legal con algo de sentido
+                    else if (k >= 20) temperature = 1.5;  // 20 Kyu: Entiende conceptos básicos, pero muy errático
+                    else if (k >= 10) temperature = 1.0;  // 10 Kyu: Juega bien, pero comete errores tácticos ocasionales
+                    else temperature = 0.8;               // 1 Kyu: Casi experto, ligera duda
                 } else if (diffStr.endsWith('d')) {
-                    isNeural = true;
                     const d = parseInt(diffStr);
-                    // 1d to 9d
-                    if (d <= 3) {
-                        temperature = 0.6; // High randomness
-                    } else if (d <= 6) {
-                        temperature = 0.3; // Low randomness
-                    } else {
-                        temperature = 0; // Argmax (Max strength)
-                    }
-                    
-                    // Anti-Mirror Go (Mane-go) Symmetry Breaker:
-                    // Si estamos en Argmax puro, en los primeros 6 turnos el tablero es simétrico.
-                    // Aplicamos una mínima temperatura (0.03) para forzar aleatoriedad entre
-                    // probabilidades matemáticamente idénticas (ej. las 4 esquinas).
-                    if (temperature === 0 && state && ((state.boardHistory && state.boardHistory.length <= 6) || (state.currentTurn && state.currentTurn <= 6))) {
-                        temperature = 0.03;
-                    }
+                    // Dan levels (Experts): Low temperature (calculado, preciso)
+                    if (d <= 3) temperature = 0.5;        // 1d-3d: Muy preciso, pequeña aleatoriedad
+                    else if (d <= 6) temperature = 0.2;   // 4d-6d: Letal
+                    else temperature = 0;                 // 7d-9d: Argmax puro (la jugada matemáticamente perfecta)
                 } else {
-                    // Fallbacks for old strings
-                    if (diffStr === 'easy') isEasy = true;
-                    else if (diffStr === 'medium') isMedium = true;
-                    else if (diffStr === 'hard') isHard = true;
-                    else if (diffStr === 'dan') { isNeural = true; temperature = 0.1; }
+                    // Fallbacks para strings viejos (Story mode, Roguelike)
+                    if (diffStr === 'easy') temperature = 1.6;
+                    else if (diffStr === 'medium') temperature = 1.0;
+                    else if (diffStr === 'hard') temperature = 0.4;
+                    else if (diffStr === 'dan' || diffStr === 'grandmaster') temperature = 0;
                 }
 
-                const heuristicDiff = isEasy ? 'easy' : (isMedium ? 'medium' : (isHard ? 'hard' : 'dan'));
+                // Anti-Mirror Go (Mane-go) Symmetry Breaker:
+                // Si estamos en Argmax puro, en los primeros 6 turnos el tablero es simétrico.
+                // Aplicamos una mínima temperatura (0.03) para forzar aleatoriedad entre
+                // probabilidades matemáticamente idénticas (ej. las 4 esquinas).
+                if (temperature === 0 && state && ((state.boardHistory && state.boardHistory.length <= 6) || (state.currentTurn && state.currentTurn <= 6))) {
+                    temperature = 0.03;
+                }
 
-                if (isNeural) {
-                    NeuralNetAdapter.evaluate(board, state, msg.aiPlayerId).then((neuralResult) => {
-                        if (neuralResult) {
-                            let chosenMoveId = neuralResult.bestMoveId;
-                            let chosenProb = neuralResult.bestMoveProb;
+                // SIEMPRE usar la Red Neuronal (CrazyGoNet) para todas las dificultades
+                NeuralNetAdapter.evaluate(board, state, msg.aiPlayerId).then((neuralResult) => {
+                    if (neuralResult) {
+                        let chosenMoveId = neuralResult.bestMoveId;
+                        let chosenProb = neuralResult.bestMoveProb;
 
-                            // Apply temperature if needed
-                            if (temperature > 0 && neuralResult.policyProbabilities) {
-                                let total = 0;
-                                const legalMoves: {id: string, w: number}[] = [];
-                                
-                                for (const [id, prob] of neuralResult.policyProbabilities.entries()) {
-                                    if (id === 'PASS') continue;
-                                    const node = board!.nodes.get(id);
-                                    if (node && node.stone === null && node.terrain !== 'DESTROYED' && node.terrain !== 'OBSTACLE') {
+                        // Apply temperature if needed (Si Temp = 0, nos quedamos con el bestMoveId por defecto)
+                        if (temperature > 0 && neuralResult.policyProbabilities) {
+                            let total = 0;
+                            const legalMoves: {id: string, w: number}[] = [];
+                            
+                            for (const [id, prob] of neuralResult.policyProbabilities.entries()) {
+                                if (id === 'PASS') continue;
+                                const node = board!.nodes.get(id);
+                                if (node && node.stone === null && node.terrain !== 'DESTROYED' && node.terrain !== 'OBSTACLE') {
+                                    const simBoard = GoAI.cloneBoard(board!);
+                                    const simState = GoAI.cloneState(state!);
+                                    const isLegal = RulesEngine.tryPlaceStone(simBoard, simState, id, msg.aiPlayerId).success;
+                                    if (isLegal) {
                                         // Aumentar el peso de jugadas subóptimas basado en la temperatura
                                         const weight = Math.pow(prob, 1 / temperature);
                                         legalMoves.push({ id, w: weight });
                                         total += weight;
                                     }
                                 }
+                            }
 
-                                if (total > 0 && legalMoves.length > 0) {
-                                    let rand = Math.random() * total;
-                                    for (const m of legalMoves) {
-                                        rand -= m.w;
-                                        if (rand <= 0) {
-                                            chosenMoveId = m.id;
-                                            chosenProb = neuralResult.policyProbabilities.get(m.id) || 0;
-                                            break;
-                                        }
+                            if (total > 0 && legalMoves.length > 0) {
+                                let rand = Math.random() * total;
+                                for (const m of legalMoves) {
+                                    rand -= m.w;
+                                    if (rand <= 0) {
+                                        chosenMoveId = m.id;
+                                        chosenProb = neuralResult.policyProbabilities.get(m.id) || 0;
+                                        break;
                                     }
                                 }
                             }
-
-                            const response: AIWorkerOutgoingMessage = {
-                                type: 'MOVE_RESULT',
-                                payload: {
-                                    nodeId: chosenMoveId !== undefined ? chosenMoveId : null,
-                                    reason: `CrazyGoNet Neural (P=${Math.round(chosenProb * 100)}%, Win=${neuralResult.winRates[msg.aiPlayerId]}%, Temp=${temperature})`,
-                                    score: Math.round(chosenProb * 1000)
-                                }
-                            };
-                            self.postMessage(response);
-                        } else {
-                            // Fallback if neural net fails
-                            const bestMove = GoAI.getBestMove(board!, state!, msg.aiPlayerId, heuristicDiff);
-                            const response: AIWorkerOutgoingMessage = { type: 'MOVE_RESULT', payload: bestMove };
-                            self.postMessage(response);
                         }
-                    }).catch(() => {
-                        const bestMove = GoAI.getBestMove(board!, state!, msg.aiPlayerId, heuristicDiff);
-                        const response: AIWorkerOutgoingMessage = { type: 'MOVE_RESULT', payload: bestMove };
+
+                        // Verificar si pasar turno es mejor (ej. final de partida)
+                        const passProb = neuralResult.policyProbabilities?.get('PASS') || 0;
+                        if (passProb > 0.15 && temperature === 0) {
+                            chosenMoveId = null; 
+                        }
+
+                        const response: AIWorkerOutgoingMessage = {
+                            type: 'MOVE_RESULT',
+                            payload: {
+                                nodeId: chosenMoveId !== undefined ? chosenMoveId : null,
+                                reason: `Red Neuronal 450k (P=${Math.round(chosenProb * 100)}%, Temp=${temperature})`,
+                                score: Math.round(chosenProb * 1000)
+                            }
+                        };
                         self.postMessage(response);
-                    });
-                } else {
-                    // Use standard Heuristics/Minimax for Kyu levels
-                    const bestMove = GoAI.getBestMove(board!, state!, msg.aiPlayerId, heuristicDiff);
-                    const response: AIWorkerOutgoingMessage = { type: 'MOVE_RESULT', payload: bestMove };
+                    } else {
+                        // Fallback extremo si ONNX falla
+                        const response: AIWorkerOutgoingMessage = { type: 'MOVE_RESULT', payload: { nodeId: null, reason: "ONNX Error", score: 0 } };
+                        self.postMessage(response);
+                    }
+                }).catch((err) => {
+                    console.error("[Worker] ONNX Error:", err);
+                    const response: AIWorkerOutgoingMessage = { type: 'MOVE_RESULT', payload: { nodeId: null, reason: "ONNX Fallback", score: 0 } };
                     self.postMessage(response);
-                }
+                });
                 break;
         }
     } catch (err: any) {

@@ -91,16 +91,16 @@
           <!-- Left Group: Navigation, Reset, Log and Undo/Redo -->
           <div class="topbar-group topbar-left">
             <button id="btn-game-back" class="btn btn-topbar" title="Return to Main Menu">
-              <span>🏠 Menu</span>
+              <span data-i18n="btn.menu_short">🏠 Menu</span>
             </button>
             <button id="btn-game-combat-log" class="btn btn-topbar btn-combat-log" title="Combat Log & Interactive Replay (L Key)">
-              <span>📜 Log</span>
+              <span data-i18n="btn.log_short">📜 Log</span>
             </button>
             <button id="btn-game-undo" class="btn btn-topbar btn-undo" title="Undo last move (Rewind)">
-              <span>⏪ Undo</span>
+              <span data-i18n="btn.undo_short">⏪ Undo</span>
             </button>
             <button id="btn-game-redo" class="btn btn-topbar btn-redo" title="Redo undone move">
-              <span>⏩ Redo</span>
+              <span data-i18n="btn.redo_short">⏩ Redo</span>
             </button>
             <button id="btn-game-reset" class="btn btn-topbar" title="Restart Match">
               <span>🔄</span>
@@ -277,7 +277,7 @@
               <div class="duel-plate-header">
                 <span id="duel-player-icon-badge" class="duel-plate-icon">⚡</span>
                 <div class="duel-plate-title-group">
-                  <span class="duel-role-tag">YOU (CHAMPION)</span>
+                  <span class="duel-role-tag" data-i18n="duel.role_you">YOU (CHAMPION)</span>
                   <strong id="duel-player-name">Ronin</strong>
                 </div>
               </div>
@@ -310,7 +310,7 @@
               <div class="duel-plate-header">
                 <span id="duel-enemy-icon-badge" class="duel-plate-icon">🧘</span>
                 <div class="duel-plate-title-group">
-                  <span class="duel-role-tag enemy-tag">RIVAL</span>
+                  <span class="duel-role-tag enemy-tag" data-i18n="duel.role_rival">RIVAL</span>
                   <strong id="duel-enemy-name">Novice Monk</strong>
                 </div>
               </div>
@@ -445,14 +445,14 @@
         <!-- Cinematic Roguelike Match Start Announcement -->
         <div id="rogue-komi-announcement-overlay" class="rogue-komi-overlay hidden">
           <div class="rogue-komi-content">
-            <span class="rogue-komi-role-badge">⚫ PLAYING AS BLACK • FIRST TURN</span>
-            <h1 class="rogue-komi-main-title">WHITE'S KOMI</h1>
+            <span class="rogue-komi-role-badge" data-i18n="rogue.komi_role_badge">⚫ PLAYING AS BLACK • FIRST TURN</span>
+            <h1 class="rogue-komi-main-title" data-i18n="rogue.komi_title">WHITE'S KOMI</h1>
             <div class="rogue-komi-score-display">
               <span class="rogue-komi-stone-icon">⚪</span>
               <span id="rogue-komi-display-value" class="rogue-komi-score-text">+2.5 POINTS</span>
             </div>
-            <p class="rogue-komi-explanation">Canonical territory compensation for playing second.</p>
-            <span class="rogue-komi-tap-hint">Click or place stone to begin</span>
+            <p class="rogue-komi-explanation" data-i18n="rogue.komi_explanation">Canonical territory compensation for playing second.</p>
+            <span class="rogue-komi-tap-hint" data-i18n="rogue.komi_tap_hint">Click or place stone to begin</span>
           </div>
         </div>
 
@@ -465,7 +465,7 @@
         <header id="rogue-map-topbar">
           <div class="map-topbar-left">
             <button id="btn-abandon-run" class="btn btn-topbar" title="Abandon current expedition">
-              <span>🏠 Menu</span>
+              <span data-i18n="btn.menu_short">🏠 Menu</span>
             </button>
             <div class="hud-pill rogue-hero-pill">
               <span id="map-hero-avatar" class="map-hero-avatar">🧙‍♂️</span>
@@ -560,7 +560,7 @@
             transition: opacity 1.1s ease, transform 1.1s ease;
           ">You are the Cosmic Weaver.<br>Only you can sew the cracks.</div>
 
-          <button id="story-intro-skip" style="
+          <button id="story-intro-skip" data-i18n="story.skip_intro" style="
             font-family:var(--font-body,sans-serif);
             font-size:0.9rem; font-weight:bold;
             color:#fbbf24; background:rgba(15,23,42,0.85);

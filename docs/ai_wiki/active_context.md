@@ -1,15 +1,25 @@
 # Estado Activo (Active Context)
 
-## Version Actual: Fase 105 - 290. [x] **Selector Maestro y Granular de Dificultad (30k a 9d)** (Completado)
+## Version Actual: Fase 105 - 
+290. [x] **Selector Maestro y Granular de Dificultad (30k a 9d)** (Completado)
 291. [x] **Modo Espectador / Arena IA vs IA** (Completado)
 292. [x] **Traducción Etiquetas Asistente Local** (Completado)
 293. [x] **Integración de Menú Social/Amigos** (Completado)
-294. [ ] **Recolección final de modelos (.onnx)** (Pendiente) para IA Local y Online (28 Agosto 2026)
+294. [ ] **Recolección de modelos ONNX (Fase 5) y Modelos Kyu (Fases 1,2,3)** (Pendiente) - Asignar redes neuronales infantiles para erradicar las heurísticas Minimax en principiantes (28 Agosto 2026)
 
 **Hitos Recientes:**
 
+### Sesión Actual (Sesiones 154 y 155 — Parches Granulares, Rompedor de Simetría y Roadmap Kyu)
+- **Corrección Granular en IA vs IA**: Añadido el slider del Jugador 1 (P1) al panel granular exclusivamente en partidas de 2 Jugadores *IA vs IA*, permitiendo enfrentar modelos asimétricos (ej. 15 Kyu vs 9 Dan). El botón Granular se oculta correctamente en partidas 1vs1 contra humano para forzar el *Pack Mode*. Solucionado también el bug visual de salto unificado de sliders.
+- **Anti Mirror-Go (Mane-go Symmetry Breaker)**: Se solucionó el problema matemático de la IA (Argmax Temp = 0) que copiaba infinitamente los movimientos del rival en las esquinas por simetría. Ahora se inyecta un ruido microscópico (`Temp = 0.03`) en los primeros 6 turnos para obligar a la IA a elegir de forma aleatoria entre probabilidades idénticas, rompiendo el espejo sin perder fuerza.
+- **Roadmap Aprobado para Niveles Kyu (Tarea 294)**: Se aprobó la estrategia de LeelaZero/KataGo para los niveles bajos. En lugar de usar heurísticas falsas, se descargarán los checkpoints ONNX tempranos (`50k`, `150k`, `250k` steps) y se asignarán a los niveles de 30k a 1k para lograr un juego de principiante humano 100% genuino.
+
 - **Auditoría e Internacionalización Universal (i18n)**:
   - Resueltas y añadidas todas las claves de traducción faltantes en `src/i18n/translations.ts` para Español e Inglés:
+    - **Pestaña Social y Perfil Online** (`online.tab_social`, `social.*`): Integración completa de la vista `#view-social` en el modal online con cambio de nombre, visualización de ID de amigo, agregar amigos y lista local reactiva con botones de invitación en ambos idiomas.
+    - **Configuración de Partida y Asistente Local** (`wizard.timer_*`, `wizard.your_special_poly`, `poly.*`, `wizard.ai_*`): Reloj de Go (Byo-yomi puro, japonés, Fischer, absoluto), piedras especiales de poliminós para jugador e IA.
+    - **Pantalla de Puntuación Final y Victoria** (`deck.*`, `score.rogue_reward_heading`, `combat_log.title_short`): Botones de inspección, mazo de expedición, reliquias y komi permanente.
+    - **HUD y Menús de Juego** (`duel.role_you`, `duel.role_rival`, `btn.undo_short`, `btn.redo_short`, `btn.menu_short`, `btn.log_short`, `rogue.komi_*`, `story.skip_intro`).
     - Pantalla de Elección de Expedición Roguelike (`rogue.choice_active_badge`, `rogue.choice_node_tier`, `rogue.choice_start_new_title`, `rogue.choice_start_new_sub`, `rogue.choice_continue_title`, `rogue.choice_continue_sub`, `rogue.choice_return_menu`).
     - Alertas de Peligros Ambientales (Cráter Volcánico, Expansión Celestial e Inhalación Oni).
     - Registro de Combate y Repetición (`combat_log.*`).

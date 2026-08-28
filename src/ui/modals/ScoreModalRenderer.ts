@@ -2,7 +2,7 @@
 import type { ScoreReport, PlayerId, HeroId } from '../../types';
 import { TerritoryScorer } from '../../core/TerritoryScorer';
 import { RoguelikeRunManager } from '../../core/RoguelikeRunManager';
-import { t, translateEnemyName, getLanguage } from '../../i18n/i18n';
+import { t, translateEnemyName, getLanguage, applyTranslationsToDOM } from '../../i18n/i18n';
 import { SoundFX } from '../../audio/SoundFX';
 
 export class ScoreModalRenderer {
@@ -195,6 +195,8 @@ export class ScoreModalRenderer {
         // Ocultar botón flotante de inspección si estaba visible
         const floatingBtn = document.getElementById('floating-inspect-btn');
         if (floatingBtn) floatingBtn.classList.add('hidden');
+
+        applyTranslationsToDOM();
 
         if (modal) modal.classList.remove('hidden');
     }

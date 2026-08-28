@@ -45,7 +45,7 @@
 
           <!-- ROGUELIKE REWARDS SECTION -->
           <div id="modal-rogue-rewards-section" class="modal-rogue-rewards-section hidden">
-            <label class="setup-label" style="text-align: left; display: block; margin-bottom: 0.5rem;">
+            <label class="setup-label" style="text-align: left; display: block; margin-bottom: 0.5rem;" data-i18n="score.rogue_reward_heading">
               🎁 Choose 1 Reward for your Deck:
             </label>
             <div class="reward-cards-grid" id="modal-reward-cards-container">
@@ -54,9 +54,9 @@
           </div>
 
           <div class="modal-footer">
-            <button id="btn-modal-inspect" class="btn btn-modal-secondary">👁️ Inspect Board</button>
-            <button id="btn-modal-combat-log" class="btn btn-modal-secondary" style="border-color: rgba(56, 189, 248, 0.4); color: #38bdf8;">📜 Replay & Log</button>
-            <button id="btn-modal-rematch" class="btn btn-modal-primary">New Match 🔄</button>
+            <button id="btn-modal-inspect" class="btn btn-modal-secondary" data-i18n="btn.inspect">👁️ Inspect Board</button>
+            <button id="btn-modal-combat-log" class="btn btn-modal-secondary" style="border-color: rgba(56, 189, 248, 0.4); color: #38bdf8;" data-i18n="combat_log.title_short">📜 Replay & Log</button>
+            <button id="btn-modal-rematch" class="btn btn-modal-primary" data-i18n="btn.rematch">New Match 🔄</button>
           </div>
         </div>
       </div>
@@ -75,7 +75,7 @@
         </div>
 
         <div class="modal-footer">
-          <button id="btn-event-leave" class="btn btn-modal-secondary">Continue Path ➔</button>
+          <button id="btn-event-leave" class="btn btn-modal-secondary" data-i18n="btn.continue">Continue Path ➔</button>
         </div>
       </div>
     </div>
@@ -84,8 +84,8 @@
     <div id="rogue-deck-modal" class="modal-backdrop hidden">
       <div class="modal-card modal-deck">
         <div class="modal-header">
-          <h2>📜 Expedition Deck & Relics</h2>
-          <p class="modal-desc">Inspect spells, skills, and blessings active in your expedition.</p>
+          <h2 data-i18n="deck.title">📜 Expedition Deck & Relics</h2>
+          <p class="modal-desc" data-i18n="deck.desc">Inspect spells, skills, and blessings active in your expedition.</p>
         </div>
 
         <div class="modal-body-scroll">
@@ -113,19 +113,19 @@
 
           <div class="deck-stats-row">
             <div class="deck-stat-pill">
-              <span>💎 Permanent Komi:</span>
+              <span data-i18n="deck.permanent_komi">💎 Permanent Komi:</span>
               <strong id="deck-stat-komi">+0.0</strong>
             </div>
           </div>
 
-          <label class="setup-label">Magic Spell Scrolls in Deck:</label>
+          <label class="setup-label" data-i18n="deck.spells_heading">Magic Spell Scrolls in Deck:</label>
           <div class="deck-spells-grid" id="deck-spells-container">
             <!-- Dynamically injected -->
           </div>
         </div>
 
         <div class="modal-footer">
-          <button id="btn-deck-close" class="btn btn-modal-primary">Return to Map 🗺️</button>
+          <button id="btn-deck-close" class="btn btn-modal-primary" data-i18n="btn.return_map">Return to Map 🗺️</button>
         </div>
       </div>
     </div>

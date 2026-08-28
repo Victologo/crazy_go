@@ -1157,7 +1157,7 @@ export class GoAI {
         return chains;
     }
 
-    private static cloneBoard(board: GraphBoard): GraphBoard {
+    public static cloneBoard(board: GraphBoard): GraphBoard {
         const clone = new GraphBoard();
         for (const [id, node] of board.nodes.entries()) {
             clone.addNode(id, node.x, node.y, node.isStarPoint);
@@ -1175,7 +1175,7 @@ export class GoAI {
         return clone;
     }
 
-    private static cloneState(state: GameState): GameState {
+    public static cloneState(state: GameState): GameState {
         const clone = new GameState(state.komi, state.playerCount);
         clone.currentTurn = state.currentTurn;
         clone.currentPlayer = state.currentPlayer;

@@ -2,6 +2,26 @@
 
 Este registro cronológico documenta los avances diarios en el desarrollo del juego. (Orden: Más reciente arriba).
 
+## 28 de Agosto de 2026 - Día 12 (Sesiones 151 - 155): Soluciones de Dificultad Granular, Symmetry Breaker Anti-Espejo y RoadMap para Redes Neuronales Kyu
+
+### 🤖 1. Rediseño del Selector Granular de Dificultad IA (`SetupEventBinder.ts`, `OnlineEventBinder.ts`, `SetupModalRenderer.ts`)
+- **Bug del Movimiento en Pack Visual**: Solucionado el problema por el que al ajustar el slider de un Bot específico (ej. P2), los demás Bots sin modificar (P3, P4) saltaban visualmente para igualarlo. Esto sucedía porque heredaban la `dificultad temporal global`. Se ha inyectado una inicialización explícita en todos los "slots" al momento exacto de hacer clic en el botón "Granular ⚙️".
+- **Condicionamiento Inteligente del Botón Granular**:
+  - En partidas 1vs1 Local o 2P Online (donde solo hay 1 IA o ninguna), el botón de conmutar a "Granular" desaparece de la UI y se fuerza en "Pack Mode".
+  - En modo **IA vs IA** (2 jugadores, ambos bots), el botón "Granular" reaparece, y se ha añadido un **nuevo slider dedicado para el Bot P1 (Negras)**, permitiendo enfrentar a un modelo de 15 Kyu contra un modelo de 9 Dan.
+
+### 🪞 2. Rompedor de Simetría contra el Mirror Go / Mane-go (`GoAI.worker.ts`)
+- **Problema Matemático (El Espejo Infinito)**: Al enfrentar a dos IAs configuradas en máxima fuerza (7d - 10d, Temperatura = 0.0), el determinismo de la función Argmax provocaba que copiaran los movimientos recíprocamente en las esquinas o laterales matemáticamente idénticos de un tablero vacío o simétrico, jugando un Mirror Go eterno.
+- **Solución (Symmetry Breaker)**: Se ha inyectado una regla de excepción termodinámica en la red neuronal. Si la IA está en `Temp = 0` (fuerza máxima), pero el juego está en sus **primeros 6 turnos** (`state.moveHistory.length <= 6`), se aplica una temperatura microscópica de `0.03`. Esto fuerza a la IA a escoger aleatoriamente en caso de empate de probabilidades (mismo Winrate/Policy en esquinas equivalentes), rompiendo la simetría en la apertura sin comprometer el nivel de juego.
+
+### 🧠 3. RoadMap Aprobado: Erradicación de Heurísticas Minimax en Niveles Kyu (`task.md`)
+- **Propuesta Arquitectónica**: Las heurísticas artificiales (Minimax clásico) para niveles bajos de Kyu se sustituirán por versiones reales pero "infantiles" de nuestra red neuronal.
+- **Implementación Prevista (Tarea 294)**: Se descargarán e integrarán los Checkpoints ONNX generados en fases previas del entrenamiento actual (CrazyGoNet):
+  - `model_50k.onnx` (50.000 pasos de entrenamiento) para niveles **20k - 30k**.
+  - `model_150k.onnx` (150.000 pasos de entrenamiento) para niveles **10k - 19k**.
+  - `model_250k.onnx` (250.000 pasos de entrenamiento) para niveles **1k - 9k**.
+  - El modelo final `model_700k.onnx` de la Fase 5 quedará reservado exclusivamente para los niveles **Dan (1d - 10d)**, regulados mediante Temperatura Softmax.
+
 ## 27 de Agosto de 2026 - Día 11 (Sesión 150): Corrección Integral de Multijugador Local 2P/4P (Colores por Turno) y Animación Universal del Vórtice de la Boca Oni
 
 ### 👥 1. Corrección de Asignación de Color en Partidas Multijugador Local (`SVGRenderer.ts`, `GameController.ts`, `HUDController.ts`, `test_local_multiplayer.mjs`)

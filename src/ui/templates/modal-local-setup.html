@@ -518,10 +518,10 @@
 
           <div id="special-stones-controls" class="special-stones-controls hidden">
             <div class="poly-config-group">
-              <span class="poly-config-heading">Your Special Stones:</span>
+              <span class="poly-config-heading" data-i18n="wizard.your_special_poly">Your Special Stones:</span>
               <div class="poly-counters-grid">
                 <div class="poly-counter-item">
-                  <span class="poly-counter-label">🌿 Sprouting (1x1)</span>
+                  <span class="poly-counter-label" data-i18n="poly.sprouting">🌿 Sprouting (1x1)</span>
                   <div class="counter-input-group">
                     <button type="button" class="btn btn-counter-adj" data-target="playerSprouting" data-delta="-1">-</button>
                     <span id="display-poly-player-sprouting" class="counter-val">2</span>
@@ -529,7 +529,7 @@
                   </div>
                 </div>
                 <div class="poly-counter-item">
-                  <span class="poly-counter-label">🀄 Duplicity (2x1)</span>
+                  <span class="poly-counter-label" data-i18n="poly.duplicity">🀄 Duplicity (2x1)</span>
                   <div class="counter-input-group">
                     <button type="button" class="btn btn-counter-adj" data-target="playerDomino" data-delta="-1">-</button>
                     <span id="display-poly-player-domino" class="counter-val">2</span>
@@ -537,7 +537,7 @@
                   </div>
                 </div>
                 <div class="poly-counter-item">
-                  <span class="poly-counter-label">🧱 Monolith (2x2)</span>
+                  <span class="poly-counter-label" data-i18n="poly.monolith">🧱 Monolith (2x2)</span>
                   <div class="counter-input-group">
                     <button type="button" class="btn btn-counter-adj" data-target="playerMonolith" data-delta="-1">-</button>
                     <span id="display-poly-player-monolith" class="counter-val">1</span>
@@ -556,7 +556,7 @@
               </div>
               <div id="ai-poly-counters" class="poly-counters-grid hidden">
                 <div class="poly-counter-item">
-                  <span class="poly-counter-label">🌿 AI Sprouting</span>
+                  <span class="poly-counter-label" data-i18n="wizard.ai_sprouting">🌿 AI Sprouting</span>
                   <div class="counter-input-group">
                     <button type="button" class="btn btn-counter-adj" data-target="aiSprouting" data-delta="-1">-</button>
                     <span id="display-poly-ai-sprouting" class="counter-val">2</span>
@@ -564,7 +564,7 @@
                   </div>
                 </div>
                 <div class="poly-counter-item">
-                  <span class="poly-counter-label">🀄 AI Duplicity</span>
+                  <span class="poly-counter-label" data-i18n="wizard.ai_duplicity">🀄 AI Duplicity</span>
                   <div class="counter-input-group">
                     <button type="button" class="btn btn-counter-adj" data-target="aiDomino" data-delta="-1">-</button>
                     <span id="display-poly-ai-domino" class="counter-val">2</span>
@@ -572,7 +572,7 @@
                   </div>
                 </div>
                 <div class="poly-counter-item">
-                  <span class="poly-counter-label">🧱 AI Monolith</span>
+                  <span class="poly-counter-label" data-i18n="wizard.ai_monolith">🧱 AI Monolith</span>
                   <div class="counter-input-group">
                     <button type="button" class="btn btn-counter-adj" data-target="aiMonolith" data-delta="-1">-</button>
                     <span id="display-poly-ai-monolith" class="counter-val">1</span>
@@ -695,36 +695,36 @@
         <!-- Time Controls -->
         <div class="setup-section timer-setup-box" style="margin-top: 0.75rem;">
           <div class="setup-label-row">
-            <label class="setup-label">⏱️ Control de Tiempo (Reloj de Go / Byo-yomi)</label>
+            <label class="setup-label" data-i18n="wizard.timer_title">⏱️ Control de Tiempo (Reloj de Go / Byo-yomi)</label>
             <button type="button" id="btn-toggle-timer" class="btn btn-switch" data-enabled="false">
               <span id="label-toggle-timer">Sin Límite ❌</span>
             </button>
           </div>
 
           <div id="timer-controls" class="timer-controls hidden">
-            <label class="setup-label" style="font-size: 0.8rem; margin-top: 0.35rem;">Modo de Reloj:</label>
+            <label class="setup-label" style="font-size: 0.8rem; margin-top: 0.35rem;" data-i18n="wizard.timer_mode">Modo de Reloj:</label>
             <div class="setup-grid grid-4" style="grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));">
               <button type="button" class="btn btn-choice btn-timer-mode active" data-mode="per_move">
-                <span>⚡ Por Jugada</span>
-                <small style="display:block;font-size:0.7rem;opacity:0.8;">Byo-yomi Puro</small>
+                <span data-i18n="wizard.timer_per_move">⚡ Por Jugada</span>
+                <small style="display:block;font-size:0.7rem;opacity:0.8;" data-i18n="wizard.timer_per_move_sub">Byo-yomi Puro</small>
               </button>
               <button type="button" class="btn btn-choice btn-timer-mode" data-mode="japanese">
-                <span>🏯 Japonés</span>
-                <small style="display:block;font-size:0.7rem;opacity:0.8;">Principal + Periodos</small>
+                <span data-i18n="wizard.timer_japanese">🏯 Japonés</span>
+                <small style="display:block;font-size:0.7rem;opacity:0.8;" data-i18n="wizard.timer_japanese_sub">Principal + Periodos</small>
               </button>
               <button type="button" class="btn btn-choice btn-timer-mode" data-mode="fischer">
-                <span>⏱️ Fischer</span>
-                <small style="display:block;font-size:0.7rem;opacity:0.8;">Base + Incremento</small>
+                <span data-i18n="wizard.timer_fischer">⏱️ Fischer</span>
+                <small style="display:block;font-size:0.7rem;opacity:0.8;" data-i18n="wizard.timer_fischer_sub">Base + Incremento</small>
               </button>
               <button type="button" class="btn btn-choice btn-timer-mode" data-mode="absolute">
-                <span>⏳ Absoluto</span>
-                <small style="display:block;font-size:0.7rem;opacity:0.8;">Banco Total</small>
+                <span data-i18n="wizard.timer_absolute">⏳ Absoluto</span>
+                <small style="display:block;font-size:0.7rem;opacity:0.8;" data-i18n="wizard.timer_absolute_sub">Banco Total</small>
               </button>
             </div>
 
             <!-- 1. Por Jugada (Byo-yomi puro) -->
             <div id="timer-options-per-move" class="timer-sub-options" style="margin-top: 0.6rem;">
-              <label class="setup-label" style="font-size: 0.78rem;">Segundos por Jugada (Byo-yomi):</label>
+              <label class="setup-label" style="font-size: 0.78rem;" data-i18n="wizard.timer_byoyomi_sec">Segundos por Jugada (Byo-yomi):</label>
               <div class="setup-inline-row" style="display:flex;flex-wrap:wrap;gap:0.4rem;align-items:center;">
                 <button type="button" class="btn btn-choice btn-timer-val" data-val="5">5s</button>
                 <button type="button" class="btn btn-choice btn-timer-val" data-val="10">10s</button>
@@ -743,7 +743,7 @@
 
             <!-- 2. Byo-yomi Japonés -->
             <div id="timer-options-japanese" class="timer-sub-options hidden" style="margin-top: 0.6rem;">
-              <label class="setup-label" style="font-size: 0.78rem;">Tiempo Principal + Periodos Byo-yomi:</label>
+              <label class="setup-label" style="font-size: 0.78rem;" data-i18n="wizard.timer_japanese_label">Tiempo Principal + Periodos Byo-yomi:</label>
               <div class="setup-inline-row" style="display:flex;flex-wrap:wrap;gap:0.4rem;align-items:center;margin-bottom:0.4rem;">
                 <button type="button" class="btn btn-choice btn-timer-val active" data-val="300" data-byo="30" data-periods="3">5m + 3×30s</button>
                 <button type="button" class="btn btn-choice btn-timer-val" data-val="600" data-byo="30" data-periods="5">10m + 5×30s</button>
@@ -770,7 +770,7 @@
 
             <!-- 3. Fischer -->
             <div id="timer-options-fischer" class="timer-sub-options hidden" style="margin-top: 0.6rem;">
-              <label class="setup-label" style="font-size: 0.78rem;">Tiempo Base + Incremento Fischer:</label>
+              <label class="setup-label" style="font-size: 0.78rem;" data-i18n="wizard.timer_fischer_label">Tiempo Base + Incremento Fischer:</label>
               <div class="setup-inline-row" style="display:flex;flex-wrap:wrap;gap:0.4rem;align-items:center;margin-bottom:0.4rem;">
                 <button type="button" class="btn btn-choice btn-timer-val active" data-val="180" data-inc="5">3m + 5s</button>
                 <button type="button" class="btn btn-choice btn-timer-val" data-val="300" data-inc="5">5m + 5s</button>
@@ -793,7 +793,7 @@
 
             <!-- 4. Absoluto -->
             <div id="timer-options-absolute" class="timer-sub-options hidden" style="margin-top: 0.6rem;">
-              <label class="setup-label" style="font-size: 0.78rem;">Tiempo Total de Banco:</label>
+              <label class="setup-label" style="font-size: 0.78rem;" data-i18n="wizard.timer_absolute_label">Tiempo Total de Banco:</label>
               <div class="setup-inline-row" style="display:flex;flex-wrap:wrap;gap:0.4rem;align-items:center;">
                 <button type="button" class="btn btn-choice btn-timer-val" data-val="60">1 min</button>
                 <button type="button" class="btn btn-choice btn-timer-val" data-val="180">3 min</button>

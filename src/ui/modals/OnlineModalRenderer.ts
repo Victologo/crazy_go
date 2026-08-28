@@ -7,7 +7,7 @@ import { BoardGenerators } from '../../graphics/BoardGenerators';
 import { SVGRenderer } from '../../graphics/SVGRenderer';
 import { GameState } from '../../core/GameState';
 import { GraphBoard } from '../../core/GraphBoard';
-import { getLanguage } from '../../i18n/i18n';
+import { getLanguage, applyTranslationsToDOM } from '../../i18n/i18n';
 import { OnlineController } from '../../controllers/OnlineController';
 export class OnlineModalRenderer {
     // ==================== 2. MODAL ONLINE P2P (WEBRTC 2P & 4P) ====================
@@ -63,6 +63,13 @@ export class OnlineModalRenderer {
         if (btnNext) {
             btnNext.classList.toggle('hidden', this.currentOnlineWizardStep === 6);
         }
+
+        const btnForceStart = document.getElementById('btn-online-force-start');
+        if (btnForceStart) {
+            btnForceStart.classList.toggle('hidden', this.currentOnlineWizardStep !== 6);
+        }
+
+        applyTranslationsToDOM();
     }
 
     public static openOnlineModal() {
@@ -108,6 +115,8 @@ export class OnlineModalRenderer {
             if (btnPrev) btnPrev.classList.toggle('hidden', this.currentOnlineWizardStep === 1);
             if (btnNext) btnNext.classList.toggle('hidden', this.currentOnlineWizardStep === 6);
         }
+
+        applyTranslationsToDOM();
     }
 
     public static updateOnlineModalUI(
