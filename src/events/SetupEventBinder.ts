@@ -568,19 +568,24 @@ export class SetupEventBinder {
             if (ModalManager.currentWizardStep === 1) {
                 ModalManager.closeNewGameModal();
             } else {
-                ModalManager.setWizardStep(ModalManager.currentWizardStep - 1, tempConfig);
+                let prev = ModalManager.currentWizardStep - 1;
+                if (prev === 6 && tempConfig.gameMode === 'aivsai') prev = 5;
+                ModalManager.setWizardStep(prev, tempConfig);
             }
             SoundFX.playPlaceStone();
         });
 
         document.getElementById('btn-wizard-next')?.addEventListener('click', () => {
-            ModalManager.setWizardStep(ModalManager.currentWizardStep + 1, tempConfig);
+            let next = ModalManager.currentWizardStep + 1;
+            if (next === 6 && tempConfig.gameMode === 'aivsai') next = 7;
+            ModalManager.setWizardStep(next, tempConfig);
             SoundFX.playPlaceStone();
         });
 
         document.querySelectorAll('#wizard-stepper .wizard-step-node').forEach(node => {
             node.addEventListener('click', () => {
                 const targetStep = parseInt(node.getAttribute('data-step') || '1', 10);
+                if (targetStep === 6 && tempConfig.gameMode === 'aivsai') return; // disabled
                 ModalManager.setWizardStep(targetStep, tempConfig);
                 SoundFX.playPlaceStone();
             });

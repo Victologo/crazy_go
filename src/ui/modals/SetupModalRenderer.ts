@@ -68,6 +68,12 @@ export class SetupModalRenderer {
             const nodeStep = parseInt(node.getAttribute('data-step') || '1', 10);
             node.classList.toggle('active', nodeStep === this.currentWizardStep);
             node.classList.toggle('completed', nodeStep < this.currentWizardStep);
+            
+            if (nodeStep === 6) {
+                const isAivsAi = config?.gameMode === 'aivsai';
+                (node as HTMLElement).style.opacity = isAivsAi ? '0.3' : '1';
+                (node as HTMLElement).style.pointerEvents = isAivsAi ? 'none' : 'auto';
+            }
         });
 
         // Actualizar pill contador
@@ -360,6 +366,28 @@ export class SetupModalRenderer {
         }
 
         this.renderHeroShowcaseElements('setup', config.heroId || null);
+
+        // --- NEW LOGIC FOR AI VS AI SPLIT VIEW ---
+        const singleContainer = document.getElementById("setup-champion-container-single");
+        const splitContainer = document.getElementById("setup-champion-container-split");
+        const step4Label = document.querySelector(".wizard-step-node[data-step=\"4\"] .step-label");
+        const step4Title = document.querySelector("#wizard-step-4 .wizard-step-title");
+
+        if (config.gameMode === "aivsai") {
+            if (singleContainer) singleContainer.classList.add("hidden");
+            if (splitContainer) splitContainer.classList.remove("hidden");
+            if (step4Label) step4Label.innerHTML = t("wizard.step_champions");
+            if (step4Title) step4Title.innerHTML = t("wizard.q_champions_ai");
+            
+            this.renderHeroShowcaseElements("setup-p1", config.heroId || null);
+            this.renderHeroShowcaseElements("setup-p2", (config.enemyHeroId as any) || null);
+        } else {
+            if (singleContainer) singleContainer.classList.remove("hidden");
+            if (splitContainer) splitContainer.classList.add("hidden");
+            if (step4Label) step4Label.innerHTML = t("wizard.step_champion");
+            if (step4Title) step4Title.innerHTML = t("wizard.q_champion");
+        }
+        // ----------------------------------------
 
         const allShapes = ['square', 'volcano', 'sky', 'oni', 'triangle', 'hex', 'eroded', 'islands_v1', 'islands_v2', 'islands', 'cross', 'hourglass', 'geode', 'spiral', 'rings', 'star_5', 'star_6', 'procedural'];
         allShapes.forEach(sh => {
