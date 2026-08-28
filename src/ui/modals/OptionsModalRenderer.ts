@@ -75,6 +75,14 @@ export class OptionsModalRenderer {
             particlesBtn.classList.toggle('active', isParticles);
             particlesBtn.classList.toggle('inactive', !isParticles);
         }
+
+        const winrateBtn = document.getElementById('opt-winrate-toggle');
+        const isWinrate = GlobalSettings.winrateBarEnabled;
+        if (winrateBtn) {
+            winrateBtn.innerText = isWinrate ? t('options.enabled') : t('options.disabled');
+            winrateBtn.classList.toggle('active', isWinrate);
+            winrateBtn.classList.toggle('inactive', !isWinrate);
+        }
     }
 
     // ==================== FEEDBACK MODAL ====================

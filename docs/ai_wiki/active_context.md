@@ -12,7 +12,9 @@
 ### Sesión Actual (Sesiones 154 y 155 — Parches Granulares, Rompedor de Simetría y Roadmap Kyu)
 - **Corrección Granular en IA vs IA**: Añadido el slider del Jugador 1 (P1) al panel granular exclusivamente en partidas de 2 Jugadores *IA vs IA*, permitiendo enfrentar modelos asimétricos (ej. 15 Kyu vs 9 Dan). El botón Granular se oculta correctamente en partidas 1vs1 contra humano para forzar el *Pack Mode*. Solucionado también el bug visual de salto unificado de sliders.
 - **Anti Mirror-Go (Mane-go Symmetry Breaker)**: Se solucionó el problema matemático de la IA (Argmax Temp = 0) que copiaba infinitamente los movimientos del rival en las esquinas por simetría. Ahora se inyecta un ruido microscópico (`Temp = 0.03`) en los primeros 6 turnos para obligar a la IA a elegir de forma aleatoria entre probabilidades idénticas, rompiendo el espejo sin perder fuerza.
-- **Roadmap Aprobado para Niveles Kyu (Tarea 294)**: Se aprobó la estrategia de LeelaZero/KataGo para los niveles bajos. En lugar de usar heurísticas falsas, se descargarán los checkpoints ONNX tempranos (`50k`, `150k`, `250k` steps) y se asignarán a los niveles de 30k a 1k para lograr un juego de principiante humano 100% genuino.
+- **Opción de Barra de Winrate en Opciones (GlobalSettings)**:
+  - Añadido interruptor en el Modal de Opciones (`⚙️ Opciones del Sistema`) para activar o desactivar la barra de probabilidad de victoria en tiempo real situada bajo cada Goban.
+  - Persistencia en `localStorage` (`crazyGo_winrateBar`), integración en `HUDController.updateWinRates` y actualización reactiva inmediata durante la partida.
 
 - **Auditoría e Internacionalización Universal (i18n)**:
   - Resueltas y añadidas todas las claves de traducción faltantes en `src/i18n/translations.ts` para Español e Inglés:

@@ -103,6 +103,16 @@ export class OptionsEventBinder {
             SoundFX.playPlaceStone();
         });
 
+        // Selector de Barra de Winrate
+        document.getElementById('opt-winrate-toggle')?.addEventListener('click', () => {
+            GlobalSettings.winrateBarEnabled = !GlobalSettings.winrateBarEnabled;
+            ModalManager.updateOptionsModalUI();
+            if (GameController.state) {
+                GameController.updateInGameUI();
+            }
+            SoundFX.playPlaceStone();
+        });
+
         // Selector de Modo Zen
         document.getElementById('opt-zen-toggle')?.addEventListener('click', () => {
             HUDController.toggleZenMode();

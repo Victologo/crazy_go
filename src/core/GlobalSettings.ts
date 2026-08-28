@@ -2,6 +2,7 @@
 export class GlobalSettings {
     private static _fpsLimit: 30 | 60 = 60;
     private static _particlesEnabled: boolean = true;
+    private static _winrateBarEnabled: boolean = true;
 
     public static init() {
         const storedFps = localStorage.getItem('crazyGo_fps');
@@ -12,6 +13,11 @@ export class GlobalSettings {
         const storedParticles = localStorage.getItem('crazyGo_particles');
         if (storedParticles === 'false') {
             this._particlesEnabled = false;
+        }
+
+        const storedWinrate = localStorage.getItem('crazyGo_winrateBar');
+        if (storedWinrate === 'false') {
+            this._winrateBarEnabled = false;
         }
     }
 
@@ -31,5 +37,14 @@ export class GlobalSettings {
     public static set particlesEnabled(val: boolean) {
         this._particlesEnabled = val;
         localStorage.setItem('crazyGo_particles', val ? 'true' : 'false');
+    }
+
+    public static get winrateBarEnabled(): boolean {
+        return this._winrateBarEnabled;
+    }
+
+    public static set winrateBarEnabled(val: boolean) {
+        this._winrateBarEnabled = val;
+        localStorage.setItem('crazyGo_winrateBar', val ? 'true' : 'false');
     }
 }

@@ -8,6 +8,7 @@ import { PolyominoManager } from '../core/PolyominoManager';
 import { TutorialManager } from '../tutorial/TutorialManager';
 import { DevModeManager } from '../core/DevModeManager';
 import { DuelistRenderer } from './DuelistRenderer';
+import { GlobalSettings } from '../core/GlobalSettings';
 import { t, getLanguage } from '../i18n/i18n';
 
 export class HUDController {
@@ -205,9 +206,9 @@ export class HUDController {
             }
         });
 
-        // Win Rate Bar (Llamada al motor de análisis para N jugadores - Se desactiva en Modo Historia)
+        // Win Rate Bar (Llamada al motor de análisis para N jugadores - Se desactiva en Modo Historia o por configuración de usuario)
         const isStoryMode = currentMode === 'story' || (typeof window !== 'undefined' && !!((window as any).StoryModeController?.isStoryActive || (window as any).__isStoryLoading));
-        if (!isStoryMode) {
+        if (!isStoryMode && GlobalSettings.winrateBarEnabled) {
             import('../core/AnalysisEngine').then(m => {
                 import('../controllers/GameController').then(gc => {
                     const b = gc.GameController.board;
@@ -229,7 +230,7 @@ export class HUDController {
 
         const isStory = typeof window !== 'undefined' && !!((window as any).StoryModeController?.isStoryActive || (window as any).__isStoryLoading);
 
-        if (playerCount < 2 || TutorialManager.isActive || isStory) {
+        if (playerCount < 2 || TutorialManager.isActive || isStory || !GlobalSettings.winrateBarEnabled) {
             wrapper.classList.add('hidden');
             return;
         } else {
