@@ -100,6 +100,14 @@ self.onmessage = (e: MessageEvent<AIWorkerIncomingMessage>) => {
                     } else {
                         temperature = 0; // Argmax (Max strength)
                     }
+                    
+                    // Anti-Mirror Go (Mane-go) Symmetry Breaker:
+                    // Si estamos en Argmax puro, en los primeros 6 turnos el tablero es simétrico.
+                    // Aplicamos una mínima temperatura (0.03) para forzar aleatoriedad entre
+                    // probabilidades matemáticamente idénticas (ej. las 4 esquinas).
+                    if (temperature === 0 && state && ((state.boardHistory && state.boardHistory.length <= 6) || (state.currentTurn && state.currentTurn <= 6))) {
+                        temperature = 0.03;
+                    }
                 } else {
                     // Fallbacks for old strings
                     if (diffStr === 'easy') isEasy = true;

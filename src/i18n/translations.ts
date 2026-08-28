@@ -452,7 +452,80 @@ export const translations: Record<Language, Record<string, string>> = {
     "story.scrolls": "Pergaminos Sagrados",
     "story.scrolls_desc": "Recupera las escrituras arcanas en arenas asimétricas hostiles bajo límites estrictos de turnos.",
     "story.spirits": "Espíritus Guardianes",
-    "story.spirits_desc": "Purifica los altares ancestrales conectando tus cadenas de piedras vivas con dos ojos inmóviles."
+    "story.spirits_desc": "Purifica los altares ancestrales conectando tus cadenas de piedras vivas con dos ojos inmóviles.",
+
+    // Stage Hazards
+    "volcano.warning_title": "🌋 Peligro Ambiental: Cráter Volcánico",
+    "volcano.warning_desc": "En el turno 21 (11a) el cráter central entrará en erupción, destruyendo todas las piedras en su interior.",
+    "sky.warning_title": "☁️ Peligro Ambiental: Expansión Celestial",
+    "sky.warning_desc": "En el turno 21 (11a) caerán 4 bloques flotantes en las esquinas, expandiendo el territorio disponible.",
+    "oni.warning_title": "👹 Peligro Ambiental: Inhalación Oni",
+    "oni.warning_desc": "En el turno 15 (8a) las fauces del Oni inhalarán con fuerza gravitatoria las piedras ligeras hacia el abismo.",
+
+    // Dojo Training & Lessons
+    "dojo.title": "🥋 Dojo de Entrenamiento",
+    "dojo.desc": "Aprende los fundamentos del Go tradicional y las reglas especiales de Crazy Go",
+    "dojo.close": "Cerrar",
+    "dojo.module_classic": "Módulo 1: Fundamentos Clásicos",
+    "dojo.lesson_tag": "Lección {id}",
+    "dojo.module_special": "Módulo 2: Mecánicas Místicas",
+
+    // Roguelike Active Choice
+    "rogue.choice_active_badge": "⚔️ EXPEDICIÓN ACTIVA",
+    "rogue.choice_node_tier": "📍 Nodo {tier}: {title}",
+    "rogue.choice_ready_advance": "Listo para avanzar por el mapa",
+    "rogue.choice_start_new_title": "NUEVA EXPEDICIÓN",
+    "rogue.choice_start_new_sub": "Abandonar viaje actual y regresar al Dojo",
+    "rogue.choice_continue_title": "CONTINUAR EXPEDICIÓN",
+    "rogue.choice_continue_sub": "Reanudar la marcha por el sendero del mapa",
+    "rogue.choice_return_menu": "🏠 Menú Principal",
+
+    // Alchemist & General UI
+    "alchemist.color_picker_title": "🔮 Inversión Cromática (Alquimista)",
+    "alchemist.color_picker_desc": "Selecciona el nuevo color para transmutar la piedra elegida:",
+    "ui.cancel": "Cancelar",
+
+    // Combat Log & Replay Viewer
+    "combat_log.title": "📜 Registro de Combate & Repetición",
+    "combat_log.subtitle": "Historial jugada a jugada con visor interactivo de repetición del Goban",
+    "combat_log.btn_copy_title": "Copiar registro al portapapeles",
+    "combat_log.btn_copy": "📋 Copiar",
+    "combat_log.btn_download_title": "Descargar registro en archivo .json",
+    "combat_log.btn_download": "💾 Descargar",
+    "combat_log.btn_import_title": "Cargar repetición externa (.json)",
+    "combat_log.btn_import": "📂 Cargar",
+    "combat_log.btn_first": "⏮️ Inicio",
+    "combat_log.btn_prev": "◀ Anterior",
+    "combat_log.btn_play": "▶️ Reproducir",
+    "combat_log.btn_auto": "⏱️ Auto",
+    "combat_log.btn_next": "Siguiente ▶",
+    "combat_log.btn_last": "Fin ⏭️",
+    "combat_log.speed": "Velocidad:",
+    "combat_log.speed_slow": "Lento (1.5s)",
+    "combat_log.speed_normal": "Normal (0.8s)",
+    "combat_log.speed_fast": "Rápido (0.4s)",
+    "combat_log.speed_hyper": "Turbo (0.15s)",
+    "combat_log.filter_all": "Todos",
+    "combat_log.filter_stones": "Piedras",
+    "combat_log.filter_skills": "Habilidades",
+    "combat_log.filter_poly": "Poliminós",
+    "combat_log.filter_passes": "Pases",
+    "combat_log.filter_board": "Tablero",
+    "combat_log.search_placeholder": "Buscar en registro...",
+    "combat_log.btn_return": "✖ Cerrar Visor",
+
+    // Online Matchmaking & Steps
+    "online.tab_matchmaking": "Partida Rápida",
+    "online.mm_title": "⚡ Emparejamiento Rápido",
+    "online.mm_subtitle": "Busca oponente aleatorio en la red P2P mundial",
+    "online.mm_2p_title": "Duelo Rápido 1v1",
+    "online.mm_2p_desc": "⚫ Negras vs ⚪ Blancas en 9x9 o 13x13",
+    "online.mm_4p_title": "Batalla 4 Jugadores",
+    "online.mm_4p_desc": "Partida campal de 4 bandos",
+    "online.mm_searching": "Buscando rival...",
+    "online.mm_wait": "Esperando a otro jugador en cola P2P",
+    "online.mm_cancel": "Cancelar Búsqueda",
+    "online.step_players": "Jugadores"
   },
 
   en: {
@@ -902,6 +975,79 @@ export const translations: Record<Language, Record<string, string>> = {
     "story.scrolls": "Sacred Scrolls",
     "story.scrolls_desc": "Recover arcane scriptures in asymmetric arenas within strict turn limits.",
     "story.spirits": "Guardian Spirits",
-    "story.spirits_desc": "Purify ancestral altars by connecting living stone formations with two eyes."
+    "story.spirits_desc": "Purify ancestral altars by connecting living stone formations with two eyes.",
+
+    // Stage Hazards
+    "volcano.warning_title": "🌋 Stage Hazard: Volcanic Crater",
+    "volcano.warning_desc": "On turn 21 (11a) the central crater will erupt, destroying all stones inside it.",
+    "sky.warning_title": "☁️ Stage Hazard: Celestial Expansion",
+    "sky.warning_desc": "On turn 21 (11a) 4 floating celestial blocks will fall into the corners, expanding the available territory.",
+    "oni.warning_title": "👹 Stage Hazard: Oni Inhalation",
+    "oni.warning_desc": "On turn 15 (8a) the Oni jaws will gravitationally inhale lightweight stones into the abyss.",
+
+    // Dojo Training & Lessons
+    "dojo.title": "🥋 Training Dojo",
+    "dojo.desc": "Master traditional Go fundamentals and Crazy Go's unique mechanics",
+    "dojo.close": "Close",
+    "dojo.module_classic": "Module 1: Classical Fundamentals",
+    "dojo.lesson_tag": "Lesson {id}",
+    "dojo.module_special": "Module 2: Mystic Mechanics",
+
+    // Roguelike Active Choice
+    "rogue.choice_active_badge": "⚔️ ACTIVE EXPEDITION",
+    "rogue.choice_node_tier": "📍 Node {tier}: {title}",
+    "rogue.choice_ready_advance": "Ready to advance along the map",
+    "rogue.choice_start_new_title": "NEW EXPEDITION",
+    "rogue.choice_start_new_sub": "Abandon current run and return to the Dojo",
+    "rogue.choice_continue_title": "CONTINUE EXPEDITION",
+    "rogue.choice_continue_sub": "Resume marching along the map trail",
+    "rogue.choice_return_menu": "🏠 Main Menu",
+
+    // Alchemist & General UI
+    "alchemist.color_picker_title": "🔮 Chromatic Inversion (Alchemist)",
+    "alchemist.color_picker_desc": "Select the new color to transmute the chosen stone into:",
+    "ui.cancel": "Cancel",
+
+    // Combat Log & Replay Viewer
+    "combat_log.title": "📜 Combat Log & Replay",
+    "combat_log.subtitle": "Move-by-move match history with interactive Goban replay viewer",
+    "combat_log.btn_copy_title": "Copy combat log to clipboard",
+    "combat_log.btn_copy": "📋 Copy",
+    "combat_log.btn_download_title": "Download log as .json file",
+    "combat_log.btn_download": "💾 Download",
+    "combat_log.btn_import_title": "Import external replay (.json)",
+    "combat_log.btn_import": "📂 Import",
+    "combat_log.btn_first": "⏮️ Start",
+    "combat_log.btn_prev": "◀ Prev",
+    "combat_log.btn_play": "▶️ Play",
+    "combat_log.btn_auto": "⏱️ Auto",
+    "combat_log.btn_next": "Next ▶",
+    "combat_log.btn_last": "End ⏭️",
+    "combat_log.speed": "Speed:",
+    "combat_log.speed_slow": "Slow (1.5s)",
+    "combat_log.speed_normal": "Normal (0.8s)",
+    "combat_log.speed_fast": "Fast (0.4s)",
+    "combat_log.speed_hyper": "Hyper (0.15s)",
+    "combat_log.filter_all": "All",
+    "combat_log.filter_stones": "Stones",
+    "combat_log.filter_skills": "Skills",
+    "combat_log.filter_poly": "Polyominoes",
+    "combat_log.filter_passes": "Passes",
+    "combat_log.filter_board": "Board",
+    "combat_log.search_placeholder": "Search in log...",
+    "combat_log.btn_return": "✖ Close Viewer",
+
+    // Online Matchmaking & Steps
+    "online.tab_matchmaking": "Quick Match",
+    "online.mm_title": "⚡ Quick Matchmaking",
+    "online.mm_subtitle": "Find a random opponent on the global P2P network",
+    "online.mm_2p_title": "1v1 Quick Duel",
+    "online.mm_2p_desc": "⚫ Black vs ⚪ White on 9x9 or 13x13",
+    "online.mm_4p_title": "4-Player Battle",
+    "online.mm_4p_desc": "4-player free-for-all match",
+    "online.mm_searching": "Searching for opponent...",
+    "online.mm_wait": "Waiting for another player in P2P queue",
+    "online.mm_cancel": "Cancel Search",
+    "online.step_players": "Players"
   }
 };

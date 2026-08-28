@@ -8,15 +8,14 @@
 
 **Hitos Recientes:**
 
-### Sesión Actual (Sesión 154 — Modo Espectador, Red Social y Explicación de Red Neuronal)
-- **Modo Espectador (IA vs IA) Corregido**:
-  - Solucionado el bug en `GameController.ts` que interrumpía el bucle de turnos cuando la IA se enfrentaba a otra IA. `checkAITurn()` ahora valida correctamente `gameMode === 'aivsai'`.
-  - Añadidas las traducciones faltantes (`wizard.mode_aivsai` y descripciones) al archivo `translations.ts`.
-- **Integración Social / Amigos**:
-  - Se eliminó el botón flotante "SOCIAL" del Dojo.
-  - Se añadió la pestaña `👥 Perfil y Amigos` dentro del modal Online (`modal-online.html` y `OnlineModalRenderer.ts`), integrando el flujo de forma más limpia en la arquitectura existente de emparejamiento.
-- **Documentación de Dificultad (AlphaZero / CrazyGoNet)**:
-  - Explicado al usuario cómo la dificultad Kyu (30k-1k) usa Minimax/Heurísticas, mientras que Dan (1d-10d) usa la red neuronal ONNX calibrando matemáticamente la *Temperatura Softmax* de la Policy Head (0.6 para Dans bajos con alta aleatoriedad, 0.3 para intermedios, 0.0 Argmax para fuerza bruta máxima en 7d+).
+- **Auditoría e Internacionalización Universal (i18n)**:
+  - Resueltas y añadidas todas las claves de traducción faltantes en `src/i18n/translations.ts` para Español e Inglés:
+    - Pantalla de Elección de Expedición Roguelike (`rogue.choice_active_badge`, `rogue.choice_node_tier`, `rogue.choice_start_new_title`, `rogue.choice_start_new_sub`, `rogue.choice_continue_title`, `rogue.choice_continue_sub`, `rogue.choice_return_menu`).
+    - Alertas de Peligros Ambientales (Cráter Volcánico, Expansión Celestial e Inhalación Oni).
+    - Registro de Combate y Repetición (`combat_log.*`).
+    - Partida Rápida Online (`online.mm_*`).
+    - Dojo y Lecciones (`dojo.*`).
+    - Selector de color de Alquimista y botones de cancelación (`alchemist.*`, `ui.cancel`).
 
 ### Sesión Anterior (Sesión 153 — Selector Maestro y Granular de Dificultad de IA)
 - **Tarea 291 Completada Exitosamente**:
