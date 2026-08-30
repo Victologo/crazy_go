@@ -94,8 +94,10 @@ export class NeuralNetAdapter {
             let maxCoord = 0;
             for (const [id] of board.nodes) {
                 const parts = id.split(',');
-                const r = parseInt(parts[0], 10);
-                const c = parseInt(parts[1], 10);
+                const col = parseInt(parts[0], 10);
+                const row = parseInt(parts[1], 10);
+                const r = row;
+                const c = col;
                 nodeToGrid.set(id, { r, c });
                 gridToNode.set(`${r},${c}`, id);
                 if (r > maxCoord) maxCoord = r;
