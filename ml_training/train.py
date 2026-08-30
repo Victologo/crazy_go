@@ -76,10 +76,17 @@ class GoReplayBuffer:
                     continue
 
                 for pos in game.get('positions', []):
-                    tensor    = np.array(pos['tensor'],           dtype=np.float32)  # [16, N, N]
-                    policy    = np.array(pos['policy_target'],    dtype=np.float32)  # [N*N+1]
-                    value     = np.array(pos['value_target'],     dtype=np.float32)  # [2]
-                    ownership = np.array(pos['ownership_target'], dtype=np.float32)  # [N, N]
+                    tensor    = np.nan_to_num(np.array(pos['tensor'],           dtype=np.float32), nan=0.0)  # [16, N, N]
+                    policy    = np.nan_to_num(np.array(pos['policy_target'],    dtype=np.float32), nan=0.0)  # [N*N+1]
+                    value     = np.nan_to_num(np.array(pos['value_target'],     dtype=np.float32), nan=0.0)  # [2]
+                    ownership = np.nan_to_num(np.array(pos['ownership_target'], dtype=np.float32), nan=0.0)  # [N, N]
+
+                    # Normalize policy to sum to 1.0 if not zero
+                    pol_sum = policy.sum()
+                    if pol_sum > 0:
+                        policy = policy / pol_sum
+                    else:
+                        policy[-1] = 1.0 # default to pass
 
                     # Validate shape
                     if tensor.shape != (16, self.board_size, self.board_size):
@@ -129,10 +136,8 @@ class GoReplayBuffer:
 # ── Loss Functions ─────────────────────────────────────────────────────────────
 
 def policy_loss(logits: torch.Tensor, targets: torch.Tensor) -> torch.Tensor:
-    """Cross-entropy between MCTS/random policy and predicted policy."""
-    # targets is a probability distribution, logits are raw scores
-    log_probs = torch.log_softmax(logits, dim=-1)
-    return -(targets * log_probs).sum(dim=-1).mean()
+    """Cross-entropy between target probability distribution and predicted logits."""
+    return nn.functional.cross_entropy(logits, targets)
 
 
 def value_loss(preds: torch.Tensor, targets: torch.Tensor) -> torch.Tensor:

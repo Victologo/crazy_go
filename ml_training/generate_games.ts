@@ -61,8 +61,8 @@ function smartPolicy(sim: GoSimulator, legalMoveIds: string[], boardSize: number
         return { policy, chosenMove: null };
     }
 
-    const scores = [];
-    let maxScore = -Infinity;
+    const scores: { move: string, score: number }[] = [];
+    let maxScore = -999999;
 
     for (const move of legalMoveIds) {
         const clone = sim.clone();
@@ -78,29 +78,38 @@ function smartPolicy(sim: GoSimulator, legalMoveIds: string[], boardSize: number
         const libs = clone.getLiberties(myChain).size;
         score += libs;
 
-        // Penalize giving enemy captures in next turn (suicide-adjacent)
+        // Penalize giving enemy captures in next turn
         if (libs <= 1) score -= 20;
 
         scores.push({ move, score });
         if (score > maxScore) maxScore = score;
     }
 
-    // Softmax over scores
+    // Baseline score for pass (only chosen if everything else is terrible)
+    const passScore = -10;
+    if (passScore > maxScore) maxScore = passScore;
+
     let expSum = 0;
     const exps: Record<string, number> = {};
     for (const s of scores) {
-        if (s.score === -9999) continue;
-        const e = Math.exp(s.score - maxScore); // stable softmax
+        if (s.score <= -9990) continue;
+        const e = Math.exp(s.score - maxScore);
         exps[s.move] = e;
         expSum += e;
     }
+    const passExp = Math.exp(passScore - maxScore);
+    expSum += passExp;
 
-    // Assign probabilities
+    if (expSum === 0 || !isFinite(expSum)) {
+        policy[totalCells] = 1.0;
+        return { policy, chosenMove: null };
+    }
+
     let bestMove: string | null = null;
     let highestProb = -1;
 
     for (const s of scores) {
-        if (s.score === -9999) continue;
+        if (s.score <= -9990) continue;
         const prob = exps[s.move] / expSum;
         const [r, c] = s.move.split('-').map(Number);
         policy[r * boardSize + c] = prob;
@@ -111,13 +120,7 @@ function smartPolicy(sim: GoSimulator, legalMoveIds: string[], boardSize: number
         }
     }
 
-    // Pass probability
-    const passScore = 0;
-    if (passScore > maxScore) maxScore = passScore;
-    const passExp = Math.exp(passScore - maxScore);
-    const totalExpWithPass = expSum * Math.exp(-maxScore) + passExp;
-    policy[totalCells] = passExp / totalExpWithPass;
-
+    policy[totalCells] = passExp / expSum;
     if (policy[totalCells] > highestProb) {
         bestMove = null;
     }
