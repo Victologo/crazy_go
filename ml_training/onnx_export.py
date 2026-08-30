@@ -38,7 +38,9 @@ def export_onnx(
     else:
         dummy_input = torch.randn(1, 16, board_size, board_size, dtype=torch.float32)
 
-    os.makedirs(os.path.dirname(output_path), exist_ok=True)
+    dir_name = os.path.dirname(output_path)
+    if dir_name:
+        os.makedirs(dir_name, exist_ok=True)
 
     print(f'  Exporting to: {output_path}')
     print(f'  Precision:    {"FP16" if fp16 else "FP32"}')
