@@ -1,3 +1,13 @@
+## 30 de Agosto de 2026 - Día 14 (Sesión 176) [Horario: 14:05 - 14:30]: Integración de Sabio, Correcciones UI y Winrate en Historial de Combate
+
+### 🥋 1. Integración del Sabio y Correcciones de Portrait de Héroes
+- **Sabio sin Habilidades**: Habilitado el héroe 'Sage' como \skillType: 'none'\ con descripción en ES/EN ('Puro Go'). Colocado en la posición 0 como campeón por defecto del juego.
+- **Bugfixes Visuales y HTML**: Arreglados los IDs faltantes (\-hero-\) en el selector IA vs IA que impedía cambiar imágenes. Añadido \object-position: top center\ al CSS para evitar decapitaciones en las imágenes del carrusel.
+
+### 📊 2. Inyección Retrospectiva de Winrate en el Combat Log
+- **Almacenamiento de Probabilidades**: La \AnalysisEngine\ ahora adjunta de forma retrospectiva el resultado de la Red Neuronal (Winrate de KataGo pseudoaleatorio) en el \CombatLogManager.entries\ en el instante en que finaliza su computación en segundo plano.
+- **Barra de Reproducción de Winrate**: Creada una interfaz \.winrate-bar-wrapper\ dentro de \modal-combat-log.html\ que se sincroniza con el deslizador cronológico. Ahora el jugador puede arrastrar la línea de tiempo del replay y visualizar en cada fotograma cómo se movió el Winrate según la evaluación de la inteligencia artificial.
+
 ## 30 de Agosto de 2026 - Día 14 (Sesión 175) [Horario: 13:50 - 14:05]: Visualizador de Territorio en Vivo (Debug Overlay), Mapeador Universal de Topologías y Generador Maestro de Go Profesional
 
 ### 🗺️ 1. Botón de Territorio en Tiempo Real en la Barra Superior (`index.html`, `SVGRenderer.ts`, `GameController.ts`)
@@ -2700,3 +2710,4 @@ ivalList en SetupEventBinder.ts.
 - **Minimax ML Generator**: Generación de datos purificada en generate_games.ts usando heurísticas en vez de movimientos aleatorios.
 - **Oracle Spell AI**: Integración de llamadas asíncronas en AITurnManager.ts y el worker para que la IA prediga su Winrate antes de gastar habilidades.
 - Subido a GitHub mediante git push.
+

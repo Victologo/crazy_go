@@ -1193,3 +1193,8 @@ ivalList para que cualquier jugador (P1, P2, P3 o P4) pueda seleccionarlo normal
   - El campeón Sabio (Sage) ahora es el campeón por defecto y el primero en la lista (se desplazó a la posición 0 del carrusel de héroes delante de 'Persona Normal').
 
   - Corregido el recorte de las imágenes de héroes grandes (como el Sabio) añadiendo \object-position: top center\ en las clases \.hero-showcase-img\ y \.setup-split-portrait-img\ de los estilos CSS, evitando que se les corte la cabeza al tener aspect-ratio 1:1.
+
+- **Visor Histórico de Winrate en Combat Log**:
+  - Se modificó \AnalysisEngine.ts\ para que, cada vez que evalúe el tablero con la red neuronal en segundo plano, inyecte retroactivamente el resultado en el último paso (entry) de \CombatLogManager.entries\.
+  - Se añadió una barra de winrate (contenedor ocultable idéntico al del HUD) en el archivo \modal-combat-log.html\ justo debajo de la previsualización SVG del tablero.
+  - Se desarrolló la función \enderWinRateBar\ en \CombatLogModalRenderer.ts\ invocada por \goToStep\. Esto permite a los jugadores deslizar el control de reproducción del Combat Log y ver la gráfica (barras porcentuales por jugador) del winrate exacto para esa etapa específica del combate pasado, ocultándose automáticamente si la información no está disponible (ej. repeticiones antiguas o heurística base).
