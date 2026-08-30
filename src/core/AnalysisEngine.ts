@@ -4,6 +4,7 @@ import { GoAI } from '../ai/GoAI';
 import { TerritoryScorer } from './TerritoryScorer';
 import { NeuralNetAdapter } from '../ai/NeuralNetAdapter';
 import { getLanguage } from '../i18n/i18n';
+import { CombatLogManager } from './CombatLogManager';
 
 export interface TacticalAnalysis {
     playerWinRates: Record<PlayerId, number>; // 0 a 100
@@ -35,6 +36,15 @@ export class AnalysisEngine {
                     turn: state.currentTurn,
                     winRates: evalResult.winRates
                 };
+                
+                // Inject retrospectively into the combat log for this turn
+                const entries = CombatLogManager.entries;
+                if (entries.length > 0) {
+                    const lastEntry = entries[entries.length - 1];
+                    if (!lastEntry.snapshotDetails.winRates) {
+                        lastEntry.snapshotDetails.winRates = { ...evalResult.winRates };
+                    }
+                }
             }
         } finally {
             this.isEvaluatingWinRate = false;
