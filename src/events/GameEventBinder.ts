@@ -58,6 +58,15 @@ export class GameEventBinder {
             RoguelikeController.handleRematchOrRewardButton();
         });
 
+        document.getElementById('btn-modal-dispute')?.addEventListener('click', () => {
+            ModalManager.closeScoreModal();
+            GameController.state.isGameOver = false;
+            GameController.state.isScoringPhase = true;
+            GameController.state.consecutivePasses = 0;
+            GameController.updateInGameUI();
+            if (GameController.renderer) GameController.renderer.render();
+        });
+
         document.getElementById('btn-modal-inspect')?.addEventListener('click', () => {
             ModalManager.inspectBoard();
         });

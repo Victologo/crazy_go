@@ -18,6 +18,7 @@ export interface AIMoveChoice {
     nodeId: string | null; // null si la IA decide pasar
     reason: string;
     score: number;
+    winRates?: Record<number, number>;
 }
 
 interface EvaluatedCandidate {
@@ -29,6 +30,27 @@ interface EvaluatedCandidate {
 
 export class GoAI {
     
+    public static normalizeDifficulty(diff?: string): 'easy' | 'medium' | 'hard' | 'dan' {
+        if (!diff) return 'medium';
+        const d = diff.toLowerCase().trim();
+        if (d === 'easy' || d === 'novice') return 'easy';
+        if (d === 'medium' || d === 'normal') return 'medium';
+        if (d === 'hard' || d === 'advanced') return 'hard';
+        if (d === 'dan' || d === 'master' || d === 'extreme' || d === 'grandmaster' || d === 'boss') return 'dan';
+        
+        if (d.endsWith('d')) {
+            return 'dan';
+        }
+        if (d.endsWith('k')) {
+            const kyu = parseInt(d.replace('k', ''), 10);
+            if (isNaN(kyu)) return 'medium';
+            if (kyu >= 19) return 'easy';
+            if (kyu >= 9) return 'medium';
+            if (kyu >= 1) return 'hard';
+        }
+        return 'medium';
+    }
+
     /**
      * Elige la mejor jugada para el jugador IA actual según el nivel de dificultad calibrado
      */
@@ -36,8 +58,9 @@ export class GoAI {
         board: GraphBoard, 
         state: GameState, 
         aiPlayerId: PlayerId, 
-        difficulty: AIDifficulty = 'medium'
+        rawDifficulty: AIDifficulty = 'medium'
     ): AIMoveChoice {
+        const difficulty = this.normalizeDifficulty(rawDifficulty);
         // 0. Evaluación del estado territorial actual
         const currentScore = TerritoryScorer.calculateScore(board, state);
         const myScore = currentScore.playerScores[aiPlayerId];

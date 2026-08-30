@@ -61,6 +61,21 @@ export class GoSimulator {
         this.boardHistory.push(this.serializeState());
     }
 
+    clone(): GoSimulator {
+        const c = new GoSimulator(this.size as 9|13|19, this.komi, this.topology);
+        for (const [id, node] of this.nodes) {
+            c.nodes.get(id)!.stone = node.stone;
+        }
+        c.boardHistory = [...this.boardHistory];
+        c.lastMoveId = this.lastMoveId;
+        c.consecutivePasses = this.consecutivePasses;
+        c.captures = [...this.captures] as [number, number];
+        c.isOver = this.isOver;
+        c.totalMoves = this.totalMoves;
+        return c;
+    }
+
+
     // ─────────────────────────────────────────────────────────────────────
     // Board Construction
     // ─────────────────────────────────────────────────────────────────────

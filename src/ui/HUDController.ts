@@ -10,6 +10,7 @@ import { DevModeManager } from '../core/DevModeManager';
 import { DuelistRenderer } from './DuelistRenderer';
 import { GlobalSettings } from '../core/GlobalSettings';
 import { t, getLanguage } from '../i18n/i18n';
+import { BGMGenerator } from '../audio/BGMGenerator';
 
 export class HUDController {
     private static alertTimeout: number | null = null;
@@ -159,9 +160,7 @@ export class HUDController {
                 
                 document.getElementById('btn-scoring-resume')?.addEventListener('click', () => {
                     import('../controllers/GameController').then(gc => {
-                        gc.GameController.state.passTurn(); // Abort scoring
-                        gc.GameController.updateInGameUI();
-                        gc.GameController.renderer.render();
+                        gc.GameController.handlePass(true); // Abort scoring and resume properly
                     });
                 });
 
@@ -786,13 +785,13 @@ export class HUDController {
             const activeBg = bgMapping[rawBg] || 'combat';
 
             viewport.setAttribute('data-bg', activeBg);
-            viewport.style.backgroundImage = `radial-gradient(circle at center, rgb(12 16 26 / 45%) 0%, rgb(6 9 15 / 0%) 100%), url('/bg_${activeBg}.jpg')`;
+            viewport.style.backgroundImage = `radial-gradient(circle at center, rgb(12 16 26 / 45%) 0%, rgb(6 9 15 / 0%) 100%), url('./bg_${activeBg}.jpg')`;
             viewport.style.backgroundSize = 'cover';
             viewport.style.backgroundPosition = 'center center';
             viewport.style.backgroundRepeat = 'no-repeat';
 
-            // Cambiar música de fondo asociada
-            import('../audio/BGMGenerator').then(m => m.BGMGenerator.playBackground(activeBg as any));
+            // Cambiar música de fondo asociada al escenario seleccionado
+            BGMGenerator.playBackground(rawBg as any);
         }
     }
 

@@ -351,9 +351,13 @@ export class GameState {
         this.lastMoveNodeId = null;
 
         if (this.consecutivePasses >= this.playerCount) {
-            this.isScoringPhase = true;
-            // IMPORTANTE: generar scoreReport para que SVGRenderer muestre la predicción de muertos
-            this.scoreReport = TerritoryScorer.calculateScore(board!, this);
+            // Saltamos la fase de puntuación manual por defecto
+            // El usuario puede disputar la puntuación desde el modal si no está conforme
+            this.isScoringPhase = false;
+            if (board) {
+                this.scoreReport = TerritoryScorer.calculateScore(board, this);
+            }
+            this.isGameOver = true;
             return true;
         }
 

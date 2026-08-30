@@ -12,6 +12,7 @@ export class ScoreModalRenderer {
         isRoguelike: boolean, 
         humanWon: boolean,
         _humanColor: PlayerId,
+        gameMode?: string,
         nodeTitle?: string,
         enemyName?: string,
         rankLabel?: string,
@@ -195,6 +196,15 @@ export class ScoreModalRenderer {
         // Ocultar botón flotante de inspección si estaba visible
         const floatingBtn = document.getElementById('floating-inspect-btn');
         if (floatingBtn) floatingBtn.classList.add('hidden');
+
+        const disputeBtn = document.getElementById('btn-modal-dispute');
+        if (disputeBtn) {
+            if (gameMode !== 'aivsai') {
+                disputeBtn.classList.remove('hidden');
+            } else {
+                disputeBtn.classList.add('hidden');
+            }
+        }
 
         applyTranslationsToDOM();
 

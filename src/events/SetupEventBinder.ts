@@ -5,6 +5,7 @@ import { GameController } from '../controllers/GameController';
 import { RoguelikeController } from '../controllers/RoguelikeController';
 import { ScreenManager } from '../ui/ScreenManager';
 import { SoundFX } from '../audio/SoundFX';
+import { BGMGenerator } from '../audio/BGMGenerator';
 import { RoguelikeRunManager } from '../core/RoguelikeRunManager';
 import { SetupModalRenderer } from '../ui/modals/SetupModalRenderer';
 import { t } from '../i18n/i18n';
@@ -63,6 +64,10 @@ export class SetupEventBinder {
 
         document.getElementById('setup-mode-aivsai')?.addEventListener('click', () => {
             tempConfig.gameMode = 'aivsai';
+            if (!tempConfig.heroId) tempConfig.heroId = 'normal';
+            if (!tempConfig.enemyHeroId || tempConfig.enemyHeroId === 'random' || (typeof tempConfig.enemyHeroId === 'string' && tempConfig.enemyHeroId.startsWith('random_'))) {
+                tempConfig.enemyHeroId = 'sage';
+            }
             refreshUI();
             SoundFX.playPlaceStone();
             setTimeout(() => ModalManager.setWizardStep(3, tempConfig), 160);
@@ -78,27 +83,13 @@ export class SetupEventBinder {
             });
         });
 
-        const shapes: BoardShape[] = ['square', 'volcano', 'sky', 'oni', 'triangle', 'hex', 'eroded', 'islands_v1', 'islands_v2', 'islands', 'cross', 'hourglass', 'geode', 'spiral', 'rings', 'star_5', 'star_6', 'procedural'];
+        const shapes: BoardShape[] = ['square', 'volcano', 'sky', 'oni', 'triangle', 'hex', 'eroded', 'islands_v1', 'islands_v2', 'islands', 'cross', 'hourglass', 'geode', 'spiral', 'rings', 'star_5', 'star_6'];
         shapes.forEach(sh => {
             document.getElementById(`setup-shape-${sh}`)?.addEventListener('click', () => {
                 tempConfig.shape = sh;
-                if (sh === 'procedural') {
-                    tempConfig.seed = Math.floor(Math.random() * 9999999);
-                }
                 refreshUI();
                 SoundFX.playPlaceStone();
             });
-        });
-
-        const setupRerollBtn = document.getElementById('setup-shape-procedural-reroll');
-        setupRerollBtn?.addEventListener('click', (e) => {
-            e.stopPropagation();
-            tempConfig.shape = 'procedural';
-            tempConfig.seed = Math.floor(Math.random() * 9999999);
-            setupRerollBtn.classList.add('spin-anim');
-            setTimeout(() => setupRerollBtn.classList.remove('spin-anim'), 400);
-            refreshUI();
-            SoundFX.playPlaceStone();
         });
 
         // Escenarios / Fondos de Combate
@@ -109,6 +100,7 @@ export class SetupEventBinder {
                     tempConfig.background = bg;
                     refreshUI();
                     SoundFX.playPlaceStone();
+                    BGMGenerator.playBackground(bg);
                 }
             });
         });
@@ -142,7 +134,7 @@ export class SetupEventBinder {
 
         // Clic en el standee del rival (paso 6) para ciclar entre rivales disponibles
         document.getElementById('wizard-stage-rival-combatant')?.addEventListener('click', () => {
-            const rivalList: (HeroId | 'random')[] = ['random', 'normal', 'tengu', 'himiko', 'kitsune', 'ronin', 'alchemist', 'ryujin'];
+            const rivalList: (HeroId | 'random')[] = ['random', 'normal', 'tengu', 'himiko', 'kitsune', 'ronin', 'alchemist', 'ryujin', 'sage'];
             const current = (tempConfig.enemyHeroId || 'random') as HeroId | 'random';
             let idx = rivalList.indexOf(current);
             if (idx === -1) idx = 0;
@@ -155,11 +147,11 @@ export class SetupEventBinder {
 
 
         // --- PASO 4: CAMPEÓN MÍSTICO ---
-        const heroes: HeroId[] = ['normal', 'tengu', 'himiko', 'kitsune', 'ronin', 'alchemist', 'ryujin'];
+        const heroes: HeroId[] = ['sage', 'normal', 'tengu', 'himiko', 'kitsune', 'ronin', 'alchemist', 'ryujin'];
 
         document.getElementById('btn-setup-hero-prev')?.addEventListener('click', () => {
-            const currentHero = tempConfig.heroId || 'normal';
-            let idx = heroes.indexOf(currentHero);
+            const currentHero = tempConfig.heroId || 'sage';
+            let idx = heroes.indexOf(currentHero as HeroId);
             if (idx === -1) idx = 0;
             const prevIdx = (idx - 1 + heroes.length) % heroes.length;
             tempConfig.heroId = heroes[prevIdx];
@@ -183,35 +175,108 @@ export class SetupEventBinder {
             let idx = heroes.indexOf(currentHero);
             if (idx === -1) idx = 0;
             tempConfig.heroId = heroes[(idx - 1 + heroes.length) % heroes.length];
-            refreshUI(); SoundFX.playPlaceStone();
+            refreshUI();
+            SoundFX.playPlaceStone();
         });
         document.getElementById("btn-setup-p1-next")?.addEventListener("click", () => {
             const currentHero = tempConfig.heroId || "normal";
             let idx = heroes.indexOf(currentHero);
             if (idx === -1) idx = 0;
             tempConfig.heroId = heroes[(idx + 1) % heroes.length];
-            refreshUI(); SoundFX.playPlaceStone();
+            refreshUI();
+            SoundFX.playPlaceStone();
         });
         document.getElementById("btn-setup-p2-prev")?.addEventListener("click", () => {
-            const currentHero = (tempConfig.enemyHeroId as any) || "normal";
+            const currentHero = (tempConfig.enemyHeroId && !tempConfig.enemyHeroId.startsWith('random') ? tempConfig.enemyHeroId : "sage") as HeroId;
             let idx = heroes.indexOf(currentHero);
             if (idx === -1) idx = 0;
-            tempConfig.enemyHeroId = heroes[(idx - 1 + heroes.length) % heroes.length];
-            refreshUI(); SoundFX.playPlaceStone();
+            const newHero = heroes[(idx - 1 + heroes.length) % heroes.length];
+            tempConfig.enemyHeroId = newHero;
+            if (!tempConfig.enemyHeroIds) tempConfig.enemyHeroIds = {2: 'sage', 3: 'sage', 4: 'sage'};
+            tempConfig.enemyHeroIds[2] = newHero;
+            refreshUI();
+            SoundFX.playPlaceStone();
         });
         document.getElementById("btn-setup-p2-next")?.addEventListener("click", () => {
-            const currentHero = (tempConfig.enemyHeroId as any) || "normal";
+            const currentHero = (tempConfig.enemyHeroId && !tempConfig.enemyHeroId.startsWith('random') ? tempConfig.enemyHeroId : "sage") as HeroId;
             let idx = heroes.indexOf(currentHero);
             if (idx === -1) idx = 0;
-            tempConfig.enemyHeroId = heroes[(idx + 1) % heroes.length];
-            refreshUI(); SoundFX.playPlaceStone();
+            const newHero = heroes[(idx + 1) % heroes.length];
+            tempConfig.enemyHeroId = newHero;
+            if (!tempConfig.enemyHeroIds) tempConfig.enemyHeroIds = {2: 'sage', 3: 'sage', 4: 'sage'};
+            tempConfig.enemyHeroIds[2] = newHero;
+            refreshUI();
+            SoundFX.playPlaceStone();
         });
+
+        document.getElementById("btn-setup-p3-prev")?.addEventListener("click", () => {
+            if (!tempConfig.enemyHeroIds) tempConfig.enemyHeroIds = {2: 'sage', 3: 'sage', 4: 'sage'};
+            const currentHero = (tempConfig.enemyHeroIds[3] && !tempConfig.enemyHeroIds[3].startsWith('random') ? tempConfig.enemyHeroIds[3] : "sage") as HeroId;
+            let idx = heroes.indexOf(currentHero);
+            if (idx === -1) idx = 0;
+            tempConfig.enemyHeroIds[3] = heroes[(idx - 1 + heroes.length) % heroes.length];
+            refreshUI();
+            SoundFX.playPlaceStone();
+        });
+        document.getElementById("btn-setup-p3-next")?.addEventListener("click", () => {
+            if (!tempConfig.enemyHeroIds) tempConfig.enemyHeroIds = {2: 'sage', 3: 'sage', 4: 'sage'};
+            const currentHero = (tempConfig.enemyHeroIds[3] && !tempConfig.enemyHeroIds[3].startsWith('random') ? tempConfig.enemyHeroIds[3] : "sage") as HeroId;
+            let idx = heroes.indexOf(currentHero);
+            if (idx === -1) idx = 0;
+            tempConfig.enemyHeroIds[3] = heroes[(idx + 1) % heroes.length];
+            refreshUI();
+            SoundFX.playPlaceStone();
+        });
+
+        document.getElementById("btn-setup-p4-prev")?.addEventListener("click", () => {
+            if (!tempConfig.enemyHeroIds) tempConfig.enemyHeroIds = {2: 'sage', 3: 'sage', 4: 'sage'};
+            const currentHero = (tempConfig.enemyHeroIds[4] && !tempConfig.enemyHeroIds[4].startsWith('random') ? tempConfig.enemyHeroIds[4] : "sage") as HeroId;
+            let idx = heroes.indexOf(currentHero);
+            if (idx === -1) idx = 0;
+            tempConfig.enemyHeroIds[4] = heroes[(idx - 1 + heroes.length) % heroes.length];
+            refreshUI();
+            SoundFX.playPlaceStone();
+        });
+        document.getElementById("btn-setup-p4-next")?.addEventListener("click", () => {
+            if (!tempConfig.enemyHeroIds) tempConfig.enemyHeroIds = {2: 'sage', 3: 'sage', 4: 'sage'};
+            const currentHero = (tempConfig.enemyHeroIds[4] && !tempConfig.enemyHeroIds[4].startsWith('random') ? tempConfig.enemyHeroIds[4] : "sage") as HeroId;
+            let idx = heroes.indexOf(currentHero);
+            if (idx === -1) idx = 0;
+            tempConfig.enemyHeroIds[4] = heroes[(idx + 1) % heroes.length];
+            refreshUI();
+            SoundFX.playPlaceStone();
+        });
+
 
         document.querySelectorAll('#setup-hero-thumb-strip .hero-thumb-btn').forEach(btn => {
             btn.addEventListener('click', () => {
                 const h = btn.getAttribute('data-hero') as HeroId;
                 if (h) {
                     tempConfig.heroId = h;
+                    refreshUI();
+                    SoundFX.playPlaceStone();
+                }
+            });
+        });
+
+        document.querySelectorAll('#setup-p1-hero-thumb-strip .hero-thumb-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const h = btn.getAttribute('data-hero') as HeroId;
+                if (h) {
+                    tempConfig.heroId = h;
+                    refreshUI();
+                    SoundFX.playPlaceStone();
+                }
+            });
+        });
+
+        document.querySelectorAll('#setup-p2-hero-thumb-strip .hero-thumb-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const h = btn.getAttribute('data-hero') as HeroId;
+                if (h) {
+                    tempConfig.enemyHeroId = h;
+                    if (!tempConfig.enemyHeroIds) tempConfig.enemyHeroIds = {2: 'sage', 3: 'sage', 4: 'sage'};
+                    tempConfig.enemyHeroIds[2] = h;
                     refreshUI();
                     SoundFX.playPlaceStone();
                 }
@@ -652,5 +717,7 @@ export class SetupEventBinder {
         });
     }
 }
+
+
 
 

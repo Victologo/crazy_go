@@ -25,7 +25,7 @@ export class OptionsEventBinder {
         volSlider?.addEventListener('input', (e) => {
             const val = parseInt((e.target as HTMLInputElement).value, 10);
             SoundFX.setMasterVolume(val / 100);
-            BGMGenerator.setVolume(val / 100);
+            BGMGenerator.setMasterVolume(val / 100);
             const volText = document.getElementById('opt-vol-text');
             if (volText) volText.innerText = `${val}%`;
         });
@@ -39,14 +39,24 @@ export class OptionsEventBinder {
             ModalManager.openFeedbackModal();
         });
 
-        document.getElementById('opt-sfx-toggle')?.addEventListener('click', () => {
-            SoundFX.toggleSFX();
-            ModalManager.updateOptionsModalUI();
+        const sfxSlider = document.getElementById('opt-sfx-slider') as HTMLInputElement | null;
+        sfxSlider?.addEventListener('input', (e) => {
+            const val = parseInt((e.target as HTMLInputElement).value, 10);
+            SoundFX.setSFXVolume(val / 100);
+            const text = document.getElementById('opt-sfx-text');
+            if (text) text.innerText = `${val}%`;
+        });
+        sfxSlider?.addEventListener('change', () => {
+            SoundFX.playPlaceStone();
         });
 
-        document.getElementById('opt-bgm-toggle')?.addEventListener('click', () => {
-            SoundFX.toggleBGM();
-            ModalManager.updateOptionsModalUI();
+        const bgmSlider = document.getElementById('opt-bgm-slider') as HTMLInputElement | null;
+        bgmSlider?.addEventListener('input', (e) => {
+            const val = parseInt((e.target as HTMLInputElement).value, 10);
+            BGMGenerator.setBGMVolume(val / 100);
+            localStorage.setItem('crazygo_audio_bgm_vol', (val / 100).toString());
+            const text = document.getElementById('opt-bgm-text');
+            if (text) text.innerText = `${val}%`;
         });
 
         // Selector de Idioma (Español / Inglés)
@@ -313,19 +323,7 @@ export class OptionsEventBinder {
             });
         });
 
-        const sandboxRerollBtn = document.getElementById('sandbox-shape-procedural-reroll');
-        sandboxRerollBtn?.addEventListener('click', (e) => {
-            e.stopPropagation();
-            selectedShape = 'procedural';
-            document.querySelectorAll('.btn-sandbox-shape').forEach(b => b.classList.remove('active'));
-            document.querySelector('.btn-sandbox-shape[data-shape="procedural"]')?.classList.add('active');
-            sandboxRerollBtn.classList.add('spin-anim');
-            setTimeout(() => sandboxRerollBtn.classList.remove('spin-anim'), 400);
-            if (GameController.board && GameController.state) {
-                SandboxController.changeBoardShape('procedural', selectedSize, GameController.board, GameController.state, () => GameController.updateInGameUI());
-            }
-            SoundFX.playPlaceStone();
-        });
+
 
         document.querySelectorAll('.btn-sandbox-size').forEach(btn => {
             btn.addEventListener('click', () => {

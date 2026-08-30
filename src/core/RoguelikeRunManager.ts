@@ -3,7 +3,7 @@ import { RogueliteManager, type SpellId } from './RogueliteManager';
 import { t } from '../i18n/i18n';
 
 export type RogueliteDifficulty = 'easy' | 'normal' | 'hard' | 'extreme';
-export type HeroId = 'tengu' | 'himiko' | 'kitsune' | 'ronin' | 'alchemist' | 'ryujin' | 'normal';
+export type HeroId = 'tengu' | 'himiko' | 'kitsune' | 'ronin' | 'alchemist' | 'ryujin' | 'normal' | 'sage';
 
 export interface HeroInfo {
     id: HeroId;
@@ -146,6 +146,22 @@ export class RoguelikeRunManager {
                 skillType: 'passive',
                 passiveName: t('champion.ryujin.passive_name'),
                 passiveDesc: t('champion.ryujin.passive_desc'),
+                startingSpells: { rewind: 0, meteor: 0, shield: 0, convert: 0 }
+            },
+            sage: {
+                id: 'sage',
+                name: t('champion.sage.name') || 'Sabio',
+                icon: '📜',
+                title: t('champion.sage.title') || 'El Único sin Habilidades',
+                description: t('champion.sage.passive_desc') || 'No tiene ninguna habilidad.',
+                image: './enemies/sage_1.png',
+                faceImage: './enemies/sage_1.png',
+                quote: t('champion.sage.quote') || 'El verdadero desafío no requiere trucos.',
+                skillType: 'none',
+                activeName: t('champion.sage.name') || 'Sabio',
+                activeDesc: t('champion.sage.passive_desc') || 'No tiene ninguna habilidad.',
+                passiveName: t('champion.sage.passive_name') || 'Sin Habilidades',
+                passiveDesc: t('champion.sage.passive_desc') || 'No tiene ninguna habilidad.',
                 startingSpells: { rewind: 0, meteor: 0, shield: 0, convert: 0 }
             }
         };

@@ -68,8 +68,7 @@ export type BoardShape =
     | 'spiral' 
     | 'rings' 
     | 'star_5'
-    | 'star_6'
-    | 'procedural';
+    | 'star_6';
 export type BoardSize = 5 | 9 | 13 | 19;
 export type GameMode = '1v1' | '1via' | 'aivsai' | 'coop' | 'online' | 'story' | 'custom';
 export type RuleStyle = 'classic' | 'roguelite';
@@ -150,7 +149,7 @@ export interface GameSetupConfig {
 export type BoardBackground = 'combat' | 'story' | 'tutorial' | 'boss' | 'meadow' | 'sunset' | 'night' | 'volcano' | 'oni' | 'sky' | 'zen' | 'dojo' | 'void';
 
 // 3. Sistema de Héroes y Hechizos Roguelite
-export type HeroId = 'tengu' | 'himiko' | 'kitsune' | 'ronin' | 'alchemist' | 'ryujin' | 'normal';
+export type HeroId = 'tengu' | 'himiko' | 'kitsune' | 'ronin' | 'alchemist' | 'ryujin' | 'normal' | 'sage';
 export type EnemyHeroId = HeroId | 'boss';
 export type SpellId = 'rewind' | 'meteor' | 'shield' | 'convert';
 export type TargetingMode = 'none' | 'meteor_5x5' | 'shield_target' | 'convert_enemy' | 'dragon_burn_2';

@@ -51,16 +51,83 @@ function randomChoice<T>(arr: T[]): T {
     return arr[Math.floor(Math.random() * arr.length)];
 }
 
-/** Creates a uniform policy distribution over legal moves */
-function uniformPolicy(legalMoveIds: string[], boardSize: number): number[] {
+/** Generates a smart policy using a fast 1-ply territory heuristic */
+function smartPolicy(sim: GoSimulator, legalMoveIds: string[], boardSize: number, currentPlayer: Player): { policy: number[], chosenMove: string | null } {
     const totalCells = boardSize * boardSize;
     const policy = new Array(totalCells + 1).fill(0); // +1 for PASS
-    const prob = legalMoveIds.length > 0 ? 1.0 / legalMoveIds.length : 0;
-    for (const id of legalMoveIds) {
-        const [r, c] = id.split('-').map(Number);
-        policy[r * boardSize + c] = prob;
+
+    if (legalMoveIds.length === 0) {
+        policy[totalCells] = 1.0;
+        return { policy, chosenMove: null };
     }
-    return policy;
+
+    const scores = [];
+    let maxScore = -Infinity;
+
+    for (const move of legalMoveIds) {
+        const clone = sim.clone();
+        const res = clone.tryPlace(move, currentPlayer);
+        if (!res.success) {
+            scores.push({ move, score: -9999 });
+            continue;
+        }
+
+        // Fast evaluation: Captured stones + own liberties
+        let score = res.capturedIds.length * 10;
+        const myChain = clone.getChain(move);
+        const libs = clone.getLiberties(myChain).size;
+        score += libs;
+
+        // Penalize giving enemy captures in next turn (suicide-adjacent)
+        if (libs <= 1) score -= 20;
+
+        scores.push({ move, score });
+        if (score > maxScore) maxScore = score;
+    }
+
+    // Softmax over scores
+    let expSum = 0;
+    const exps: Record<string, number> = {};
+    for (const s of scores) {
+        if (s.score === -9999) continue;
+        const e = Math.exp(s.score - maxScore); // stable softmax
+        exps[s.move] = e;
+        expSum += e;
+    }
+
+    // Assign probabilities
+    let bestMove: string | null = null;
+    let highestProb = -1;
+
+    for (const s of scores) {
+        if (s.score === -9999) continue;
+        const prob = exps[s.move] / expSum;
+        const [r, c] = s.move.split('-').map(Number);
+        policy[r * boardSize + c] = prob;
+
+        if (prob > highestProb) {
+            highestProb = prob;
+            bestMove = s.move;
+        }
+    }
+
+    // Pass probability
+    const passScore = 0;
+    if (passScore > maxScore) maxScore = passScore;
+    const passExp = Math.exp(passScore - maxScore);
+    const totalExpWithPass = expSum * Math.exp(-maxScore) + passExp;
+    policy[totalCells] = passExp / totalExpWithPass;
+
+    if (policy[totalCells] > highestProb) {
+        bestMove = null;
+    }
+
+    // Add some noise for exploration (AlphaZero style)
+    if (Math.random() < 0.25 && legalMoveIds.length > 0) {
+        bestMove = randomChoice(legalMoveIds);
+    }
+
+    return { policy, chosenMove: bestMove };
 }
 
 // ── Game Simulation ───────────────────────────────────────────────────────────
@@ -69,7 +136,7 @@ interface PositionRecord {
     tensor: number[][][];
     current_player: Player;
     policy_target: number[];
-    value_target: number[];     // [p_black, p_white]
+    value_target: number[];     // [p_current, p_opponent]
     ownership_target: number[][];
 }
 
@@ -81,7 +148,7 @@ interface GameRecord {
     positions: PositionRecord[];
 }
 
-function playRandomGame(boardSize: 9 | 13 | 19, topologyArg: string): GameRecord {
+function playSmartGame(boardSize: 9 | 13 | 19, topologyArg: string): GameRecord {
     let chosenTopology: 'square' | 'circle' | 'triangle' | 'eroded' | 'oni' = 'square';
     if (topologyArg === 'mixed') {
         const allTopos: Array<'square' | 'circle' | 'triangle' | 'eroded' | 'oni'> = ['square', 'circle', 'triangle', 'eroded', 'oni'];
@@ -98,19 +165,13 @@ function playRandomGame(boardSize: 9 | 13 | 19, topologyArg: string): GameRecord
     while (!sim.isOver && moveCount < MAX_MOVES_PER_GAME) {
         const legalMoves = sim.getLegalMoves(currentPlayer);
 
-        // Extract position snapshot BEFORE the move
         const tensor = sim.toTensor(currentPlayer);
-        const policyTarget = uniformPolicy(legalMoves, boardSize);
+        const { policy: policyTarget, chosenMove } = smartPolicy(sim, legalMoves, boardSize, currentPlayer);
 
-        // Random move selection (Phase 1: pure random)
-        // With small probability, pass even if moves are available (adds diversity)
-        const shouldPass = legalMoves.length === 0 || Math.random() < 0.02;
-
-        if (shouldPass) {
+        if (chosenMove === null) {
             sim.pass(currentPlayer);
         } else {
-            const chosen = randomChoice(legalMoves);
-            sim.tryPlace(chosen, currentPlayer);
+            sim.tryPlace(chosenMove, currentPlayer);
         }
 
         positions.push({
@@ -127,13 +188,25 @@ function playRandomGame(boardSize: 9 | 13 | 19, topologyArg: string): GameRecord
 
     // Score the game
     const { blackScore, whiteScore, winner, territoryMap } = sim.scoreTerritory();
-    const ownershipTarget = sim.getOwnershipTarget(territoryMap);
 
     // Fill value and ownership targets retroactively
-    const valueTarget: [number, number] = winner === 1 ? [1, 0] : [0, 1];
     for (const pos of positions) {
-        pos.value_target = [...valueTarget];
-        pos.ownership_target = ownershipTarget;
+        // Value: [1, 0] if current player won, [0, 1] if opponent won
+        if (winner === pos.current_player) {
+            pos.value_target = [1, 0];
+        } else {
+            pos.value_target = [0, 1];
+        }
+
+        // Ownership: 1.0 if owned by current player, -1.0 if opponent
+        const N = boardSize;
+        const ownTarget: number[][] = Array.from({ length: N }, () => new Array(N).fill(0));
+        for (const [id, owner] of territoryMap) {
+            const [r, c] = id.split('-').map(Number);
+            if (owner === pos.current_player) ownTarget[r][c] = 1.0;
+            else if (owner !== pos.current_player) ownTarget[r][c] = -1.0;
+        }
+        pos.ownership_target = ownTarget;
     }
 
     return {
@@ -168,7 +241,7 @@ function main() {
     const startTime = Date.now();
 
     for (let g = 0; g < TOTAL_GAMES; g++) {
-        const game = playRandomGame(BOARD_SIZE, TOPOLOGY_ARG);
+        const game = playSmartGame(BOARD_SIZE, TOPOLOGY_ARG);
         batchGames.push(game);
         totalPositions += game.positions.length;
 

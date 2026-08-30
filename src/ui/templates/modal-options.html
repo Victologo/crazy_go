@@ -37,14 +37,20 @@
             <div class="option-info">
               <strong data-i18n="options.sfx">Sound Effects (SFX)</strong>
             </div>
-            <button id="opt-sfx-toggle" class="btn btn-toggle active">Enabled</button>
+            <div class="volume-control">
+              <input type="range" id="opt-sfx-slider" min="0" max="100" value="100" class="slider" />
+              <span id="opt-sfx-text" class="slider-val">100%</span>
+            </div>
           </div>
 
           <div class="option-row">
             <div class="option-info">
               <strong data-i18n="options.bgm">Background Music (BGM)</strong>
             </div>
-            <button id="opt-bgm-toggle" class="btn btn-toggle active">Enabled</button>
+            <div class="volume-control">
+              <input type="range" id="opt-bgm-slider" min="0" max="100" value="100" class="slider" />
+              <span id="opt-bgm-text" class="slider-val">100%</span>
+            </div>
           </div>
 
           <div class="option-row">

@@ -270,7 +270,7 @@ export class StoryModeController {
         const viewport = document.getElementById('board-viewport');
         if (viewport) {
             viewport.setAttribute('data-bg', 'story');
-            viewport.style.backgroundImage = "radial-gradient(circle at center, rgb(10 14 26 / 40%) 0%, rgb(5 8 18 / 0%) 100%), url('/bg_story.jpg')";
+            viewport.style.backgroundImage = "radial-gradient(circle at center, rgb(10 14 26 / 40%) 0%, rgb(5 8 18 / 0%) 100%), url('./bg_story.jpg')";
         }
 
         const debugPanel = document.getElementById('story-debug-panel');
@@ -336,7 +336,7 @@ export class StoryModeController {
         const viewport = document.getElementById('board-viewport');
         if (viewport) {
             viewport.setAttribute('data-bg', 'story');
-            viewport.style.backgroundImage = "radial-gradient(circle at center, rgb(10 14 26 / 40%) 0%, rgb(5 8 18 / 0%) 100%), url('/bg_story.jpg')";
+            viewport.style.backgroundImage = "radial-gradient(circle at center, rgb(10 14 26 / 40%) 0%, rgb(5 8 18 / 0%) 100%), url('./bg_story.jpg')";
         }
 
         // Populate captives if configured for this chapter

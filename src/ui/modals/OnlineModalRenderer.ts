@@ -126,8 +126,7 @@ export class OnlineModalRenderer {
         komi: number, 
         playerCount: 2 | 4 = 2,
         hostHero: HeroId | null = null,
-        background: BoardBackground = 'combat',
-        seed?: number
+        background: BoardBackground = 'combat'
     ) {
         document.getElementById('online-players-2')?.classList.toggle('active', playerCount === 2);
         document.getElementById('online-players-4')?.classList.toggle('active', playerCount === 4);
@@ -146,7 +145,8 @@ export class OnlineModalRenderer {
         document.getElementById('online-color-black')?.classList.toggle('active', hostColor === 1);
         document.getElementById('online-color-white')?.classList.toggle('active', hostColor === 2);
 
-        const allShapes = ['square', 'volcano', 'sky', 'oni', 'triangle', 'hex', 'eroded', 'islands_v1', 'islands_v2', 'islands', 'cross', 'hourglass', 'geode', 'spiral', 'rings', 'star_5', 'star_6', 'procedural'];
+        const allShapes = ['square', 'volcano', 'sky', 'oni', 'triangle', 'hex', 'eroded', 'islands_v1', 'islands_v2', 'islands', 'cross', 'hourglass', 'geode', 'spiral', 'rings', 'star_5', 'star_6'];
+
         allShapes.forEach(sh => {
             document.getElementById(`online-shape-${sh}`)?.classList.toggle('active', shape === sh);
         });
@@ -202,12 +202,12 @@ export class OnlineModalRenderer {
         // Render Online Board Preview
         const previewTitle = document.getElementById('online-board-preview-title');
         const previewDesc = document.getElementById('online-board-preview-desc');
-        const shapeLabels: Record<string, string> = { square: 'Cuadrado', triangle: 'Triangular', hex: 'Hexagonal', eroded: 'Erosionado', islands: 'Islas / Abismos', cross: 'Cruz / Diamante', oni: 'Máscara Oni', procedural: 'Procedural Infinito' };
+        const shapeLabels: Record<string, string> = { square: 'Cuadrado', triangle: 'Triangular', hex: 'Hexagonal', eroded: 'Erosionado', islands: 'Islas / Abismos', cross: 'Cruz / Diamante', oni: 'Máscara Oni' };
         const shapeName = shapeLabels[shape] || shape;
         const effectiveSize = shape === 'oni' ? 25 : size;
         
         const board = new GraphBoard();
-        BoardGenerators.generate(board, shape, size, seed);
+        BoardGenerators.generate(board, shape, size);
         if (previewTitle) previewTitle.innerText = `${effectiveSize}x${effectiveSize} ${shapeName}`;
         if (previewDesc) previewDesc.innerText = `${board.nodes.size} Intersecciones`;
 

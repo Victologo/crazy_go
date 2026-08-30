@@ -205,6 +205,9 @@ export class BossManager {
         onSuccess: (msg: string) => void,
         onComplete: () => void
     ): boolean {
+        // Habilidad del Dragón desactivada por petición del usuario
+        return false;
+        
         if (!this.isBossBattle || this.bossChargesLeft <= 0 || state.isGameOver) {
             return false;
         }
@@ -246,6 +249,9 @@ export class BossManager {
         svgElement: SVGSVGElement | null,
         onComplete: () => void
     ): boolean {
+        // Habilidad del Dragón desactivada por petición del usuario
+        return false;
+        
         // bossPlayerId can be used to style the devastation maybe, or ignored for now
         if (!bossPlayerId) return false;
         

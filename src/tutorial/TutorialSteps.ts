@@ -636,9 +636,9 @@ export const TUTORIAL_CHAPTERS_ES: TutorialChapter[] = [
                 messageTitle: '1. El Abismo',
                 messageBody: 'En Crazy Go, los meteoritos y ciertos tableros pueden tener casillas <strong>destruidas</strong> (sin suelo). Estas casillas desaparecen del mapa.',
                 expectedAction: { type: 'dialog_only' },
-                onStart: (_board: any, state: any) => {
+                onStart: (board: any, state: any) => {
                     import('../core/RulesEngine').then(m => {
-                        m.RulesEngine.destroyTopology(_board, state, ['3,1', '2,1', '4,1']);
+                        m.RulesEngine.destroyTopology(board, state, ['3,1', '2,1', '4,1']);
                     });
                 }
             },
@@ -664,9 +664,9 @@ export const TUTORIAL_CHAPTERS_ES: TutorialChapter[] = [
         id: 'cap_7_campeones',
         chapterNumber: 11,
         category: 'special',
-        tag: 'MECÁNICA CRAZY GO',
-        title: 'Campeones y Lluvia Meteórica',
-        description: 'Desata las habilidades místicas de los Campeones y comprende el alcance, probabilidades y fuego amigo de la Lluvia Meteórica.',
+        tag: 'CRAZY GO MECHANIC',
+        title: 'Champion Abilities',
+        description: 'Master the astonishing powers of the different game champions: active (Tengu, Alchemist, Kitsune) and passive (Himiko, Ronin, Ryūjin).',
         boardSize: 9,
         heroId: 'tengu',
         komi: 0,
@@ -680,40 +680,106 @@ export const TUTORIAL_CHAPTERS_ES: TutorialChapter[] = [
         ],
         steps: [
             {
-                id: 'c7_s1',
-                messageTitle: '1. El Bastión Rival',
-                messageBody: 'El rival ha construido una fortaleza masiva de 25 piedras blancas a la derecha. En el Go tradicional requeriría decenas de turnos penetrarla, pero en Crazy Go los <strong>Campeones</strong> poseen habilidades devastadoras.',
+                id: 'ch_s1',
+                messageTitle: '1. The Enemy Bastion',
+                messageBody: 'The enemy has built a massive fortress of 25 white stones. Traditional Go would take dozens of turns to breach it, but in Crazy Go, <strong>Champions</strong> possess devastating abilities.',
                 expectedAction: { type: 'dialog_only' },
                 annotations: [
                     { nodeId: '6,4', label: '⚔️', color: '#ef4444' }
-                ]
+                ],
+                onStart: (_board: any, state: any) => {
+                    state.player1.heroId = 'tengu';
+                    if (typeof window !== 'undefined' && (window as any).uiManager) {
+                        (window as any).uiManager.hudController?.updateHeroInfo(state.player1);
+                    }
+                }
             },
             {
-                id: 'c7_s2',
-                messageTitle: '2. Habilidad Activa: ☄️ Lluvia Meteórica',
-                messageBody: 'Como <strong>Tengu</strong>, dominas la habilidad activa <strong>☄️ Lluvia Meteórica</strong>. Cubre un <strong>25% del tablero</strong> alrededor de la casilla que elijas (unas 20 casillas en 9x9) y descarga <strong>6 meteoros orbitales</strong> (13 en 13x13 y 27 en 19x19).',
-                expectedAction: { type: 'dialog_only' }
-            },
-            {
-                id: 'c7_s3',
-                messageTitle: '3. Probabilidad y Daño Indiscriminado (¡Fuego Amigo!)',
-                messageBody: '<strong>⚠️ Regla Crítica:</strong> Los meteoros caen de forma estocástica en casillas únicas de la zona (~30% de probabilidad por casilla). <strong>¡Destruyen cualquier ficha desprotegida, sea ENEMIGA O ALIADA!</strong> Apunta lejos de tus propias cadenas o protégelas con <strong>🛡️ Escudo Divino</strong> (inmune al impacto).',
-                expectedAction: { type: 'dialog_only' }
-            },
-            {
-                id: 'c7_s4',
-                messageTitle: '4. Invocar el Bombardeo Cósmico',
-                messageBody: 'Pulsa la tecla [C] (o haz clic en el botón de habilidad de tu tarjeta) y selecciona el centro del bastión enemigo en <strong>(6,4)</strong> para desatar el ataque orbital.',
+                id: 'ch_s2',
+                messageTitle: '2. Tengu: Meteor Shower',
+                messageBody: 'As <strong>Tengu</strong>, you master the active skill <strong>☄️ Meteor Shower</strong>. It covers 25% of the board and drops destructive meteors. Press [C] or the skill button and select the center of the enemy fortress at <strong>(6,4)</strong> to shatter it.',
                 expectedAction: { type: 'use_skill', nodeId: '6,4' },
                 annotations: [
                     { nodeId: '6,4', label: '☄️', color: '#ef4444' }
                 ]
             },
             {
-                id: 'c7_s5',
-                messageTitle: '5. Fortaleza Pulverizada',
-                messageBody: '¡Impacto devastador! La lluvia meteórica pulverizó múltiples piedras en la zona de impacto, abriendo brechas letales en su estructura. ¡Aprovecha la oportunidad para invadir!',
+                id: 'ch_s3',
+                messageTitle: '3. Fortress Pulverized',
+                messageBody: 'Devastating impact! The meteor shower pulverized multiple stones in the blast zone. Be careful as it can also cause friendly fire.',
                 expectedAction: { type: 'dialog_only' }
+            },
+            {
+                id: 'ch_s4',
+                messageTitle: '4. Alchemist: Chromatic Inversion',
+                messageBody: 'You are now the <strong>Alchemist</strong>. Look at this white column cutting your groups. Since it is surrounded by your stones, you can transmute it. Press [C] and invert the central enemy stone at <strong>(5,5)</strong>.',
+                expectedAction: { type: 'use_skill', nodeId: '5,5' },
+                annotations: [
+                    { nodeId: '5,5', label: '✨', color: '#a855f7' }
+                ],
+                onStart: (board: any, state: any) => {
+                    state.player1.heroId = 'alchemist';
+                    if (typeof window !== 'undefined' && (window as any).uiManager) {
+                        (window as any).uiManager.hudController?.updateHeroInfo(state.player1);
+                    }
+                    import('../core/RulesEngine').then(m => {
+                        board.nodes.forEach((n: any) => { n.stone = null; });
+                        const setupStones = [
+                            { id: '5,4', player: 2 }, { id: '5,5', player: 2 }, { id: '5,6', player: 2 },
+                            { id: '4,4', player: 1 }, { id: '4,5', player: 1 }, { id: '4,6', player: 1 },
+                            { id: '6,4', player: 1 }, { id: '6,6', player: 1 },
+                            { id: '5,3', player: 1 }, { id: '5,7', player: 1 }
+                        ];
+                        for(const st of setupStones) {
+                            m.RulesEngine.tryPlaceStone(board, state, st.id, st.player as any);
+                        }
+                        if (typeof window !== 'undefined' && (window as any).uiManager) {
+                            (window as any).uiManager.renderBoard();
+                        }
+                    });
+                }
+            },
+            {
+                id: 'ch_s5',
+                messageTitle: '5. Implosion and Total Capture!',
+                messageBody: 'Pure magic! By transmuting the central stone to your color, the two neighboring white stones were left with 0 liberties and captured instantly.',
+                expectedAction: { type: 'dialog_only' }
+            },
+            {
+                id: 'ch_s6',
+                messageTitle: '6. Kitsune: Divine Shield',
+                messageBody: 'The beautiful <strong>Kitsune</strong> does not destroy, she protects. Her active skill <strong>Divine Shield</strong> coats an allied group in energy, making it immune to meteors and blocking capture on the first strike.',
+                expectedAction: { type: 'dialog_only' },
+                onStart: (_board: any, state: any) => {
+                    state.player1.heroId = 'kitsune';
+                    if (typeof window !== 'undefined' && (window as any).uiManager) {
+                        (window as any).uiManager.hudController?.updateHeroInfo(state.player1);
+                    }
+                }
+            },
+            {
+                id: 'ch_s7',
+                messageTitle: '7. Himiko: Celestial Stone Rain',
+                messageBody: 'The Shaman Queen <strong>Himiko</strong> has a miraculous passive. After 20 turns, she unleashes a celestial rain where stones of your color randomly drop onto the map, filling empty spaces.',
+                expectedAction: { type: 'dialog_only' },
+                onStart: (_board: any, state: any) => {
+                    state.player1.heroId = 'himiko';
+                    if (typeof window !== 'undefined' && (window as any).uiManager) {
+                        (window as any).uiManager.hudController?.updateHeroInfo(state.player1);
+                    }
+                }
+            },
+            {
+                id: 'ch_s8',
+                messageTitle: '8. Ronin and Ryūjin',
+                messageBody: 'The <strong>Ronin</strong> has "Samurai\'s Edge": every 17 turns he passively slashes and removes 1 enemy stone.<br><br>Meanwhile, the relentless dragon god <strong>Ryūjin</strong> triggers "Dragon\'s Fury" by capturing 3+ enemy stones at once, granting you targeted burns against single stones.',
+                expectedAction: { type: 'dialog_only' },
+                onStart: (_board: any, state: any) => {
+                    state.player1.heroId = 'ronin';
+                    if (typeof window !== 'undefined' && (window as any).uiManager) {
+                        (window as any).uiManager.hudController?.updateHeroInfo(state.player1);
+                    }
+                }
             }
         ]
     },
@@ -831,52 +897,8 @@ export const TUTORIAL_CHAPTERS_ES: TutorialChapter[] = [
         ]
     },
     {
-        id: 'cap_magia',
-        chapterNumber: 13,
-        category: 'special',
-        tag: 'MECÁNICA CRAZY GO',
-        title: 'Sinergias de Magia',
-        description: 'Usa la Inversión Cromática del Alquimista para transmutar piedras clave y capturar desde dentro.',
-        boardSize: 9,
-        heroId: 'alchemist',
-        komi: 0,
-        initialStones: [
-            { id: '5,4', player: 2 }, { id: '5,5', player: 2 }, { id: '5,6', player: 2 },
-            { id: '4,4', player: 1 }, { id: '4,5', player: 1 }, { id: '4,6', player: 1 },
-            { id: '6,4', player: 1 }, { id: '6,6', player: 1 },
-            { id: '5,3', player: 1 }, { id: '5,7', player: 1 }
-        ],
-        steps: [
-            {
-                id: 'cmg_s1',
-                messageTitle: '1. El Muro de Corte Enemigo',
-                messageBody: 'El enemigo ha colocado una columna de 3 piedras en (5,4), (5,5) y (5,6) que corta y separa a tus grupos negros. Al grupo blanco solo le queda <strong>1 libertad exterior en (6,5)</strong>.',
-                expectedAction: { type: 'dialog_only' },
-                annotations: [
-                    { nodeId: '5,5', label: '⚔️', color: '#ef4444' },
-                    { nodeId: '6,5', label: '1lib', color: '#f59e0b' }
-                ]
-            },
-            {
-                id: 'cmg_s2',
-                messageTitle: '2. Inversión Cromática Letal',
-                messageBody: 'Como <strong>Alquimista</strong>, tu magia te permite cambiar el color de cualquier piedra. Activa tu habilidad [C] e invierte la piedra central enemiga en <strong>(5,5)</strong>.',
-                expectedAction: { type: 'use_skill', nodeId: '5,5' },
-                annotations: [
-                    { nodeId: '5,5', label: '✨', color: '#a855f7' }
-                ]
-            },
-            {
-                id: 'cmg_s3',
-                messageTitle: '3. ¡Implosión y Captura Total!',
-                messageBody: '¡Magia pura! Al transmutar la piedra central (5,5) a tu color, las dos piedras blancas vecinas (5,4) y (5,6) se quedaron con <strong>0 libertades</strong> y fueron <strong>capturadas y eliminadas del tablero</strong> al instante. Tu nueva piedra conecta ambos grupos en una fortaleza invencible.',
-                expectedAction: { type: 'dialog_only' }
-            }
-        ]
-    },
-    {
         id: 'cap_9_entidades',
-        chapterNumber: 14,
+        chapterNumber: 13,
         category: 'special',
         tag: 'MODO ROGUELIKE',
         title: 'Entidades y Cautivos del Goban',
@@ -919,7 +941,7 @@ export const TUTORIAL_CHAPTERS_ES: TutorialChapter[] = [
     },
     {
         id: 'cap_tsumego_1',
-        chapterNumber: 15,
+        chapterNumber: 14,
         category: 'tsumego',
         tag: 'TSUMEGO (VIDA Y MUERTE)',
         title: 'Tsumego 1: Las Negras Viven',
@@ -1545,9 +1567,9 @@ export const TUTORIAL_CHAPTERS_EN: TutorialChapter[] = [
                 messageTitle: '1. The Abyss',
                 messageBody: 'In Crazy Go, meteors and certain boards can have <strong>destroyed</strong> tiles (no ground). These intersections disappear from the map.',
                 expectedAction: { type: 'dialog_only' },
-                onStart: (_board: any, state: any) => {
+                onStart: (board: any, state: any) => {
                     import('../core/RulesEngine').then(m => {
-                        m.RulesEngine.destroyTopology(_board, state, ['3,1', '2,1', '4,1']);
+                        m.RulesEngine.destroyTopology(board, state, ['3,1', '2,1', '4,1']);
                     });
                 }
             },
@@ -1740,52 +1762,8 @@ export const TUTORIAL_CHAPTERS_EN: TutorialChapter[] = [
         ]
     },
     {
-        id: 'cap_magia',
-        chapterNumber: 13,
-        category: 'special',
-        tag: 'CRAZY GO MECHANIC',
-        title: 'Magic Synergies',
-        description: "Use the Alchemist's Chromatic Inversion to transmute key enemy stones and trigger internal captures.",
-        boardSize: 9,
-        heroId: 'alchemist',
-        komi: 0,
-        initialStones: [
-            { id: '5,4', player: 2 }, { id: '5,5', player: 2 }, { id: '5,6', player: 2 },
-            { id: '4,4', player: 1 }, { id: '4,5', player: 1 }, { id: '4,6', player: 1 },
-            { id: '6,4', player: 1 }, { id: '6,6', player: 1 },
-            { id: '5,3', player: 1 }, { id: '5,7', player: 1 }
-        ],
-        steps: [
-            {
-                id: 'cmg_s1',
-                messageTitle: '1. The Cutting Wall',
-                messageBody: 'The enemy has placed a 3-stone column at (5,4), (5,5), and (5,6) cutting your black groups apart. The white block only has <strong>1 outside liberty at (6,5)</strong>.',
-                expectedAction: { type: 'dialog_only' },
-                annotations: [
-                    { nodeId: '5,5', label: '⚔️', color: '#ef4444' },
-                    { nodeId: '6,5', label: '1lib', color: '#f59e0b' }
-                ]
-            },
-            {
-                id: 'cmg_s2',
-                messageTitle: '2. Deadly Chromatic Inversion',
-                messageBody: 'As an <strong>Alchemist</strong>, your magic allows you to change the color of any stone. Activate your skill [C] and invert the central enemy stone at <strong>(5,5)</strong>.',
-                expectedAction: { type: 'use_skill', nodeId: '5,5' },
-                annotations: [
-                    { nodeId: '5,5', label: '✨', color: '#a855f7' }
-                ]
-            },
-            {
-                id: 'cmg_s3',
-                messageTitle: '3. Total Implosion & Capture!',
-                messageBody: 'Pure magic! By transmuting the center stone (5,5) to your color, the two neighboring white stones (5,4) and (5,6) were left with <strong>0 liberties</strong> and were <strong>instantly captured and removed</strong>. Your new stone connects both your groups into an unbreakable fortress.',
-                expectedAction: { type: 'dialog_only' }
-            }
-        ]
-    },
-    {
         id: 'cap_9_entidades',
-        chapterNumber: 14,
+        chapterNumber: 13,
         category: 'special',
         tag: 'ROGUELIKE MODE',
         title: 'Goban Entities & Captives',

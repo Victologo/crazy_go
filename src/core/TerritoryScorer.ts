@@ -65,6 +65,41 @@ export class TerritoryScorer {
      * 4. BFS de territorio sobre el tablero efectivo (sin piedras muertas, sin zonas Seki)
      */
     static calculateScore(board: GraphBoard, state: GameState): ScoreReport {
+        if (!board || !board.nodes) {
+            const bCaptures = state.blackCaptures || 0;
+            const wCaptures = state.whiteCaptures || 0;
+            const gCaptures = state.greenCaptures || 0;
+            const pCaptures = state.purpleCaptures || 0;
+            return {
+                playerCount: state.playerCount,
+                playerScores: {
+                    1: { playerId: 1, name: this.PLAYER_META[1].name, color: this.PLAYER_META[1].color, icon: this.PLAYER_META[1].icon, territory: 0, captures: bCaptures, komi: 0, total: bCaptures },
+                    2: { playerId: 2, name: this.PLAYER_META[2].name, color: this.PLAYER_META[2].color, icon: this.PLAYER_META[2].icon, territory: 0, captures: wCaptures, komi: state.komi, total: wCaptures + state.komi },
+                    3: { playerId: 3, name: this.PLAYER_META[3].name, color: this.PLAYER_META[3].color, icon: this.PLAYER_META[3].icon, territory: 0, captures: gCaptures, komi: 0, total: gCaptures },
+                    4: { playerId: 4, name: this.PLAYER_META[4].name, color: this.PLAYER_META[4].color, icon: this.PLAYER_META[4].icon, territory: 0, captures: pCaptures, komi: 0, total: pCaptures }
+                },
+                ranking: [],
+                blackTerritory: 0,
+                whiteTerritory: 0,
+                greenTerritory: 0,
+                purpleTerritory: 0,
+                blackCaptures: bCaptures,
+                whiteCaptures: wCaptures,
+                greenCaptures: gCaptures,
+                purpleCaptures: pCaptures,
+                komi: state.komi,
+                blackTotal: bCaptures,
+                whiteTotal: wCaptures + state.komi,
+                winner: 'draw',
+                winnerPlayerId: null,
+                margin: 0,
+                territoryMap: new Map(),
+                deadStones: new Map(),
+                deadStonesCount: { 1: 0, 2: 0, 3: 0, 4: 0 },
+                sekiMap: new Set()
+            };
+        }
+
         const activePlayerIds: PlayerId[] = state.playerCount === 4 ? [1, 2, 3, 4] : [1, 2];
 
         // 1. Identificar todas las cadenas de piedras conexas

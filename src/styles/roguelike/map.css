@@ -111,41 +111,220 @@
   margin: 0 auto;
 }
 
-/* Atmospheric Floating Embers (Warzone Top) */
+/* ==================== ATMÓSFERA SUPERIOR: CENIZA VOLCÁNICA NEGRA & BRASAS ÍGNEAS ==================== */
 .map-embers-layer {
   position: absolute;
   top: 0;
   left: 0;
   width: 100%;
-  height: 48%;
+  height: 52%;
   pointer-events: none;
   overflow: hidden;
-  z-index: 1;
+  z-index: 2;
 }
 
+/* Partículas de Ceniza Negra Carbonizada recién quemada */
+.map-ash-flake {
+  position: absolute;
+  background: #111827;
+  border: 1px solid #1f2937;
+  border-radius: 30% 70% 70% 30% / 30% 30% 70% 70%;
+  box-shadow: 0 0 6px rgba(0, 0, 0, 0.9), 0 0 12px rgba(239, 68, 68, 0.25);
+  opacity: 0;
+  animation: ashFlutter 5.5s infinite ease-in-out;
+}
+
+@keyframes ashFlutter {
+  0% {
+    transform: translateY(160px) translateX(0) rotate(0deg) scale(0.6);
+    opacity: 0;
+  }
+  20% {
+    opacity: 0.9;
+  }
+  75% {
+    opacity: 0.75;
+  }
+  100% {
+    transform: translateY(-80px) translateX(45px) rotate(360deg) scale(1.15);
+    opacity: 0;
+  }
+}
+
+/* Brasas de fuego al rojo vivo */
 .map-ember {
   position: absolute;
   border-radius: 50%;
-  background: #f87171;
-  box-shadow: 0 0 8px #ef4444, 0 0 14px #f59e0b;
+  background: #ef4444;
+  box-shadow: 0 0 10px #ef4444, 0 0 20px #f59e0b, 0 0 30px #dc2626;
   opacity: 0;
-  animation: emberFloat 4s infinite linear;
+  animation: emberFloat 4.2s infinite linear;
 }
 
 @keyframes emberFloat {
   0% {
-    transform: translateY(120px) translateX(0) scale(0.6);
+    transform: translateY(140px) translateX(0) scale(0.5);
     opacity: 0;
   }
-  20% {
-    opacity: 0.85;
+  25% {
+    opacity: 0.95;
+    background: #fbbf24;
   }
-  80% {
-    opacity: 0.6;
+  75% {
+    opacity: 0.8;
+    background: #ef4444;
   }
   100% {
-    transform: translateY(-40px) translateX(25px) scale(1.1);
+    transform: translateY(-50px) translateX(-35px) scale(1.2);
     opacity: 0;
+  }
+}
+
+/* ==================== CAPA INFERIOR: ECOSISTEMA Y PAISAJE DINÁMICO (RESERVADO TAREA 296) ==================== */
+/* NOTA: Las decoraciones de fauna y flora (panda, ciervo, pinos, bambú) se han extraído del render activo.
+   Se reintroducirán en la Tarea 296 mediante un motor de sprites / ilustración integrada de alta fidelidad. */
+
+/* ==================== EASTER EGG: DRAGÓN VOLADOR NATURAL (SOBRE EL NODO BOSS) ==================== */
+.map-boss-dragon-orbit {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 0;
+  height: 0;
+  pointer-events: none;
+  z-index: 35;
+}
+
+.map-boss-mini-dragon {
+  position: absolute;
+  top: -12px;
+  left: -17px;
+  width: 36px;
+  height: 24px;
+  animation: bossDragonNaturalFlight 8s infinite ease-in-out;
+  filter: drop-shadow(0 4px 8px rgba(239, 68, 68, 0.9)) drop-shadow(0 0 16px rgba(245, 158, 11, 0.7));
+  pointer-events: none;
+  will-change: transform;
+}
+
+/* Vuelo Orgánico y Fluido en Forma de Onda / Ocho en el Cielo */
+@keyframes bossDragonNaturalFlight {
+  0% {
+    transform: translate3d(-58px, -24px, 0) rotate(-18deg) scale(1);
+  }
+  16% {
+    transform: translate3d(-20px, -44px, 0) rotate(12deg) scale(1.1);
+  }
+  32% {
+    transform: translate3d(44px, -30px, 0) rotate(42deg) scale(1.02);
+  }
+  48% {
+    transform: translate3d(58px, 16px, 0) rotate(98deg) scale(0.94);
+  }
+  64% {
+    transform: translate3d(12px, 42px, 0) rotate(175deg) scale(0.92);
+  }
+  80% {
+    transform: translate3d(-46px, 24px, 0) rotate(225deg) scale(0.98);
+  }
+  92% {
+    transform: translate3d(-64px, -2px, 0) rotate(295deg) scale(1.05);
+  }
+  100% {
+    transform: translate3d(-58px, -24px, 0) rotate(-18deg) scale(1);
+  }
+}
+
+.mini-dragon-svg {
+  overflow: visible;
+}
+
+.dragon-wings {
+  transform-origin: 22px 11px;
+  animation: dragonWingFlap 0.28s infinite alternate ease-in-out;
+}
+
+@keyframes dragonWingFlap {
+  0% {
+    transform: scaleY(0.3) skewX(-14deg);
+  }
+  100% {
+    transform: scaleY(1.3) skewX(14deg);
+  }
+}
+
+.dragon-body {
+  animation: dragonBodyWave 0.7s infinite alternate ease-in-out;
+}
+
+@keyframes dragonBodyWave {
+  0% {
+    transform: scaleY(0.85) translateY(0);
+  }
+  100% {
+    transform: scaleY(1.15) translateY(-2px);
+  }
+}
+
+.dragon-spark {
+  animation: dragonSparkPulse 0.4s infinite alternate ease-in-out;
+}
+
+@keyframes dragonSparkPulse {
+  0% {
+    opacity: 0.3;
+    transform: scale(0.7);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1.6);
+    filter: drop-shadow(0 0 6px #f59e0b);
+  }
+}
+
+.mini-dragon-trail {
+  position: absolute;
+  top: 9px;
+  left: -4px;
+  width: 8px;
+  height: 8px;
+  background: radial-gradient(circle, #f59e0b 0%, rgba(239, 68, 68, 0) 70%);
+  border-radius: 50%;
+  opacity: 0.85;
+  animation: dragonTrailFade 0.6s infinite linear;
+}
+
+@keyframes dragonTrailFade {
+  0% {
+    transform: scale(0.9) translateX(0);
+    opacity: 0.9;
+  }
+  100% {
+    transform: scale(2.6) translateX(-20px);
+    opacity: 0;
+  }
+}
+
+/* Pulso dorado al llegar a los nodos iniciales */
+.node-starting-pulse {
+  animation: startingNodePulse 1.8s ease-out !important;
+}
+
+@keyframes startingNodePulse {
+  0% {
+    transform: scale(1);
+    box-shadow: 0 0 10px rgba(245, 158, 11, 0.5);
+    border-color: #f59e0b;
+  }
+  30% {
+    transform: scale(1.22);
+    box-shadow: 0 0 45px rgba(245, 158, 11, 1), 0 0 75px rgba(251, 191, 36, 0.7);
+    border-color: #ffffff;
+  }
+  100% {
+    transform: scale(1);
+    box-shadow: 0 0 22px rgba(245, 158, 11, 0.6);
+    border-color: #f59e0b;
   }
 }
 
@@ -386,4 +565,177 @@ body[data-theme="light"] .node-card-tile {
   color: var(--text-muted);
   margin-top: 0.3rem;
   line-height: 1.3;
+}
+
+/* ==================== EASTER EGG: MINI DRAGÓN VOLADOR ORBITAL (BOSS NODE) ==================== */
+.map-boss-dragon-orbit {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 0;
+  height: 0;
+  pointer-events: none;
+  z-index: 25;
+}
+
+.map-boss-mini-dragon {
+  position: absolute;
+  top: -12px;
+  left: -17px;
+  width: 34px;
+  height: 24px;
+  animation: bossDragonFlight 5.5s infinite linear;
+  filter: drop-shadow(0 0 6px rgba(239, 68, 68, 0.85)) drop-shadow(0 0 12px rgba(245, 158, 11, 0.6));
+  pointer-events: none;
+  will-change: transform;
+}
+
+@keyframes bossDragonFlight {
+  0% {
+    transform: rotate(0deg) translateX(56px) rotate(90deg) scale(1);
+    z-index: 30;
+  }
+  25% {
+    transform: rotate(90deg) translateX(48px) rotate(90deg) scale(0.82);
+    z-index: 1; /* Pasa por detrás de la tarjeta del Boss */
+  }
+  50% {
+    transform: rotate(180deg) translateX(56px) rotate(90deg) scale(0.72);
+    z-index: 1;
+  }
+  75% {
+    transform: rotate(270deg) translateX(52px) rotate(90deg) scale(0.92);
+    z-index: 30; /* Reaparece por delante */
+  }
+  100% {
+    transform: rotate(360deg) translateX(56px) rotate(90deg) scale(1);
+    z-index: 30;
+  }
+}
+
+.mini-dragon-svg {
+  overflow: visible;
+}
+
+.dragon-wings {
+  transform-origin: 22px 11px;
+  animation: dragonWingFlap 0.32s infinite alternate ease-in-out;
+}
+
+@keyframes dragonWingFlap {
+  0% {
+    transform: scaleY(0.35) skewX(-12deg);
+  }
+  100% {
+    transform: scaleY(1.25) skewX(12deg);
+  }
+}
+
+.dragon-body {
+  animation: dragonBodyWave 0.75s infinite alternate ease-in-out;
+}
+
+@keyframes dragonBodyWave {
+  0% {
+    transform: scaleY(0.88) translateY(0);
+  }
+  100% {
+    transform: scaleY(1.12) translateY(-1.5px);
+  }
+}
+
+.dragon-spark {
+  animation: dragonSparkPulse 0.45s infinite alternate ease-in-out;
+}
+
+@keyframes dragonSparkPulse {
+  0% {
+    opacity: 0.3;
+    transform: scale(0.7);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1.5);
+    filter: drop-shadow(0 0 5px #f59e0b);
+  }
+}
+
+.mini-dragon-trail {
+  position: absolute;
+  top: 9px;
+  left: -4px;
+  width: 7px;
+  height: 7px;
+  background: radial-gradient(circle, #f59e0b 0%, rgba(239, 68, 68, 0) 70%);
+  border-radius: 50%;
+  opacity: 0.8;
+  animation: dragonTrailFade 0.65s infinite linear;
+}
+
+@keyframes dragonTrailFade {
+  0% {
+    transform: scale(0.9) translateX(0);
+    opacity: 0.9;
+  }
+  100% {
+    transform: scale(2.4) translateX(-18px);
+    opacity: 0;
+  }
+}
+
+/* ==================== ANIMACIÓN DE BARRIDO / DESCENSO INICIAL ==================== */
+.map-intro-sweep-line {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 90px;
+  background: linear-gradient(to bottom, 
+    rgba(245, 158, 11, 0) 0%, 
+    rgba(245, 158, 11, 0.35) 45%, 
+    rgba(251, 191, 36, 0.85) 85%, 
+    rgba(255, 255, 255, 0.95) 100%
+  );
+  box-shadow: 0 0 35px rgba(245, 158, 11, 0.8), 0 0 70px rgba(239, 68, 68, 0.55);
+  pointer-events: none;
+  z-index: 8;
+  opacity: 0;
+  animation: mapIntroSweepDown 2.2s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+@keyframes mapIntroSweepDown {
+  0% {
+    top: 0;
+    opacity: 0.95;
+  }
+  75% {
+    opacity: 0.85;
+  }
+  100% {
+    top: 100%;
+    opacity: 0;
+  }
+}
+
+/* Pulso dorado al llegar a los nodos iniciales */
+.node-starting-pulse {
+  animation: startingNodePulse 1.8s ease-out !important;
+}
+
+@keyframes startingNodePulse {
+  0% {
+    transform: scale(1);
+    box-shadow: 0 0 10px rgba(245, 158, 11, 0.5);
+    border-color: #f59e0b;
+  }
+  30% {
+    transform: scale(1.22);
+    box-shadow: 0 0 45px rgba(245, 158, 11, 1), 0 0 75px rgba(251, 191, 36, 0.7);
+    border-color: #ffffff;
+  }
+  100% {
+    transform: scale(1);
+    box-shadow: 0 0 22px rgba(245, 158, 11, 0.6);
+    border-color: #f59e0b;
+  }
 }

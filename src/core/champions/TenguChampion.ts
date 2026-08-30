@@ -31,17 +31,27 @@ export class TenguChampion {
         const totalValidCount = validNodes.length;
         if (totalValidCount === 0) return [];
         
-        // Área proporcional del 25% de intersecciones jugables (mínimo 5 nodos en tableros pequeños, máximo total)
-        const zoneSize = Math.max(5, Math.min(totalValidCount, Math.round(totalValidCount * 0.25)));
+        // Objetivo base del 25% de intersecciones jugables (se ajusta matemáticamente a ~24%-26% para cerrar la capa radial)
+        const targetZoneSize = Math.max(5, Math.min(totalValidCount, Math.round(totalValidCount * 0.25)));
 
-        // 2. Ordenar por distancia euclídea real en el espacio 2D SVG respecto al nodo central
-        const sortedByDistance = [...validNodes].sort((a, b) => {
-            const distA = Math.hypot(a.x - centerNode.x, a.y - centerNode.y);
-            const distB = Math.hypot(b.x - centerNode.x, b.y - centerNode.y);
-            return distA - distB;
+        // 2. Calcular distancias respecto al nodo central
+        const nodesWithDist = validNodes.map(n => {
+            const dx = n.x - centerNode.x;
+            const dy = n.y - centerNode.y;
+            // Redondear para neutralizar micro-variaciones de coma flotante en coordenadas SVG
+            const distSq = Math.round((dx * dx + dy * dy) * 100) / 100;
+            return { node: n, distSq };
         });
 
-        return sortedByDistance.slice(0, zoneSize);
+        // 3. Ordenar por distancia
+        nodesWithDist.sort((a, b) => a.distSq - b.distSq);
+
+        // 4. Encontrar el umbral de distancia de la capa radial que cubre el objetivo del 25%
+        const targetIndex = Math.min(targetZoneSize - 1, nodesWithDist.length - 1);
+        const maxDistSq = nodesWithDist[targetIndex].distSq;
+
+        // 5. Incluir TODOS los nodos de esa capa radial completa (Garantiza simetría perfecta en todas las direcciones)
+        return nodesWithDist.filter(item => item.distSq <= maxDistSq + 0.01).map(item => item.node);
     }
 
     /**

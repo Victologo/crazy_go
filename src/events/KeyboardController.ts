@@ -257,7 +257,7 @@ export class KeyboardController {
                     e.preventDefault();
                     const newVol = Math.max(0, SoundFX.getMasterVolume() - 0.1);
                     SoundFX.setMasterVolume(newVol);
-                    BGMGenerator.setVolume(newVol);
+                    BGMGenerator.setMasterVolume(newVol);
                     ModalManager.updateOptionsModalUI();
                     return;
                 }
@@ -265,7 +265,7 @@ export class KeyboardController {
                     e.preventDefault();
                     const newVol = Math.min(1, SoundFX.getMasterVolume() + 0.1);
                     SoundFX.setMasterVolume(newVol);
-                    BGMGenerator.setVolume(newVol);
+                    BGMGenerator.setMasterVolume(newVol);
                     ModalManager.updateOptionsModalUI();
                     return;
                 }

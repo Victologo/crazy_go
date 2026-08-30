@@ -265,48 +265,170 @@
             <img src="./heroes/ryujin_face.jpg" alt="Ryūjin" />
             <span data-i18n="champion.ryujin.name">Ryūjin</span>
           </button>
+
+            <button class="hero-thumb-btn" data-hero="sage" title="Monje Sabio">
+              <img src="./enemies/sage_1.png" alt="Monje Sabio" />
+              <span>Monje Sabio</span>
+            </button>
         </div>
       </div>
 
-      </div>
-
-
         <!-- SPLIT VIEW (AI vs AI) -->
-        <div id="setup-champion-container-split" class="hidden" style="display: flex; gap: 1rem; width: 100%;">
+        <div id="setup-champion-container-split" class="setup-champion-split-layout hidden">
           <!-- AI 1 (Black) -->
-          <div style="flex: 1; display: flex; flex-direction: column; gap: 0.5rem;">
-            <h4 style="text-align:center; color: #f59e0b; margin:0;">⚫ IA Negra (P1)</h4>
-            <div class="rogue-hero-panoramic-box" style="padding: 0.5rem; min-height: 220px;">
-              <button id="btn-setup-p1-prev" class="btn-hero-nav">◀</button>
-              <div class="hero-showcase-card" id="setup-p1-showcase-card" style="gap: 1rem;">
-                <div class="hero-portrait-wrapper" style="width: 120px; height: 120px;">
-                  <img id="setup-p1-showcase-img" src="./heroes/normal_face.jpg" class="hero-showcase-img" />
+          <div class="setup-split-ai-col setup-p1-col">
+            <div class="setup-split-ai-header">
+              <span class="setup-split-badge badge-p1" style="background: rgba(245, 158, 11, 0.15); color: #f59e0b; border: 1.5px solid rgba(245, 158, 11, 0.4); box-shadow: 0 0 12px rgba(245, 158, 11, 0.2);">⚫ IA Negra (P1)</span>
+            </div>
+            <div class="setup-split-hero-box">
+              <button id="btn-setup-p1-prev" class="btn-hero-nav btn-split-nav">◀</button>
+              <div class="setup-split-hero-card" id="setup-p1-showcase-card">
+                <div class="setup-split-portrait-wrapper">
+                  <img id="setup-p1-hero-showcase-img" src="./heroes/normal_face.jpg" class="setup-split-portrait-img" />
                 </div>
-                <div class="hero-details">
-                  <h3 id="setup-p1-showcase-name" class="hero-title" style="font-size: 1.2rem;">Persona Normal</h3>
-                </div>
+                <div class="setup-split-hero-details">
+                  <h3 id="setup-p1-hero-showcase-name" class="setup-split-hero-title">Persona Normal</h3>
+
+                    <div class="setup-split-skills">
+                      <div class="hero-skill-box active-skill-box setup-p1-hero-active-box" style="display: none;">
+                        <div class="skill-box-header">
+                          <span class="skill-type-tag active-tag" id="setup-p1-hero-active-tag">💥 HABILIDAD ACTIVA</span>
+                          <strong id="setup-p1-hero-active-name" class="skill-name">Habilidad Activa</strong>
+                        </div>
+                        <p id="setup-p1-hero-active-desc" class="skill-desc">Descripción de la habilidad activa.</p>
+                      </div>
+                      <div class="hero-skill-box passive-skill-box setup-p1-hero-passive-box">
+                        <div class="skill-box-header">
+                          <span class="skill-type-tag passive-tag" id="setup-p1-hero-passive-tag">📜 REGLAS PURAS</span>
+                          <strong id="setup-p1-hero-passive-name" class="skill-name">Reglas Canónicas Japonesas</strong>
+                        </div>
+                        <p id="setup-p1-hero-passive-desc" class="skill-desc">Estrategia pura de Go.</p>
+                      </div>
+                    </div>
+                  </div>
               </div>
-              <button id="btn-setup-p1-next" class="btn-hero-nav">▶</button>
+              <button id="btn-setup-p1-next" class="btn-hero-nav btn-split-nav">▶</button>
             </div>
           </div>
           <!-- AI 2 (White) -->
-          <div style="flex: 1; display: flex; flex-direction: column; gap: 0.5rem;">
-            <h4 style="text-align:center; color: #f59e0b; margin:0;">⚪ IA Blanca (P2)</h4>
-            <div class="rogue-hero-panoramic-box" style="padding: 0.5rem; min-height: 220px;">
-              <button id="btn-setup-p2-prev" class="btn-hero-nav">◀</button>
-              <div class="hero-showcase-card" id="setup-p2-showcase-card" style="gap: 1rem;">
-                <div class="hero-portrait-wrapper" style="width: 120px; height: 120px;">
-                  <img id="setup-p2-showcase-img" src="./heroes/normal_face.jpg" class="hero-showcase-img" />
+          <div class="setup-split-ai-col setup-p2-col">
+            <div class="setup-split-ai-header">
+              <span class="setup-split-badge badge-p2" style="background: rgba(226, 232, 240, 0.15); color: #e2e8f0; border: 1.5px solid rgba(226, 232, 240, 0.4); box-shadow: 0 0 12px rgba(226, 232, 240, 0.2);">⚪ IA Blanca (P2)</span>
+            </div>
+            <div class="setup-split-hero-box">
+              <button id="btn-setup-p2-prev" class="btn-hero-nav btn-split-nav">◀</button>
+              <div class="setup-split-hero-card" id="setup-p2-showcase-card">
+                <div class="setup-split-portrait-wrapper">
+                  <img id="setup-p2-hero-showcase-img" src="./heroes/normal_face.jpg" class="setup-split-portrait-img" />
                 </div>
-                <div class="hero-details">
-                  <h3 id="setup-p2-showcase-name" class="hero-title" style="font-size: 1.2rem;">Persona Normal</h3>
+                <div class="setup-split-hero-details">
+                  <h3 id="setup-p2-hero-showcase-name" class="setup-split-hero-title">Persona Normal</h3>
+
+                    <div class="setup-split-skills">
+                      <div class="hero-skill-box active-skill-box setup-p2-hero-active-box" style="display: none;">
+                        <div class="skill-box-header">
+                          <span class="skill-type-tag active-tag" id="setup-p2-hero-active-tag">💥 HABILIDAD ACTIVA</span>
+                          <strong id="setup-p2-hero-active-name" class="skill-name">Habilidad Activa</strong>
+                        </div>
+                        <p id="setup-p2-hero-active-desc" class="skill-desc">Descripción de la habilidad activa.</p>
+                      </div>
+                      <div class="hero-skill-box passive-skill-box setup-p2-hero-passive-box">
+                        <div class="skill-box-header">
+                          <span class="skill-type-tag passive-tag" id="setup-p2-hero-passive-tag">📜 REGLAS PURAS</span>
+                          <strong id="setup-p2-hero-passive-name" class="skill-name">Reglas Canónicas Japonesas</strong>
+                        </div>
+                        <p id="setup-p2-hero-passive-desc" class="skill-desc">Estrategia pura de Go.</p>
+                      </div>
+                    </div>
+                  </div>
+              </div>
+              <button id="btn-setup-p2-next" class="btn-hero-nav btn-split-nav">▶</button>
+            </div>
+          </div>
+                
+          <!-- AI 3 (Red P3) -->
+          <div class="setup-split-ai-col setup-p3-col hidden">
+            <div class="setup-split-ai-header">
+              <span class="setup-split-badge badge-p3" style="background: rgba(34, 197, 94, 0.15); color: #22c55e; border: 1.5px solid rgba(34, 197, 94, 0.4); box-shadow: 0 0 12px rgba(34, 197, 94, 0.2);">🟢 IA Verde (P3)</span>
+            </div>
+            
+            <div class="setup-split-hero-box">
+              <button id="btn-setup-p3-prev" class="btn-hero-nav btn-split-nav" title="Previous Champion">◀</button>
+              
+              <div class="setup-split-hero-card" id="setup-p3-showcase-card">
+                <div class="setup-split-portrait-wrapper">
+                  <img id="setup-p3-hero-showcase-img" src="./heroes/normal_face.jpg" alt="Persona Normal" class="setup-split-portrait-img" />
+                </div>
+                <div class="setup-split-hero-details">
+                  <h3 id="setup-p3-hero-showcase-name" class="setup-split-hero-title">Persona Normal</h3>
+                  
+                  <div class="setup-split-skills">
+                    <div class="hero-skill-box active-skill-box setup-p3-hero-active-box" style="display: none;">
+                      <div class="skill-box-header">
+                        <span class="skill-type-tag active-tag" id="setup-p3-hero-active-tag">💥 HABILIDAD ACTIVA</span>
+                        <strong id="setup-p3-hero-active-name" class="skill-name">Habilidad Activa</strong>
+                      </div>
+                      <p id="setup-p3-hero-active-desc" class="skill-desc">Descripción de la habilidad activa.</p>
+                    </div>
+
+                    <div class="hero-skill-box passive-skill-box setup-p3-hero-passive-box">
+                      <div class="skill-box-header">
+                        <span class="skill-type-tag passive-tag" id="setup-p3-hero-passive-tag">📜 REGLAS PURAS</span>
+                        <strong id="setup-p3-hero-passive-name" class="skill-name">Reglas Canónicas Japonesas</strong>
+                      </div>
+                      <p id="setup-p3-hero-passive-desc" class="skill-desc">Estrategia pura de Go.</p>
+                    </div>
+                  </div>
                 </div>
               </div>
-              <button id="btn-setup-p2-next" class="btn-hero-nav">▶</button>
+              
+              <button id="btn-setup-p3-next" class="btn-hero-nav btn-split-nav" title="Next Champion">▶</button>
+            </div>
+          </div>
+
+          <!-- AI 4 (Blue P4) -->
+          <div class="setup-split-ai-col setup-p4-col hidden">
+            <div class="setup-split-ai-header">
+              <span class="setup-split-badge badge-p4" style="background: rgba(168, 85, 247, 0.15); color: #a855f7; border: 1.5px solid rgba(168, 85, 247, 0.4); box-shadow: 0 0 12px rgba(168, 85, 247, 0.2);">🟣 IA Morada (P4)</span>
+            </div>
+            
+            <div class="setup-split-hero-box">
+              <button id="btn-setup-p4-prev" class="btn-hero-nav btn-split-nav" title="Previous Champion">◀</button>
+              
+              <div class="setup-split-hero-card" id="setup-p4-showcase-card">
+                <div class="setup-split-portrait-wrapper">
+                  <img id="setup-p4-hero-showcase-img" src="./heroes/normal_face.jpg" alt="Persona Normal" class="setup-split-portrait-img" />
+                </div>
+                <div class="setup-split-hero-details">
+                  <h3 id="setup-p4-hero-showcase-name" class="setup-split-hero-title">Persona Normal</h3>
+                  
+                  <div class="setup-split-skills">
+                    <div class="hero-skill-box active-skill-box setup-p4-hero-active-box" style="display: none;">
+                      <div class="skill-box-header">
+                        <span class="skill-type-tag active-tag" id="setup-p4-hero-active-tag">💥 HABILIDAD ACTIVA</span>
+                        <strong id="setup-p4-hero-active-name" class="skill-name">Habilidad Activa</strong>
+                      </div>
+                      <p id="setup-p4-hero-active-desc" class="skill-desc">Descripción de la habilidad activa.</p>
+                    </div>
+
+                    <div class="hero-skill-box passive-skill-box setup-p4-hero-passive-box">
+                      <div class="skill-box-header">
+                        <span class="skill-type-tag passive-tag" id="setup-p4-hero-passive-tag">📜 REGLAS PURAS</span>
+                        <strong id="setup-p4-hero-passive-name" class="skill-name">Reglas Canónicas Japonesas</strong>
+                      </div>
+                      <p id="setup-p4-hero-passive-desc" class="skill-desc">Estrategia pura de Go.</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              
+              <button id="btn-setup-p4-next" class="btn-hero-nav btn-split-nav" title="Next Champion">▶</button>
             </div>
           </div>
         </div>
-                <!-- STEP 5: SCENERY & ENVIRONMENT WITH LIVE COMBAT DUEL PREVIEW -->
+      </div>
+
+        <!-- STEP 5: SCENERY & ENVIRONMENT WITH LIVE COMBAT DUEL PREVIEW -->
       <div id="wizard-step-5" class="wizard-step-panel hidden">
         <div class="wizard-step-hero" style="margin-bottom: 0.3rem;">
           <h3 class="wizard-step-title" data-i18n="wizard.q_scenery">🌄 Elige el Escenario y Entorno de Combate</h3>
@@ -317,7 +439,14 @@
           <div class="wizard-duel-stage-viewport" id="wizard-scenery-stage-viewport" style="background-image: url('./bg_combat.jpg');">
             <div class="wizard-duel-stage-overlay"></div>
             
-            <!-- Left Combatant: Player Selected Champion -->
+            
+            <!-- Left Combatant: P3 (4P mode) -->
+            <div class="duel-stage-combatant duel-stage-p3 hidden" id="wizard-stage-p3-combatant">
+              <div class="duel-standee-box">
+                <img id="wizard-stage-p3-img" src="./heroes/normal.png" alt="P3" class="duel-standee-img" />
+              </div>
+            </div>
+<!-- Left Combatant: Player Selected Champion -->
             <div class="duel-stage-combatant duel-stage-player">
               <div class="duel-standee-box">
                 <img id="wizard-stage-player-img" src="./heroes/normal.png" alt="Tu Campeón" class="duel-standee-img" />
@@ -329,7 +458,14 @@
               <svg id="wizard-stage-board-svg" class="wizard-stage-board-svg" viewBox="0 0 400 400"></svg>
             </div>
 
-            <!-- Right Combatant: Rival (Mystery Box or Selected Champion) -->
+            
+            <!-- Right Combatant: P4 (4P mode) -->
+            <div class="duel-stage-combatant duel-stage-p4 hidden" id="wizard-stage-p4-combatant">
+              <div class="duel-standee-box">
+                <img id="wizard-stage-p4-img" src="./heroes/normal.png" alt="P4" class="duel-standee-img" />
+              </div>
+            </div>
+<!-- Right Combatant: Rival (Mystery Box or Selected Champion) -->
             <div class="duel-stage-combatant duel-stage-rival" id="wizard-stage-rival-combatant" title="Click to cycle Rival Champion">
               <div class="duel-standee-box duel-mystery-box" id="wizard-stage-rival-box">
                 <img id="wizard-stage-rival-img" src="./heroes/tengu.png" alt="Rival Champion" class="duel-standee-img hidden" />
@@ -515,8 +651,8 @@
 
           <!-- Granular / Individual Mode Selector -->
           <div id="ai-granular-mode-box" class="hidden" style="margin-top: 0.5rem;">
-            <div class="setup-komi-4p-grid">
-              <div class="komi-4p-row" id="ai-granular-p1-row" style="margin-top: 0.45rem;">
+            <div id="ai-granular-grid-container" class="setup-ai-granular-grid">
+              <div class="komi-4p-row" id="ai-granular-p1-row">
                 <div class="komi-4p-header">
                   <span class="komi-4p-tag" data-i18n="wizard.ai_bot_p1">⚫ P1 AI Bot</span>
                   <strong id="ai-granular-p1-display" class="highlight-text">15 Kyu</strong>
@@ -530,14 +666,14 @@
                 </div>
                 <input type="range" id="ai-granular-p2-slider" min="1" max="40" value="16" class="custom-slider" style="width: 100%; margin-top: 0.5rem;" />
               </div>
-              <div class="komi-4p-row" id="ai-granular-p3-row" style="margin-top: 0.45rem;">
+              <div class="komi-4p-row" id="ai-granular-p3-row">
                 <div class="komi-4p-header">
                   <span class="komi-4p-tag" data-i18n="wizard.ai_bot_p3">🟢 P3 AI Bot</span>
                   <strong id="ai-granular-p3-display" class="highlight-text">15 Kyu</strong>
                 </div>
                 <input type="range" id="ai-granular-p3-slider" min="1" max="40" value="16" class="custom-slider" style="width: 100%; margin-top: 0.5rem;" />
               </div>
-              <div class="komi-4p-row" id="ai-granular-p4-row" style="margin-top: 0.45rem;">
+              <div class="komi-4p-row" id="ai-granular-p4-row">
                 <div class="komi-4p-header">
                   <span class="komi-4p-tag" data-i18n="wizard.ai_bot_p4">🟣 P4 AI Bot</span>
                   <strong id="ai-granular-p4-display" class="highlight-text">15 Kyu</strong>
@@ -867,3 +1003,4 @@
     </div>
   </div>
 </div>
+

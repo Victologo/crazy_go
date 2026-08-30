@@ -1206,8 +1206,6 @@ export class SVGRenderer {
                         } else if (wasPassiveTargeting && this.onPassiveBurnCompleted) {
                             // Furia del Dragón completada: avanzar turno sin re-ejecutar efectos locales
                             this.onPassiveBurnCompleted();
-                        } else if (this.onMovePlaced) {
-                            this.onMovePlaced(nodeId, isLocal);
                         }
                         // Tras el callback de turno, re-evaluar si el jugador actual puede jugar
                         // (necesario en modo 1v1 donde no hay IA que reactive el tablero)

@@ -241,6 +241,22 @@
   width: 100%;
 }
 
+.setup-ai-granular-grid {
+  display: grid;
+  gap: 0.75rem;
+  width: 100%;
+}
+
+.setup-ai-granular-grid.grid-1 {
+  grid-template-columns: 1fr;
+}
+
+.setup-ai-granular-grid.grid-2,
+.setup-ai-granular-grid.grid-3,
+.setup-ai-granular-grid.grid-4 {
+  grid-template-columns: 1fr 1fr;
+}
+
 .komi-4p-row {
   background: rgba(30, 41, 59, 0.4);
   border: 1px solid rgba(255, 255, 255, 0.08);
@@ -607,6 +623,17 @@ body[data-theme="light"] .wizard-board-preview-card {
   overflow: hidden;
 }
 
+.wizard-duel-stage-viewport.four-players {
+  grid-template-columns: 1fr 1fr 2fr 1fr 1fr;
+  padding: 0.8rem 0.5rem;
+  gap: 0.4rem;
+}
+
+.wizard-duel-stage-viewport.four-players .duel-standee-box {
+  width: 75px;
+  height: 105px;
+}
+
 .wizard-duel-stage-overlay {
   position: absolute;
   top: 0;
@@ -800,3 +827,231 @@ body[data-theme="light"] .wizard-board-preview-card {
 .duel-stage-rival:hover .duel-standee-img[src*="tengu.png"] {
   transform: scale(1.22) !important;
 }
+
+/* ==========================================================================
+   AI VS AI SPLIT CHAMPION SELECTOR (PASO 4 WIZARD)
+   ========================================================================== */
+.setup-champion-split-layout {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1.25rem;
+  width: 100%;
+}
+
+.setup-champion-split-layout.four-players {
+  grid-template-columns: repeat(2, 1fr);
+  grid-template-rows: repeat(2, auto);
+  gap: 0.5rem;
+}
+
+.setup-champion-split-layout.four-players .setup-split-ai-col {
+  padding: 0.4rem 0.5rem;
+  gap: 0.4rem;
+}
+
+.setup-champion-split-layout.four-players .setup-split-hero-card {
+  gap: 0.5rem;
+}
+
+.setup-champion-split-layout.four-players .setup-split-portrait-wrapper {
+  width: 75px;
+  height: 75px;
+  min-width: 75px;
+  max-width: 75px;
+}
+
+.setup-champion-split-layout.four-players .hero-skill-box {
+  padding: 0.4rem 0.5rem;
+}
+
+.setup-champion-split-layout.four-players .hero-skill-box p.skill-desc {
+  font-size: 0.72rem;
+  line-height: 1.1;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.setup-champion-split-layout.hidden {
+  display: none !important;
+}
+
+.setup-split-ai-col {
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+  background: rgba(15, 23, 42, 0.45);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: var(--radius-xl);
+  padding: 0.85rem 1rem;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
+  backdrop-filter: blur(12px);
+}
+
+.setup-split-ai-header {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.setup-split-badge {
+  font-size: 0.82rem;
+  font-weight: 800;
+  padding: 0.25rem 0.85rem;
+  border-radius: var(--radius-full);
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+}
+
+.setup-split-badge.badge-p1 {
+  background: rgba(245, 158, 11, 0.15);
+  color: #fbbf24;
+  border: 1.5px solid rgba(245, 158, 11, 0.4);
+  box-shadow: 0 0 12px rgba(245, 158, 11, 0.2);
+}
+
+.setup-split-badge.badge-p2 {
+  background: rgba(255, 255, 255, 0.1);
+  color: #f1f5f9;
+  border: 1.5px solid rgba(255, 255, 255, 0.35);
+  box-shadow: 0 0 12px rgba(255, 255, 255, 0.15);
+}
+
+.setup-split-hero-box {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  width: 100%;
+  justify-content: space-between;
+}
+
+.btn-split-nav {
+  width: 38px;
+  height: 38px;
+  min-width: 38px;
+  font-size: 1rem;
+  flex-shrink: 0;
+}
+
+.setup-split-hero-card {
+  display: flex;
+  align-items: center;
+  gap: 0.85rem;
+  flex: 1;
+  min-width: 0;
+}
+
+.setup-split-portrait-wrapper {
+  width: 110px;
+  height: 110px;
+  min-width: 110px;
+  max-width: 110px;
+  aspect-ratio: 1 / 1;
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  border: 1.5px solid rgba(245, 158, 11, 0.35);
+  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.7), 0 0 16px rgba(245, 158, 11, 0.15);
+  flex-shrink: 0;
+  background: #080b13;
+}
+
+.setup-split-portrait-img {
+  width: 100%;
+  height: 100%;
+  aspect-ratio: 1 / 1;
+  object-fit: cover;
+  object-position: top center;
+  display: block;
+  transition: transform 0.4s ease;
+}
+
+.setup-split-hero-card:hover .setup-split-portrait-img {
+  transform: scale(1.06);
+}
+
+.setup-split-hero-details {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  flex: 1;
+  min-width: 0;
+}
+
+.setup-split-hero-title {
+  font-family: var(--font-oriental);
+  font-size: 1.15rem;
+  font-weight: 800;
+  color: var(--text-primary);
+  margin: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.setup-split-skills {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  width: 100%;
+}
+
+.setup-split-skills .hero-skill-box {
+  padding: 0.35rem 0.55rem;
+  border-radius: var(--radius-md);
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.07);
+}
+
+.setup-split-skills .skill-name {
+  font-size: 0.76rem;
+  font-weight: 700;
+}
+
+.setup-split-skills .skill-desc {
+  font-size: 0.68rem;
+  line-height: 1.25;
+  color: var(--text-secondary);
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  margin: 0;
+}
+
+.setup-split-skills .skill-type-tag {
+  font-size: 0.58rem;
+  padding: 0.1rem 0.35rem;
+  border-radius: var(--radius-sm);
+}
+
+.setup-split-thumb-strip {
+  display: flex;
+  gap: 0.3rem;
+  justify-content: center;
+  width: 100%;
+  margin-top: 0.2rem;
+}
+
+.setup-split-thumb-strip .hero-thumb-btn {
+  padding: 0.2rem 0.35rem;
+  font-size: 0.65rem;
+  gap: 0.25rem;
+  min-height: auto;
+  border-radius: var(--radius-sm);
+}
+
+.setup-split-thumb-strip .hero-thumb-btn img {
+  width: 20px;
+  height: 20px;
+  min-width: 20px;
+  aspect-ratio: 1 / 1;
+  border-radius: 4px;
+  object-fit: cover;
+}
+
+.setup-split-thumb-strip .hero-thumb-btn span {
+  font-size: 0.65rem;
+}
+

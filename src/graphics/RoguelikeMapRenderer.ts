@@ -16,28 +16,48 @@ export class RoguelikeMapRenderer {
         this.onNodeSelected = onNodeSelected;
     }
 
-    public render(map: RoguelikeMap) {
+    public render(map: RoguelikeMap, isNewRun: boolean = false) {
         this.container.innerHTML = '';
 
         const mapWrapper = document.createElement('div');
         mapWrapper.className = 'rogue-map-scroll-wrapper';
 
-        // 1. Añadir partículas de cenizas vivas en la atmósfera del mapa
+        // 1. Atmósfera Superior: Ceniza Negra Carbonizada y Brasas Ígneas (alrededor del Jefe Dragón)
         const embersLayer = document.createElement('div');
         embersLayer.className = 'map-embers-layer';
-        for (let i = 0; i < 16; i++) {
+        
+        // 1a. Escamas de Ceniza Negra y Hollín
+        for (let i = 0; i < 14; i++) {
+            const ash = document.createElement('div');
+            ash.className = 'map-ash-flake';
+            ash.style.left = `${Math.random() * 92 + 4}%`;
+            ash.style.top = `${Math.random() * 80}%`;
+            const sizeW = Math.random() * 6 + 4;
+            const sizeH = Math.random() * 5 + 3;
+            ash.style.width = `${sizeW}px`;
+            ash.style.height = `${sizeH}px`;
+            ash.style.animationDelay = `${Math.random() * 4}s`;
+            ash.style.animationDuration = `${Math.random() * 2.5 + 4}s`;
+            embersLayer.appendChild(ash);
+        }
+
+        // 1b. Brasas incandescentes al rojo vivo
+        for (let i = 0; i < 14; i++) {
             const ember = document.createElement('div');
             ember.className = 'map-ember';
             ember.style.left = `${Math.random() * 90 + 5}%`;
             ember.style.top = `${Math.random() * 85}%`;
-            const size = Math.random() * 4 + 2.5;
+            const size = Math.random() * 4.5 + 2.5;
             ember.style.width = `${size}px`;
             ember.style.height = `${size}px`;
             ember.style.animationDelay = `${Math.random() * 3.5}s`;
-            ember.style.animationDuration = `${Math.random() * 2 + 2.8}s`;
+            ember.style.animationDuration = `${Math.random() * 2 + 3}s`;
             embersLayer.appendChild(ember);
         }
         mapWrapper.appendChild(embersLayer);
+
+        // 2. Capa Inferior de Decoración (Panda, Ciervo, Pinos y Bambú removidos / reservada para Tarea 296 en Roadmap)
+        // [FUTURO / Tarea 296]: Ecosistema dinámico ilustrado con sprites / shaders dedicados en el mapa roguelike.
 
         // 3. Calcular altura dinámica del mapa según el número de tiers
         let maxY = 750;
@@ -162,7 +182,6 @@ export class RoguelikeMapRenderer {
                     case 'islands_v1':
                     case 'islands_v2':
                     case 'eroded':
-                    case 'procedural':
                         pathD = `M ${w*0.1} ${h*0.1} Q ${w*0.5} 0 ${w*0.9} ${h*0.2} Q ${w} ${h*0.5} ${w*0.8} ${h*0.9} Q ${w*0.5} ${h} ${w*0.1} ${h*0.8} Q 0 ${h*0.5} ${w*0.1} ${h*0.1} Z`;
                         break;
                     default:
@@ -202,11 +221,55 @@ export class RoguelikeMapRenderer {
                 `;
             }
 
+            // Easter Egg: Mini Dragón Volador Orbital alrededor del nodo Boss
+            let dragonEasterEggHtml = '';
+            if (node.type === 'boss') {
+                dragonEasterEggHtml = `
+                    <div class="map-boss-dragon-orbit" title="🐉 Gran Dragón Sabio">
+                        <div class="map-boss-mini-dragon">
+                            <svg class="mini-dragon-svg" viewBox="0 0 40 24" width="34" height="22">
+                                <defs>
+                                    <filter id="dragonGlow-${node.id}" x="-30%" y="-30%" width="160%" height="160%">
+                                        <feGaussianBlur stdDeviation="1" result="blur" />
+                                        <feComposite in="SourceGraphic" in2="blur" operator="over" />
+                                    </filter>
+                                    <linearGradient id="dragonGrad-${node.id}" x1="0%" y1="0%" x2="100%" y2="100%">
+                                        <stop offset="0%" stop-color="#fca5a5" />
+                                        <stop offset="40%" stop-color="#ef4444" />
+                                        <stop offset="100%" stop-color="#7f1d1d" />
+                                    </linearGradient>
+                                    <linearGradient id="wingGrad-${node.id}" x1="0%" y1="0%" x2="0%" y2="100%">
+                                        <stop offset="0%" stop-color="#fef08a" />
+                                        <stop offset="100%" stop-color="#f59e0b" />
+                                    </linearGradient>
+                                </defs>
+                                <path class="dragon-body" d="M 33,12 Q 27,6 21,12 T 11,12 T 3,14" fill="none" stroke="url(#dragonGrad-${node.id})" stroke-width="4.2" stroke-linecap="round" />
+                                <path d="M 32,13 Q 27,8 21,13 T 11,13 T 4,14.5" fill="none" stroke="#fef08a" stroke-width="1.6" stroke-linecap="round" />
+                                <path d="M 3,14 L 0,10.5 L 3.5,13 L 0,16.5 Z" fill="#f59e0b" />
+                                <g class="dragon-wings">
+                                    <path d="M 22,10 Q 25,0 30,2 Q 26,7 21,11 Z" fill="url(#wingGrad-${node.id})" opacity="0.95" />
+                                    <path d="M 20,12 Q 17,21 12,19 Q 16,14 21,11 Z" fill="url(#wingGrad-${node.id})" opacity="0.8" />
+                                </g>
+                                <g class="dragon-head">
+                                    <circle cx="33" cy="11" r="3.6" fill="#ef4444" />
+                                    <path d="M 32,8 L 29,4.5 M 34,8 L 33.5,3.5" stroke="#fbbf24" stroke-width="1.3" stroke-linecap="round" />
+                                    <circle cx="34.5" cy="10.2" r="1.1" fill="#fef08a" filter="url(#dragonGlow-${node.id})" />
+                                    <path d="M 36,12 Q 39,11 38,15.5" fill="none" stroke="#fbbf24" stroke-width="0.9" />
+                                    <circle class="dragon-spark" cx="37.5" cy="11.2" r="1.3" fill="#f59e0b" />
+                                </g>
+                            </svg>
+                            <div class="mini-dragon-trail"></div>
+                        </div>
+                    </div>
+                `;
+            }
+
             nodeEl.innerHTML = `
                 <div class="node-card-tile">
                     ${iconHtml}
                     ${statusBadgeHtml}
                 </div>
+                ${dragonEasterEggHtml}
                 ${unitHereHtml}
                 <div class="node-tooltip">
                     <strong class="tooltip-title">${nodeTitle}</strong>
@@ -228,14 +291,65 @@ export class RoguelikeMapRenderer {
         mapWrapper.appendChild(nodesContainer);
         this.container.appendChild(mapWrapper);
 
-        // Auto-scroll al tier disponible en el viewport
+        // Auto-scroll y animación de descenso del mapa
         setTimeout(() => {
             const viewport = document.getElementById('roguelike-map-viewport') || this.container;
-            const activeNode = Array.from(map.nodes.values()).find(n => n.status === 'available' || n.status === 'current');
-            if (activeNode && viewport) {
-                const targetY = Math.max(0, activeNode.y - 300);
-                viewport.scrollTo({ top: targetY, behavior: 'smooth' });
+            if (!viewport) return;
+
+            if (isNewRun) {
+                // Al inicio de la run: Posicionar la cámara arriba en el Jefe Dragón
+                viewport.scrollTop = 0;
+
+                // Tras una pausa dramática de 450ms, descender suavemente hasta los nodos iniciales abajo
+                setTimeout(() => {
+                    const activeNode = Array.from(map.nodes.values()).find(n => n.status === 'available' || n.status === 'current');
+                    const targetY = activeNode ? Math.max(0, activeNode.y - 300) : (viewport.scrollHeight - viewport.clientHeight);
+
+                    this.smoothScrollTo(viewport, targetY, 1500, () => {
+                        // Al llegar abajo, destacar los nodos disponibles con un pulso dorado
+                        const availableTiles = document.querySelectorAll('.node-status-available .node-card-tile');
+                        availableTiles.forEach(tile => {
+                            tile.classList.add('node-starting-pulse');
+                            setTimeout(() => tile.classList.remove('node-starting-pulse'), 2000);
+                        });
+                    });
+                }, 450);
+            } else {
+                const activeNode = Array.from(map.nodes.values()).find(n => n.status === 'available' || n.status === 'current');
+                if (activeNode) {
+                    const targetY = Math.max(0, activeNode.y - 300);
+                    viewport.scrollTo({ top: targetY, behavior: 'smooth' });
+                }
             }
         }, 100);
+    }
+
+    /**
+     * Realiza un desplazamiento vertical fluido con curva de aceleración/desaceleración suave
+     */
+    private smoothScrollTo(element: HTMLElement, targetY: number, durationMs: number, onComplete?: () => void) {
+        const startY = element.scrollTop;
+        const distance = targetY - startY;
+        const startTime = performance.now();
+
+        const step = (currentTime: number) => {
+            const elapsed = currentTime - startTime;
+            const progress = Math.min(elapsed / durationMs, 1);
+            // Curva easeInOutCubic
+            const ease = progress < 0.5 
+                ? 4 * progress * progress * progress 
+                : 1 - Math.pow(-2 * progress + 2, 3) / 2;
+
+            element.scrollTop = startY + distance * ease;
+
+            if (progress < 1) {
+                requestAnimationFrame(step);
+            } else {
+                element.scrollTop = targetY;
+                if (onComplete) onComplete();
+            }
+        };
+
+        requestAnimationFrame(step);
     }
 }

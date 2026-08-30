@@ -214,6 +214,8 @@ export class ChampionManager {
         }
     }
 
+    private static isExecutingSkill = false;
+
     /**
      * Ejecuta una habilidad con objetivo sobre una coordenada/nodo
      */
@@ -228,26 +230,30 @@ export class ChampionManager {
         onComplete: () => void,
         remoteHeroId?: string
     ): Promise<boolean> {
-        const effectiveHero = remoteHeroId || this.currentHero;
-        const isRemote = !!remoteHeroId;
-        // console.log('🎯 [ChampionManager] executeTargetedSkill invoked:', { targetNodeId, playerId, currentTargetingMode: this.currentTargetingMode, effectiveHero, isRemote });
+        if (this.isExecutingSkill) return false;
+        this.isExecutingSkill = true;
 
-        // 1. Alquimista: Inversión Cromática / Transmutación Yin-Yang
-        if (this.currentTargetingMode === 'convert_enemy' || effectiveHero === 'alchemist') {
-            // console.log('🎯 [ChampionManager] Calling AlchemistChampion.executeSkill...');
-            const res = await AlchemistChampion.executeSkill(
-                board,
-                state,
-                targetNodeId,
-                playerId,
-                isRemote ? 999 : this.alchemistInversionsRemaining,
-                svgElement,
-                onSuccess,
-                onError
-            );
-            // console.log('🎯 [ChampionManager] AlchemistChampion.executeSkill returned result:', res);
-            if (res.success) {
-                CombatLogManager.logChampionSkill(board, state, 'alchemist', 'Inversión Cromática', targetNodeId, [targetNodeId], playerId);
+        try {
+            const effectiveHero = remoteHeroId || this.currentHero;
+            const isRemote = !!remoteHeroId;
+            // console.log('🎯 [ChampionManager] executeTargetedSkill invoked:', { targetNodeId, playerId, currentTargetingMode: this.currentTargetingMode, effectiveHero, isRemote });
+
+            // 1. Alquimista: Inversión Cromática / Transmutación Yin-Yang
+            if (this.currentTargetingMode === 'convert_enemy' || effectiveHero === 'alchemist') {
+                // console.log('🎯 [ChampionManager] Calling AlchemistChampion.executeSkill...');
+                const res = await AlchemistChampion.executeSkill(
+                    board,
+                    state,
+                    targetNodeId,
+                    playerId,
+                    isRemote ? 999 : this.alchemistInversionsRemaining,
+                    svgElement,
+                    onSuccess,
+                    onError
+                );
+                // console.log('🎯 [ChampionManager] AlchemistChampion.executeSkill returned result:', res);
+                if (res.success) {
+                    CombatLogManager.logChampionSkill(board, state, 'alchemist', 'Inversión Cromática', targetNodeId, [targetNodeId], playerId);
                 if (!isRemote) {
                     this.alchemistInversionsRemaining = res.newInversionsRemaining;
                     if (res.isFinished) {
@@ -346,6 +352,10 @@ export class ChampionManager {
                 onComplete();
             });
             return ok;
+        }
+
+        } finally {
+            this.isExecutingSkill = false;
         }
 
         return false;

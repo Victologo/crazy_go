@@ -5,7 +5,7 @@
  * Provides asynchronous policy, value (winrate), and ownership evaluation.
  */
 
-import * as ort from 'onnxruntime-web';
+import * as ort from 'onnxruntime-web/wasm';
 import { GraphBoard, type PlayerId } from '../core/GraphBoard';
 import { GameState } from '../core/GameState';
 
@@ -34,15 +34,16 @@ export class NeuralNetAdapter {
         this.initPromise = (async () => {
             try {
                 // Configure ONNX Runtime Web options
-                ort.env.wasm.numThreads = 2;
+                ort.env.wasm.numThreads = 1;
                 ort.env.wasm.simd = true;
+                ort.env.wasm.wasmPaths = '/';
 
-                const modelUrl = '/models/crazy_go_brain_web.onnx';
+                const modelUrl = '/models/crazy_go_brain_fp32.onnx';
                 this.session = await ort.InferenceSession.create(modelUrl, {
                     executionProviders: ['wasm'],
                     graphOptimizationLevel: 'all'
                 });
-                console.log('[NeuralNetAdapter] CrazyGoNet ONNX loaded successfully!');
+                console.log('[NeuralNetAdapter] CrazyGoNet ONNX FP32 loaded successfully!');
                 return true;
             } catch (err) {
                 console.warn('[NeuralNetAdapter] Could not load ONNX model, falling back to heuristics:', err);
@@ -74,9 +75,9 @@ export class NeuralNetAdapter {
         }
 
         const N = board.size || 9;
-        // Construct 1 x 16 x N x N tensor
         const channels = 16;
-        const inputData = new Float32Array(channels * N * N);
+        const totalNodes = N * N;
+        const inputData = new Float32Array(channels * totalNodes);
 
         // Precompute liberties
         const visitedChains = new Set<string>();
@@ -92,9 +93,8 @@ export class NeuralNetAdapter {
         }
 
         // Fill features
-        const totalNodes = N * N;
         for (const [id, node] of board.nodes) {
-            const parts = id.split('-');
+            const parts = id.split(',');
             const r = parseInt(parts[0], 10);
             const c = parseInt(parts[1], 10);
             if (isNaN(r) || isNaN(c) || r >= N || c >= N) continue;
@@ -124,7 +124,7 @@ export class NeuralNetAdapter {
 
         // Ch 7: Last move
         if (state.lastMoveNodeId) {
-            const parts = state.lastMoveNodeId.split('-');
+            const parts = state.lastMoveNodeId.split(',');
             const r = parseInt(parts[0], 10);
             const c = parseInt(parts[1], 10);
             if (!isNaN(r) && !isNaN(c) && r < N && c < N) {
@@ -133,7 +133,7 @@ export class NeuralNetAdapter {
         }
 
         // Ch 15: Turn progress
-        const maxExpectedMoves = N * N * 1.5;
+        const maxExpectedMoves = Math.max(board.nodes.size * 1.5, 50);
         const progress = Math.min(state.currentTurn / maxExpectedMoves, 1.0);
         for (let i = 0; i < totalNodes; i++) {
             inputData[15 * totalNodes + i] = progress;
@@ -147,39 +147,61 @@ export class NeuralNetAdapter {
             const valueTensor = results.value;
             const ownTensor = results.ownership;
 
-            // Parse policy
+            // Leer Policy Head y aplicar Softmax con estabilidad numérica (restando maxLogit)
             const policyData = policyTensor.data as Float32Array;
             const policyMap = new Map<string, number>();
-
-            // Softmax over legal moves
-            let maxLogit = -Infinity;
-            for (let i = 0; i < policyData.length; i++) {
-                if (policyData[i] > maxLogit) maxLogit = policyData[i];
-            }
-
+            const expValues = new Float32Array(totalNodes + 1); // +1 for PASS
             let expSum = 0;
-            const expValues = new Float32Array(policyData.length);
-            for (let i = 0; i < policyData.length; i++) {
-                expValues[i] = Math.exp(policyData[i] - maxLogit);
-                expSum += expValues[i];
+            let maxLogit = -Infinity;
+
+            // 1. Encontrar max logit
+            for (const [id] of board.nodes) {
+                const parts = id.split(',');
+                const r = parseInt(parts[0], 10);
+                const c = parseInt(parts[1], 10);
+                if (isNaN(r) || isNaN(c) || r >= N || c >= N) continue;
+                const logit = policyData[r * N + c];
+                if (logit > maxLogit) maxLogit = logit;
             }
+            const passLogit = policyData[totalNodes] ?? -10.0;
+            if (passLogit > maxLogit) maxLogit = passLogit;
+
+            // 2. Calcular exponenciales estables
+            for (const [id] of board.nodes) {
+                const parts = id.split(',');
+                const r = parseInt(parts[0], 10);
+                const c = parseInt(parts[1], 10);
+                if (isNaN(r) || isNaN(c) || r >= N || c >= N) continue;
+
+                const logit = policyData[r * N + c];
+                const expVal = Math.exp(logit - maxLogit);
+                expValues[r * N + c] = expVal;
+                expSum += expVal;
+            }
+
+            const passExpVal = Math.exp(passLogit - maxLogit);
+            expValues[totalNodes] = passExpVal;
+            expSum += passExpVal;
 
             let bestProb = -1;
             let bestMoveNodeId: string | null = null;
+            let validNodesCount = 0;
 
-            for (let r = 0; r < N; r++) {
-                for (let c = 0; c < N; c++) {
-                    const id = `${r}-${c}`;
-                    const prob = expValues[r * N + c] / expSum;
-                    policyMap.set(id, prob);
+            for (const [id, node] of board.nodes) {
+                const parts = id.split(',');
+                const r = parseInt(parts[0], 10);
+                const c = parseInt(parts[1], 10);
+                if (isNaN(r) || isNaN(c) || r >= N || c >= N) continue;
+                validNodesCount++;
 
-                    // Check if legal move and highest probability
-                    const node = board.nodes.get(id);
-                    if (node && node.stone === null && node.terrain !== 'DESTROYED' && node.terrain !== 'OBSTACLE') {
-                        if (prob > bestProb) {
-                            bestProb = prob;
-                            bestMoveNodeId = id;
-                        }
+                const prob = expValues[r * N + c] / expSum;
+                policyMap.set(id, prob);
+
+                // Check if legal move and highest probability
+                if (node.stone === null && node.terrain !== 'DESTROYED' && node.terrain !== 'OBSTACLE') {
+                    if (prob > bestProb) {
+                        bestProb = prob;
+                        bestMoveNodeId = id;
                     }
                 }
             }
@@ -191,11 +213,29 @@ export class NeuralNetAdapter {
                 bestMoveNodeId = null; // Pass
             }
 
-            // Parse value (winrates)
-            const valueData = valueTensor.data as Float32Array;
+            // Parse value (perspectiva del jugador en turno)
+            const valData = valueTensor.data as Float32Array;
+            const myWinProb = valData[0];
+            const oppWinProb = valData.length > 1 ? valData[1] : (1.0 - myWinProb);
+
+            let p1Prob = currentPlayer === 1 ? myWinProb : oppWinProb;
+            let p2Prob = currentPlayer === 2 ? myWinProb : oppWinProb;
+
+            // En los primeros turnos (1 a 8), suavizar hacia la distribución equilibrada inicial de Komi (49% - 51%)
+            if (state.currentTurn <= 8) {
+                const alpha = Math.min(state.currentTurn / 8.0, 1.0);
+                const priorP1 = 0.49;
+                const priorP2 = 0.51;
+                p1Prob = (1 - alpha) * priorP1 + alpha * p1Prob;
+                p2Prob = (1 - alpha) * priorP2 + alpha * p2Prob;
+            }
+
+            const p1Percent = Math.min(99, Math.max(1, Math.round(p1Prob * 100)));
+            const p2Percent = 100 - p1Percent;
+
             const winRates: Record<PlayerId, number> = {
-                1: Math.round((valueData[0] || 0.5) * 100),
-                2: Math.round((valueData[1] || 0.5) * 100),
+                1: p1Percent,
+                2: p2Percent,
                 3: 0,
                 4: 0
             };
@@ -203,11 +243,18 @@ export class NeuralNetAdapter {
             // Parse ownership
             const ownData = ownTensor.data as Float32Array;
             const ownMap = new Map<string, number>();
-            for (let r = 0; r < N; r++) {
-                for (let c = 0; c < N; c++) {
-                    ownMap.set(`${r}-${c}`, ownData[r * N + c]);
-                }
+            for (const [id] of board.nodes) {
+                const parts = id.split(',');
+                const r = parseInt(parts[0], 10);
+                const c = parseInt(parts[1], 10);
+                if (isNaN(r) || isNaN(c) || r >= N || c >= N) continue;
+                ownMap.set(id, ownData[r * N + c]);
             }
+            // Dispose ALL tensors AFTER reading all data to prevent 'tensor is disposed' errors
+            if (tensor.dispose) tensor.dispose();
+            if (policyTensor.dispose) policyTensor.dispose();
+            if (valueTensor.dispose) valueTensor.dispose();
+            if (ownTensor && ownTensor.dispose) ownTensor.dispose();
 
             return {
                 policyProbabilities: policyMap,

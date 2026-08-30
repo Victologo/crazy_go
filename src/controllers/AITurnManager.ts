@@ -59,25 +59,53 @@ export class AITurnManager {
         this.aiWorker.postMessage({ type: 'SYNC_PASS' } as AIWorkerIncomingMessage);
     }
 
-    private static calculateMoveAsync(board: GraphBoard, aiPlayerId: import('../core/GraphBoard').PlayerId, difficulty: import('../ai/GoAI').AIDifficulty, komi: number): Promise<AIMoveChoice> {
+    public static calculateMoveAsync(
+        board: GraphBoard, 
+        state: import('../core/GameState').GameState,
+        aiPlayerId: import('../core/GraphBoard').PlayerId, 
+        difficulty: import('../ai/GoAI').AIDifficulty, 
+        komi: number,
+        config?: GameSetupConfig
+    ): Promise<AIMoveChoice> {
         return new Promise((resolve, reject) => {
             if (!this.aiWorker) {
-                reject(new Error('AI Worker no inicializado'));
-                return;
+                if (config) {
+                    this.initWorker(config);
+                } else {
+                    this.initWorker({
+                        ruleStyle: 'classic',
+                        shape: (board.shape as any) || 'square',
+                        size: (board.size as any) || 19,
+                        difficulty,
+                        komi,
+                        gameMode: 'aivsai',
+                        playerCount: state.playerCount || 2,
+                        humanColor: 1,
+                        background: 'combat'
+                    });
+                }
             }
             
+            let isCleanedUp = false;
+            const cleanup = () => {
+                if (!isCleanedUp && this.aiWorker) {
+                    isCleanedUp = true;
+                    this.aiWorker.removeEventListener('message', handleMessage);
+                }
+            };
+
             const handleMessage = (e: MessageEvent<AIWorkerOutgoingMessage>) => {
                 const msg = e.data;
                 if (msg.type === 'MOVE_RESULT') {
-                    this.aiWorker!.removeEventListener('message', handleMessage);
+                    cleanup();
                     resolve(msg.payload);
                 } else if (msg.type === 'ERROR') {
-                    this.aiWorker!.removeEventListener('message', handleMessage);
+                    cleanup();
                     reject(new Error(msg.message));
                 }
             };
             
-            this.aiWorker.addEventListener('message', handleMessage);
+            this.aiWorker!.addEventListener('message', handleMessage);
             
             const nodesSnapshot: any[] = [];
             for (const [id, node] of board.nodes.entries()) {
@@ -93,9 +121,42 @@ export class AITurnManager {
                 aiPlayerId, 
                 difficulty, 
                 komi,
-                boardSnapshot: nodesSnapshot
+                boardSnapshot: nodesSnapshot,
+                currentTurn: state.currentTurn,
+                lastMoveNodeId: state.lastMoveNodeId
             };
-            this.aiWorker.postMessage(msg);
+            this.aiWorker!.postMessage(msg);
+        });
+    }
+
+    public static evaluateBoardAsync(tempMoves: {nodeId: string, playerId: import('../core/GraphBoard').PlayerId}[]): Promise<{winRate: number}> {
+        return new Promise((resolve, reject) => {
+            if (!this.aiWorker) {
+                resolve({winRate: 50});
+                return;
+            }
+            
+            let isCleanedUp = false;
+            const cleanup = () => {
+                if (!isCleanedUp && this.aiWorker) {
+                    isCleanedUp = true;
+                    this.aiWorker.removeEventListener('message', handleMessage);
+                }
+            };
+
+            const handleMessage = (e: MessageEvent<AIWorkerOutgoingMessage>) => {
+                const msg = e.data;
+                if (msg.type === 'EVAL_RESULT') {
+                    cleanup();
+                    resolve(msg.payload);
+                } else if (msg.type === 'ERROR') {
+                    cleanup();
+                    reject(new Error(msg.message));
+                }
+            };
+            this.aiWorker.addEventListener('message', handleMessage);
+
+            this.aiWorker.postMessage({ type: 'EVAL_BOARD', tempMoves } as AIWorkerIncomingMessage);
         });
     }
 
@@ -112,6 +173,14 @@ export class AITurnManager {
      * Comprueba si es el turno de la IA y lo ejecuta si procede.
      * Las dependencias se pasan explícitamente para evitar acoplamiento circular.
      */
+    private static isNextPlayerAI(state: GameState, config: GameSetupConfig): boolean {
+        if (config.gameMode === 'aivsai') return true;
+        if (config.slots && config.slots[state.currentPlayer]) {
+            return config.slots[state.currentPlayer].type === 'ai';
+        }
+        return (config.gameMode === '1via' || config.gameMode === 'story' || config.gameMode === 'coop') && state.currentPlayer !== config.humanColor;
+    }
+
     public static check(
         board: GraphBoard,
         state: GameState,
@@ -127,7 +196,7 @@ export class AITurnManager {
         if (config.gameMode === 'story' && StoryController.isDialogueActive) return;
 
         if (
-            (config.gameMode !== '1via' && config.gameMode !== 'coop' && config.gameMode !== 'story') ||
+            (config.gameMode !== '1via' && config.gameMode !== 'coop' && config.gameMode !== 'story' && config.gameMode !== 'aivsai') ||
             state.isGameOver
         ) {
             renderer.isInteractive = isLocalPlayerTurn() || ChampionManager.currentTargetingMode !== 'none';
@@ -144,7 +213,9 @@ export class AITurnManager {
         const activePlayer = state.currentPlayer;
         
         let isHuman = false;
-        if (config.slots && config.slots[activePlayer]) {
+        if (config.gameMode === 'aivsai') {
+            isHuman = false;
+        } else if (config.slots && config.slots[activePlayer]) {
             isHuman = config.slots[activePlayer].type === 'human_local' || config.slots[activePlayer].type === 'human_remote';
         } else {
             isHuman = activePlayer === config.humanColor;
@@ -168,7 +239,7 @@ export class AITurnManager {
         const baseDelay = isTurbo ? 10 : Math.floor(600 + Math.random() * 600);
         const thinkDelay = baseDelay;
 
-        this.turnTimeout = window.setTimeout(() => {
+        this.turnTimeout = window.setTimeout(async () => {
             if (state.isGameOver) {
                 this.isRunning = false;
                 return;
@@ -185,9 +256,9 @@ export class AITurnManager {
                 (msg) => { HUDController.showAlert(msg, 4500); },
                 () => {
                     renderer.render();
-                    state.passTurn();
+                    state.passTurn(board);
                     onUIUpdate();
-                    if (!state.isGameOver && state.currentPlayer !== config.humanColor) {
+                    if (!state.isGameOver && this.isNextPlayerAI(state, config)) {
                         this.isRunning = false;
                         this.check(board, state, config, renderer, onUIUpdate, onAITurnFinished, onGameOver, isLocalPlayerTurn);
                     } else {
@@ -210,13 +281,23 @@ export class AITurnManager {
                 });
 
                 try {
-                    const aiChoice = await this.calculateMoveAsync(board, activePlayer, config.difficulty, state.komi);
+                    const aiChoice = await this.calculateMoveAsync(board, state, activePlayer, config.difficulty, state.komi, config);
                     const meta = TerritoryScorer.PLAYER_META[activePlayer];
+
+                    if (aiChoice.winRates) {
+                        import('../core/AnalysisEngine').then(m => {
+                            (m.AnalysisEngine as any).cachedNeuralWinRates = {
+                                turn: state.currentTurn,
+                                winRates: aiChoice.winRates!
+                            };
+                        });
+                        HUDController.updateWinRates(aiChoice.winRates, state.playerCount);
+                    }
 
                     if (aiChoice.nodeId === null) {
                         // La IA decide pasar
                         SoundFX.playPass();
-                        state.passTurn();
+                        state.passTurn(board);
                         renderer.render();
                         onUIUpdate();
                         const isEnNow = getLanguage() === 'en';
@@ -240,7 +321,7 @@ export class AITurnManager {
                         this.isRunning = false;
                         if (state.isGameOver) {
                             onGameOver();
-                        } else if (state.currentPlayer !== config.humanColor) {
+                        } else if (this.isNextPlayerAI(state, config)) {
                             this.check(board, state, config, renderer, onUIUpdate, onAITurnFinished, onGameOver, isLocalPlayerTurn);
                         } else {
                             renderer.isInteractive = true;
@@ -271,7 +352,7 @@ export class AITurnManager {
                             setTimeout(() => {
                                 this.isRunning = false;
                                 if (!StageHazardManager.isHazardInProgress) {
-                                    if (!state.isGameOver && state.currentPlayer !== config.humanColor) {
+                                    if (!state.isGameOver && this.isNextPlayerAI(state, config)) {
                                         this.check(board, state, config, renderer, onUIUpdate, onAITurnFinished, onGameOver, isLocalPlayerTurn);
                                     } else {
                                         renderer.isInteractive = isLocalPlayerTurn();
@@ -284,11 +365,11 @@ export class AITurnManager {
                     }
                 } catch (err: any) {
                     console.error("AI Error en executeCoreAITurn:", err);
-                    state.passTurn();
+                    state.passTurn(board);
                     this.isRunning = false;
                     if (state.isGameOver) {
                         onGameOver();
-                    } else if (state.currentPlayer !== config.humanColor) {
+                    } else if (this.isNextPlayerAI(state, config)) {
                         this.check(board, state, config, renderer, onUIUpdate, onAITurnFinished, onGameOver, isLocalPlayerTurn);
                     } else {
                         renderer.isInteractive = isLocalPlayerTurn();
@@ -518,48 +599,66 @@ export class AITurnManager {
                     );
 
                     if (humanStones.length > 0) {
-                        this.aiActiveChargesLeft--;
-                        HUDController.triggerStandeeSkillFX(aiPlayerId, false);
-                        const invertLimit = (board.shape === 'oni' || board.nodes.size > 200) ? 4 : (board.nodes.size > 100 ? 2 : 1);
-                        const chosenToInvert = humanStones.slice(0, invertLimit);
+                        // 🧠 [Value-Based Search] Neural Network Oracle
+                        let bestNodes: typeof humanStones = [];
+                        let bestWinRateImprovement = 0;
+                        
+                        // Evaluar estado actual
+                        const baseEval = await this.evaluateBoardAsync([]);
+                        const baseWinRate = baseEval.winRate;
 
-                        vfxIsPlaying = true;
-
-                        for (const node of chosenToInvert) {
-                            node.stone!.playerId = aiPlayerId;
-                            if (svgElement) {
-                                if (this.aiHeroId === 'ronin') {
-                                    VFXManager.triggerWindSlash({ x: node.x, y: node.y }, svgElement);
-                                } else {
-                                    VFXManager.triggerTransmuteSlash({ x: node.x, y: node.y }, svgElement);
-                                }
+                        // Probar a invertir/destruir las piedras humanas (máx 15 al azar para no bloquear)
+                        const candidates = [...humanStones].sort(() => Math.random() - 0.5).slice(0, 15);
+                        for (const node of candidates) {
+                            const evalResult = await this.evaluateBoardAsync([{nodeId: node.id, playerId: aiPlayerId}]);
+                            const improvement = evalResult.winRate - baseWinRate;
+                            if (improvement > bestWinRateImprovement) {
+                                bestWinRateImprovement = improvement;
+                                bestNodes = [node];
                             }
                         }
 
-                        const totalCaptured = RulesEngine.resolveBoardCaptures(board, state, aiPlayerId);
-                        if (totalCaptured > 0) SoundFX.playCapture();
+                        // Si la IA considera que gana más del 8% de probabilidad de victoria, desata el ataque
+                        if (bestWinRateImprovement > 8 && bestNodes.length > 0) {
+                            this.aiActiveChargesLeft--;
+                            HUDController.triggerStandeeSkillFX(aiPlayerId, false);
+                            const chosenToInvert = bestNodes; // (simplificamos a 1 piedra letal en vez de 4 tontas)
 
-                        const isEnNow = getLanguage() === 'en';
-                        HUDController.showAlert(
-                            isEnNow
-                                ? `🌪️ Rival executed ${this.aiHeroId === 'ronin' ? "Samurai Slash" : "Chromatic Inversion"}, transmuting ${chosenToInvert.length} stone(s) and passing turn!`
-                                : `🌪️ ¡El rival ha ejecutado ${this.aiHeroId === 'ronin' ? "el Tajo del Samurai" : "la Inversión Cromática"}, transmutando ${chosenToInvert.length} piedra(s) y pasando turno!`
-                        );
-                        renderer.render();
-                        onUIUpdate();
+                            vfxIsPlaying = true;
 
-                        setTimeout(() => { state.passTurn();
-                            this.isRunning = false;
-                            if (state.isGameOver) {
-                                onGameOver();
-                            } else if (state.currentPlayer !== config.humanColor) {
-                                this.check(board, state, config, renderer, onUIUpdate, onAITurnFinished, onGameOver, isLocalPlayerTurn);
-                            } else {
-                                renderer.isInteractive = isLocalPlayerTurn();
-                                HUDController.setAIBadge(false);
-                                onAITurnFinished();
+                            for (const node of chosenToInvert) {
+                                if (this.aiHeroId === 'alchemist') {
+                                    node.stone!.playerId = aiPlayerId;
+                                } else {
+                                    node.stone = null; // Ronin destroys
+                                }
+                                if (svgElement) {
+                                    if (this.aiHeroId === 'ronin') {
+                                        VFXManager.triggerWindSlash({ x: node.x, y: node.y }, svgElement);
+                                    } else {
+                                        VFXManager.triggerTransmuteSlash({ x: node.x, y: node.y }, svgElement);
+                                    }
+                                }
                             }
-                        }, isTurbo ? 10 : 1200);
+
+                            const totalCaptured = RulesEngine.resolveBoardCaptures(board, state, aiPlayerId);
+                            if (totalCaptured > 0) SoundFX.playCapture();
+
+                            const isEnNow = getLanguage() === 'en';
+                            HUDController.showAlert(
+                                isEnNow
+                                    ? `🤖🧠 Oracle AI: Evaluated +${bestWinRateImprovement.toFixed(1)}% winrate gain!\n🌪️ Executed ${this.aiHeroId === 'ronin' ? "Samurai Slash" : "Chromatic Inversion"} on a critical stone!`
+                                    : `🤖🧠 IA Oráculo: ¡Evaluó +${bestWinRateImprovement.toFixed(1)}% de victoria extra!\n🌪️ ¡Ejecutó ${this.aiHeroId === 'ronin' ? "el Tajo del Samurai" : "la Inversión Cromática"} en una piedra crítica!`
+                            );
+
+                            if (svgElement) {
+                                renderer.render();
+                                onUIUpdate();
+                                setTimeout(() => { executeCoreAITurn(); }, isTurbo ? 10 : 1200);
+                            } else {
+                                executeCoreAITurn();
+                            }
+                        }
                     }
                 }
 

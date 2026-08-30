@@ -86,8 +86,7 @@ export class CombatLogModalRenderer {
             BoardGenerators.generate(
                 this.replayBoard,
                 (config.shape as BoardShape) || 'square',
-                (config.size as BoardSize) || 9,
-                config.seed
+                (config.size as BoardSize) || 9
             );
         }
 

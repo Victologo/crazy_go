@@ -1,9 +1,16 @@
 // champions/BossChampion.ts - Habilidad Activa del Gran Dragón Sabio Gris
-import type { ChampionActiveSkill } from './types';
+import type { ChampionActiveSkill, ChampionPassiveSkill } from './types';
 
 export const BossActiveSkill: ChampionActiveSkill = {
-    name: 'Dragon’s Calcinating Breath',
-    icon: '🐉',
-    description: 'Incinerates a board corner equivalent to 25% of the board, destroying all stones and placing an allied stone in the center of the void.',
+    name: 'Ninguna',
+    icon: '—',
+    description: 'El Gran Dragón Sabio Gris prefiere luchar con honor y fuerza bruta sin depender de habilidades mágicas.',
     targetingMode: 'none'
+};
+
+export const BossPassiveSkill: ChampionPassiveSkill = {
+    name: 'Presencia Imponente',
+    icon: '🐉',
+    description: 'La mera presencia del dragón intimida al oponente, pero no afecta las reglas del juego.',
+    conditionDesc: 'Siempre activa.'
 };

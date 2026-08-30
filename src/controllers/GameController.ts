@@ -67,6 +67,7 @@ export class GameController {
 
     public static localOnlineColor: PlayerId = 1;
     private static aiTurnTimeout: number | null = null;
+    private static isAITurnProcessing: boolean = false;
     private static onOnlineMoveCallback: ((nodeId: string) => void) | null = null;
     private static onOnlinePassCallback: (() => void) | null = null;
     public static onOnlineSkillCallback: ((skillType: string, targetNodeId: string) => void) | null = null;
@@ -84,6 +85,18 @@ export class GameController {
         if (onUndo) this.onOnlineUndoCallback = onUndo;
     }
 
+    public static stopGame() {
+        this.isAITurnProcessing = false;
+        if (this.aiTurnTimeout) {
+            clearTimeout(this.aiTurnTimeout);
+            this.aiTurnTimeout = null;
+        }
+        if (this.state) {
+            this.state.isGameOver = true;
+        }
+        HUDController.setAIBadge(false);
+    }
+
     public static initGame(newConfig?: Partial<GameSetupConfig>) {
         if (this.aiTurnTimeout) {
             clearTimeout(this.aiTurnTimeout);
@@ -93,6 +106,10 @@ export class GameController {
         if (newConfig) {
             this.config = { ...this.config, ...newConfig };
         }
+        
+        import('./AITurnManager').then(m => {
+            m.AITurnManager.initWorker(this.config);
+        });
 
         // Si no estamos cargando explícitamente el Modo Historia, asegurar que cualquier estado o zoom cósmico previo quede 100% reseteado
         const isStoryMode = this.config.gameMode === 'story' || (typeof window !== 'undefined' && !!(window as any).__isStoryLoading);
@@ -151,7 +168,7 @@ export class GameController {
         SeededRandom.setSeed(this.config.seed);
 
         // Generar topología seleccionada
-        BoardGenerators.generate(this.board, this.config.shape, this.config.size, this.config.seed);
+        BoardGenerators.generate(this.board, this.config.shape, this.config.size);
 
         // Inicializar el Registro de Combate y Repetición (Paso 0)
         CombatLogManager.resetForNewMatch(this.config, this.board, this.state);
@@ -189,18 +206,10 @@ export class GameController {
         // Configurar Campeón del rival IA en dificultad Dan/Maestro, en partidas Roguelite o si se especificó enemyHeroId (ej: Modo Historia)
         // Resolver random_monk / random_sage a un monje/sabio concreto
         const monkList: [string, string, string][] = [
-            ['Joven Ren', './enemies/monk_1.png', '🧘'],
-            ['Joven Hiro', './enemies/monk_2.png', '🧘'],
-            ['Joven Sora', './enemies/monk_3.png', '🧘'],
-            ['Joven Daiki', './enemies/monk_4.png', '🧘'],
-            ['Joven Kazuki', './enemies/monk_5.png', '🧘'],
+            ['Monje Sabio', './enemies/sage_1.png', '📜']
         ];
         const sageList: [string, string, string][] = [
-            ['Kenshin el Sabio', './enemies/sage_1.png', '📜'],
-            ['Nobunaga el Sabio', './enemies/sage_2.png', '📜'],
-            ['Masashi el Sabio', './enemies/sage_3.png', '📜'],
-            ['Tetsuo el Sabio', './enemies/sage_4.png', '📜'],
-            ['Genzaburo el Sabio', './enemies/sage_5.png', '📜'],
+            ['Monje Sabio', './enemies/sage_1.png', '📜']
         ];
 
         let resolvedEnemyImage: string | null = null;
@@ -208,18 +217,18 @@ export class GameController {
         let resolvedEnemyIcon: string | null = null;
 
         if (this.config.enemyHeroId === 'random_monk') {
-            const pick = monkList[Math.floor(Math.random() * monkList.length)];
+            const pick = monkList[0];
             [resolvedEnemyName, resolvedEnemyImage, resolvedEnemyIcon] = pick;
-            this.config.enemyHeroId = 'normal' as HeroId; // sin habilidad de campeón
+            this.config.enemyHeroId = 'sage' as HeroId; // asignamos 'sage'
         } else if (this.config.enemyHeroId === 'random_sage') {
-            const pick = sageList[Math.floor(Math.random() * sageList.length)];
+            const pick = sageList[0];
             [resolvedEnemyName, resolvedEnemyImage, resolvedEnemyIcon] = pick;
-            this.config.enemyHeroId = 'normal' as HeroId;
+            this.config.enemyHeroId = 'sage' as HeroId;
         } else if (this.config.enemyHeroId === 'story_sage') {
-            resolvedEnemyName = 'Masashi el Sabio';
-            resolvedEnemyImage = './enemies/sage_3.png';
+            resolvedEnemyName = 'Monje Sabio';
+            resolvedEnemyImage = './enemies/sage_1.png';
             resolvedEnemyIcon = '📜';
-            this.config.enemyHeroId = 'normal' as HeroId;
+            this.config.enemyHeroId = 'sage' as HeroId;
         }
 
         // Si es modo 4 jugadores y faltan los rivales, generamos por defecto
@@ -402,7 +411,7 @@ export class GameController {
         }
     }
 
-    private static isAISlot(playerId: PlayerId): boolean {
+    public static isAISlot(playerId: PlayerId): boolean {
         if (!this.config || !this.config.slots) return false;
         return this.config.slots[playerId]?.type === 'ai';
     }
@@ -439,7 +448,7 @@ export class GameController {
             this.config,
             this.state,
             () => {
-                this.state.passTurn();
+                this.state.passTurn(this.board);
                 this.updateInGameUI();
                 this.renderer.render();
                 if (this.config.gameMode === '1via' || this.config.gameMode === 'aivsai') this.checkAITurn();
@@ -576,6 +585,7 @@ export class GameController {
 
     public static checkAITurn() {
         if (TutorialManager.isActive) return; // La IA es controlada por el tutorial
+        if (this.isAITurnProcessing) return;
 
         // Comprobar si el jugador actual debe ser controlado por IA (Slots)
         let isAI = false;
@@ -602,6 +612,8 @@ export class GameController {
             return;
         }
 
+
+
         // Si el jugador humano está en modo apuntado de habilidad...
         // la IA DEBE esperar a que el humano termine su selección.
         if (ChampionManager.currentTargetingMode !== 'none') {
@@ -622,11 +634,18 @@ export class GameController {
         this.renderer.isInteractive = false;
         HUDController.setAIBadge(true);
 
-        // IA instantánea: Demora adaptativa constante (entre 0.6s y 1.2s para no ser instantánea pero tampoco bloquear)
-        const thinkDelay = Math.floor(600 + Math.random() * 600);
+        const isTurbo = (window as any).AI_TURBO_MODE === true;
+        const thinkDelay = isTurbo ? 0 : 20;
 
-        this.aiTurnTimeout = window.setTimeout(() => {
+        if (this.aiTurnTimeout) {
+            clearTimeout(this.aiTurnTimeout);
+            this.aiTurnTimeout = null;
+        }
+
+        this.aiTurnTimeout = window.setTimeout(async () => {
             if (this.state.isGameOver) return;
+            this.isAITurnProcessing = true;
+            try {
 
             // 1. Comprobar si el Jefe Final (Gran Dragón Sabio Gris) debe desatar su Aliento Calcinante
             const svgElement = document.querySelector('#board-container svg') as SVGSVGElement | null;
@@ -640,10 +659,10 @@ export class GameController {
                 },
                 () => {
                     this.renderer.render();
-                    this.state.passTurn();
+                    this.state.passTurn(this.board);
                     this.updateInGameUI();
 
-                    if (!this.state.isGameOver && this.state.currentPlayer !== this.config.humanColor) {
+                    if (!this.state.isGameOver && (this.config.gameMode === 'aivsai' || this.isAISlot(this.state.currentPlayer) || (!this.config.slots && this.state.currentPlayer !== this.config.humanColor))) {
                         this.checkAITurn();
                     } else {
                         this.renderer.isInteractive = this.isLocalPlayerTurn();
@@ -875,7 +894,7 @@ export class GameController {
                         CombatLogManager.logChampionSkill(this.board, this.state, (activeAiHeroId || 'ronin') as HeroId, 'Inversión Cromática', bestInversionNode.id, chosenToInvert.map(n => n.id), aiPlayerId, totalCaptured);
                         HUDController.showAlert(`🌪️ ¡El rival ha ejecutado la Inversión Cromática de Ronin, transmutando ${chosenToInvert.length} piedra(s) y pasando turno!`);
                         this.renderer.render();
-                        this.state.passTurn();
+                        this.state.passTurn(this.board);
                         this.updateInGameUI();
 
                         if (!this.state.isGameOver && (this.config.gameMode === 'aivsai' || this.isAISlot(this.state.currentPlayer) || (!this.config.slots && this.state.currentPlayer !== this.config.humanColor))) {
@@ -889,13 +908,32 @@ export class GameController {
                 }
             }
 
-            const aiChoice = GoAI.getBestMove(this.board, this.state, activePlayer, this.config.difficulty);
+            const activePlayerDifficulty = this.config.slots?.[activePlayer]?.aiDifficulty || this.config.difficulty;
             const meta = TerritoryScorer.PLAYER_META[activePlayer];
+            
+            let aiChoice: import('../ai/GoAI').AIMoveChoice;
+            try {
+                const { AITurnManager } = await import('./AITurnManager');
+                aiChoice = await AITurnManager.calculateMoveAsync(this.board, this.state, activePlayer, activePlayerDifficulty, this.state.komi, this.config);
+                
+                if (aiChoice.winRates) {
+                    import('../core/AnalysisEngine').then(m => {
+                        (m.AnalysisEngine as any).cachedNeuralWinRates = {
+                            turn: this.state.currentTurn,
+                            winRates: aiChoice.winRates!
+                        };
+                    });
+                    HUDController.updateWinRates(aiChoice.winRates, this.state.playerCount);
+                }
+            } catch (err) {
+                console.warn("[GameController] Neural Net Worker failed, falling back to heuristics:", err);
+                aiChoice = GoAI.getBestMove(this.board, this.state, activePlayer, activePlayerDifficulty);
+            }
 
             if (aiChoice.nodeId === null) {
                 // La IA decide pasar
                 SoundFX.playPass();
-                this.state.passTurn();
+                this.state.passTurn(this.board);
                 this.renderer.render();
                 this.updateInGameUI();
                 HUDController.showAlert(`🤖 IA (${meta.name} ${meta.icon}) ha pasado turno.`);
@@ -926,44 +964,60 @@ export class GameController {
                 // Fallback de seguridad: Si por alguna razón la jugada no avanzó el turno, pasar turno
                 if (this.state.currentPlayer === activePlayer) {
                     SoundFX.playPass();
-                    this.state.passTurn();
+                    this.state.passTurn(this.board);
                     this.renderer.render();
                     this.updateInGameUI();
                 }
 
                 // Render garantizado en el siguiente frame de animación para asegurar que
                 // los VFX asíncronos o checkPassiveTriggers no sobreescriban la piedra de la IA
-                requestAnimationFrame(() => {
-                    if (!this.state.isGameOver) {
+                window.requestAnimationFrame(() => {
+                    setTimeout(() => {
                         this.renderer.render();
                         this.updateInGameUI();
-                    }
+                        if (!this.state.isGameOver && (this.config.gameMode === 'aivsai' || this.isAISlot(this.state.currentPlayer) || (!this.config.slots && this.state.currentPlayer !== this.config.humanColor))) {
+                            this.checkAITurn();
+                        } else {
+                            this.renderer.isInteractive = this.isLocalPlayerTurn();
+                            HUDController.setAIBadge(false);
+                        }
+                    }, isTurbo ? 0 : 10);
                 });
-
-                if (!this.state.isGameOver && (this.config.gameMode === 'aivsai' || this.isAISlot(this.state.currentPlayer) || (!this.config.slots && this.state.currentPlayer !== this.config.humanColor))) {
-                    this.checkAITurn();
-                } else {
-                    this.renderer.isInteractive = this.isLocalPlayerTurn();
-                    HUDController.setAIBadge(false);
-                }
             }
 
+            } finally {
+                this.isAITurnProcessing = false;
+            }
         }, thinkDelay);
     }
 
     public static handlePass(isLocal: boolean = true) {
-        if (this.state.isGameOver) return;
-        if (isLocal && !this.isLocalPlayerTurn()) {
-            const isEn = getLanguage() === 'en';
-            if (this.config.isCoopRogue && this.config.localCoopRole && this.config.localCoopRole !== this.config.coopSubTurn && this.state.currentPlayer === 1) {
-                HUDController.showAlert(isEn ? '⏳ Wait for your partner to play.' : '⏳ Espera a que tu compañero juegue.');
+        if (!this.state || this.state.isGameOver) return;
+
+        if (this.config.gameMode === 'online' && !isLocal) {
+            // Recibido pase remoto desde WebRTC
+            const activeBefore = this.state.currentPlayer;
+            SoundFX.playPass();
+            const passed = this.state.passTurn(this.board);
+            if (passed) {
+                CombatLogManager.logPassTurn(this.board, this.state, activeBefore);
+                TimeManager.onMovePlaced(this.config, this.state, activeBefore);
+                this.renderer.render();
+                this.updateInGameUI();
+                const meta = TerritoryScorer.PLAYER_META[activeBefore];
+                HUDController.showAlert(`${meta.name} ${meta.icon} ha pasado turno.`);
+                if (this.state.consecutivePasses >= this.state.playerCount) {
+                    this.showFinalScoreModal();
+                } else {
+                    this.renderer.isInteractive = this.isLocalPlayerTurn();
+                }
             }
             return;
         }
 
         const activeBefore = this.state.currentPlayer;
         SoundFX.playPass();
-        const passed = this.state.passTurn();
+        const passed = this.state.passTurn(this.board);
         if (passed) {
             CombatLogManager.logPassTurn(this.board, this.state, activeBefore);
             TimeManager.onMovePlaced(this.config, this.state, activeBefore);
@@ -1451,6 +1505,7 @@ export class GameController {
             isRoguelike,
             humanWon,
             this.config.humanColor,
+            this.config.gameMode,
             node?.title,
             node?.battleConfig?.enemyName,
             node?.battleConfig?.rankLabel,
@@ -1504,4 +1559,8 @@ export class GameController {
         SoundFX.playSpecial();
         this.renderer.render();
     }
+}
+
+if (typeof window !== 'undefined') {
+    (window as any).GameController = GameController;
 }

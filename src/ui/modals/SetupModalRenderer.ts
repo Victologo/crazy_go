@@ -3,7 +3,7 @@ import type {
     GameSetupConfig, 
     HeroId
 } from '../../types';
-import { RoguelikeRunManager } from '../../core/RoguelikeRunManager';
+import { RoguelikeRunManager, type HeroInfo } from '../../core/RoguelikeRunManager';
 import { t, getLanguage, translateEnemyName, applyTranslationsToDOM } from '../../i18n/i18n';
 import { BoardGenerators } from '../../graphics/BoardGenerators';
 import { SVGRenderer } from '../../graphics/SVGRenderer';
@@ -16,29 +16,21 @@ export class SetupModalRenderer {
     public static current4PSlot: number = 2;
 
     /** Monje/Sabio resuelto en la sesión actual de configuración (para preview consistente) */
-    private static resolvedMonkIndex: number = Math.floor(Math.random() * 5);
-    private static resolvedSageIndex: number = Math.floor(Math.random() * 5);
+    private static resolvedMonkIndex: number = 0;
+    private static resolvedSageIndex: number = 0;
 
     private static readonly MONKS = [
-        { name: 'Joven Ren',    image: './enemies/monk_1.png' },
-        { name: 'Joven Hiro',   image: './enemies/monk_2.png' },
-        { name: 'Joven Sora',   image: './enemies/monk_3.png' },
-        { name: 'Joven Daiki',  image: './enemies/monk_4.png' },
-        { name: 'Joven Kazuki', image: './enemies/monk_5.png' },
+        { name: 'Monje Sabio', image: './enemies/sage_1.png' }
     ];
 
     private static readonly SAGES = [
-        { name: 'Kenshin el Sabio',    image: './enemies/sage_1.png' },
-        { name: 'Nobunaga el Sabio',   image: './enemies/sage_2.png' },
-        { name: 'Masashi el Sabio',    image: './enemies/sage_3.png' },
-        { name: 'Tetsuo el Sabio',     image: './enemies/sage_4.png' },
-        { name: 'Genzaburo el Sabio',  image: './enemies/sage_5.png' },
+        { name: 'Monje Sabio', image: './enemies/sage_1.png' }
     ];
 
     /** Reasigna aleatoriamente el monje/sabio (llamar al abrir el modal) */
     public static rerollSessionRivals() {
-        this.resolvedMonkIndex = Math.floor(Math.random() * 5);
-        this.resolvedSageIndex = Math.floor(Math.random() * 5);
+        this.resolvedMonkIndex = 0;
+        this.resolvedSageIndex = 0;
     }
 
     public static openNewGameModal() {
@@ -145,13 +137,21 @@ export class SetupModalRenderer {
             spiral: isEn ? 'Spiral' : 'Espiral',
             rings: isEn ? 'Rings' : 'Anillos',
             star_5: isEn ? 'Star (5P)' : 'Estrella (5P)',
-            star_6: isEn ? 'Star of David' : 'Estrella de David',
-            procedural: isEn ? 'Infinite Procedural' : 'Procedural Infinito'
+            star_6: isEn ? 'Star of David' : 'Estrella de David'
         };
         const shapeName = shapeLabels[config.shape] || config.shape;
 
         const hero = config.heroId ? RoguelikeRunManager.HEROES[config.heroId] : RoguelikeRunManager.HEROES['normal'];
-        const heroName = hero ? hero.name : (isEn ? 'Normal Person' : 'Hombre Normal');
+        const heroName = hero ? hero.name : (isEn ? 'Normal Person' : 'Persona Normal');
+
+        let heroSummary = heroName;
+        let p2HeroForSummary: HeroInfo | null = null;
+        if (config.gameMode === 'aivsai') {
+            const p2HeroId = (config.enemyHeroId && !config.enemyHeroId.startsWith('random') ? config.enemyHeroId : 'normal') as HeroId;
+            p2HeroForSummary = RoguelikeRunManager.HEROES[p2HeroId] || RoguelikeRunManager.HEROES['normal'];
+            const hero2Name = p2HeroForSummary ? p2HeroForSummary.name : (isEn ? 'Normal Person' : 'Persona Normal');
+            heroSummary = `⚫ ${heroName} vs ⚪ ${hero2Name}`;
+        }
 
         const diffLabels: Record<string, string> = {
             easy: isEn ? 'Easy (25k)' : 'Fácil (25k)',
@@ -190,7 +190,7 @@ export class SetupModalRenderer {
         }
 
         if (descEl) {
-            descEl.innerText = `${isEn ? 'Board' : 'Tablero'} ${config.size}x${config.size} ${shapeName} • ${heroName}${diffText} • ${specialSummary} • ${komiSummary} • ${timerSummary}`;
+            descEl.innerText = `${isEn ? 'Board' : 'Tablero'} ${config.size}x${config.size} ${shapeName} • ${heroSummary}${diffText} • ${specialSummary} • ${komiSummary} • ${timerSummary}`;
         }
 
         if (imgEl) {
@@ -211,14 +211,26 @@ export class SetupModalRenderer {
         if (stagePlayerImg) stagePlayerImg.src = hero ? (hero.image || hero.faceImage || './heroes/normal.png') : './heroes/normal.png';
         if (stagePlayerName) stagePlayerName.innerText = heroName;
 
-        const enemyHeroId = config.enemyHeroId || 'random';
+        const enemyHeroId = config.playerCount === 4 ? ((config.enemyHeroIds && config.enemyHeroIds[2]) ? config.enemyHeroIds[2] : 'normal') : (config.enemyHeroId || 'random');
         const rivalBox = document.getElementById('wizard-stage-rival-box');
         const stageRivalImg = document.getElementById('wizard-stage-rival-img') as HTMLImageElement | null;
         const stageRivalName = document.getElementById('wizard-stage-rival-name');
         const stageRivalMystery = document.getElementById('wizard-stage-rival-mystery');
         const rivalBadge = document.getElementById('setup-rival-display-badge');
 
-        if (enemyHeroId === 'random') {
+        if (config.gameMode === 'aivsai') {
+            const p2Hero = p2HeroForSummary || RoguelikeRunManager.HEROES['normal'];
+            if (stageRivalImg) {
+                stageRivalImg.src = p2Hero.image || p2Hero.faceImage || './heroes/normal.png';
+                stageRivalImg.classList.remove('hidden');
+            }
+            if (stageRivalMystery) stageRivalMystery.classList.add('hidden');
+            if (rivalBox) {
+                rivalBox.classList.remove('duel-mystery-box');
+                rivalBox.classList.add('duel-champion-standee');
+            }
+            if (stageRivalName) stageRivalName.innerText = p2Hero.name;
+        } else if (enemyHeroId === 'random') {
             if (stageRivalImg) stageRivalImg.classList.add('hidden');
             if (stageRivalMystery) stageRivalMystery.classList.remove('hidden');
             if (rivalBox) {
@@ -335,11 +347,28 @@ export class SetupModalRenderer {
         const p4Row = document.getElementById('ai-granular-p4-row');
         
         // P3 and P4 only visible in 4P mode
-        if (p3Row) p3Row.style.display = config.playerCount === 2 ? 'none' : 'flex';
-        if (p4Row) p4Row.style.display = config.playerCount === 2 ? 'none' : 'flex';
+        const is4PlayerMode = config.playerCount === 4;
+        const isAivsAi = config.gameMode === 'aivsai';
+        
+        if (p3Row) p3Row.style.display = is4PlayerMode ? 'flex' : 'none';
+        if (p4Row) p4Row.style.display = is4PlayerMode ? 'flex' : 'none';
 
-        // P1 only visible in AI vs AI mode
-        if (p1Row) p1Row.style.display = config.gameMode === 'aivsai' ? 'flex' : 'none';
+        // P1 only visible in AI vs AI mode (or if 4P AI vs AI is implemented, but right now it's only 2P aivsai)
+        // Let's assume P1 is visible if aivsai OR if it's a 4-player game where P1 can be AI.
+        // The previous code said: config.gameMode === 'aivsai' ? 'flex' : 'none'
+        // Let's keep that logic but calculate the visible count.
+        const p1Visible = isAivsAi;
+        if (p1Row) p1Row.style.display = p1Visible ? 'flex' : 'none';
+        
+        let numVisible = 1; // P2 is always visible in granular (if granular is shown)
+        if (p1Visible) numVisible++;
+        if (is4PlayerMode) numVisible += 2;
+        
+        const granularContainer = document.getElementById('ai-granular-grid-container');
+        if (granularContainer) {
+            granularContainer.className = 'setup-ai-granular-grid';
+            granularContainer.classList.add(`grid-${numVisible}`);
+        }
 
         const granularToggleBtn = document.getElementById('btn-toggle-ai-granular');
         
@@ -365,31 +394,53 @@ export class SetupModalRenderer {
             if (label) label.innerText = t('wizard.pack_mode');
         }
 
-        this.renderHeroShowcaseElements('setup', config.heroId || null);
-
-        // --- NEW LOGIC FOR AI VS AI SPLIT VIEW ---
+        // --- LOGIC FOR AI VS AI SPLIT VIEW ---
         const singleContainer = document.getElementById("setup-champion-container-single");
         const splitContainer = document.getElementById("setup-champion-container-split");
         const step4Label = document.querySelector(".wizard-step-node[data-step=\"4\"] .step-label");
         const step4Title = document.querySelector("#wizard-step-4 .wizard-step-title");
 
-        if (config.gameMode === "aivsai") {
+        const p3Col = document.querySelector('.setup-p3-col');
+        const p4Col = document.querySelector('.setup-p4-col');
+
+        if (config.gameMode === "aivsai" || config.playerCount === 4) {
             if (singleContainer) singleContainer.classList.add("hidden");
-            if (splitContainer) splitContainer.classList.remove("hidden");
+            if (splitContainer) {
+                splitContainer.classList.remove("hidden");
+                if (config.playerCount === 4) {
+                    splitContainer.classList.add("four-players");
+                    if (p3Col) p3Col.classList.remove("hidden");
+                    if (p4Col) p4Col.classList.remove("hidden");
+                } else {
+                    splitContainer.classList.remove("four-players");
+                    if (p3Col) p3Col.classList.add("hidden");
+                    if (p4Col) p4Col.classList.add("hidden");
+                }
+            }
             if (step4Label) step4Label.innerHTML = t("wizard.step_champions");
-            if (step4Title) step4Title.innerHTML = t("wizard.q_champions_ai");
+            if (step4Title) step4Title.innerHTML = config.playerCount === 4 ? "🧙‍♂️ Elige 4 Campeones Místicos" : t("wizard.q_champions_ai");
             
-            this.renderHeroShowcaseElements("setup-p1", config.heroId || null);
-            this.renderHeroShowcaseElements("setup-p2", (config.enemyHeroId as any) || null);
+            const p1Hero = config.heroId || 'sage';
+            const p2Hero = (config.enemyHeroId && !config.enemyHeroId.startsWith('random') ? config.enemyHeroId : 'sage') as HeroId;
+            this.renderHeroShowcaseElements("setup-p1", p1Hero);
+            this.renderHeroShowcaseElements("setup-p2", p2Hero);
+
+            if (config.playerCount === 4) {
+                const p3Hero = (config.enemyHeroIds && config.enemyHeroIds[3] ? config.enemyHeroIds[3] : 'sage') as HeroId;
+                const p4Hero = (config.enemyHeroIds && config.enemyHeroIds[4] ? config.enemyHeroIds[4] : 'sage') as HeroId;
+                this.renderHeroShowcaseElements("setup-p3", p3Hero);
+                this.renderHeroShowcaseElements("setup-p4", p4Hero);
+            }
         } else {
             if (singleContainer) singleContainer.classList.remove("hidden");
             if (splitContainer) splitContainer.classList.add("hidden");
             if (step4Label) step4Label.innerHTML = t("wizard.step_champion");
             if (step4Title) step4Title.innerHTML = t("wizard.q_champion");
+            this.renderHeroShowcaseElements("setup", config.heroId || null);
         }
         // ----------------------------------------
 
-        const allShapes = ['square', 'volcano', 'sky', 'oni', 'triangle', 'hex', 'eroded', 'islands_v1', 'islands_v2', 'islands', 'cross', 'hourglass', 'geode', 'spiral', 'rings', 'star_5', 'star_6', 'procedural'];
+        const allShapes = ['square', 'volcano', 'sky', 'oni', 'triangle', 'hex', 'eroded', 'islands_v1', 'islands_v2', 'islands', 'cross', 'hourglass', 'geode', 'spiral', 'rings', 'star_5', 'star_6'];
         allShapes.forEach(sh => {
             document.getElementById(`setup-shape-${sh}`)?.classList.toggle('active', config.shape === sh);
         });
@@ -514,13 +565,13 @@ export class SetupModalRenderer {
         });
 
         // Komi Controls (2P vs 4P)
-        const is4P = config.playerCount === 4;
+        const is4PKomi = config.playerCount === 4;
         const box2P = document.getElementById('setup-komi-2p-box');
         const box4P = document.getElementById('setup-komi-4p-box');
-        if (box2P) box2P.classList.toggle('hidden', is4P);
-        if (box4P) box4P.classList.toggle('hidden', !is4P);
+        if (box2P) box2P.classList.toggle('hidden', is4PKomi);
+        if (box4P) box4P.classList.toggle('hidden', !is4PKomi);
 
-        if (is4P) {
+        if (is4PKomi) {
             if (!config.playerKomis) {
                 config.playerKomis = { 2: 2.5, 3: 4.5, 4: 6.5 };
             }
@@ -656,14 +707,14 @@ export class SetupModalRenderer {
     private static renderSetupPreviews(config: GameSetupConfig) {
         // Generar un estado de juego inerte solo para el preview
         const board = new GraphBoard();
-        BoardGenerators.generate(board, config.shape, config.size, config.seed);
+        BoardGenerators.generate(board, config.shape, config.size);
         const state = new GameState(config.komi, config.playerCount);
 
         // Actualizar número de intersecciones en el label del preview 3
         const previewDesc = document.getElementById('wizard-board-preview-desc');
         if (previewDesc) previewDesc.innerText = `${board.nodes.size} Intersecciones`;
         const stageBoardInfo = document.getElementById('wizard-stage-board-info');
-        const shapeLabels: Record<string, string> = { square: 'Cuadrado', triangle: 'Triangular', hex: 'Hexagonal', eroded: 'Erosionado', islands: 'Islas / Abismos', cross: 'Cruz / Diamante', oni: 'Máscara Oni', procedural: 'Procedural Infinito' };
+        const shapeLabels: Record<string, string> = { square: 'Cuadrado', triangle: 'Triangular', hex: 'Hexagonal', eroded: 'Erosionado', islands: 'Islas / Abismos', cross: 'Cruz / Diamante', oni: 'Máscara Oni' };
         const effectiveSize = config.shape === 'oni' ? 25 : config.size;
         if (stageBoardInfo) stageBoardInfo.innerText = `${effectiveSize}x${effectiveSize} ${shapeLabels[config.shape] || config.shape} • ${board.nodes.size} Pts`;
 
@@ -686,8 +737,33 @@ export class SetupModalRenderer {
         }
 
         // Renderizar Previsualización Paso 5 (Combate con escenario)
+
         const stageViewport = document.getElementById('wizard-scenery-stage-viewport');
-        if (stageViewport) stageViewport.style.backgroundImage = `url('./bg_${config.background || 'combat'}.jpg')`;
+        if (stageViewport) {
+            stageViewport.style.backgroundImage = `url('./bg_${config.background || 'combat'}.jpg')`;
+            if (config.playerCount === 4) {
+                stageViewport.classList.add('four-players');
+                document.getElementById('wizard-stage-p3-combatant')?.classList.remove('hidden');
+                document.getElementById('wizard-stage-p4-combatant')?.classList.remove('hidden');
+                
+                const p3HeroId = (config.enemyHeroIds && config.enemyHeroIds[3] ? config.enemyHeroIds[3] : 'normal');
+                const p4HeroId = (config.enemyHeroIds && config.enemyHeroIds[4] ? config.enemyHeroIds[4] : 'normal');
+
+                const p3Hero = RoguelikeRunManager.HEROES[p3HeroId as import('../../types').HeroId] || RoguelikeRunManager.HEROES['normal'];
+                const p4Hero = RoguelikeRunManager.HEROES[p4HeroId as import('../../types').HeroId] || RoguelikeRunManager.HEROES['normal'];
+                
+                const p3Img = document.getElementById('wizard-stage-p3-img') as HTMLImageElement;
+                if (p3Img) p3Img.src = p3Hero.image || p3Hero.faceImage || './heroes/normal.png';
+                
+                const p4Img = document.getElementById('wizard-stage-p4-img') as HTMLImageElement;
+                if (p4Img) p4Img.src = p4Hero.image || p4Hero.faceImage || './heroes/normal.png';
+            } else {
+                stageViewport.classList.remove('four-players');
+                document.getElementById('wizard-stage-p3-combatant')?.classList.add('hidden');
+                document.getElementById('wizard-stage-p4-combatant')?.classList.add('hidden');
+            }
+        }
+
 
         const svg2 = document.getElementById('wizard-stage-board-svg');
         if (svg2) {
@@ -877,13 +953,14 @@ export class SetupModalRenderer {
                     if (passiveDesc) passiveDesc.innerText = hero.passiveDesc || t(`champion.${effectiveHeroId}.passive_desc`);
                 }
             } else {
-                // Hombre Normal (Sin Habilidades / Go Clásico Puro)
+                // Sin Habilidades / Go Clásico Puro (ej: Normal, Sage)
                 if (activeBox) activeBox.style.display = 'none';
                 if (passiveBox) {
                     passiveBox.style.display = 'flex';
-                    if (passiveTag) passiveTag.innerText = t('champion.normal.passive_tag') || '📜 REGLAS PURAS';
-                    if (passiveName) passiveName.innerText = hero.passiveName || t('champion.normal.passive_name');
-                    if (passiveDesc) passiveDesc.innerText = hero.passiveDesc || t('champion.normal.passive_desc');
+                    const tagKey = `champion.${effectiveHeroId}.passive_tag`;
+                    if (passiveTag) passiveTag.innerText = t(tagKey) || '📜 REGLAS PURAS';
+                    if (passiveName) passiveName.innerText = hero.passiveName || t(`champion.${effectiveHeroId}.passive_name`);
+                    if (passiveDesc) passiveDesc.innerText = hero.passiveDesc || t(`champion.${effectiveHeroId}.passive_desc`);
                 }
             }
         }

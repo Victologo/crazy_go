@@ -5,8 +5,8 @@
     <link rel="icon" type="image/svg+xml" href="/vite.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Crazy Go - Roguelite Board Engine</title>
-    <script type="module" crossorigin src="./assets/index-BSKve8zl.js"></script>
-    <link rel="stylesheet" crossorigin href="./assets/index-VhJBfn87.css">
+    <script type="module" crossorigin src="./assets/index-B33DA3Pn.js"></script>
+    <link rel="stylesheet" crossorigin href="./assets/index-DXA_wPoF.css">
   </head>
   <body>
     <div id="app">
@@ -53,10 +53,13 @@
 
 
             <!-- Story Mode (En la balda superior - Libro a la izquierda, texto a la derecha) -->
-            <div id="btn-menu-story" class="dojo-item" style="top: 29%; left: calc(73.5% + 6px); width: 20%; height: 17%; z-index:10; display:flex; flex-direction:row; align-items:center; justify-content:flex-start; gap:8px;">
-              <img src="item_book_story_1787399966087.png" style="width:48%; height:90%; object-fit:contain; filter: drop-shadow(2px 4px 6px rgba(0,0,0,0.5));" />
-              <span style="white-space:nowrap; color:#c084fc; font-weight:900; font-size:1.75rem;">STORY</span>
-            </div>
+            <div id="btn-menu-story" class="dojo-item" style="top: 29%; left: calc(73.5% + 6px); width: 20%; height: 17%; z-index:10; display:flex; flex-direction:row; align-items:center; justify-content:flex-start; gap:8px; filter: grayscale(100%) brightness(0.6); cursor: not-allowed; pointer-events: none;">
+                <img src="item_book_story_1787399966087.png" style="width:48%; height:90%; object-fit:contain; filter: drop-shadow(2px 4px 6px rgba(0,0,0,0.5));" />
+                <div style="display:flex; flex-direction:column; align-items:center;">
+                    <span style="font-size:1.5rem; line-height:1;">🔒</span>
+                    <span style="white-space:nowrap; color:#c084fc; font-weight:900; font-size:1.5rem;">STORY</span>
+                </div>
+              </div>
 
             <!-- Feedback (En la balda media - Texto a la izquierda, grulla a la derecha) -->
             <div id="btn-menu-feedback" class="dojo-item" style="top: 46%; left: calc(71.5% + 9px); width: 22%; height: 17%; z-index:10; display:flex; flex-direction:row; align-items:center; justify-content:flex-end; gap:8px;">
@@ -103,6 +106,9 @@
             </button>
             <button id="btn-game-redo" class="btn btn-topbar btn-redo" title="Redo undone move">
               <span data-i18n="btn.redo_short">⏩ Redo</span>
+            </button>
+            <button id="btn-game-turbo" class="btn btn-topbar" title="Toggle AI Turbo Mode (10x Speed)">
+              <span>⚡ Turbo</span>
             </button>
             <button id="btn-game-reset" class="btn btn-topbar" title="Restart Match">
               <span>🔄</span>
@@ -577,7 +583,7 @@
           </button>
         </div>
       </div>
-
+
 
   </body>
 </html>

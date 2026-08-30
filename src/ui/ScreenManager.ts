@@ -45,6 +45,7 @@ export class ScreenManager {
         this.currentScreen = targetScreen;
 
         if (targetScreen === 'main-menu') {
+            (window as any).GameController?.stopGame();
             if (StoryModeController.isStoryActive) {
                 StoryModeController.stopCampaign();
             }
@@ -54,6 +55,7 @@ export class ScreenManager {
             MenuCameraController.reset();
             BGMGenerator.playMenu();
         } else if (targetScreen === 'roguelike-map') {
+            (window as any).GameController?.stopGame();
             if (StoryModeController.isStoryActive) {
                 StoryModeController.stopCampaign();
             }

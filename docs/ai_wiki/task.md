@@ -1,5 +1,31 @@
 # Tareas y Roadmap (Task List)
 
+## Fase 107: Release 1.0 - Ocultación del Modo Historia
+- [x] **Tarea 303 (Ocultación Temporal de Historia)**: Se ha ocultado de la interfaz el botón de Story Mode en `index.html` para excluirlo de la versión 1.0, priorizando la IA y el Roguelike. Queda postergado hasta la versión 2.0.
+  - [x] **Tarea 304 (Lección Unificada de Campeones)**: Se fusionaron las lecciones del Tengu y del Alquimista en el tutorial en un único capítulo unificado ("Habilidades de Campeones"). Se añadieron también diapositivas informativas para el resto de campeones (Kitsune, Himiko, Ronin, Ryūjin). Actualizado para ambos idiomas (ES/EN) y re-empaquetado para distribución.
+  - [x] **Tarea 305 (Bloqueo Visual de Historia)**: Se ha restaurado la visibilidad del botón de Story Mode en el menú principal, pero con un efecto visual de bloqueo explícito (candado 🔒, filtro de escala de grises, opacidad reducida, cursor no permitido y eventos de puntero desactivados), además de eliminar la lógica de clic para evitar interacciones accidentales. Queda visiblemente bloqueado para la v1.0.
+
+## Fase 108: Estabilización de Inteligencia Artificial (CrazyGoNet)
+- [x] **Tarea 306 (Prevención de Colapso Neuronal, Leak WASM y Oscilación)**:
+  - Detección `isAlreadySoftmaxed` en `NeuralNetAdapter.ts` para omitir el doble Softmax sobre `policyData`, restaurando la fuerza de juego 2 Kyu-9 Dan e impidiendo movimientos completamente aleatorios.
+  - Liberación de tensores en memoria WebAssembly (`tensor.dispose()`, `results.dispose()`) erradicando el memory leak y la consiguiente ralentización progresiva de turnos IA.
+  - Fijación incondicional de la perspectiva del Winrate a `Player 1` (Negras) extrayendo `valData[0]` (KataGo style), lo que fulmina el bug visual de oscilación asimétrica en el HUD.
+
+## Fase 106: Correcciones Críticas de Integración de IA
+- [x] **Tarea 300 (Reparación de la "Lobotomía" de la IA)**: Se corrigió un defecto estructural grave donde el motor principal de turnos de IA (`GameController.checkAITurn`) estaba saltándose el Web Worker de la Red Neuronal (CrazyGoNet) y usando una heurística básica (Minimax). Se enrutó de manera segura a `AITurnManager.calculateMoveAsync()` para reactivar las inferencias ONNX y se solucionaron errores de TS relacionados al añadir `'sage'` a los tipos de héroe (`HeroId`).
+- [x] **Tarea 301 (Calibración Canónica de Política Neuronal, Supresión de Llenado de Ojos y Pases)**:
+  - Reparado fallo de visualización de rango de P1 en IA vs IA (`DuelistRenderer.ts`).
+  - Eliminado el bloqueo que impedía pasar turno en `NeuralNetAdapter.ts` e integrado `PASS` en el muestreo ponderado con temperatura en `GoAI.worker.ts`, erradicando partidas hipertrofiadas de 100+ turnos en 9x9.
+  - Blindaje con `board.isTrueEye` para impedir que las IAs rellenen sus propios ojos vitales.
+- [x] **Tarea 302 (Corrección Crítica de Inversión de Coordenadas X/Y en NeuralNetAdapter)**:
+  - Detectada la inversión de ejes en `NeuralNetAdapter.ts` donde los IDs `"col,row"` se parseaban como `r = parts[0]` y `c = parts[1]`, enviando el tablero transpuesto a CrazyGoNet y leyendo la política invertida diagonalmente.
+  - Corregido a `col = parts[0]` y `row = parts[1]` e indexación canónica `row * N + col` en todas las entradas y salidas de la red. Compilación exitosa en 1.30s.
+- [x] **Tarea 304 (Soporte Universal de Tableros 13x13/19x19 y Erradicación de Ralentización Exponencial)**:
+  - [x] **Tarea 305 (Bloqueo Visual de Historia)**: Se ha restaurado la visibilidad del botón de Story Mode en el menú principal, pero con un efecto visual de bloqueo explícito (candado 🔒, filtro de escala de grises, opacidad reducida, cursor no permitido y eventos de puntero desactivados), además de eliminar la lógica de clic para evitar interacciones accidentales. Queda visiblemente bloqueado para la v1.0.
+  - Asignado `board.size = size` en `BoardGenerators.ts` y cálculo dinámico de dimensiones en `NeuralNetAdapter.ts`, eliminando el truncamiento que confinaba a la IA a una esquina 9x9 en tableros 19x19.
+  - Mutex `isAITurnProcessing` en `GameController.ts` para evitar duplicación de hilos concurrentes ($2^N$).
+  - Sincronización de `currentTurn` y `lastMoveNodeId` en el Web Worker.
+
 ### Fase 105: Red Neuronal AlphaZero (CrazyGoNet) — Entrenamiento en GPU RTX 4070 Ti SUPER e Integración ONNX Runtime (En Progreso)
 - [x] **Tarea 283 (Auditoría Canónica de Reglas de Go y Corrección de Ko)**: Blindaje de `RulesEngine.isMoveLegal` y `tryPlaceStone` para evaluación incondicional de estados repetidos. Sincronización fiel de `docs/ai_wiki/go_rules.md`.
 - [x] **Tarea 284 (Arquitectura ResNet-12 CrazyGoNet con 3 Cabezas)**: Modelo residual profundo con Policy Head ($N \times N + 1$), Value Head ($[p_1, p_2, p_3, p_4]$ para Winrate en vivo) y Ownership Head ($N \times N$ para territorio).
@@ -13,6 +39,7 @@
 - [x] **Tarea 292 (Modo Espectador / Arena de Combate IA vs IA)**: Implementado e integrado en Asistente Local. Corregido bug de congelación de turno en partidas exclusivas de IA.
 - [x] **Tarea 293 (Pestaña Social y de Amigos)**: Removido el botón flotante del Dojo e integrado el panel Social en el modal Online de forma limpia.
 - [ ] **Tarea 294 (Recolección Final de Modelos y Ajuste Server)**: Recoger los modelos de la fase 5 desde el servidor remoto para integrarlos a los binarios locales. Además, descargar los modelos antiguos (`50k`, `150k`, `250k` steps) para asignarlos a los niveles Kyu (Principiantes), erradicando las heurísticas y usando redes neuronales infantiles para los niveles bajos.
+- [x] **Tarea 299**: Modificada la finalización de turno (paso doble) en GameState.ts y ScoreModalRenderer.ts para saltar la fase de marcación manual asumiendo que los jugadores aceptan el conteo automático. Se añadió el botón [⚖️ Disputar] en el modal de puntuación para forzar la revisión manual si es necesario. (Completada)
 
 ### Fase 104: Corrección de Multijugador Local 2P y 4P, Animación Universal del Tablero Oni y Cooperativo Completo (Completada)
 - [x] **Tarea 253 (StoryModeController reescrito)**: Reescritura completa con `gameMode: '1via'` (fix bug IA), array `STORY_CHAPTERS[]` tipado, sistema de eventos por turno vía `setInterval`, método `showCinematicIntro()`.
@@ -742,9 +769,12 @@
 - [x] **Tarea 301**: Captura Inmediata de Entidades (\GameController.ts\, \SVGRenderer.ts\): Al activar el modo Sandbox/Desarrollador, hacer clic directo sobre una entidad en el tablero desencadena instantáneamente su recompensa (Cofre, Monje, Pergamino o Espíritu), sin requerir capturarla rodeando sus libertades.
 - [x] **Tarea 302**: Brochas Generadoras de Entidades (\SandboxController.ts\, \modal-sandbox.html\): Implementados 4 pinceles específicos en el menú del Testing Lab para sembrar Cofres Místicos, Monjes Cautivos, Pergaminos Sagrados y Espíritus Guardianes proceduralmente sobre el Goban y testear comportamientos y recompensas.
 - [x] **Tarea 303**: Corrección de Sistema de Zoom (\OptionsModalRenderer.ts\, \	heme.css\): Reemplazado el enfoque de variables CSS \--ui-scale\ (y \	ransform: scale\) por la propiedad directa \document.body.style.zoom\, evitando la pérdida de centrado de coordenadas SVG y los fallos de márgenes o scroll, igualándolo funcionalmente al nativo \Ctrl +\ / \Ctrl -\ de Google Chrome.
+  - [x] **Tarea 304 (Lección Unificada de Campeones)**: Se fusionaron las lecciones del Tengu y del Alquimista en el tutorial en un único capítulo unificado ("Habilidades de Campeones"). Se añadieron también diapositivas informativas para el resto de campeones (Kitsune, Himiko, Ronin, Ryūjin). Actualizado para ambos idiomas (ES/EN) y re-empaquetado para distribución.
+  - [x] **Tarea 305 (Bloqueo Visual de Historia)**: Se ha restaurado la visibilidad del botón de Story Mode en el menú principal, pero con un efecto visual de bloqueo explícito (candado 🔒, filtro de escala de grises, opacidad reducida, cursor no permitido y eventos de puntero desactivados), además de eliminar la lógica de clic para evitar interacciones accidentales. Queda visiblemente bloqueado para la v1.0.
 
 ## Fase 60: Destrucción Topológica y Tableros Dinámicos (Lluvia de Meteoros) (Completada)
 - [x] **Tarea 304**: Integración de Eliminación Física de Nodos (\GraphBoard.ts\, \RulesEngine.ts\): Método \
+  - [x] **Tarea 305 (Bloqueo Visual de Historia)**: Se ha restaurado la visibilidad del botón de Story Mode en el menú principal, pero con un efecto visual de bloqueo explícito (candado 🔒, filtro de escala de grises, opacidad reducida, cursor no permitido y eventos de puntero desactivados), además de eliminar la lógica de clic para evitar interacciones accidentales. Queda visiblemente bloqueado para la v1.0.
 emoveNode()\ implementado sin romper referencias de coordenadas (se limpian los vecinos y se marca \	errain = 'DESTROYED'\) y \destroyTopology()\ para erradicar las aristas y evaluar asfixia masiva inmediata de todas las piedras que dependían de la intersección destruida.
 - [x] **Tarea 305**: Máscaras Dinámicas de Agujeros en Madera (\SVGRenderer.ts\): Implementada una \SVG Mask\ que recorta dinámicamente el polígono de madera exterior mostrando un vacío oscuro puro (agujero transparente/negro) y detiene el renderizado de la cuadrícula interactiva, visualizando fielmente los estragos topológicos.
 - [x] **Tarea 306**: Devastación Pasiva del Jefe Dragón (\BossManager.ts\, \AITurnManager.ts\, \GameState.ts\): Añadido \checkAIPassiveDevastation()\. A partir del turno global 22 de la batalla de jefe, en cada turno de la IA, caen automática y pasivamente 4 meteoros aleatorios (con cinemática de fuego) que pulverizan para siempre nodos del tablero.
@@ -756,7 +786,9 @@ emoveNode()\ implementado sin romper referencias de coordenadas (se limpian los 
 - [x] **Tarea 309**: i18n del Log de Combate: Creados tokens en translations.ts y refactorización del DOM para traducir todo al inglés dinámicamente.
 - [x] **Tarea 310**: Resolución de Bug Crítico de Renderizado de Retorno: Prevenido el fallo en navegadores por el cual inyectar un \<defs>\ repetido en un contenedor oculto apagaba los materiales SVG del viewport activo.
 - [x] **Tarea 311**: Registro de Habilidades Activas: Conectado el \ChampionManager\ al \CombatLogManager\ para que las habilidades dirigidas lanzadas por el jugador se registren correctamente en el historial.
-- [x] **Tarea 312**: Visibilidad de la Cuadrícula en el Log: Las líneas de la cuadrícula en el Combat Log ahora son semitransparentes brillantes (\gba(255, 255, 255, 0.15)\) para asegurar su visibilidad tras quitar el fondo de madera.
+- [x] **Tarea 312**: Visibilidad de la Cuadrícula en el Log: Las líneas de la cuadrícula en el Combat Log ahora son semitransparentes brillantes (\
+gba(255, 255, 255, 0.15)\) para asegurar su visibilidad tras quitar el fondo de madera.
 - [x] **Tarea 313**: Refinado del UI del Log: Eliminado el botón X redundante arriba a la derecha.
 - [x] **Tarea 314**: Pestaña Tablero en Combat Log: Añadida pestaña de filtro 'board' en el Log de Combate para eventos de entorno.
 - [x] **Tarea 315**: Integración de Eventos de Tablero al Log: El gestor de peligros (\StageHazardManager\) ahora reporta erupciones volcánicas, expansión celestial y la inhalación del Oni directo al registro, y se muestra en la pestaña 'Board' y 'All'.
+

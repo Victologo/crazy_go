@@ -5,6 +5,7 @@ import { PolyominoManager } from '../core/PolyominoManager';
 import { ChampionManager } from '../core/ChampionManager';
 import { RulesEngine } from '../core/RulesEngine';
 import { getLanguage } from '../i18n/i18n';
+import { TenguChampion } from '../core/champions/TenguChampion';
 
 export class SVGGhostPreview {
     public static renderGhost(
@@ -108,9 +109,10 @@ export class SVGGhostPreview {
 
                 const tooltipY = minY - stoneRadius * 1.5;
                 const isEn = getLanguage() === 'en';
+                const meteorCount = TenguChampion.getMeteorCount(board);
                 const label = isEn 
-                    ? `☄️ Meteor Strike Zone (${zoneNodes.length} intersections)`
-                    : `☄️ Zona de Lluvia Meteórica (${zoneNodes.length} casillas)`;
+                    ? `☄️ Meteor Strike Zone (${meteorCount} shots)`
+                    : `☄️ Zona de Lluvia Meteórica (${meteorCount} disparos)`;
                 const pillWidth = Math.max(160, label.length * 7.2);
                 const pillHeight = 20;
 

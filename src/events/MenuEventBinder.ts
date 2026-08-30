@@ -93,9 +93,10 @@ export class MenuEventBinder {
 
         // Botón de Modo Historia
         document.getElementById('btn-menu-story')?.addEventListener('click', () => {
-            ScreenManager.showGameScreen(() => {
-                StoryModeController.startCampaign();
-            }, true);
+            // ScreenManager.showGameScreen(() => {
+            //     StoryModeController.startCampaign();
+            // }, true);
+            console.log("Story mode locked for v1.0");
             SoundFX.playSpecial();
         });
 
@@ -241,6 +242,25 @@ export class MenuEventBinder {
             GameController.initGame();
             SoundFX.playPlaceStone();
             HUDController.showAlert('🔄 Partida reiniciada.');
+        });
+
+        document.getElementById('btn-game-turbo')?.addEventListener('click', (e) => {
+            const btn = e.currentTarget as HTMLElement;
+            const w = window as any;
+            w.AI_TURBO_MODE = !w.AI_TURBO_MODE;
+            if (w.AI_TURBO_MODE) {
+                btn.style.background = '#f59e0b';
+                btn.style.color = '#000';
+                HUDController.showAlert('⚡ Modo Turbo IA Activado (Máxima Velocidad)');
+                if (GameController.config.gameMode === 'aivsai' || GameController.isAISlot(GameController.state.currentPlayer)) {
+                    GameController.checkAITurn();
+                }
+            } else {
+                btn.style.background = '';
+                btn.style.color = '';
+                HUDController.showAlert('🐌 Modo Turbo IA Desactivado');
+            }
+            SoundFX.playPlaceStone();
         });
 
         document.getElementById('btn-back-menu')?.addEventListener('click', () => {

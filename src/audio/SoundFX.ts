@@ -3,16 +3,24 @@
 
 export class SoundFX {
     private static ctx: AudioContext | null = null;
-    private static masterVolume: number = 0.85;
+    private static _masterVolume: number = 0.85;
+    private static _sfxVolume: number = 1.0;
     private static sfxEnabled: boolean = true;
     private static bgmEnabled: boolean = true;
 
     private static isUnlockListenerAttached: boolean = false;
 
+    public static get masterVolume(): number {
+        return this._masterVolume * this._sfxVolume;
+    }
+
     static {
         try {
             const savedVol = localStorage.getItem('crazygo_audio_volume');
-            if (savedVol !== null) this.masterVolume = Math.max(0, Math.min(1, parseFloat(savedVol)));
+            if (savedVol !== null) this._masterVolume = Math.max(0, Math.min(1, parseFloat(savedVol)));
+
+            const savedSfxVol = localStorage.getItem('crazygo_audio_sfx_vol');
+            if (savedSfxVol !== null) this._sfxVolume = Math.max(0, Math.min(1, parseFloat(savedSfxVol)));
 
             const savedSfx = localStorage.getItem('crazygo_audio_sfx');
             if (savedSfx !== null) this.sfxEnabled = savedSfx === 'true';
@@ -33,10 +41,11 @@ export class SoundFX {
                 const AudioCtx = window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
                 if (AudioCtx) {
                     this.ctx = new AudioCtx();
+                    console.log('🔊 [SoundFX] Contexto de Audio creado.');
                 }
             }
             if (this.ctx && this.ctx.state === 'suspended') {
-                this.ctx.resume().catch(() => {});
+                this.ctx.resume().then(() => console.log('🔊 [SoundFX] Contexto de Audio reanudado (desbloqueado).')).catch(() => {});
             }
         } catch (_) {}
     }
@@ -45,7 +54,12 @@ export class SoundFX {
         if (this.isUnlockListenerAttached || typeof window === 'undefined') return;
         this.isUnlockListenerAttached = true;
         const unlock = () => {
+            console.log('🔊 [SoundFX] Intentando desbloquear audio por interacción de usuario...');
             SoundFX.unlockAudio();
+            window.removeEventListener('click', unlock, { capture: true } as any);
+            window.removeEventListener('keydown', unlock, { capture: true } as any);
+            window.removeEventListener('pointerdown', unlock, { capture: true } as any);
+            window.removeEventListener('touchstart', unlock, { capture: true } as any);
         };
         window.addEventListener('click', unlock, { capture: true, passive: true });
         window.addEventListener('keydown', unlock, { capture: true, passive: true });
@@ -55,7 +69,8 @@ export class SoundFX {
 
     private static saveSettings() {
         try {
-            localStorage.setItem('crazygo_audio_volume', this.masterVolume.toString());
+            localStorage.setItem('crazygo_audio_volume', this._masterVolume.toString());
+            localStorage.setItem('crazygo_audio_sfx_vol', this._sfxVolume.toString());
             localStorage.setItem('crazygo_audio_sfx', this.sfxEnabled.toString());
             localStorage.setItem('crazygo_audio_bgm', this.bgmEnabled.toString());
         } catch (_) {}
@@ -70,22 +85,38 @@ export class SoundFX {
                 const AudioCtx = window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
                 if (AudioCtx) {
                     this.ctx = new AudioCtx();
+                    console.log('🔊 [SoundFX] Contexto de Audio creado.');
                 }
             } catch (_) {}
         }
         if (this.ctx && this.ctx.state === 'suspended') {
-            this.ctx.resume().catch(() => {});
+            this.ctx.resume().then(() => console.log('🔊 [SoundFX] Contexto de Audio reanudado (desbloqueado).')).catch(() => {});
         }
         return this.ctx;
     }
 
     public static setMasterVolume(val: number) {
-        this.masterVolume = Math.max(0, Math.min(1, val));
+        this._masterVolume = Math.max(0, Math.min(1, val));
+        console.log(`🔊 [SoundFX] Master Volume actualizado a: ${this._masterVolume}`);
         this.saveSettings();
     }
 
+    public static getRawMasterVolume(): number {
+        return this._masterVolume;
+    }
+
+    public static setSFXVolume(val: number) {
+        this._sfxVolume = Math.max(0, Math.min(1, val));
+        console.log(`🔊 [SoundFX] SFX Volume actualizado a: ${this._sfxVolume}`);
+        this.saveSettings();
+    }
+
+    public static getSFXVolume(): number {
+        return this._sfxVolume;
+    }
+
     public static getMasterVolume(): number {
-        return this.masterVolume;
+        return this._masterVolume;
     }
 
     public static setSFXEnabled(val: boolean) {
@@ -1010,20 +1041,50 @@ export class SoundFX {
         if (!ctx) return;
 
         const now = ctx.currentTime;
-        const duration = 0.95;
+        const duration = 1.2;
 
-        // Campana tibetana sacrosanta (armónicos puros)
-        [440.0, 880.0, 1320.0, 2200.0].forEach((freq, idx) => {
+        // 1. Resonancia base de aura expandiéndose (Whoosh etéreo)
+        const auraOsc = ctx.createOscillator();
+        const auraFilter = ctx.createBiquadFilter();
+        const auraGain = ctx.createGain();
+
+        auraOsc.type = 'sine';
+        // Subida de frecuencia para dar sensación de materialización
+        auraOsc.frequency.setValueAtTime(120, now);
+        auraOsc.frequency.exponentialRampToValueAtTime(320, now + 0.3);
+
+        auraFilter.type = 'lowpass';
+        auraFilter.frequency.setValueAtTime(400, now);
+        auraFilter.frequency.exponentialRampToValueAtTime(1500, now + 0.5);
+        auraFilter.Q.value = 5;
+
+        auraGain.gain.setValueAtTime(0.001, now);
+        auraGain.gain.linearRampToValueAtTime(0.25 * this.masterVolume, now + 0.2);
+        auraGain.gain.exponentialRampToValueAtTime(0.001, now + duration);
+
+        auraOsc.connect(auraFilter);
+        auraFilter.connect(auraGain);
+        auraGain.connect(ctx.destination);
+        auraOsc.start(now);
+        auraOsc.stop(now + duration);
+
+        // 2. Campana tibetana sacrosanta (armónicos cristalinos resonantes)
+        const baseFreq = 523.25; // C5
+        [1, 1.5, 2, 2.5, 3].forEach((harmonic, idx) => {
             const osc = ctx.createOscillator();
             const gain = ctx.createGain();
+            
+            // Ligera desafinación para dar efecto de "shimmer" (brillo coral celestial)
+            const detune = idx % 2 === 0 ? 4 : -4;
+            osc.detune.value = detune;
 
             osc.type = idx === 0 ? 'sine' : 'triangle';
-            osc.frequency.setValueAtTime(freq, now);
+            osc.frequency.setValueAtTime(baseFreq * harmonic, now);
 
-            const baseGain = (0.35 / (idx + 1)) * this.masterVolume;
+            const baseVol = (0.28 / (idx + 1)) * this.masterVolume;
             gain.gain.setValueAtTime(0.001, now);
-            gain.gain.linearRampToValueAtTime(baseGain, now + 0.04);
-            gain.gain.exponentialRampToValueAtTime(0.0001, now + duration);
+            gain.gain.linearRampToValueAtTime(baseVol, now + 0.05 + (idx * 0.02));
+            gain.gain.exponentialRampToValueAtTime(0.0001, now + duration - (idx * 0.08));
 
             osc.connect(gain);
             gain.connect(ctx.destination);
@@ -1031,6 +1092,33 @@ export class SoundFX {
             osc.start(now);
             osc.stop(now + duration);
         });
+        
+        // 3. Brillo de polvo de estrellas (Ruido filtrado expansivo)
+        const bufferSize = Math.floor(ctx.sampleRate * 0.6);
+        const buffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
+        const data = buffer.getChannelData(0);
+        for (let i = 0; i < bufferSize; i++) {
+            data[i] = (Math.random() * 2 - 1) * Math.exp(-i / (bufferSize * 0.25));
+        }
+
+        const noise = ctx.createBufferSource();
+        noise.buffer = buffer;
+        
+        const noiseFilter = ctx.createBiquadFilter();
+        noiseFilter.type = 'bandpass';
+        noiseFilter.frequency.setValueAtTime(1500, now);
+        noiseFilter.frequency.exponentialRampToValueAtTime(6000, now + 0.35);
+        noiseFilter.Q.value = 2.5;
+
+        const noiseGain = ctx.createGain();
+        noiseGain.gain.setValueAtTime(0.001, now);
+        noiseGain.gain.linearRampToValueAtTime(0.18 * this.masterVolume, now + 0.15);
+        noiseGain.gain.exponentialRampToValueAtTime(0.001, now + 0.6);
+
+        noise.connect(noiseFilter);
+        noiseFilter.connect(noiseGain);
+        noiseGain.connect(ctx.destination);
+        noise.start(now);
     }
 
     /**

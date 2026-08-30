@@ -61,13 +61,13 @@
 | `champions/RoninChampion.ts` | Pasiva Filo del Samurai: elimina 1 piedra enemiga cada 20 turnos. |
 | `champions/HimikoChampion.ts` | Pasiva Lluvia Pétrea: N piedras aliadas en turno 20 personal. |
 | `champions/RyujinChampion.ts` | Pasiva Furia del Dragón: calcinación al formar dobles ojos. |
-| `champions/BossChampion.ts` | Gran Dragón Sabio Gris: Aliento Calcinante 25% de esquina. |
+| `champions/BossChampion.ts` | Gran Dragón Sabio Gris: Sin habilidades (Lucha limpia y brutal). |
 | `RoguelikeRunManager.ts` | Estado persistente del run: nodo actual, campeón, inventario, Komi permanente. |
 | `RogueliteManager.ts` | Hechizos consumibles: castSpell, addSpell, getSpells, rewind, meteor. |
 | `RoguelikeMapGenerator.ts` | Mapa roguelike procedural: tiers, tipos de nodo, rivales (Sabios, Monjes, Jefe). |
 | `PolyominoManager.ts` | Fichas poliminó: Germinante, Dominó (rotación R), Monolito. |
 | `AnalysisEngine.ts` | Análisis de posición para pista de mejor jugada (Ojo del Maestro). |
-| `BossManager.ts` | Pasivas del Jefe Final y Aliento Calcinante. |
+| `BossManager.ts` | Gestor del Jefe Final (Habilidades actualmente desactivadas por diseño). |
 | `StageHazardManager.ts` | Peligros ambientales de escenarios: Erupción volcánica cada 10 turnos en mapas de lava. |
 | `CombatLogManager.ts` | **Motor de Registro y Replays**: captura snapshots profundos, convierte coordenadas Go canónicas, exporta/importa `.cgo` y JSON. |
 | `DevModeManager.ts` | Modo desarrollador: undo libre, instant win, free map travel. |
@@ -76,11 +76,13 @@
 
 ---
 
-## Capa de IA (src/ai/)
+## Capa de IA (src/ai/ y ml_training/)
 
 | Archivo | Responsabilidad |
 |---|---|
-| `GoAI.worker.ts` | Web Worker del motor de IA. Mensajes: MOVE, SYNC, SYNC_UNDO. Arquitectura KataGo/KaTrain: Fuseki, Influencia/Moyo, Nakade, Minimax Alpha-Beta 3-ply. |
+| `GoAI.worker.ts` | Web Worker del motor de IA. Mensajes: CALCULATE_MOVE, SYNC, SYNC_UNDO. Conectado a `NeuralNetAdapter` con temperatura para rangos Kyu/Dan. |
+| `NeuralNetAdapter.ts` | Adaptador ONNX WebAssembly SIMD para CrazyGoNet (Policy, Value y Ownership). |
+| `docs/ai_wiki/ml_training_750k_report.md` | **Informe de Entrenamiento 750k**: Arquitectura Fully Convolutional, métricas de convergencia y logs de exportación. |
 
 ---
 

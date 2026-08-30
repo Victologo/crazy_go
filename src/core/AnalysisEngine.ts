@@ -16,16 +16,28 @@ export interface TacticalAnalysis {
 export class AnalysisEngine {
     private static cachedNeuralWinRates: { turn: number; winRates: Record<PlayerId, number> } | null = null;
 
+    private static isEvaluatingWinRate: boolean = false;
+
     /**
      * Actualiza el Winrate neuronal en background
      */
     public static async updateNeuralWinRate(board: GraphBoard, state: GameState): Promise<void> {
-        const evalResult = await NeuralNetAdapter.evaluate(board, state, state.currentPlayer);
-        if (evalResult && evalResult.winRates) {
-            this.cachedNeuralWinRates = {
-                turn: state.currentTurn,
-                winRates: evalResult.winRates
-            };
+        if (this.isEvaluatingWinRate) return;
+        
+        // Si ya tenemos el winrate de este turno, no recalcular
+        if (this.cachedNeuralWinRates && this.cachedNeuralWinRates.turn === state.currentTurn) return;
+
+        this.isEvaluatingWinRate = true;
+        try {
+            const evalResult = await NeuralNetAdapter.evaluate(board, state, state.currentPlayer);
+            if (evalResult && evalResult.winRates) {
+                this.cachedNeuralWinRates = {
+                    turn: state.currentTurn,
+                    winRates: evalResult.winRates
+                };
+            }
+        } finally {
+            this.isEvaluatingWinRate = false;
         }
     }
 
@@ -144,14 +156,19 @@ export class AnalysisEngine {
         const playerWinRates: Record<PlayerId, number> = {} as Record<PlayerId, number>;
         for (let i = 1; i <= state.playerCount; i++) {
             const p = i as PlayerId;
-            // Redondear a porcentaje, asegurando que sume 100 al final (compensando errores de redondeo si es necesario)
-            playerWinRates[p] = Math.round((exps[p] / expSum) * 100);
+            let rawPct = (exps[p] / expSum) * 100;
+            // En aperturas (primeros 8 turnos en 2P), suavizar para evitar 99%/1% artificiales por recuento en tablero casi vacío
+            if (state.playerCount === 2 && state.currentTurn <= 8) {
+                const alpha = Math.min(state.currentTurn / 8.0, 1.0);
+                const prior = p === 1 ? 49 : 51;
+                rawPct = (1 - alpha) * prior + alpha * rawPct;
+            }
+            playerWinRates[p] = Math.round(rawPct);
         }
         
         // Ajustar para que la suma sea exactamente 100
         let currentSum = Object.values(playerWinRates).reduce((a, b) => a + b, 0);
         if (currentSum !== 100 && state.playerCount > 0) {
-            // Dar/quitar la diferencia al que tiene mayor porcentaje
             let maxP = 1 as PlayerId;
             for (let i = 2; i <= state.playerCount; i++) {
                 if (playerWinRates[i as PlayerId] > playerWinRates[maxP]) maxP = i as PlayerId;

@@ -49,10 +49,11 @@ class ResBlock(nn.Module):
 
 class CrazyGoNet(nn.Module):
     """
-    CrazyGoNet: ResNet-12 with Policy, Value and Ownership heads.
-
+    CrazyGoNet: ResNet-12 with Fully Convolutional Policy, Value and Ownership heads.
+    This architecture is completely independent of the board size (N).
+    
     Args:
-        board_size:  Board dimension N (9, 13 or 19). Defaults to 9.
+        board_size:  Ignored (kept for backwards compatibility with scripts).
         in_channels: Number of input feature channels. Defaults to 16.
         res_blocks:  Number of residual blocks. Defaults to 12.
         filters:     Convolutional filter count. Defaults to 128.
@@ -63,14 +64,13 @@ class CrazyGoNet(nn.Module):
         self,
         board_size:  int = 9,
         in_channels: int = 16,
-        res_blocks:  int = 12,
-        filters:     int = 128,
+        res_blocks:  int = 16,
+        filters:     int = 192,
         n_players:   int = 2,
     ):
         super().__init__()
-        self.board_size = board_size
+        self.board_size = board_size # Kept only as metadata
         self.n_players  = n_players
-        n_cells = board_size * board_size
 
         # ── Input block ────────────────────────────────────────────────────────
         self.input_block = nn.Sequential(
@@ -82,24 +82,33 @@ class CrazyGoNet(nn.Module):
         # ── Residual tower ─────────────────────────────────────────────────────
         self.res_tower = nn.Sequential(*[ResBlock(filters) for _ in range(res_blocks)])
 
-        # ── Policy head ────────────────────────────────────────────────────────
-        # Outputs logits for each cell + 1 pass action
+        # ── Policy head (Fully Convolutional) ──────────────────────────────────
+        # Outputs logits for each cell independently of board size
         self.policy_conv = nn.Sequential(
             nn.Conv2d(filters, 2, 1, bias=False),
             nn.BatchNorm2d(2),
             nn.ReLU(inplace=True),
+            nn.Conv2d(2, 1, 1, bias=True) # 1 logit per cell
         )
-        self.policy_fc = nn.Linear(2 * n_cells, n_cells + 1)
-
-        # ── Value head ─────────────────────────────────────────────────────────
-        # Global average pool → FC → win probability per player
-        self.value_conv = nn.Sequential(
-            nn.Conv2d(filters, 1, 1, bias=False),
-            nn.BatchNorm2d(1),
+        
+        # Pass action head (Global Pooling)
+        self.pass_conv = nn.Sequential(
+            nn.Conv2d(filters, 2, 1, bias=False),
+            nn.BatchNorm2d(2),
             nn.ReLU(inplace=True),
+            nn.AdaptiveAvgPool2d(1), # [batch, 2, 1, 1]
+            nn.Flatten(1),
+            nn.Linear(2, 1) # 1 pass logit
         )
-        self.value_fc = nn.Sequential(
-            nn.Linear(n_cells, 256),
+
+        # ── Value head (Global Pooling) ────────────────────────────────────────
+        self.value_conv = nn.Sequential(
+            nn.Conv2d(filters, 8, 1, bias=False),
+            nn.BatchNorm2d(8),
+            nn.ReLU(inplace=True),
+            nn.AdaptiveAvgPool2d(1), # [batch, 8, 1, 1]
+            nn.Flatten(1),           # [batch, 8]
+            nn.Linear(8, 256),
             nn.ReLU(inplace=True),
             nn.Linear(256, n_players),
         )
@@ -135,27 +144,27 @@ class CrazyGoNet(nn.Module):
 
         Returns:
             dict with:
-              'policy':    [batch, N*N+1]  — raw logits (apply softmax for probs)
-              'value':     [batch, n_players] — win probabilities (sum to 1)
-              'ownership': [batch, 1, N, N]  — ownership map in [-1, +1]
+              'policy':    [batch, N*N+1]  — raw logits
+              'value':     [batch, n_players] — win probabilities
+              'ownership': [batch, 1, N, N]  — ownership map
         """
+        batch_size = x.size(0)
+        
         # Shared trunk
         h = self.input_block(x)
         h = self.res_tower(h)
 
         # Policy head
-        p = self.policy_conv(h)
-        p = p.flatten(1)                   # [batch, 2*N*N]
-        policy_logits = self.policy_fc(p)  # [batch, N*N+1]
+        p_board = self.policy_conv(h).view(batch_size, -1) # [batch, N*N]
+        p_pass  = self.pass_conv(h)                        # [batch, 1]
+        policy_logits = torch.cat([p_board, p_pass], dim=1) # [batch, N*N+1]
 
         # Value head
-        v = self.value_conv(h)
-        v = v.flatten(1)                           # [batch, N*N]
-        value_logits = self.value_fc(v)            # [batch, n_players]
+        value_logits = self.value_conv(h)                  # [batch, n_players]
         value_probs  = F.softmax(value_logits, dim=-1)
 
         # Ownership head
-        ownership = self.ownership_head(h)         # [batch, 1, N, N]
+        ownership = self.ownership_head(h)                 # [batch, 1, N, N]
 
         return {
             'policy':    policy_logits,

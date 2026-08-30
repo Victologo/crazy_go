@@ -7,6 +7,24 @@ import { ChampionManager } from '../core/ChampionManager';
 import { t, translateEnemyName, getLanguage } from '../i18n/i18n';
 
 export class DuelistRenderer {
+    public static formatRankDisplay(diff?: string): string {
+        if (!diff) return '15 Kyu';
+        const d = diff.toLowerCase().trim();
+        if (d === 'easy') return '25 Kyu';
+        if (d === 'medium' || d === 'normal') return '15 Kyu';
+        if (d === 'hard') return '5 Kyu';
+        if (d === 'extreme' || d === 'dan' || d === 'grandmaster') return '1 Dan';
+        if (d.endsWith('k')) {
+            const num = d.replace('k', '');
+            return `${num} Kyu`;
+        }
+        if (d.endsWith('d')) {
+            const num = d.replace('d', '');
+            return `${num} Dan`;
+        }
+        return diff;
+    }
+
     public static updateDuelists(
         isRoguelike: boolean,
         heroId?: HeroId,
@@ -46,7 +64,7 @@ export class DuelistRenderer {
         }
 
         // === MODO 2 JUGADORES, ROGUELIKE O 1v1 / 1vIA ===
-        this.render2PlayerDuelists(playerCard, enemyCard, multiEnemyCard, isRoguelike, heroId, node, gameMode, difficulty, aiHeroId, rivalImage, rivalName, rivalIcon);
+        this.render2PlayerDuelists(playerCard, enemyCard, multiEnemyCard, isRoguelike, heroId, node, gameMode, difficulty, state, aiHeroId, rivalImage, rivalName, rivalIcon);
     }
 
     private static render4PlayerDuelists(
@@ -75,7 +93,7 @@ export class DuelistRenderer {
 
         // Player 1 (Left Standee)
         let p1HeroId = heroId || 'normal';
-        let configEnemyHeroIds: Record<number, any> = enemyHeroIds || {};
+        const configEnemyHeroIds = enemyHeroIds || {};
 
         if (gameMode === 'online' && NetworkManager.currentConfig) {
             const hostColor = NetworkManager.currentConfig.hostColor || 1;
@@ -138,8 +156,10 @@ export class DuelistRenderer {
             
             if (nameEl) {
                 const champName = t(`champion.${hId}.name`) || enemyHero.name;
-                if (gameMode === '1via') {
-                    nameEl.innerText = hId === 'normal' ? `IA (P${pid})` : `${champName} (IA)`;
+                if (gameMode === '1via' || gameMode === 'aivsai') {
+                    const slotDiff = (state as any)?.config?.slots?.[pid]?.aiDifficulty || (state as any)?.config?.difficulty || '30k';
+                    const formattedDiff = DuelistRenderer.formatRankDisplay(slotDiff);
+                    nameEl.innerText = `${champName} (IA • ${formattedDiff})`;
                 } else {
                     nameEl.innerText = `${champName} (${t('hud.player_num', { num: pid })})`;
                 }
@@ -215,6 +235,7 @@ export class DuelistRenderer {
         node?: any,
         gameMode?: string,
         difficulty?: AIDifficulty,
+        state?: GameState,
         aiHeroId?: EnemyHeroId | null,
         rivalImage?: string,
         rivalName?: string,
@@ -225,10 +246,14 @@ export class DuelistRenderer {
         enemyCard.classList.remove('hidden');
 
         const roleTag = playerCard.querySelector('.duel-role-tag') as HTMLElement | null;
-        if (roleTag) roleTag.innerText = t('hud.role_you_champion');
+        if (roleTag) {
+            roleTag.innerText = gameMode === 'aivsai' ? '🤖 IA Negra (P1)' : t('hud.role_you_champion');
+        }
 
         const enemyRoleTag = enemyCard.querySelector('.duel-role-tag') as HTMLElement | null;
-        if (enemyRoleTag) enemyRoleTag.innerText = t('hud.role_rival');
+        if (enemyRoleTag) {
+            enemyRoleTag.innerText = gameMode === 'aivsai' ? '🤖 IA Blanca (P2)' : t('hud.role_rival');
+        }
 
         const activeHeroId = heroId || (isRoguelike ? 'normal' : null);
         playerCard.setAttribute('data-hero', activeHeroId || 'none');
@@ -269,7 +294,7 @@ export class DuelistRenderer {
             const eRank = document.getElementById('duel-enemy-rank');
 
             const bConfig = node?.battleConfig;
-            if (eImg) eImg.src = bConfig?.enemyImage || './enemies/monk_1.png';
+            if (eImg) eImg.src = bConfig?.enemyImage || './enemies/sage_1.png';
             if (eIcon) eIcon.innerText = bConfig?.enemyIcon || '🧘';
             if (eName) eName.innerText = translateEnemyName(bConfig?.enemyName || t('hud.player_rival'));
             if (eRank) {
@@ -325,23 +350,15 @@ export class DuelistRenderer {
             const eRank = document.getElementById('duel-enemy-rank');
 
             const randomMonks = [
-                { name: 'Joven Ren', image: './enemies/monk_1.png', icon: '🧘', rank: '30 Kyu' },
-                { name: 'Joven Hiro', image: './enemies/monk_2.png', icon: '🧘', rank: '28 Kyu' },
-                { name: 'Joven Sora', image: './enemies/monk_3.png', icon: '🧘', rank: '25 Kyu' },
-                { name: 'Joven Daiki', image: './enemies/monk_4.png', icon: '🧘', rank: '22 Kyu' },
-                { name: 'Joven Kazuki', image: './enemies/monk_5.png', icon: '🧘', rank: '20 Kyu' }
+                { name: 'Monje Sabio', image: './enemies/sage_1.png', icon: '📜', rank: '30 Kyu' }
             ];
 
             const randomSages = [
-                { name: 'Kenshin el Sabio', image: './enemies/sage_1.png', icon: '📜', rank: '16 Kyu' },
-                { name: 'Nobunaga el Sabio', image: './enemies/sage_2.png', icon: '📜', rank: '14 Kyu' },
-                { name: 'Masashi el Sabio', image: './enemies/sage_3.png', icon: '📜', rank: '12 Kyu' },
-                { name: 'Tetsuo el Sabio', image: './enemies/sage_4.png', icon: '📜', rank: '10 Kyu' },
-                { name: 'Genzaburo el Sabio', image: './enemies/sage_5.png', icon: '📜', rank: '8 Kyu' }
+                { name: 'Monje Sabio', image: './enemies/sage_1.png', icon: '📜', rank: '10 Kyu' }
             ];
 
-            const chosenSage = randomSages[Math.floor(Math.random() * randomSages.length)];
-            const chosenMonk = randomMonks[Math.floor(Math.random() * randomMonks.length)];
+            const chosenSage = randomSages[0];
+            const chosenMonk = randomMonks[0];
 
             let aiImage = chosenSage.image;
             let aiIcon = chosenSage.icon;
@@ -349,17 +366,18 @@ export class DuelistRenderer {
             let aiRank = chosenSage.rank;
 
             // Si el caller provee imagen/nombre de rival (monje o sabio elegido en setup), usarlos directamente
+            const formattedDiff = DuelistRenderer.formatRankDisplay(difficulty);
             if (rivalImage) {
                 aiImage = rivalImage;
                 aiIcon = rivalIcon || '🧘';
                 aiName = rivalName || 'Rival';
-                aiRank = difficulty === 'easy' ? '25 Kyu' : '16 Kyu';
+                aiRank = formattedDiff;
                 enemyCard.setAttribute('data-hero', 'none');
             } else if (aiHeroId === 'boss' || (difficulty as any) === 'dan') {
                 aiImage = './enemies/boss.png';
                 aiIcon = '👑';
                 aiName = `🐉 ${t('champion.boss.name')}`;
-                aiRank = '2 Dan Pro';
+                aiRank = formattedDiff.includes('Dan') ? formattedDiff : '9 Dan';
                 enemyCard.setAttribute('data-hero', 'boss');
             } else if (aiHeroId && aiHeroId !== 'normal') {
                 const oppHero = RoguelikeRunManager.HEROES[aiHeroId as HeroId];
@@ -367,21 +385,23 @@ export class DuelistRenderer {
                     aiImage = oppHero.image;
                     aiIcon = oppHero.icon;
                     aiName = t(`champion.${aiHeroId}.name`) || oppHero.name;
-                    aiRank = (difficulty as any) === 'dan' ? '2 Dan Pro' : (difficulty === 'hard' ? '4 Kyu' : (difficulty === 'medium' ? '16 Kyu' : '25 Kyu'));
+                    aiRank = formattedDiff;
                     enemyCard.setAttribute('data-hero', aiHeroId);
                 }
             } else if (difficulty === 'easy') {
                 aiImage = chosenMonk.image;
                 aiIcon = chosenMonk.icon;
                 aiName = chosenMonk.name;
-                aiRank = chosenMonk.rank;
+                aiRank = formattedDiff;
                 enemyCard.setAttribute('data-hero', 'none');
             } else if (difficulty === 'hard') {
                 aiImage = chosenSage.image;
                 aiIcon = chosenSage.icon;
                 aiName = chosenSage.name;
-                aiRank = chosenSage.rank;
+                aiRank = formattedDiff;
                 enemyCard.setAttribute('data-hero', 'none');
+            } else {
+                aiRank = formattedDiff;
             }
 
             if (eImg) {
@@ -445,7 +465,7 @@ export class DuelistRenderer {
                     }
                 }
             } else {
-                // 1v1 Local Mode
+                // 1v1 Local Mode or AI vs AI
                 const p1HeroId = heroId || 'normal';
                 const p1Hero = RoguelikeRunManager.HEROES[p1HeroId] || RoguelikeRunManager.HEROES['normal'];
                 if (pImg && p1Hero) {
@@ -453,8 +473,31 @@ export class DuelistRenderer {
                     pImg.classList.toggle('hero-normal-img', p1HeroId === 'normal');
                 }
                 if (pIcon && p1Hero) pIcon.innerText = p1Hero.icon;
-                if (pName && p1Hero) pName.innerText = `${t(`champion.${p1HeroId}.name`) || p1Hero.name} (${t('hud.player_num', { num: 1 })})`;
-                if (pTitle) pTitle.innerText = t('hud.player_black');
+                if (pName && p1Hero) {
+                    const champName = t(`champion.${p1HeroId}.name`) || p1Hero.name;
+                    pName.innerText = gameMode === 'aivsai' ? `${champName} (IA P1)` : `${champName} (${t('hud.player_num', { num: 1 })})`;
+                }
+                
+                const cfg = (state as any)?.config || (window as any).GameController?.config;
+                const pSub = document.getElementById('duel-player-sub');
+                if (gameMode === 'aivsai') {
+                    const p1Diff = cfg?.slots?.[1]?.aiDifficulty || cfg?.difficulty || difficulty || '30k';
+                    const formattedP1Diff = DuelistRenderer.formatRankDisplay(p1Diff);
+                    if (pSub) {
+                        pSub.innerText = `⚫ ${t('hud.turn_black')} • ${formattedP1Diff}`;
+                        pSub.classList.remove('hidden');
+                    }
+                } else {
+                    if (pSub) {
+                        const isEn = getLanguage() === 'en';
+                        if (p1HeroId === 'normal') {
+                            pSub.innerText = isEn ? '2 Rewinds' : '2 Rebobinares';
+                            pSub.classList.remove('hidden');
+                        } else {
+                            pSub.classList.add('hidden');
+                        }
+                    }
+                }
 
                 const p2HeroId = (aiHeroId as HeroId) || (rivalName ? 'normal' : 'normal');
                 const p2Hero = RoguelikeRunManager.HEROES[p2HeroId] || RoguelikeRunManager.HEROES['normal'];
@@ -463,18 +506,21 @@ export class DuelistRenderer {
                     eImg.classList.toggle('hero-normal-img', p2HeroId === 'normal');
                 }
                 if (eIcon && p2Hero) eIcon.innerText = rivalIcon || p2Hero.icon;
-                if (eName && p2Hero) eName.innerText = rivalName ? translateEnemyName(rivalName) : `${t(`champion.${p2HeroId}.name`) || p2Hero.name} (${t('hud.player_num', { num: 2 })})`;
-                if (eRank) eRank.innerText = t('hud.player_white');
-
-                const pSub = document.getElementById('duel-player-sub');
-                if (pSub) {
-                    const isEn = getLanguage() === 'en';
-                    if (p1HeroId === 'normal') {
-                        pSub.innerText = isEn ? '2 Rewinds' : '2 Rebobinares';
-                        pSub.classList.remove('hidden');
+                if (eName && p2Hero) {
+                    const champName = t(`champion.${p2HeroId}.name`) || p2Hero.name;
+                    if (rivalName) {
+                        eName.innerText = translateEnemyName(rivalName);
+                    } else if (gameMode === 'aivsai') {
+                        eName.innerText = `${champName} (IA P2)`;
                     } else {
-                        pSub.classList.add('hidden');
+                        eName.innerText = `${champName} (${t('hud.player_num', { num: 2 })})`;
                     }
+                }
+                if (gameMode === 'aivsai') {
+                    const p2Diff = cfg?.slots?.[2]?.aiDifficulty || cfg?.difficulty || difficulty;
+                    if (eRank) eRank.innerText = `⚪ ${t('hud.turn_white')} • ${DuelistRenderer.formatRankDisplay(p2Diff)}`;
+                } else {
+                    if (eRank) eRank.innerText = t('hud.player_white');
                 }
             }
         }

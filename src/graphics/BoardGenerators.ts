@@ -8,8 +8,9 @@ export class BoardGenerators {
     /**
      * Generador Principal por Forma y Tamaño
      */
-    static generate(board: GraphBoard, shape: BoardShape, size: BoardSize, seed?: number): void {
+    static generate(board: GraphBoard, shape: BoardShape, size: BoardSize): void {
         board.shape = shape;
+        board.size = size;
         switch (shape) {
             case 'square':
                 this.generateSquareGrid(board, size);
@@ -62,246 +63,13 @@ export class BoardGenerators {
             case 'star_6':
                 this.generateStar6Grid(board, size);
                 break;
-            case 'procedural':
-                this.generateProceduralGrid(board, size, seed);
-                break;
             default:
                 this.generateSquareGrid(board, size);
                 break;
         }
     }
 
-    /**
-     * Generador Procedural Infinito de Topologías Orgánicas
-     * Crea topologías infinitas únicas con reglas de conectividad estricta, cuellos de botella y archipiélagos.
-     */
-    static generateProceduralGrid(board: GraphBoard, size: number = 9, seed?: number): void {
-        const spacing = size === 19 ? 28 : size === 13 ? 36 : 46;
-        const starPoints = this.getStarPoints(size);
 
-        // Generador pseudoaleatorio basado en semilla
-        let s = (seed !== undefined ? seed : Math.floor(Math.random() * 9999999)) + 1;
-        const random = () => {
-            s = (s * 9301 + 49297) % 233280;
-            return s / 233280;
-        };
-
-        const archetype = Math.floor(random() * 8);
-        const excluded = new Set<string>();
-        const center = (size - 1) / 2;
-
-        if (archetype === 0) {
-            // Estilo 0: Anillos Concéntricos y Puertas Celestiales (Concentric Rings & Radial Bridges)
-            const ring1 = size === 9 ? 1.5 : size === 13 ? 2.5 : 3.8;
-            const ring2 = size === 9 ? 3.4 : size === 13 ? 4.8 : 7.2;
-            for (let r = 0; r < size; r++) {
-                for (let c = 0; c < size; c++) {
-                    const d = Math.hypot(c - center, r - center);
-                    const isRadialBridge = Math.abs(c - r) <= 0.6 || Math.abs(c + r - (size - 1)) <= 0.6 || Math.abs(c - center) <= 0.6 || Math.abs(r - center) <= 0.6;
-                    const inRing1 = Math.abs(d - ring1) <= 0.8;
-                    const inRing2 = Math.abs(d - ring2) <= 0.9;
-                    const isCenter = d <= 0.8;
-                    if (!isCenter && !inRing1 && !inRing2 && !isRadialBridge) {
-                        excluded.add(`${c},${r}`);
-                    }
-                }
-            }
-        } else if (archetype === 1) {
-            // Estilo 1: Galaxia Espiral Doble (Twin Spiral Galaxy Arms)
-            for (let r = 0; r < size; r++) {
-                for (let c = 0; c < size; c++) {
-                    const d = Math.hypot(c - center, r - center);
-                    const angle = Math.atan2(r - center, c - center);
-                    const spiral1 = Math.abs(d - (angle * 1.2 + 2.5));
-                    const spiral2 = Math.abs(d - ((angle + Math.PI) * 1.2 + 2.5));
-                    const isCore = d <= 1.2;
-                    const isConnector = (r % 3 === 0 && d < size * 0.45);
-                    if (!isCore && spiral1 > 0.85 && spiral2 > 0.85 && !isConnector) {
-                        excluded.add(`${c},${r}`);
-                    }
-                }
-            }
-        } else if (archetype === 2) {
-            // Estilo 2: Reloj de Arena Cuántico (Quantum Hourglass & Vortex)
-            for (let r = 0; r < size; r++) {
-                for (let c = 0; c < size; c++) {
-                    const dx = Math.abs(c - center);
-                    const dy = Math.abs(r - center);
-                    const maxAllowedX = dy * 0.9 + 0.8;
-                    const isCentralChokepoint = dy <= 1.0 && dx <= 1.0;
-                    if (dx > maxAllowedX && !isCentralChokepoint) {
-                        excluded.add(`${c},${r}`);
-                    }
-                }
-            }
-        } else if (archetype === 3) {
-            // Estilo 3: Tridente / Ypsilon Sagrada (Mystic Tri-Branch Sanctuary)
-            for (let r = 0; r < size; r++) {
-                for (let c = 0; c < size; c++) {
-                    const d = Math.hypot(c - center, r - center);
-                    const angle = Math.atan2(r - center, c - center);
-                    const branchDistance = Math.min(
-                        Math.abs(Math.sin(angle * 1.5)),
-                        Math.abs(Math.sin(angle * 1.5 + Math.PI / 3))
-                    );
-                    const isSanctuary = d <= 1.4;
-                    const onBranch = branchDistance < 0.35 && d <= (size * 0.48);
-                    if (!isSanctuary && !onBranch) {
-                        excluded.add(`${c},${r}`);
-                    }
-                }
-            }
-        } else if (archetype === 4) {
-            // Estilo 4: Diamante Fractal con Geoda Hueca (Fractured Hollow Diamond)
-            const maxRadius = (size - 1) / 2 + 0.2;
-            for (let r = 0; r < size; r++) {
-                for (let c = 0; c < size; c++) {
-                    const manhattan = Math.abs(c - center) + Math.abs(r - center);
-                    const d = Math.hypot(c - center, r - center);
-                    const isOutside = manhattan > maxRadius * 1.25;
-                    const isHollowCenter = d < (size === 9 ? 1.6 : size === 13 ? 2.4 : 3.6);
-                    const isCrossBridge = Math.abs(c - center) <= 0.6 || Math.abs(r - center) <= 0.6;
-                    if (isOutside || (isHollowCenter && !isCrossBridge)) {
-                        excluded.add(`${c},${r}`);
-                    }
-                }
-            }
-        } else if (archetype === 5) {
-            // Estilo 5: Archipiélago de Atolones Flotantes (Floating Atolls with Chokepoints)
-            const numIslands = size === 9 ? 3 : 4;
-            const islandCenters: [number, number][] = [];
-            for (let i = 0; i < numIslands; i++) {
-                islandCenters.push([
-                    Math.floor(random() * (size - 4)) + 2,
-                    Math.floor(random() * (size - 4)) + 2
-                ]);
-            }
-
-            for (let r = 0; r < size; r++) {
-                for (let c = 0; c < size; c++) {
-                    let minD = 999;
-                    for (const [ic, ir] of islandCenters) {
-                        const d = Math.hypot(c - ic, r - ir);
-                        if (d < minD) minD = d;
-                    }
-                    const maxR = size === 9 ? 2.2 : size === 13 ? 3.0 : 4.5;
-                    const isBridge = (r === Math.floor(center) && c % 2 === 0) || (c === Math.floor(center) && r % 2 === 0);
-                    if (minD > maxR && !isBridge) {
-                        excluded.add(`${c},${r}`);
-                    }
-                }
-            }
-        } else if (archetype === 6) {
-            // Estilo 6: Cañón Asimétrico Zig-Zag (Meandering Canyon)
-            const slant = random() > 0.5 ? 1 : -1;
-            const canyonWidth = size === 9 ? 1.4 : 2.0;
-            for (let r = 0; r < size; r++) {
-                for (let c = 0; c < size; c++) {
-                    const wave = Math.sin(r * 0.8) * 1.5;
-                    const val = slant === 1 ? (c - r + wave) : (c + r - (size - 1) + wave);
-                    if (Math.abs(val) < canyonWidth) {
-                        const isSteppingStone = (r % 3 === 0) && (c % 2 === 0);
-                        if (!isSteppingStone) {
-                            excluded.add(`${c},${r}`);
-                        }
-                    }
-                }
-            }
-        } else {
-            // Estilo 7: Costa Orgánica Perlin Caótica (Chaotic Organic Coastline)
-            for (let r = 0; r < size; r++) {
-                for (let c = 0; c < size; c++) {
-                    const distToCorner1 = c + r;
-                    const distToCorner2 = (size - 1 - c) + r;
-                    const distToCorner3 = c + (size - 1 - r);
-                    const distToCorner4 = (size - 1 - c) + (size - 1 - r);
-                    const minDist = Math.min(distToCorner1, distToCorner2, distToCorner3, distToCorner4);
-                    
-                    const noise = Math.sin(c * 0.9) * Math.cos(r * 0.9) * 2.5 + random() * 1.2;
-                    const threshold = size === 9 ? 1.6 : size === 13 ? 2.8 : 4.2;
-                    if (minDist + noise < threshold) {
-                        excluded.add(`${c},${r}`);
-                    }
-                }
-            }
-        }
-
-        // Crear Nodos válidos provisionales
-        for (let row = 0; row < size; row++) {
-            for (let col = 0; col < size; col++) {
-                const id = `${col},${row}`;
-                if (excluded.has(id)) continue;
-
-                const x = col * spacing;
-                const y = row * spacing;
-                const isStar = starPoints.has(id);
-                board.addNode(id, x, y, isStar);
-            }
-        }
-
-        // Conectar aristas ortogonales
-        this.connectOrthogonalEdges(board, size);
-
-        // Filtro de Conectividad Estricta: Eliminar componentes disconexas y nodos con < 2 vecinos
-        this.pruneDisconnectedComponents(board, size);
-    }
-
-    /**
-     * Garantiza que todo el grafo del tablero sea un único componente conexo jugable
-     */
-    private static pruneDisconnectedComponents(board: GraphBoard, size: number): void {
-        if (board.nodes.size === 0) {
-            this.generateSquareGrid(board, size);
-            return;
-        }
-
-        const visited = new Set<string>();
-        const components: Set<string>[] = [];
-
-        for (const nodeId of board.nodes.keys()) {
-            if (visited.has(nodeId)) continue;
-
-            const comp = new Set<string>();
-            const queue = [nodeId];
-            visited.add(nodeId);
-
-            while (queue.length > 0) {
-                const cur = queue.shift()!;
-                comp.add(cur);
-                const node = board.nodes.get(cur);
-                if (node) {
-                    for (const nbr of node.neighbors) {
-                        if (!visited.has(nbr)) {
-                            visited.add(nbr);
-                            queue.push(nbr);
-                        }
-                    }
-                }
-            }
-            components.push(comp);
-        }
-
-        components.sort((a, b) => b.size - a.size);
-        const mainComponent = components[0];
-
-        if (mainComponent.size < Math.floor(size * size * 0.4)) {
-            board.nodes.clear();
-            this.generateSquareGrid(board, size);
-            return;
-        }
-
-        for (const nodeId of Array.from(board.nodes.keys())) {
-            if (!mainComponent.has(nodeId)) {
-                const node = board.nodes.get(nodeId);
-                if (node) {
-                    for (const nbr of node.neighbors) {
-                        board.nodes.get(nbr)?.neighbors.delete(nodeId);
-                    }
-                }
-                board.nodes.delete(nodeId);
-            }
-        }
-    }
 
     /**
      * Tablero Volcánico (9x9, 13x13, 19x19)
@@ -327,6 +95,7 @@ export class BoardGenerators {
      * Cuadrícula clásica de Go (9x9, 13x13, 19x19) con puntos Hoshi
      */
     static generateSquareGrid(board: GraphBoard, size: number = 9): void {
+        board.size = size;
         const spacing = size === 19 ? 28 : size === 13 ? 36 : size === 9 ? 46 : 56;
         
         // Puntos Hoshi

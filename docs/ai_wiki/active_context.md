@@ -1,15 +1,191 @@
 # Estado Activo (Active Context)
 
-## Version Actual: Fase 105 - 
-290. [x] **Selector Maestro y Granular de Dificultad (30k a 9d)** (Completado)
-291. [x] **Modo Espectador / Arena IA vs IA** (Completado)
-292. [x] **Traducción Etiquetas Asistente Local** (Completado)
-293. [x] **Integración de Menú Social/Amigos** (Completado)
-294. [ ] **Recolección de modelos ONNX (Fase 5) y Modelos Kyu (Fases 1,2,3)** (Pendiente) - Asignar redes neuronales infantiles para erradicar las heurísticas Minimax en principiantes (28 Agosto 2026)
+## Version Actual: Fase 105 - Red Neuronal AlphaZero Universal 750k Steps & Centrado Topológico del Mapa Roguelike
+290. [x] **Entrenamiento Fase 4 + 5 (750.000 Pasos - GPU RTX 4070 Ti SUPER)** (Completado)
+291. [x] **Arquitectura Universal Fully Convolutional (Elastic Board Dimensions)** (Completado)
+292. [x] **Selector Maestro y Granular de Dificultad (30k a 9d)** (Completado)
+293. [x] **Modo Espectador / Arena IA vs IA** (Completado)
+294. [x] **Exportación ONNX 750k e Integración en Producción** (Completado) - Modelos FP32 y Web FP16 copiados e integrados en `public/models/`.
+299. [x] **Centrado Topológico del Mapa Roguelike (Columnas 2 y 3)** (Completado) - Rutas procedurales centradas en el eje 50%, bifurcación simétrica y convergencia armónica al Boss.
 
 **Hitos Recientes:**
 
-### Sesión Actual (Sesiones 154 y 155 — Parches Granulares, Rompedor de Simetría y Roadmap Kyu)
+### Sesión Actual (Sesión 172 — Erradicación de Cascada Exponencial de Turnos y Soporte Universal de Tableros 13x13/19x19 en la Red)
+- **Corrección de Truncamiento a 9x9 en Tableros Grandes (`BoardGenerators.ts`, `NeuralNetAdapter.ts`)**:
+  - **Causa Raíz:** `BoardGenerators.generate` no asignaba `board.size = size`. Al quedar `board.size` en `undefined`, `NeuralNetAdapter.ts` caía en el fallback por defecto `N = 9`. En tableros 19x19 y 13x13, la red solo procesaba las celdas con `col < 9 && row < 9` (el cuadrante superior izquierdo), quedando completamente ciega a las otras 300 intersecciones del tablero 19x19.
+  - **Solución:** Asignado `board.size = size` en `BoardGenerators.generate` y `generateSquareGrid`, y añadido cálculo dinámico de `N = maxCoord + 1` en `NeuralNetAdapter.ts` como salvaguarda incondicional.
+- **Erradicación de la Cascada Exponencial de Turnos ($2^N$) (`GameController.ts`, `AITurnManager.ts`)**:
+  - **Causa Raíz:** Cada turno de IA disparaba `this.checkAITurn()` en el callback `afterAction` y simultáneamente en el `setTimeout` interno tras colocar la piedra, duplicando el número de hilos de cálculo en cada movimiento ($1 \to 2 \to 4 \to 8 \to 16 \dots$).
+  - **Solución:** Implementado mutex estricto `isAITurnProcessing` en `GameController.ts` y cancelación de timers previos.
+- **Sincronización de Progreso de Turno y Última Jugada (`GoAI.worker.ts`, `AITurnManager.ts`)**:
+  - `CALCULATE_MOVE` ahora envía `currentTurn` y `lastMoveNodeId` al Web Worker para alimentar los canales 7 y 15 de la red.
+  - Limpieza rigurosa de listeners en `AITurnManager` para evitar memory leaks.
+
+### Sesión Anterior (Sesión 171 — Ocultación del Modo Historia para Release 1.0)
+- **Ocultación temporal del Modo Historia (Story Mode)**:
+  - Se modificó `index.html` para aplicar `display: none;` al botón del Modo Historia (`#btn-menu-story`).
+  - Esto obedece a la decisión de mantener el Modo Historia fuera del build 1.0 (orientado a la funcionalidad de la IA y Roguelike), dejándolo planificado como una actualización mayor para la versión 2.0.
+
+### Sesión Anterior (Sesión 170 — Reparación Crítica de Inversión de Coordenadas X/Y en Adaptador Neuronal)
+- **Descubrimiento y Corrección del Bug de Transposición de Coordenadas (`NeuralNetAdapter.ts`)**:
+  - **Causa Raíz:** En todo el motor de Crazy Go, los `nodeId` se generan como `${col},${row}` (ej. `"col,row"` donde `parts[0]` es la columna $X$ y `parts[1]` es la fila $Y$). Sin embargo, `NeuralNetAdapter.ts` asignaba `r = parts[0]` y `c = parts[1]`, invirtiendo completamente los ejes fila y columna (`col * N + row` en vez de `row * N + col`).
+  - **Efecto:** La Red Neuronal recibía todo el tablero reflejado diagonalmente ($x \leftrightarrow y$) y sus jugadas calculadas se colocaban también transpuestas, haciendo que un 10 Dan jugara completamente a ciegas respecto a las posiciones reales.
+  - **Corrección:** Corregido el mapeo para asignar estrictamente `col = parts[0]`, `row = parts[1]` y la indexación canónica `row * N + col` en todos los canales de entrada (piedras, libertades, ataris, máscara, última jugada), en la lectura de logits de la *Policy Head* y en el mapa de *Ownership*.
+  - Compilación exitosa en 1.30s.
+
+### Sesión Anterior (Sesión 169 — Limpieza de Assets Obsoletos de Enemigos)
+- **Eliminación de Imágenes en \public/enemies/\**:
+  - Eliminados todos los monjes y sabios sin uso: \monk.png\, \monk_1.png\ a \monk_5.png\, y \sage_2.png\ a \sage_5.png\.
+  - La carpeta ahora contiene exclusivamente los 3 assets en activo: \oss.png\, \sage_1.png\ y \spirit_1.png\.
+  - Limpieza de referencias residuales y botones duplicados en \DuelistRenderer.ts\ y \modal-local-setup.html\.
+
+### Sesión Anterior (Sesión 168 — Calibración Canónica de Política Neuronal, Supresión de Llenado de Ojos y Visibilidad de Rango P1)
+- **Corrección de Rango de P1 en IA vs IA (`DuelistRenderer.ts`)**:
+  - `duel-player-sub` ahora muestra correctamente el rango de P1 (`⚫ Turn: Black • 10 Dan`) en modo IA vs IA en lugar de sobreescribirlo con "2 Rewinds".
+- **Blindaje de Decisión de Pases y Fin de Partida (`NeuralNetAdapter.ts`, `GoAI.worker.ts`)**:
+  - Se erradicó la condición restrictiva `passProb > bestProb && bestProb < 0.05` que impedía a la IA pasar mientras hubiese cualquier casilla con $\ge 5\%$ de logit residual.
+  - La acción `PASS` ahora forma parte del pool de muestreo proporcional ponderado con temperatura, permitiendo que niveles Kyu e IAs en general pasen naturalmente en turnos 35-50 cuando el territorio está asegurado, erradicando partidas infinitas de 100+ turnos en 9x9.
+- **Protección Canónica contra Autodestrucción de Ojos Propios (`board.isTrueEye`)**:
+  - Tanto el argmax puro (Dan) como el muestreo estocástico (Kyu) comprueban `!board.isTrueEye(id, playerId)` antes de considerar un movimiento, impidiendo que la IA rellene sus propios ojos vitales.
+- **Estabilidad Numérica de Softmax y Validación Canónica de Reglas**:
+  - Implementada resta de `maxLogit` previa a la exponenciación para prevenir desbordamientos numéricos.
+  - Comprobación incondicional de `RulesEngine.isMoveLegal` en la selección de la Policy Head.
+- **Curva de Temperatura Calibrada por Rango**:
+  - $10d \to T=0.0$ (Argmax puro 100% de la red 750k).
+  - $1d \to T=0.20$.
+  - $10k \to T=0.50$.
+  - $30k \to T=0.95$ (con filtrado de ojos y ruido).
+
+### Sesión Anterior (Sesión 167 — Reparación de Interfaz de Opciones y Refinamiento CSS)
+- **Corrección Estructural en HTML (Step 4 & Step 3 Bug)**:
+  - Detectada y solucionada una fuga estructural en modal-local-setup.html donde múltiples etiquetas </div> prematuras sacaban al #setup-champion-container-split fuera de su contenedor lógico (wizard-step-4).
+  - Al estar fuera del nodo que se ocultaba dinámicamente, este panel aparecía por error en el Paso 3 (Tableros) flotando en la parte inferior. Ahora está estrictamente encapsulado y solo se revela en el Paso 4.
+  - Aplicada correctamente la clase setup-split-ai-col a P1 y P2 para homogeneizar el padding y aspecto general (antes tenían estilos inline que rompían el grid de 4 jugadores).
+
+- **Rediseño Granular Adaptativo (Modo 4 Jugadores & IA vs IA)**:
+  - En el selector de dificultad individual de IA (Granular Mode), se retiró el diseño en cascada (1 columna) que ocupaba demasiado espacio vertical.
+  - Implementado #ai-granular-grid-container controlado mediante clases dinámicas (.grid-1, .grid-2, .grid-3, .grid-4).
+  - Ahora, en partidas de 4 jugadores (3 bots IA), las barras de dificultad se agrupan en una limpia matriz 2x2. En IA vs IA, se emparejan a lado y lado en 1 fila de 2 columnas. Y para 1vIA, se muestra como 1 fila de 1 columna.
+
+### Sesión Anterior (Sesión 166 — Cuadrícula 4-Jugadores y Monje Sabio en Local Setup)
+- **Cuadrícula Compacta de 4 Paneles en Asistente (Local Setup, Paso 4)**:
+  - Activada la clase .four-players sobre #setup-champion-container-split para organizar la selección de campeones en un layout simétrico 2x2.
+  - Habilitados los listeners en SetupEventBinder.ts para navegar por las opciones (Prev/Next/Thumbnail) de los campeones P3 y P4, modificando directamente config.enemyHeroIds[3] y config.enemyHeroIds[4].
+  - Corregido el flujo del Jugador 2 (P2) para que también sincronice su selección sobre config.enemyHeroIds[2] durante el modo 4-Jugadores.
+- **Previsualización de Combate a 4 Bandas (Local Setup, Paso 5)**:
+  - Modificado #wizard-scenery-stage-viewport y el archivo setup.css para soportar una cuadrícula .four-players dinámica de 5 columnas.
+  - Sincronizados y visualizados los *standees* (figuras de cartón) de P3 y P4 sobre el escenario junto a P1 y P2.
+- **Incorporación Definitiva del "Monje Sabio" (sage)**:
+  - Eliminados los monjes redundantes y añadido el 'sage' maestro al array heroes y 
+ivalList para que cualquier jugador (P1, P2, P3 o P4) pueda seleccionarlo normalmente en el carrusel de campeones, jugando partidas canónicas sin habilidades (Pure Go).
+
+### Sesión Anterior (Sesión 165 — Reparación Crítica de Arquitectura del Motor de IA (El Bug de la IA Lobotomizada))
+- **Reconexión del Worker de Red Neuronal (CrazyGoNet) al Bucle Principal (`GameController.ts`, `AITurnManager.ts`)**:
+  - **Problema**: Tras refactorizaciones previas, `GameController.checkAITurn()` estaba llamando sincrónicamente a `GoAI.getBestMove()`, que utilizaba puramente heurísticas de Flood Fill y formas preprogramadas, ignorando por completo el modelo ONNX. Esto causaba que jefes de alto nivel (como *Masashi el Sabio 7d*) jugaran formas pésimas (como triángulos apelotonados sin vida) y fueran derrotados fácilmente.
+  - **Solución**: Se eliminó el uso de `GoAI.getBestMove` en el hilo principal como primera opción. En su lugar, se hizo público y se invocó de forma asíncrona a `AITurnManager.calculateMoveAsync()`, lo que reconecta el bucle de juego con `GoAI.worker.ts` y restaura el poder de evaluación del modelo CrazyGoNet ONNX (750k pasos).
+  - La inicialización del worker (`AITurnManager.initWorker()`) ahora se gestiona y propaga correctamente en `GameController.initGame()` mediante la lectura de `config`.
+  - Se corrigió el error de tipado de `sage` que impedía la compilación en `RoguelikeRunManager.ts`.
+
+### Sesión Anterior (Sesión 164 — Reestructuración de Fase de Disputa Opcional)
+- **Fase de Disputa Opcional y Directa al Modal (GameState.ts, ScoreModalRenderer.ts, GameEventBinder.ts)**:
+  - Se eliminó la interrupción obligatoria de la Fase de Disputa cuando los jugadores pasan turno. Ahora, si ambos pasan, el juego asume el conteo automático y termina la partida directamente mostrando el modal de puntuación final.
+  - Se añadió un botón **[⚖️ Disputar]** en el modal de puntuación (oculto en partidas IA vs IA).
+  - Si un jugador humano no está conforme con el conteo, puede pulsar el botón para regresar al tablero (isScoringPhase = true), marcar los grupos muertos manualmente y volver a aceptar.
+  - Corrección en el botón **Reanudar** (HUDController.ts): Llama a handlePass(true) para reiniciar correctamente el flujo de turnos y despertar a la IA si es necesario.
+
+### Sesión Anterior (Sesión 162 — Centrado Dinámico Universal por Tier y Progresión Directa Inicial del Mapa Roguelike)
+- **Centrado Dinámico Universal por Tier (`getTierXPositions` en `RoguelikeMapGenerator.ts`)**:
+  - Implementado algoritmo matemático que calcula las posiciones $X$ de forma simétrica por cada nivel según el número $N$ de nodos: $N=1 \implies 50\%$, $N=2 \implies [38\%, 62\%]$, $N=3 \implies [26\%, 50\%, 74\%]$, $N=4 \implies [20\%, 40\%, 60\%, 80\%]$.
+  - El centro de masa de todos y cada uno de los niveles es siempre **exactamente el 50.0%**.
+  - **Preservación Total de Topología**: La estructura del grafo, nodos y caminos no cambia en lo absoluto, garantizando que mapas asimétricos o desvíos laterales (ej. Campamento + Tienda) se rendericen perfectamente centrados hacia el Boss.
+  - Tier 0 ➔ Tier 1 y Tier 1 ➔ Tier 2 avanzan de forma directa 1:1 (`1 -> 1`, `2 -> 2`) sin bifurcación prematura.
+  - Suite de validación en `scripts/test_map_generation.mjs`: 100.0% de tiers analizados (1.389) centrados en 50.0%, 0 nodos huérfanos. Build verde.
+
+### Sesión Anterior (Sesión 161 — Finalización de Entrenamiento 750k Pasos y Exportación Universal ONNX)
+- **Culminación del Entrenamiento (Paso 750.000)**:
+  - Completados con éxito los 750k pasos en la GPU RTX 4070 Ti SUPER.
+  - La arquitectura *Fully Convolutional* alcanzó una convergencia excelente: Policy loss ~2.80, Value loss 0.0031 y Ownership loss 0.1825.
+  - El modelo es 100% independiente del tamaño físico de la cuadrícula gracias al reemplazo de `nn.Linear` por `AdaptiveAvgPool2d` y convoluciones $1\times 1$.
+- **Procedimiento de Exportación ONNX**:
+  - Preparado el pipeline de exportación con `onnx_export.py` para generar `crazy_go_brain_fp32.onnx` y `crazy_go_brain_web.onnx` con soporte dinámico multiformato (9x9, 13x13, 19x19 y topologías asimétricas).
+- **Calibración de Dificultad Granular Kyu/Dan (`GoAI.ts`, `GameController.ts`, `DuelistRenderer.ts`)**:
+  - Implementado `GoAI.normalizeDifficulty()` para que valores como `'10d'` activen el motor Minimax 3-ply completo con Quiescence, lectura de Nakade, campo Moyo de influencia y Fuseki ponderado.
+  - `GameController.checkAITurn()` ahora consulta `slots?.[activePlayer]?.aiDifficulty` de forma individual para que cada IA juegue exactamente con el nivel seleccionado en los sliders.
+  - Exposición de `window.GameController` y mapeo correcto en `DuelistRenderer.ts` para mostrar los rangos seleccionados (`⚫ P1 • 15 Kyu`, `⚪ P2 • 10 Dan`).
+- **Erradicación de Bucles Zombi de IA en Menú (`GameController.ts`, `ScreenManager.ts`)**:
+  - Implementado `GameController.stopGame()`, que se ejecuta automáticamente al salir al Menú Principal o Mapa, cancelando los temporizadores e inferencias ONNX en segundo plano.
+- **Turbo Ultra Rápido e Instantáneo (0ms)**:
+  - Reducción del retardo a 0ms y activación inmediata al pulsar `⚡ Turbo`. Silenciados los `console.log` por turno en `NeuralNetAdapter.ts`.
+- **Corrección Crítica de Bucle de Turno 2a en IA vs IA (`GameController.ts`, `AITurnManager.ts`)**:
+  - Solucionado el bug en el condicional de encadenamiento de turnos que asumía `state.currentPlayer !== config.humanColor`. Corregido con el selector universal `isNextPlayerAI()`.
+- **Corrección Estructural en Asistente (`modal-local-setup.html`)**:
+  - Se reubicó `#setup-champion-container-split` dentro de `<div id="wizard-step-4">`, erradicando su aparición duplicada en el Paso 3 ("Board") y demás pantallas del asistente.
+- **Ratio 1:1 Estricto en Retratos de Campeones (`setup.css`, `carousel.css`)**:
+  - Eliminado el problema de estiramiento rectangular (5:3) debido a `min-width: 200px` previo.
+  - Implementación de `.setup-split-portrait-wrapper` y `.setup-split-portrait-img` con `width: 110px; height: 110px; min-width: 110px; max-width: 110px; aspect-ratio: 1 / 1; object-fit: cover; border-radius: var(--radius-lg);`.
+- **Reparación de Interactividad e Identificadores (P1 y P2)**:
+  - Corregidos los IDs para que coincidan con `SetupModalRenderer.renderHeroShowcaseElements` (`setup-p1-hero-*` y `setup-p2-hero-*`), habilitando el ciclado dinámico de héroes y la selección directa mediante mini-tiras de miniaturas (`hero-thumb-strip`).
+  - Sincronización con `DuelistRenderer.ts` para standees y nombres en el HUD de combate en partidas IA vs IA.
+
+### Sesión Anterior (Sesión 157 — Ingesta de Modelo ONNX 592k, Proyección Universal 19x19, Modo Turbo y Vista Dividida Champions)
+- **Ingesta Exitosa de Modelos ONNX 592k (`crazy_go_brain_fp32.onnx` y `crazy_go_brain_web.onnx`)**:
+  - Exportados con 169 capas neuronales, precisión FP32/FP16 y ejes dinámicos verificados.
+  - Copiados y sincronizados en `public/models/`, `src/ai/models/`, `dist/models/` y `CrazyGo_Portable/dist/models/`.
+- **Proyección Topológica Universal 19x19 en `NeuralNetAdapter.ts`**:
+  - Eliminado el bloqueo estático que restringía la red exclusivamente a 9x9.
+  - Se implementó la proyección de cualquier tablero (9x9, 13x13, 19x19 y mapas asimétricos) sobre el lienzo universal 19x19 utilizando el Canal 2 (Máscara Topológica), erradicando definitivamente el cuelgue silencioso de WebAssembly.
+- **Interpolación Matemática de Temperatura para Rango Kyu/Dan (`GoAI.worker.ts`)**:
+  - Mapeo continuo: 30k (2.0) -> 20k (1.3) -> 10k (1.0) -> 1k (0.7), y 1d (0.5) -> 9d (0.0).
+  - Eliminado por completo el fallback a Minimax para evaluar siempre con la red neuronal de forma fluida.
+- **Modo Turbo IA (`T`) para Acelerar Testeo**:
+  - Hotkey global `T` para alternar entre velocidad normal y Turbo x10 (reduciendo demoras de IA de 1000ms a 10ms en `AITurnManager.ts`).
+- **Vista Dividida de Campeones en IA vs IA**:
+  - Paso 4 adaptado con visualización dual paralela (⚫ IA Negra vs ⚪ IA Blanca) en `modal-local-setup.html`, `SetupModalRenderer.ts` y `SetupEventBinder.ts`, omitiendo automáticamente el paso redundante de oponente.
+
+### Sesión Anterior (Sesión 156 — Fix Race Condition Alquimista y Machine Learning)
+- **Corrección Crítica de Race Condition en Habilidad del Alquimista (`ChampionManager.ts`)**:
+  - **Bug Reportado**: "Genera una piedra extra de su color". Ocurría de forma estocástica al usar la Inversión Cromática del Alquimista.
+  - **Causa Raíz Diagnosticada**: La función `executeTargetedSkill` no tenía un candado (`lock`). Un doble clic asíncrono (pantalla táctil o latencia) provocaba que se resolviera la habilidad dos veces, avanzando el turno doblemente y desincronizando la IA, la cual al ejecutar su `setTimeout` jugaba con el color equivocado (el del jugador humano).
+  - **Solución Implementada**: Inyección de `isExecutingSkill = false` y bloque `try...finally` en `executeTargetedSkill`, garantizando control sincrónico hermético.
+- **Auditoría de Datos de Machine Learning y Fase 5**:
+  - **Evaluación**: El bug anterior corrompía la alternancia canónica de turnos (`boardHistory`). Dado que CrazyGoNet asume transiciones de estado estrictas, cualquier partida extraída de esta versión presentará un dataset envenenado.
+  - **Recomendación**: Purgar las partidas generadas bajo este bug antes de usarlas en el entrenamiento de la Fase 4 y 5.
+
+### Sesión Actual (Sesión 157 — Resolución del Colapso Aleatorio de CrazyGoNet, Leak WASM y Oscilación de Winrate)
+- **Corrección Crítica de IA Aleatoria (Softmax Doble en CrazyGoNet)**:
+  - **Causa Raíz**: La red neuronal `CrazyGoNet FP32` ya devolvía las probabilidades directamente aplicando internamente una función Softmax en la salida de `policyTensor`. `NeuralNetAdapter.ts` aplicaba incorrectamente un segundo Softmax, aplanando brutalmente la distribución (todas las jugadas terminaban con la misma probabilidad). Al escalar la temperatura a 2 Kyu, la selección aleatoria proporcional elegía movimientos horribles en el 95% de los casos (efecto "piedras aleatorias por todo el tablero").
+  - **Solución**: Se implementó una detección automática en `NeuralNetAdapter.ts` que suma los valores puros de `policyData`. Si suman ~1.0, se salta el segundo Softmax y se usan directamente, restaurando el comportamiento táctico brillante y argmax inteligente del modelo tanto en 9x9 como en 19x19.
+- **Corrección Crítica de Ralentización Exponencial (WASM Memory Leak)**:
+  - **Causa Raíz**: Cada llamada a `evaluate()` instanciaba un `new ort.Tensor` y ejecutaba `session.run()`, asignando memoria WebAssembly. Dado que no se llamaba a `.dispose()`, la memoria interna de WASM se fragmentaba progresivamente, ralentizando las inferencias posteriores y explicando el crecimiento exponencial del tiempo de turno de la IA a lo largo de las 60+ jugadas.
+  - **Solución**: Se añadieron bloqueos preventivos `tensor.dispose()` y `results.dispose()` en todas las variables tensor del pipeline de ONNX Runtime Web.
+- **Oscilación del Gráfico de Winrate**:
+  - **Causa Raíz**: El *Value Head* de CrazyGoNet emite de forma estricta la probabilidad de victoria de **Negras** (Player 1) en `valData[0]`, independientemente del turno (similar a KataGo). La UI asumía erróneamente que emitía la probabilidad del jugador actual (AlphaZero-style), resultando en oscilaciones de "99% Negro / 99% Blanco" cada turno alterno.
+  - **Solución**: Asignado explícitamente `p1Prob = blackWinProb` en toda circunstancia para mantener la coherencia de barra absoluta.
+
+### Sesión Anterior (Sesiones 154 y 155 — Parches Granulares, Rompedor de Simetría, Roadmap Kyu, Expansión de Audio y Animaciones Roguelike)
+- **Refactorización y Limpieza del Mapa Roguelike (Capa de Fauna/Flora Retirada)**:
+  - Se han eliminado de forma limpia del render activo (`RoguelikeMapRenderer.ts` y `map.css`) las figuras experimentales inferiores (panda, ciervo, pinos y bambú), manteniendo el mapa despejado y minimalista.
+  - Creada en el Roadmap la **Tarea 296** para abordar en el futuro un ecosistema paisajístico ilustrado con arte e integración de sprites dedicados.
+  - **Dragón del Boss Final**: Se mantiene como animación independiente funcional sobre el nodo del Jefe Final (Dragón Sabio Gris), añadiendo atmósfera épica en la cima del árbol de nodos.
+- **Eliminación Total de Modo de Tablero "Procedural"**:
+  - A petición del usuario, se ha eliminado por completo la opción de tablero `Procedural` y el botón de *Reroll* asociado (`🔄`) en todos los selectores de tableros (Local, Sandbox/Opciones y Online).
+  - Se purgó de `BoardShape`, de los generadores `BoardGenerators.ts`, menús HTML, traducciones `translations.ts` y del propio mapa de expedición `RoguelikeMapGenerator.ts`.
+  - Esto simplifica la interfaz, asegurando que todos los tableros disponibles sean 100% predecibles y de alta calidad (geometrías fijas y asimétricas hechas a mano).
+- **Orquesta Procedural Japonesa Exclusiva en Tiempo Real por Escenario (`BGMGenerator.ts`)**:
+  - Implementado un **secuenciador en tiempo real con escalas pentatónicas tradicionales e instrumentación acústica dedicada** que dota a cada fondo de un tema musical inconfundible e instantáneo:
+    - **Volcán (`volcano`)**: Taiko de guerra acelerado (Don-Don-Ka-Don a 120 BPM) con O-Daiko de graves profundos, Shime-Daiko y brasas ardientes.
+    - **Dojo (`dojo`)**: Ritmo marcial de Kendo a 108 BPM con rasgueos de Shamisen en escala *Insen* y golpes de madera tatami.
+    - **Noche (`night`)**: Escala *Iwato* mística y lenta (50 BPM) con arpegios de Koto y campanillas de viento nocturnas.
+    - **Atardecer (`sunset`)**: Escala *Kokinjoshi* cálida con inflexiones de flauta *Shakuhachi* y cítara Koto.
+    - **Pradera (`meadow`)**: Escala *Hirajoshi* viva y pastoral con trinos de flauta *Shinobue*.
+    - **Templo Zen / Tutorial (`zen`)**: Cuencos tibetanos sagrados afinados en 432 Hz y resonancia de gotas de agua *Suikinkutsu*.
+    - **Vacío Cósmico / Oni (`void` / `oni`)**: Gran Gong de bronce sagrado y campanas espectrales abisales.
+    - **Cielo (`sky`)**: Arpegios celestiales cristalinos flotantes.
+    - **Jefe Dragón (`boss`)**: Tambores de guerra épicos a 126 BPM con gong dramático y Koto intenso.
+- **Expansión de Audio (Volumen Granular en Opciones)**:
+  - Implementación de Sliders independientes para Efectos de Sonido (SFX) y Música de Fondo (BGM) en el modal de Opciones, acompañando al Master Volume.
+  - Sincronización en tiempo real y persistencia en `localStorage`.
+  - Refactorización transparente en `SoundFX.ts` (`_masterVolume` * `_sfxVolume`) y `BGMGenerator.ts` (`_masterVolume` * `_bgmVolume`) sin romper las llamadas estáticas de todo el motor, garantizando compatibilidad total con la síntesis Web Audio (Web y Exe).
 - **Corrección Granular en IA vs IA**: Añadido el slider del Jugador 1 (P1) al panel granular exclusivamente en partidas de 2 Jugadores *IA vs IA*, permitiendo enfrentar modelos asimétricos (ej. 15 Kyu vs 9 Dan). El botón Granular se oculta correctamente en partidas 1vs1 contra humano para forzar el *Pack Mode*. Solucionado también el bug visual de salto unificado de sliders.
 - **Anti Mirror-Go (Mane-go Symmetry Breaker)**: Se solucionó el problema matemático de la IA (Argmax Temp = 0) que copiaba infinitamente los movimientos del rival en las esquinas por simetría. Ahora se inyecta un ruido microscópico (`Temp = 0.03`) en los primeros 6 turnos para obligar a la IA a elegir de forma aleatoria entre probabilidades idénticas, rompiendo el espejo sin perder fuerza.
 - **Opción de Barra de Winrate en Opciones (GlobalSettings)**:
@@ -993,3 +1169,20 @@
 - Fase 61 completada: Rediseño visual sin bordes del Combat Log, iconografía SVG pura, i18n dinámico (Inglés/Español) con \data-i18n\, y corrección de un bug crítico de duplicidad de \<defs>\ SVG que rompía el tablero principal al salir del Log.
 
 - **Grass Texture for Conquered Boards:** Added #grass-texture pattern in SVGDefs.ts and dynamically apply it to wood polygons of the cloned board in StoryModeController.ts.
+
+
+
+
+
+
+### Sesión Actual (Sesión 174 — Integración del Sabio como Campeón Jugable sin Habilidades)
+- **Héroe Sabio (Sage)**:
+  - Configurado explícitamente en \RoguelikeRunManager.ts\ y \	ranslations.ts\ como el único campeón con la propiedad \skillType: 'none'\ sin habilidades activas ni pasivas ('Puro Go').
+  - Descripciones y títulos actualizados en ES/EN ('El Único sin Habilidades', 'Go Puro → Sin Habilidades').
+  - Corrección en \SetupModalRenderer.ts\ para que lea dinámicamente las traducciones de la pasiva/ausencia de habilidad para cualquier campeón \skillType: 'none'\ en lugar de codificar permanentemente al héroe 'normal'.
+
+- **Correcciones UI (Sesión 174)**:
+  - Arreglados los IDs en \modal-local-setup.html\ para P1 y P2 en la vista IA vs IA (faltaba el segmento \-hero-\ en sus selectores HTML, lo cual impedía que \SetupModalRenderer.ts\ actualizara el nombre y la foto, mostrando habilidades de otros héroes bajo la imagen del Normal).
+  - El campeón Sabio (Sage) ahora es el campeón por defecto y el primero en la lista (se desplazó a la posición 0 del carrusel de héroes delante de 'Persona Normal').
+
+  - Corregido el recorte de las imágenes de héroes grandes (como el Sabio) añadiendo \object-position: top center\ en las clases \.hero-showcase-img\ y \.setup-split-portrait-img\ de los estilos CSS, evitando que se les corte la cabeza al tener aspect-ratio 1:1.

@@ -6,6 +6,7 @@ import { HUDController } from '../ui/HUDController';
 import { OnlineController } from '../controllers/OnlineController';
 import { NetworkManager } from '../network/NetworkManager';
 import { SoundFX } from '../audio/SoundFX';
+import { BGMGenerator } from '../audio/BGMGenerator';
 
 export class OnlineEventBinder {
     public static init() {
@@ -17,8 +18,7 @@ export class OnlineEventBinder {
                 OnlineController.onlineKomi, 
                 OnlineController.onlinePlayerCount,
                 OnlineController.onlineHostHero,
-                OnlineController.onlineBackground,
-                OnlineController.onlineSeed
+                OnlineController.onlineBackground
             );
         };
 
@@ -182,27 +182,13 @@ export class OnlineEventBinder {
             SoundFX.playPlaceStone();
         });
 
-        const shapes: BoardShape[] = ['square', 'volcano', 'sky', 'oni', 'triangle', 'hex', 'eroded', 'islands_v1', 'islands_v2', 'islands', 'cross', 'hourglass', 'geode', 'spiral', 'rings', 'star_5', 'star_6', 'procedural'];
+        const shapes: BoardShape[] = ['square', 'volcano', 'sky', 'oni', 'triangle', 'hex', 'eroded', 'islands_v1', 'islands_v2', 'islands', 'cross', 'hourglass', 'geode', 'spiral', 'rings', 'star_5', 'star_6'];
         shapes.forEach(sh => {
             document.getElementById(`online-shape-${sh}`)?.addEventListener('click', () => {
                 OnlineController.onlineShape = sh;
-                if (sh === 'procedural') {
-                    OnlineController.onlineSeed = Math.floor(Math.random() * 9999999);
-                }
                 refreshHostUI();
                 SoundFX.playPlaceStone();
             });
-        });
-
-        const onlineRerollBtn = document.getElementById('online-shape-procedural-reroll');
-        onlineRerollBtn?.addEventListener('click', (e) => {
-            e.stopPropagation();
-            OnlineController.onlineShape = 'procedural';
-            OnlineController.onlineSeed = Math.floor(Math.random() * 9999999);
-            onlineRerollBtn.classList.add('spin-anim');
-            setTimeout(() => onlineRerollBtn.classList.remove('spin-anim'), 400);
-            refreshHostUI();
-            SoundFX.playPlaceStone();
         });
 
         const sizes: BoardSize[] = [9, 13, 19];
@@ -222,6 +208,7 @@ export class OnlineEventBinder {
                     OnlineController.onlineBackground = bg;
                     refreshHostUI();
                     SoundFX.playPlaceStone();
+                    BGMGenerator.playBackground(bg);
                 }
             });
         });
@@ -337,7 +324,7 @@ export class OnlineEventBinder {
             }, 20);
         });
 
-        const heroes: HeroId[] = ['normal', 'tengu', 'himiko', 'kitsune', 'ronin', 'alchemist', 'ryujin'];
+        const heroes: HeroId[] = ['sage', 'normal', 'tengu', 'himiko', 'kitsune', 'ronin', 'alchemist', 'ryujin'];
 
         // Navegación de héroe para el Anfitrión (Host)
         document.getElementById('btn-online-host-hero-prev')?.addEventListener('click', () => {

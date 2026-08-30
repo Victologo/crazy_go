@@ -166,7 +166,7 @@ export class RoguelikeController {
         }
 
         ScreenManager.showRoguelikeMapScreen();
-        this.renderMap();
+        this.renderMap(true);
         const isEn = getLanguage() === 'en';
         HUDController.showAlert(isEn ? `🗺️ New expedition started with ${RoguelikeRunManager.HEROES[this.tempRogueHero].name}!` : `🗺️ ¡Nueva expedición iniciada con ${RoguelikeRunManager.HEROES[this.tempRogueHero].name}!`);
         SoundFX.playPlaceStone();
@@ -211,14 +211,14 @@ export class RoguelikeController {
         this.renderMap();
     }
 
-    public static renderMap() {
+    public static renderMap(isNewRun: boolean = false) {
         if (!RoguelikeRunManager.map) return;
         if (!this.mapRenderer) {
             this.mapRenderer = new RoguelikeMapRenderer('roguelike-map-canvas-container', (node: any) => {
                 this.handleMapNodeClick(node);
             });
         }
-        this.mapRenderer.render(RoguelikeRunManager.map);
+        this.mapRenderer.render(RoguelikeRunManager.map, isNewRun);
         ScreenManager.updateMapHUD();
     }
 

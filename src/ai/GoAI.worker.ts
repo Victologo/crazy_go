@@ -2,7 +2,7 @@ import { GraphBoard } from '../core/GraphBoard';
 import { GameState } from '../core/GameState';
 import { BoardGenerators } from '../graphics/BoardGenerators';
 import { RulesEngine } from '../core/RulesEngine';
-import type { AIMoveChoice, AIDifficulty } from './GoAI';
+import { GoAI, type AIMoveChoice, type AIDifficulty } from './GoAI';
 import { NeuralNetAdapter } from './NeuralNetAdapter';
 import type { PlayerId } from '../core/GraphBoard';
 
@@ -16,11 +16,21 @@ export type AIWorkerIncomingMessage =
     | { type: 'SYNC_MOVE'; nodeId: string; playerId: PlayerId }
     | { type: 'SYNC_UNDO' }
     | { type: 'SYNC_PASS' }
-    | { type: 'CALCULATE_MOVE'; aiPlayerId: PlayerId; difficulty: AIDifficulty; komi: number; boardSnapshot?: any[] };
+    | { type: 'EVAL_BOARD'; tempMoves: {nodeId: string, playerId: PlayerId}[] }
+    | { 
+        type: 'CALCULATE_MOVE'; 
+        aiPlayerId: PlayerId; 
+        difficulty: AIDifficulty; 
+        komi: number; 
+        boardSnapshot?: any[];
+        currentTurn?: number;
+        lastMoveNodeId?: string | null;
+      };
 
 // Messages from Worker to UI
 export type AIWorkerOutgoingMessage = 
     | { type: 'MOVE_RESULT'; payload: AIMoveChoice }
+    | { type: 'EVAL_RESULT'; payload: { winRate: number } }
     | { type: 'ERROR'; message: string };
 
 self.onmessage = (e: MessageEvent<AIWorkerIncomingMessage>) => {
@@ -31,8 +41,8 @@ self.onmessage = (e: MessageEvent<AIWorkerIncomingMessage>) => {
             case 'INIT_BOARD':
                 // Reconstruct GraphBoard and GameState from scratch based on the config
                 board = new GraphBoard();
-                const seedToUse = msg.config.seed || Math.floor(Math.random() * 999999);
-                BoardGenerators.generate(board, msg.config.shape, msg.config.size, seedToUse);
+
+                BoardGenerators.generate(board, msg.config.shape, msg.config.size);
                 
                 state = new GameState(msg.config.komi, msg.config.playerCount);
                 break;
@@ -58,6 +68,60 @@ self.onmessage = (e: MessageEvent<AIWorkerIncomingMessage>) => {
                 state.advanceTurn();
                 break;
 
+            case 'EVAL_BOARD': {
+                if (!board || !state) throw new Error("Worker NO está inicializado");
+                
+                // 1. Guardar estado del tablero
+                const savedBoard = new Map();
+                for (const [id, node] of board.nodes) {
+                    savedBoard.set(id, node.stone ? { ...node.stone } : null);
+                }
+
+                // 2. Aplicar movimientos temporales (magia / hechizos)
+                for (const tempMove of msg.tempMoves) {
+                    const node = board.nodes.get(tempMove.nodeId);
+                    if (node) {
+                        // En lugar de groupId, usamos la interfaz correcta de Crazy Go
+                        node.stone = {
+                            id: 'temp',
+                            playerId: tempMove.playerId,
+                            isInvisible: false,
+                            isIndestructible: false,
+                            isFrozen: false,
+                            stoneType: 'single'
+                        };
+                    }
+                }
+
+                // 3. Evaluar
+                NeuralNetAdapter.evaluate(board, state, state.currentPlayer)
+                    .then(evalResult => {
+                        let winRate = 50;
+                        if (evalResult) {
+                            winRate = evalResult.winRates[state!.currentPlayer] ?? 50;
+                        }
+                        
+                        // 4. Restaurar estado
+                        for (const [id, stoneData] of savedBoard) {
+                            board!.nodes.get(id)!.stone = stoneData;
+                        }
+
+                        self.postMessage({ type: 'EVAL_RESULT', payload: { winRate } });
+                    })
+                    .catch(err => {
+                        console.error('Eval error:', err);
+                        
+                        // Restaurar por si acaso
+                        for (const [id, stoneData] of savedBoard) {
+                            board!.nodes.get(id)!.stone = stoneData;
+                        }
+                        
+                        self.postMessage({ type: 'EVAL_RESULT', payload: { winRate: 50 } });
+                    });
+                
+                break;
+            }
+
             case 'CALCULATE_MOVE':
                 if (!board || !state) throw new Error("Worker NO está inicializado");
                 
@@ -71,40 +135,44 @@ self.onmessage = (e: MessageEvent<AIWorkerIncomingMessage>) => {
                         }
                     }
                 }
+                if (msg.currentTurn !== undefined) state.currentTurn = msg.currentTurn;
+                if (msg.lastMoveNodeId !== undefined) state.lastMoveNodeId = msg.lastMoveNodeId;
+                state.currentPlayer = msg.aiPlayerId;
 
-                // Analizar la dificultad y convertirla puramente a "Temperatura" de la Red Neuronal
-                let temperature = 0.3; // Default 
-                const diffStr = msg.difficulty as string;
+                // Analizar la dificultad y convertirla a Temperatura calibrada de la Red Neuronal
+                let temperature = 0.25; 
+                const diffStr = (msg.difficulty as string || 'dan').toLowerCase().trim();
 
                 if (diffStr.endsWith('k')) {
                     const k = parseInt(diffStr);
                     const clampedK = Math.max(1, Math.min(k, 30));
-                    
-                    // Interpolación precisa definida por el usuario:
-                    // 30 Kyu -> 2.0
-                    // 20 Kyu -> 1.3
-                    // 10 Kyu -> 1.0
-                    // 1 Kyu  -> 0.7
+                    // 30 Kyu -> 0.95 (Alta exploración pero sin suicidio)
+                    // 20 Kyu -> 0.75
+                    // 10 Kyu -> 0.50
+                    // 1 Kyu  -> 0.25
                     if (clampedK >= 20) {
-                        temperature = 1.3 + ((clampedK - 20) / 10) * 0.7;
+                        temperature = 0.75 + ((clampedK - 20) / 10) * 0.20;
                     } else if (clampedK >= 10) {
-                        temperature = 1.0 + ((clampedK - 10) / 10) * 0.3;
+                        temperature = 0.50 + ((clampedK - 10) / 10) * 0.25;
                     } else {
-                        temperature = 0.7 + ((clampedK - 1) / 9) * 0.3;
+                        temperature = 0.25 + ((clampedK - 1) / 9) * 0.25;
                     }
                 } else if (diffStr.endsWith('d')) {
                     const d = parseInt(diffStr);
-                    const clampedD = Math.max(1, Math.min(d, 9));
-                    // Interpolación Dan:
-                    // 1 Dan -> 0.5
-                    // 9 Dan -> 0.0
-                    temperature = 0.5 * (1 - ((clampedD - 1) / 8));
+                    const clampedD = Math.max(1, Math.min(d, 10));
+                    // 1 Dan -> 0.20
+                    // 5 Dan -> 0.10
+                    // 9 Dan / 10 Dan -> 0.00 (Argmax puro)
+                    if (clampedD >= 9) {
+                        temperature = 0.0;
+                    } else {
+                        temperature = 0.20 * (1 - ((clampedD - 1) / 8));
+                    }
                 } else {
-                    // Fallbacks para strings viejos (Story mode, Roguelike)
-                    if (diffStr === 'easy') temperature = 1.6;
-                    else if (diffStr === 'medium') temperature = 1.0;
-                    else if (diffStr === 'hard') temperature = 0.4;
-                    else if (diffStr === 'dan' || diffStr === 'grandmaster') temperature = 0;
+                    if (diffStr === 'easy') temperature = 0.85;
+                    else if (diffStr === 'medium' || diffStr === 'normal') temperature = 0.50;
+                    else if (diffStr === 'hard') temperature = 0.25;
+                    else if (diffStr === 'dan' || diffStr === 'grandmaster' || diffStr === 'extreme') temperature = 0.0;
                 }
 
                 // Anti-Mirror Go (Mane-go) Symmetry Breaker:
@@ -116,46 +184,63 @@ self.onmessage = (e: MessageEvent<AIWorkerIncomingMessage>) => {
                 }
 
                 // SIEMPRE usar la Red Neuronal (CrazyGoNet) para todas las dificultades
+                console.log("[Worker] Starting NeuralNetAdapter.evaluate for Turn", state.currentTurn, "Difficulty:", diffStr, "Temp:", temperature);
                 NeuralNetAdapter.evaluate(board, state, msg.aiPlayerId).then((neuralResult) => {
+                    console.log("[Worker] NeuralNetAdapter.evaluate resolved:", neuralResult ? "SUCCESS" : "NULL");
                     if (neuralResult) {
                         let chosenMoveId = neuralResult.bestMoveId;
                         let chosenProb = neuralResult.bestMoveProb;
 
-                        // Apply temperature if needed (Si Temp = 0, nos quedamos con el bestMoveId por defecto)
+                        // Apply temperature sampling if needed (Si Temp = 0, nos quedamos con el bestMoveId por defecto)
                         if (temperature > 0 && neuralResult.policyProbabilities) {
                             let total = 0;
-                            const legalMoves: {id: string, w: number}[] = [];
+                            const candidateMoves: { id: string | null; w: number; prob: number }[] = [];
                             
+                            // 1. Validar nodos del tablero
                             for (const [id, prob] of neuralResult.policyProbabilities.entries()) {
                                 if (id === 'PASS') continue;
                                 const node = board!.nodes.get(id);
                                 if (node && node.stone === null && node.terrain !== 'DESTROYED' && node.terrain !== 'OBSTACLE') {
                                     const isLegal = RulesEngine.isMoveLegal(board!, state!, id, msg.aiPlayerId);
-                                    if (isLegal) {
-                                        // Aumentar el peso de jugadas subóptimas basado en la temperatura
-                                        const weight = Math.pow(prob, 1 / temperature);
-                                        legalMoves.push({ id, w: weight });
-                                        total += weight;
+                                    const isSelfEye = board!.isTrueEye(id, msg.aiPlayerId);
+                                    
+                                    // Nunca jugar dentro de un ojo propio cerrado
+                                    if (isLegal && !isSelfEye) {
+                                        if (prob >= 0.0005) {
+                                            const weight = Math.pow(prob, 1 / Math.max(temperature, 0.05));
+                                            candidateMoves.push({ id, w: weight, prob });
+                                            total += weight;
+                                        }
                                     }
                                 }
                             }
 
-                            if (total > 0 && legalMoves.length > 0) {
+                            // 2. Incluir PASAR en el pool de decisiones proporcionales
+                            const passProb = neuralResult.policyProbabilities.get('PASS') || 0;
+                            if (passProb >= 0.005) {
+                                const passWeight = Math.pow(passProb, 1 / Math.max(temperature, 0.05));
+                                candidateMoves.push({ id: null, w: passWeight, prob: passProb });
+                                total += passWeight;
+                            }
+
+                            if (total > 0 && candidateMoves.length > 0) {
                                 let rand = Math.random() * total;
-                                for (const m of legalMoves) {
+                                for (const m of candidateMoves) {
                                     rand -= m.w;
                                     if (rand <= 0) {
                                         chosenMoveId = m.id;
-                                        chosenProb = neuralResult.policyProbabilities.get(m.id) || 0;
+                                        chosenProb = m.prob;
                                         break;
                                     }
                                 }
+                            } else {
+                                chosenMoveId = null;
                             }
                         }
 
-                        // Verificar si pasar turno es mejor (ej. final de partida)
+                        // Si la probabilidad de pasar es dominante (> 25%) y es mayor que la jugada elegida, pasar
                         const passProb = neuralResult.policyProbabilities?.get('PASS') || 0;
-                        if (passProb > 0.15 && temperature === 0) {
+                        if (passProb > 0.25 && (chosenMoveId === null || passProb > chosenProb)) {
                             chosenMoveId = null; 
                         }
 
@@ -163,19 +248,24 @@ self.onmessage = (e: MessageEvent<AIWorkerIncomingMessage>) => {
                             type: 'MOVE_RESULT',
                             payload: {
                                 nodeId: chosenMoveId !== undefined ? chosenMoveId : null,
-                                reason: `Red Neuronal 450k (P=${Math.round(chosenProb * 100)}%, Temp=${temperature})`,
-                                score: Math.round(chosenProb * 1000)
+                                reason: `Red Neuronal 750k (P=${Math.round(chosenProb * 100)}%, Temp=${temperature.toFixed(2)})`,
+                                score: Math.round(chosenProb * 1000),
+                                winRates: neuralResult.winRates
                             }
                         };
+                        console.log("[Worker] Sending response:", response);
                         self.postMessage(response);
                     } else {
-                        // Fallback extremo si ONNX falla
-                        const response: AIWorkerOutgoingMessage = { type: 'MOVE_RESULT', payload: { nodeId: null, reason: "ONNX Error", score: 0 } };
+                        // Fallback Heurístico Clásico si el modelo no está disponible o el tablero no es 9x9
+                        console.log("[Worker] Falling back to GoAI.getBestMove (neuralResult is null)");
+                        const fallbackMove = GoAI.getBestMove(board!, state!, msg.aiPlayerId, msg.difficulty);
+                        const response: AIWorkerOutgoingMessage = { type: 'MOVE_RESULT', payload: fallbackMove };
                         self.postMessage(response);
                     }
                 }).catch((err) => {
-                    console.error("[Worker] ONNX Error:", err);
-                    const response: AIWorkerOutgoingMessage = { type: 'MOVE_RESULT', payload: { nodeId: null, reason: "ONNX Fallback", score: 0 } };
+                    console.error("[Worker] ONNX Error (Cayendo a Heurísticas):", err);
+                    const fallbackMove = GoAI.getBestMove(board!, state!, msg.aiPlayerId, msg.difficulty);
+                    const response: AIWorkerOutgoingMessage = { type: 'MOVE_RESULT', payload: fallbackMove };
                     self.postMessage(response);
                 });
                 break;

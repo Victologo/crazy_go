@@ -34,26 +34,24 @@ export class OptionsModalRenderer {
 
         const volSlider = document.getElementById('opt-vol-slider') as HTMLInputElement | null;
         const volText = document.getElementById('opt-vol-text');
-        const sfxBtn = document.getElementById('opt-sfx-toggle');
-        const bgmBtn = document.getElementById('opt-bgm-toggle');
+        const sfxSlider = document.getElementById('opt-sfx-slider') as HTMLInputElement | null;
+        const sfxText = document.getElementById('opt-sfx-text');
+        const bgmSlider = document.getElementById('opt-bgm-slider') as HTMLInputElement | null;
+        const bgmText = document.getElementById('opt-bgm-text');
 
-        const volPct = Math.round(SoundFX.getMasterVolume() * 100);
+        const volPct = Math.round(SoundFX.getRawMasterVolume() * 100);
         if (volSlider) volSlider.value = volPct.toString();
         if (volText) volText.innerText = `${volPct}%`;
 
-        const isSFX = SoundFX.isSFXEnabled();
-        if (sfxBtn) {
-            sfxBtn.innerText = isSFX ? t('options.enabled') : t('options.disabled');
-            sfxBtn.classList.toggle('active', isSFX);
-            sfxBtn.classList.toggle('inactive', !isSFX);
-        }
+        const sfxPct = Math.round(SoundFX.getSFXVolume() * 100);
+        if (sfxSlider) sfxSlider.value = sfxPct.toString();
+        if (sfxText) sfxText.innerText = `${sfxPct}%`;
 
-        const isBGM = SoundFX.isBGMEnabled();
-        if (bgmBtn) {
-            bgmBtn.innerText = isBGM ? t('options.enabled') : t('options.disabled');
-            bgmBtn.classList.toggle('active', isBGM);
-            bgmBtn.classList.toggle('inactive', !isBGM);
-        }
+        // We use localStorage directly or BGMGenerator.getBGMVolume if it existed.
+        const storedBgm = localStorage.getItem('crazygo_audio_bgm_vol');
+        const bgmPct = storedBgm ? Math.round(parseFloat(storedBgm) * 100) : 100;
+        if (bgmSlider) bgmSlider.value = bgmPct.toString();
+        if (bgmText) bgmText.innerText = `${bgmPct}%`;
 
         const devBtn = document.getElementById('opt-dev-toggle');
         const isDev = DevModeManager.isDevMode();
