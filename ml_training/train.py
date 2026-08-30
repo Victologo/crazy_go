@@ -142,16 +142,13 @@ def value_loss(preds: torch.Tensor, targets: torch.Tensor) -> torch.Tensor:
 
 def ownership_loss(preds: torch.Tensor, targets: torch.Tensor) -> torch.Tensor:
     """
-    Binary cross-entropy between predicted ownership and ground truth.
+    MSE loss between predicted ownership [-1, +1] and ground truth {-1, 0, 1}.
     preds: [batch, 1, N, N] in [-1, 1] (Tanh output)
     targets: [batch, N, N]  in {-1, 0, 1}
     """
     preds_flat   = preds.squeeze(1).flatten(1)          # [batch, N*N]
     targets_flat = targets.flatten(1)                    # [batch, N*N]
-    # Normalize from [-1,1] to [0,1] for BCE
-    p = (preds_flat + 1) / 2
-    t = (targets_flat + 1) / 2
-    return nn.functional.binary_cross_entropy(p.clamp(1e-6, 1 - 1e-6), t.clamp(0, 1))
+    return nn.functional.mse_loss(preds_flat, targets_flat)
 
 
 def total_loss(
