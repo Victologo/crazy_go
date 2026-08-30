@@ -74,7 +74,55 @@ export class NeuralNetAdapter {
             if (!ok || !this.session) return null;
         }
 
-        const N = board.size || 9;
+        // ── Universal Node-to-Grid Coordinate Mapper ──
+        // Maps ANY graph board (Square, Cross, Hex, Triangle, Islands, Star, Oni, etc.) to discrete 2D grid (r, c)
+        const nodeToGrid = new Map<string, { r: number, c: number }>();
+        const gridToNode = new Map<string, string>(); // `${r},${c}` -> nodeId
+
+        let isStandardComma = true;
+        for (const id of board.nodes.keys()) {
+            const parts = id.split(',');
+            if (parts.length !== 2 || isNaN(parseInt(parts[0], 10)) || isNaN(parseInt(parts[1], 10))) {
+                isStandardComma = false;
+                break;
+            }
+        }
+
+        let N = board.size || 9;
+
+        if (isStandardComma) {
+            let maxCoord = 0;
+            for (const [id] of board.nodes) {
+                const parts = id.split(',');
+                const r = parseInt(parts[0], 10);
+                const c = parseInt(parts[1], 10);
+                nodeToGrid.set(id, { r, c });
+                gridToNode.set(`${r},${c}`, id);
+                if (r > maxCoord) maxCoord = r;
+                if (c > maxCoord) maxCoord = c;
+            }
+            N = Math.max(N, maxCoord + 1);
+        } else {
+            // Asymmetric topology: extract unique sorted X and Y coordinates to construct compact bounding grid
+            const uniqueX = Array.from(new Set(Array.from(board.nodes.values()).map(n => Math.round(n.x)))).sort((a, b) => a - b);
+            const uniqueY = Array.from(new Set(Array.from(board.nodes.values()).map(n => Math.round(n.y)))).sort((a, b) => a - b);
+            
+            const xToCol = new Map<number, number>();
+            uniqueX.forEach((x, i) => xToCol.set(x, i));
+            
+            const yToRow = new Map<number, number>();
+            uniqueY.forEach((y, i) => yToRow.set(y, i));
+
+            N = Math.max(uniqueX.length, uniqueY.length, board.size || 9);
+
+            for (const [id, node] of board.nodes) {
+                const c = xToCol.get(Math.round(node.x)) ?? 0;
+                const r = yToRow.get(Math.round(node.y)) ?? 0;
+                nodeToGrid.set(id, { r, c });
+                gridToNode.set(`${r},${c}`, id);
+            }
+        }
+
         const channels = 16;
         const totalNodes = N * N;
         const inputData = new Float32Array(channels * totalNodes);
@@ -94,10 +142,10 @@ export class NeuralNetAdapter {
 
         // Fill features
         for (const [id, node] of board.nodes) {
-            const parts = id.split(',');
-            const r = parseInt(parts[0], 10);
-            const c = parseInt(parts[1], 10);
-            if (isNaN(r) || isNaN(c) || r >= N || c >= N) continue;
+            const gridPos = nodeToGrid.get(id);
+            if (!gridPos) continue;
+            const { r, c } = gridPos;
+            if (r >= N || c >= N) continue;
 
             const idx = r * N + c;
 
@@ -124,11 +172,9 @@ export class NeuralNetAdapter {
 
         // Ch 7: Last move
         if (state.lastMoveNodeId) {
-            const parts = state.lastMoveNodeId.split(',');
-            const r = parseInt(parts[0], 10);
-            const c = parseInt(parts[1], 10);
-            if (!isNaN(r) && !isNaN(c) && r < N && c < N) {
-                inputData[7 * totalNodes + (r * N + c)] = 1.0;
+            const gridPos = nodeToGrid.get(state.lastMoveNodeId);
+            if (gridPos && gridPos.r < N && gridPos.c < N) {
+                inputData[7 * totalNodes + (gridPos.r * N + gridPos.c)] = 1.0;
             }
         }
 
@@ -156,11 +202,9 @@ export class NeuralNetAdapter {
 
             // 1. Encontrar max logit
             for (const [id] of board.nodes) {
-                const parts = id.split(',');
-                const r = parseInt(parts[0], 10);
-                const c = parseInt(parts[1], 10);
-                if (isNaN(r) || isNaN(c) || r >= N || c >= N) continue;
-                const logit = policyData[r * N + c];
+                const gridPos = nodeToGrid.get(id);
+                if (!gridPos || gridPos.r >= N || gridPos.c >= N) continue;
+                const logit = policyData[gridPos.r * N + gridPos.c];
                 if (logit > maxLogit) maxLogit = logit;
             }
             const passLogit = policyData[totalNodes] ?? -10.0;
@@ -168,14 +212,12 @@ export class NeuralNetAdapter {
 
             // 2. Calcular exponenciales estables
             for (const [id] of board.nodes) {
-                const parts = id.split(',');
-                const r = parseInt(parts[0], 10);
-                const c = parseInt(parts[1], 10);
-                if (isNaN(r) || isNaN(c) || r >= N || c >= N) continue;
+                const gridPos = nodeToGrid.get(id);
+                if (!gridPos || gridPos.r >= N || gridPos.c >= N) continue;
 
-                const logit = policyData[r * N + c];
+                const logit = policyData[gridPos.r * N + gridPos.c];
                 const expVal = Math.exp(logit - maxLogit);
-                expValues[r * N + c] = expVal;
+                expValues[gridPos.r * N + gridPos.c] = expVal;
                 expSum += expVal;
             }
 
@@ -188,13 +230,11 @@ export class NeuralNetAdapter {
             let validNodesCount = 0;
 
             for (const [id, node] of board.nodes) {
-                const parts = id.split(',');
-                const r = parseInt(parts[0], 10);
-                const c = parseInt(parts[1], 10);
-                if (isNaN(r) || isNaN(c) || r >= N || c >= N) continue;
+                const gridPos = nodeToGrid.get(id);
+                if (!gridPos || gridPos.r >= N || gridPos.c >= N) continue;
                 validNodesCount++;
 
-                const prob = expValues[r * N + c] / expSum;
+                const prob = expValues[gridPos.r * N + gridPos.c] / expSum;
                 policyMap.set(id, prob);
 
                 // Check if legal move and highest probability
@@ -244,17 +284,19 @@ export class NeuralNetAdapter {
             const ownData = ownTensor.data as Float32Array;
             const ownMap = new Map<string, number>();
             for (const [id] of board.nodes) {
-                const parts = id.split(',');
-                const r = parseInt(parts[0], 10);
-                const c = parseInt(parts[1], 10);
-                if (isNaN(r) || isNaN(c) || r >= N || c >= N) continue;
-                ownMap.set(id, ownData[r * N + c]);
+                const gridPos = nodeToGrid.get(id);
+                if (!gridPos || gridPos.r >= N || gridPos.c >= N) continue;
+                ownMap.set(id, ownData[gridPos.r * N + gridPos.c]);
             }
             // Dispose ALL tensors AFTER reading all data to prevent 'tensor is disposed' errors
             if (tensor.dispose) tensor.dispose();
             if (policyTensor.dispose) policyTensor.dispose();
             if (valueTensor.dispose) valueTensor.dispose();
             if (ownTensor && ownTensor.dispose) ownTensor.dispose();
+
+            if (validNodesCount === 0) {
+                return null;
+            }
 
             return {
                 policyProbabilities: policyMap,

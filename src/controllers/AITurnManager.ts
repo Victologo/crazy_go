@@ -320,6 +320,7 @@ export class AITurnManager {
 
                         this.isRunning = false;
                         if (state.isGameOver) {
+                            HUDController.setAIBadge(false);
                             onGameOver();
                         } else if (this.isNextPlayerAI(state, config)) {
                             this.check(board, state, config, renderer, onUIUpdate, onAITurnFinished, onGameOver, isLocalPlayerTurn);

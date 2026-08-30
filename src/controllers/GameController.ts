@@ -938,10 +938,15 @@ export class GameController {
                 this.updateInGameUI();
                 HUDController.showAlert(`🤖 IA (${meta.name} ${meta.icon}) ha pasado turno.`);
 
+                this.isAITurnProcessing = false;
+
                 if (this.state.isGameOver) {
+                    HUDController.setAIBadge(false);
                     this.showFinalScoreModal();
                 } else if (this.config.gameMode === 'aivsai' || this.isAISlot(this.state.currentPlayer) || (!this.config.slots && this.state.currentPlayer !== this.config.humanColor)) {
-                    this.checkAITurn();
+                    setTimeout(() => {
+                        this.checkAITurn();
+                    }, isTurbo ? 0 : 50);
                 } else {
                     this.renderer.isInteractive = this.isLocalPlayerTurn();
                     HUDController.setAIBadge(false);

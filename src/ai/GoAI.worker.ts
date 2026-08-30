@@ -183,7 +183,15 @@ self.onmessage = (e: MessageEvent<AIWorkerIncomingMessage>) => {
                     temperature = 0.03;
                 }
 
-                // SIEMPRE usar la Red Neuronal (CrazyGoNet) para todas las dificultades
+                // En partidas de 4 jugadores (Free-For-All 4P), usar el motor heurístico multi-agente calibrado (GoAI)
+                if (state.playerCount === 4) {
+                    const fallbackMove = GoAI.getBestMove(board!, state!, msg.aiPlayerId, msg.difficulty);
+                    const response: AIWorkerOutgoingMessage = { type: 'MOVE_RESULT', payload: fallbackMove };
+                    self.postMessage(response);
+                    break;
+                }
+
+                // En 2 jugadores (1v1, 1vIA, Roguelike, Boss), SIEMPRE usar la Red Neuronal (CrazyGoNet v6)
                 console.log("[Worker] Starting NeuralNetAdapter.evaluate for Turn", state.currentTurn, "Difficulty:", diffStr, "Temp:", temperature);
                 NeuralNetAdapter.evaluate(board, state, msg.aiPlayerId).then((neuralResult) => {
                     console.log("[Worker] NeuralNetAdapter.evaluate resolved:", neuralResult ? "SUCCESS" : "NULL");
