@@ -53,7 +53,7 @@ function randomChoice<T>(arr: T[]): T {
 
 /** Generates a smart policy using a fast 1-ply territory heuristic */
 /** Evaluates a move using authentic master Go principles (Corners, Lines 3/4, Anti-Dango, Cuts/Ataris) */
-function evaluateMoveHeuristic(sim: GoSimulator, move: string, boardSize: number, currentPlayer: Player, moveCount: number): number {
+function evaluateMoveHeuristic(sim: GoSimulator, move: string, boardSize: number, currentPlayer: Player, _moveCount: number): number {
     const [r, c] = move.split('-').map(Number);
     const clone = sim.clone();
     const res = clone.tryPlace(move, currentPlayer);
@@ -61,22 +61,22 @@ function evaluateMoveHeuristic(sim: GoSimulator, move: string, boardSize: number
 
     let score = 0;
 
-    // 1. CAPTURES (Huge reward)
+    // 1. CAPTURES (Huge tactical priority)
     if (res.capturedIds.length > 0) {
-        score += res.capturedIds.length * 35;
+        score += res.capturedIds.length * 40;
     }
 
     const myChain = clone.getChain(move);
     const myLibs = clone.getLiberties(myChain).size;
 
-    // 2. SUICIDE / ATARI BLUNDER PENALTY
+    // 2. BLUNDER PREVENTION (Never self-atari)
     if (myLibs === 1) {
-        score -= 45; // Never blunder into 1-liberty atari
+        score -= 50; // Death trap
     } else if (myLibs === 2) {
-        score -= 8;
+        score -= 10;
     }
 
-    // 3. ATARI ON OPPONENT (Attack reward)
+    // 3. ATARI ON OPPONENT (Attacking weak groups)
     const opponent: Player = currentPlayer === 1 ? 2 : 1;
     for (const neighborId of clone.getNeighbors(move)) {
         const stone = clone.getStone(neighborId);
@@ -84,42 +84,64 @@ function evaluateMoveHeuristic(sim: GoSimulator, move: string, boardSize: number
             const oppChain = clone.getChain(neighborId);
             const oppLibs = clone.getLiberties(oppChain).size;
             if (oppLibs === 1) {
-                score += 25; // Enemy in atari!
+                score += 30; // Direct capture threat
             }
         }
     }
 
-    // 4. OPENING / FUSEKI PRINCIPLES (First 20 moves)
-    const isOpening = moveCount < Math.min(boardSize * 2, 24);
+    // 4. CALCULATE DISTANCE TO NEAREST FRIENDLY AND ENEMY STONES
+    let minFriendlyDist = 999;
+    let minEnemyDist = 999;
+    let totalFriendlyStones = 0;
+
+    for (let row = 0; row < boardSize; row++) {
+        for (let col = 0; col < boardSize; col++) {
+            const stone = sim.getStone(`${row}-${col}`);
+            if (stone !== null) {
+                const dist = Math.abs(r - row) + Math.abs(c - col);
+                if (stone === currentPlayer) {
+                    totalFriendlyStones++;
+                    if (dist < minFriendlyDist) minFriendlyDist = dist;
+                } else {
+                    if (dist < minEnemyDist) minEnemyDist = dist;
+                }
+            }
+        }
+    }
+
+    // 5. CORNER STAR POINTS (Fuseki opening - 4 discrete corners: 3-3/3-4/4-4)
+    const isCornerPoint = (
+        (r === 2 && c === 2) || (r === 2 && c === boardSize - 3) ||
+        (r === boardSize - 3 && c === 2) || (r === boardSize - 3 && c === boardSize - 3)
+    );
+    const isCenterPoint = (r === Math.floor(boardSize / 2) && c === Math.floor(boardSize / 2));
+
+    if (totalFriendlyStones <= 4) {
+        if (isCornerPoint) score += 35; // Priority 1: Take open corners!
+        if (isCenterPoint) score += 15; // Tengen
+    }
+
+    // 6. STRICT ANTI-SNAKE / PROPER SPACING (1-space jump, 2-space extension, Keima)
+    if (minFriendlyDist === 1) {
+        // Touching own stone in open board: HEAVY CLUMP PENALTY
+        if (minEnemyDist > 2 && res.capturedIds.length === 0) {
+            score -= 35; // STRICTLY FORBID adjacent snakes in empty space!
+        }
+    } else if (minFriendlyDist === 2 || minFriendlyDist === 3) {
+        // Golden Go Spacing (Jumps and Extensions)
+        score += 22;
+    }
+
+    // 7. EDGE PENALTIES (Line of Death in Opening)
     const distEdgeR = Math.min(r, boardSize - 1 - r);
     const distEdgeC = Math.min(c, boardSize - 1 - c);
     const lineMin = Math.min(distEdgeR, distEdgeC);
 
-    if (isOpening) {
-        // Line 0 (very edge): Line of defeat in opening
-        if (lineMin === 0) score -= 35;
-        // Line 1: Second line (too low in opening)
-        else if (lineMin === 1) score -= 15;
-        // Line 2 & 3: 3rd and 4th lines (Golden Go Lines of Territory & Influence!)
-        else if (lineMin === 2 || lineMin === 3) score += 20;
-
-        // Corner star points (3-3, 3-4, 4-4)
-        if (distEdgeR >= 2 && distEdgeR <= 3 && distEdgeC >= 2 && distEdgeC <= 3) {
-            score += 18;
-        }
+    if (lineMin === 0 && totalFriendlyStones < 8) {
+        score -= 40; // 1st line in opening is suicidal waste
+    } else if (lineMin === 1 && totalFriendlyStones < 5) {
+        score -= 20; // 2nd line too early
     }
-
-    // 5. ANTI-SNAKE / ANTI-DANGO PENALTY (Prevents solid heavy clumps/lines)
-    if (myChain.size >= 2 && myLibs >= 3 && res.capturedIds.length === 0) {
-        score -= (myChain.size * 6); // Heavy dumpling penalty
-    }
-
-    // 6. SPREAD & INFLUENCE (Reward breathing space)
-    let emptyNeighbors = 0;
-    for (const nId of clone.getNeighbors(move)) {
-        if (clone.getStone(nId) === null) emptyNeighbors++;
-    }
-    score += emptyNeighbors * 4;
 
     return score;
 }
