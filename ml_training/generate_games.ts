@@ -61,7 +61,7 @@ function evaluateMoveHeuristic(sim: GoSimulator, move: string, boardSize: number
 
     let score = 0;
 
-    // 1. CAPTURES (Huge tactical priority)
+    // 1. CAPTURES (Tactical)
     if (res.capturedIds.length > 0) {
         score += res.capturedIds.length * 40;
     }
@@ -69,27 +69,46 @@ function evaluateMoveHeuristic(sim: GoSimulator, move: string, boardSize: number
     const myChain = clone.getChain(move);
     const myLibs = clone.getLiberties(myChain).size;
 
-    // 2. BLUNDER PREVENTION (Never self-atari)
+    // 2. BLUNDER PREVENTION (No self-atari)
     if (myLibs === 1) {
-        score -= 50; // Death trap
+        score -= 60; // Death trap
     } else if (myLibs === 2) {
         score -= 10;
     }
 
-    // 3. ATARI ON OPPONENT (Attacking weak groups)
+    // 3. ATARI ON OPPONENT (Sente / Iniciativa)
     const opponent: Player = currentPlayer === 1 ? 2 : 1;
+    let adjacentFriends = 0;
+    let adjacentEnemies = 0;
+
     for (const neighborId of clone.getNeighbors(move)) {
         const stone = clone.getStone(neighborId);
         if (stone === opponent) {
+            adjacentEnemies++;
             const oppChain = clone.getChain(neighborId);
             const oppLibs = clone.getLiberties(oppChain).size;
             if (oppLibs === 1) {
-                score += 30; // Direct capture threat
+                score += 35; // Sente: Direct capture threat
             }
+        } else if (stone === currentPlayer) {
+            adjacentFriends++;
         }
     }
 
-    // 4. CALCULATE DISTANCE TO NEAREST FRIENDLY AND ENEMY STONES
+    // 4. KATACHI (Formas y Serpientes)
+    // Dango / Serpiente: Si me pego a 2 o más amigas sin estar en combate, es forma pesada.
+    if (adjacentFriends >= 2 && adjacentEnemies === 0 && res.capturedIds.length === 0) {
+        score -= 40; // Penalización por "Empanada / Serpiente"
+    }
+    
+    // Aki-sankaku (Triángulo Vacío) - Forma muy ineficiente
+    // Si tenemos 2 amigos adyacentes que también están pegados entre sí en L.
+    // Una aproximación rápida es castigar tener 2 amigos adyacentes y 0 enemigos.
+    if (adjacentFriends >= 2) {
+        score -= 20; 
+    }
+
+    // 5. DISTANCIAS GLOBALES Y SABAKI
     let minFriendlyDist = 999;
     let minEnemyDist = 999;
     let totalFriendlyStones = 0;
@@ -109,38 +128,44 @@ function evaluateMoveHeuristic(sim: GoSimulator, move: string, boardSize: number
         }
     }
 
-    // 5. CORNER STAR POINTS (Fuseki opening - 4 discrete corners: 3-3/3-4/4-4)
-    const isCornerPoint = (
-        (r === 2 && c === 2) || (r === 2 && c === boardSize - 3) ||
-        (r === boardSize - 3 && c === 2) || (r === boardSize - 3 && c === boardSize - 3)
-    );
-    const isCenterPoint = (r === Math.floor(boardSize / 2) && c === Math.floor(boardSize / 2));
-
-    if (totalFriendlyStones <= 4) {
-        if (isCornerPoint) score += 35; // Priority 1: Take open corners!
-        if (isCenterPoint) score += 15; // Tengen
-    }
-
-    // 6. STRICT ANTI-SNAKE / PROPER SPACING (1-space jump, 2-space extension, Keima)
-    if (minFriendlyDist === 1) {
-        // Touching own stone in open board: HEAVY CLUMP PENALTY
-        if (minEnemyDist > 2 && res.capturedIds.length === 0) {
-            score -= 35; // STRICTLY FORBID adjacent snakes in empty space!
-        }
-    } else if (minFriendlyDist === 2 || minFriendlyDist === 3) {
-        // Golden Go Spacing (Jumps and Extensions)
-        score += 22;
-    }
-
-    // 7. EDGE PENALTIES (Line of Death in Opening)
+    // 6. FUSEKI (Apertura) - 3-3, 3-4, 4-4
     const distEdgeR = Math.min(r, boardSize - 1 - r);
     const distEdgeC = Math.min(c, boardSize - 1 - c);
     const lineMin = Math.min(distEdgeR, distEdgeC);
+    
+    const isCornerPoint = (
+        (distEdgeR === 2 && distEdgeC === 2) || // 3-3
+        (distEdgeR === 2 && distEdgeC === 3) || // 3-4
+        (distEdgeR === 3 && distEdgeC === 2) || // 4-3
+        (distEdgeR === 3 && distEdgeC === 3)    // 4-4
+    );
 
-    if (lineMin === 0 && totalFriendlyStones < 8) {
-        score -= 40; // 1st line in opening is suicidal waste
-    } else if (lineMin === 1 && totalFriendlyStones < 5) {
-        score -= 20; // 2nd line too early
+    if (totalFriendlyStones <= 6) {
+        if (isCornerPoint) score += 45; // Máxima prioridad en Fuseki
+        if (r === Math.floor(boardSize / 2) && c === Math.floor(boardSize / 2)) score += 15; // Tengen
+    }
+
+    // 7. ESPACIADO MAESTRO (Ikken-tobi, Keima, Niken-tobi)
+    if (minFriendlyDist === 1) {
+        // Tocar a un amigo sin enemigos cerca es malo (forma pesada)
+        if (minEnemyDist > 2 && res.capturedIds.length === 0) {
+            score -= 30; 
+        }
+    } else if (minFriendlyDist === 2) {
+        // Ikken-tobi (Salto 1) o Keima (Caballo)
+        score += 25;
+    } else if (minFriendlyDist === 3) {
+        // Niken-tobi (Salto 2)
+        score += 20;
+    }
+
+    // 8. LINEAS DE LA MUERTE
+    if (lineMin === 0 && totalFriendlyStones < 15) {
+        score -= 45; // 1ª línea inútil al principio
+    } else if (lineMin === 1 && totalFriendlyStones < 8) {
+        score -= 25; // 2ª línea (solo para vivir, no para inicio)
+    } else if ((lineMin === 2 || lineMin === 3) && totalFriendlyStones >= 6) {
+        score += 5; // 3ª (territorio) y 4ª (influencia) son buenas para extenderse
     }
 
     return score;
