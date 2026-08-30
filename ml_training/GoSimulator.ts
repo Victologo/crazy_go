@@ -124,10 +124,18 @@ export class GoSimulator {
     }
 
     // ─────────────────────────────────────────────────────────────────────
-    // Core Go Logic
+    // Core Go Logic & Query Helpers
     // ─────────────────────────────────────────────────────────────────────
 
-    private getChain(startId: NodeId): Set<NodeId> {
+    public getNeighbors(nodeId: NodeId): NodeId[] {
+        return this.nodes.get(nodeId)?.neighbors || [];
+    }
+
+    public getStone(nodeId: NodeId): Player | null {
+        return this.nodes.get(nodeId)?.stone || null;
+    }
+
+    public getChain(startId: NodeId): Set<NodeId> {
         const startNode = this.nodes.get(startId);
         if (!startNode || startNode.stone === null) return new Set();
         const player = startNode.stone;
@@ -145,7 +153,7 @@ export class GoSimulator {
         return chain;
     }
 
-    private getLiberties(chain: Set<NodeId>): Set<NodeId> {
+    public getLiberties(chain: Set<NodeId>): Set<NodeId> {
         const liberties = new Set<NodeId>();
         for (const id of chain) {
             for (const nId of this.nodes.get(id)!.neighbors) {

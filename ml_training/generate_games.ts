@@ -79,8 +79,8 @@ function evaluateMoveHeuristic(sim: GoSimulator, move: string, boardSize: number
     // 3. ATARI ON OPPONENT (Attack reward)
     const opponent: Player = currentPlayer === 1 ? 2 : 1;
     for (const neighborId of clone.getNeighbors(move)) {
-        const neighborNode = clone.getNode(neighborId);
-        if (neighborNode && neighborNode.stone === opponent) {
+        const stone = clone.getStone(neighborId);
+        if (stone === opponent) {
             const oppChain = clone.getChain(neighborId);
             const oppLibs = clone.getLiberties(oppChain).size;
             if (oppLibs === 1) {
@@ -117,8 +117,7 @@ function evaluateMoveHeuristic(sim: GoSimulator, move: string, boardSize: number
     // 6. SPREAD & INFLUENCE (Reward breathing space)
     let emptyNeighbors = 0;
     for (const nId of clone.getNeighbors(move)) {
-        const nNode = clone.getNode(nId);
-        if (nNode && nNode.stone === null) emptyNeighbors++;
+        if (clone.getStone(nId) === null) emptyNeighbors++;
     }
     score += emptyNeighbors * 4;
 
