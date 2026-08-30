@@ -1225,6 +1225,28 @@ export class GameController {
         if (this.renderer) this.renderer.render();
     }
 
+    public static toggleRealTimeTerritory(): void {
+        import('../graphics/SVGRenderer').then(({ SVGRenderer }) => {
+            SVGRenderer.debugShowRealTimeTerritory = !SVGRenderer.debugShowRealTimeTerritory;
+            const btn = document.getElementById('btn-game-territory-toggle');
+            if (btn) {
+                btn.classList.toggle('active', SVGRenderer.debugShowRealTimeTerritory);
+                btn.style.background = SVGRenderer.debugShowRealTimeTerritory ? 'rgba(56, 189, 248, 0.35)' : '';
+                btn.style.borderColor = SVGRenderer.debugShowRealTimeTerritory ? '#38bdf8' : 'rgba(56, 189, 248, 0.4)';
+                btn.style.boxShadow = SVGRenderer.debugShowRealTimeTerritory ? '0 0 12px rgba(56, 189, 248, 0.5)' : '';
+            }
+            const isEn = getLanguage() === 'en';
+            HUDController.showAlert(
+                SVGRenderer.debugShowRealTimeTerritory
+                    ? (isEn ? "🗺️ Real-Time Territory Overlay ENABLED" : "🗺️ Visualizador de Territorio en Vivo ACTIVADO")
+                    : (isEn ? "🗺️ Real-Time Territory Overlay DISABLED" : "🗺️ Visualizador de Territorio en Vivo DESACTIVADO")
+            );
+            if (this.renderer) {
+                this.renderer.render();
+            }
+        });
+    }
+
     public static handleRemoteSkill(_skillType: string, targetNodeId: string, senderColor?: PlayerId) {
         const svgElement = document.querySelector('#board-container svg') as SVGSVGElement | null;
         const actingPid = senderColor || (this.localOnlineColor === 1 ? 2 : 1);

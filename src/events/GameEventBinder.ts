@@ -21,6 +21,10 @@ export class GameEventBinder {
             GameController.handleRedo();
         });
 
+        document.getElementById('btn-game-territory-toggle')?.addEventListener('click', () => {
+            GameController.toggleRealTimeTerritory();
+        });
+
         document.getElementById('btn-master-hint')?.addEventListener('click', () => {
             InteractionManager.triggerBestMoveHint();
         });

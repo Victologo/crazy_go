@@ -1,3 +1,20 @@
+## 30 de Agosto de 2026 - Día 14 (Sesión 175) [Horario: 13:50 - 14:05]: Visualizador de Territorio en Vivo (Debug Overlay), Mapeador Universal de Topologías y Generador Maestro de Go Profesional
+
+### 🗺️ 1. Botón de Territorio en Tiempo Real en la Barra Superior (`index.html`, `SVGRenderer.ts`, `GameController.ts`)
+- **Visualizador de Territorio en Vivo**: Añadido el botón `🗺️ Territorio` en la cinta superior (`#btn-game-territory-toggle`), junto a las herramientas de desarrollo.
+- **Renderizado Dinámico de Territorio**: `SVGRenderer.ts` ahora evalúa y superpone en vivo mediante `TerritoryScorer.calculateScore` los cuadrados translúcidos de territorio y los marcadores triangulares de Seki para cada jugador (Negro, Blanco, Verde, Morado) en cada jugada en tiempo real.
+- **Traducciones i18n**: Añadida clave `btn.territory_short` en español e inglés.
+
+### 🌌 2. Mapeador Universal de Coordenadas Topológicas (`NeuralNetAdapter.ts`)
+- Implementada la proyección geométrica de $(X, Y)$ a cuadrícula discreta $(r, c)$ para soportar todos los tableros asimétricos del juego (Cruz, Estrella, Hexágono, Islas, Triángulo, Oni, Reloj de Arena, etc.).
+- Corregida la transposición $X \leftrightarrow Y$ asegurando que `col` mapee a columna y `row` a fila.
+
+### 👑 3. Generador de Partidas con Principios de Go Profesional (`ml_training/generate_games.ts`)
+- Sustituida la métrica ingenua de libertades de cadena por la heurística canónica de Go (aperturas en esquinas y líneas 3/4, penalización anti-dango / anti-serpiente, penalización de 1ª línea en apertura y ataques a grupos en atari).
+
+### 🛑 4. Reparación del Bucle de Fin de Partida y Desbloqueo de Turnos IA (`GameController.ts`, `AITurnManager.ts`)
+- Erradicado el bloqueo donde la insignia `🤖 Thinking move...!` se quedaba fija al final de la partida al liberar el semáforo `isAITurnProcessing` en pases consecutivos.
+
 ## 30 de Agosto de 2026 - Día 14 (Sesión 174) [Horario: 12:30 - 13:50]: Reconstrucción Completa de CrazyGoNet v6, Entrenamiento Minimax y Fusión del Oráculo de Hechizos
 
 ### 🧠 1. Reconstrucción y Duplicación de Capacidad de CrazyGoNet

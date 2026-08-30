@@ -15,8 +15,10 @@ import { getLanguage } from '../i18n/i18n';
 import { VFXManager } from './VFXManager';
 import { CombatLogManager } from '../core/CombatLogManager';
 import { StageHazardManager } from '../core/StageHazardManager';
+import { TerritoryScorer } from '../core/TerritoryScorer';
 
 export class SVGRenderer {
+    public static debugShowRealTimeTerritory: boolean = false;
     public svgElement: SVGSVGElement;
     private board: GraphBoard;
     private state: GameState;
@@ -451,13 +453,17 @@ export class SVGRenderer {
 
 
     private renderTerritoryOverlay(stoneRadius: number) {
-        if (!this.state.isGameOver || !this.state.scoreReport) return;
+        const report = (this.state.isGameOver && this.state.scoreReport)
+            ? this.state.scoreReport
+            : (SVGRenderer.debugShowRealTimeTerritory ? TerritoryScorer.calculateScore(this.board, this.state) : null);
+
+        if (!report || !report.territoryMap) return;
 
         const territoryGroup = document.createElementNS("http://www.w3.org/2000/svg", "g");
         territoryGroup.setAttribute("class", "territory-overlay");
 
-        const assignments = this.state.scoreReport.territoryMap;
-        const deadStones = this.state.scoreReport.deadStones;
+        const assignments = report.territoryMap;
+        const deadStones = report.deadStones;
 
         for (const [nId, owner] of assignments.entries()) {
             const targetNode = this.board.nodes.get(nId);
@@ -474,18 +480,22 @@ export class SVGRenderer {
                     terrSquare.setAttribute("fill", "#000000");
                     terrSquare.setAttribute("stroke", "#3b82f6");
                     terrSquare.setAttribute("stroke-width", "1.5");
+                    terrSquare.setAttribute("fill-opacity", "0.75");
                 } else if (owner === 2) {
                     terrSquare.setAttribute("fill", "#ffffff");
                     terrSquare.setAttribute("stroke", "#f59e0b");
                     terrSquare.setAttribute("stroke-width", "1.5");
+                    terrSquare.setAttribute("fill-opacity", "0.75");
                 } else if (owner === 3) {
                     terrSquare.setAttribute("fill", "#10b981");
                     terrSquare.setAttribute("stroke", "#34d399");
                     terrSquare.setAttribute("stroke-width", "1.5");
+                    terrSquare.setAttribute("fill-opacity", "0.75");
                 } else if (owner === 4) {
                     terrSquare.setAttribute("fill", "#8b5cf6");
                     terrSquare.setAttribute("stroke", "#a78bfa");
                     terrSquare.setAttribute("stroke-width", "1.5");
+                    terrSquare.setAttribute("fill-opacity", "0.75");
                 }
                 territoryGroup.appendChild(terrSquare);
             }
@@ -500,8 +510,12 @@ export class SVGRenderer {
      * y del territorio normal.
      */
     private renderSekiOverlay(stoneRadius: number) {
-        if (!this.state.isGameOver || !this.state.scoreReport) return;
-        const sekiMap = this.state.scoreReport.sekiMap;
+        const report = (this.state.isGameOver && this.state.scoreReport)
+            ? this.state.scoreReport
+            : (SVGRenderer.debugShowRealTimeTerritory ? TerritoryScorer.calculateScore(this.board, this.state) : null);
+
+        if (!report || !report.sekiMap || report.sekiMap.size === 0) return;
+        const sekiMap = report.sekiMap;
         if (!sekiMap || sekiMap.size === 0) return;
 
         const sekiGroup = document.createElementNS("http://www.w3.org/2000/svg", "g");
