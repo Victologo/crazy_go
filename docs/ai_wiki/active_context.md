@@ -1,16 +1,19 @@
 # Estado Activo (Active Context)
 
-## Version Actual: Fase 105 - Red Neuronal AlphaZero Universal 750k Steps & Centrado Topológico del Mapa Roguelike
-290. [x] **Entrenamiento Fase 4 + 5 (750.000 Pasos - GPU RTX 4070 Ti SUPER)** (Completado)
-291. [x] **Arquitectura Universal Fully Convolutional (Elastic Board Dimensions)** (Completado)
-292. [x] **Selector Maestro y Granular de Dificultad (30k a 9d)** (Completado)
-293. [x] **Modo Espectador / Arena IA vs IA** (Completado)
-294. [x] **Exportación ONNX 750k e Integración en Producción** (Completado) - Modelos FP32 y Web FP16 copiados e integrados en `public/models/`.
-299. [x] **Centrado Topológico del Mapa Roguelike (Columnas 2 y 3)** (Completado) - Rutas procedurales centradas en el eje 50%, bifurcación simétrica y convergencia armónica al Boss.
+## Version Actual: Fase 109 - CrazyGoNet v6 Supreme (16 ResBlocks, 192 Filtros, Minimax ML & Oráculo de Hechizos)
+309. [x] **Reconstrucción Total CrazyGoNet v6**: Duplicada la capacidad a 16 capas residuales y 192 filtros (14.3 MB FP32 / 7.1 MB FP16).
+310. [x] **Generador de Datos Minimax (Smart Policy)**: Sustituidos los rollouts aleatorios por búsqueda inteligente de 1-ply con objetivos relativos al jugador actual, erradicando el bug del Winrate 99%.
+311. [x] **Entrenamiento Exitoso en GPU (RTX 4070 Ti SUPER)**: Alcanzado Value Loss de 0.0028 y Ownership Loss de 0.0104 en el paso 17.000.
+312. [x] **IA Oráculo para Habilidades de Campeones**: Implementada búsqueda de valor con la red en `AITurnManager.ts` y el Web Worker (`EVAL_BOARD`).
+313. [x] **Integración ONNX Completa**: Modelos integrados en `public/models/`, `src/ai/models/`, `dist/models/` y en `CrazyGo_Portable/dist/models/`.
 
 **Hitos Recientes:**
 
-### Sesión Actual (Sesión 172 — Erradicación de Cascada Exponencial de Turnos y Soporte Universal de Tableros 13x13/19x19 en la Red)
+### Sesión Actual (Sesión 174 — Reconstrucción Completa de CrazyGoNet v6, Entrenamiento Minimax y Fusión del Oráculo de Hechizos)
+- **Modelos ONNX Integrados**: Se han copiado los nuevos cerebros `crazygo_net.onnx` (14.3 MB) y `crazygo_net_web.onnx` (7.1 MB) en todos los directorios de producción y portables.
+- **Compilación de Producción Verificada**: `npx vite build` completado exitosamente en 1.17s sin errores.
+
+### Sesión Anterior (Sesión 172 — Erradicación de Cascada Exponencial de Turnos y Soporte Universal de Tableros 13x13/19x19 en la Red)
 - **Corrección de Truncamiento a 9x9 en Tableros Grandes (`BoardGenerators.ts`, `NeuralNetAdapter.ts`)**:
   - **Causa Raíz:** `BoardGenerators.generate` no asignaba `board.size = size`. Al quedar `board.size` en `undefined`, `NeuralNetAdapter.ts` caía en el fallback por defecto `N = 9`. En tableros 19x19 y 13x13, la red solo procesaba las celdas con `col < 9 && row < 9` (el cuadrante superior izquierdo), quedando completamente ciega a las otras 300 intersecciones del tablero 19x19.
   - **Solución:** Asignado `board.size = size` en `BoardGenerators.generate` y `generateSquareGrid`, y añadido cálculo dinámico de `N = maxCoord + 1` en `NeuralNetAdapter.ts` como salvaguarda incondicional.

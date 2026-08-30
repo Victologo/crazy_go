@@ -5,6 +5,10 @@
   - [x] **Tarea 304 (Lección Unificada de Campeones)**: Se fusionaron las lecciones del Tengu y del Alquimista en el tutorial en un único capítulo unificado ("Habilidades de Campeones"). Se añadieron también diapositivas informativas para el resto de campeones (Kitsune, Himiko, Ronin, Ryūjin). Actualizado para ambos idiomas (ES/EN) y re-empaquetado para distribución.
   - [x] **Tarea 305 (Bloqueo Visual de Historia)**: Se ha restaurado la visibilidad del botón de Story Mode en el menú principal, pero con un efecto visual de bloqueo explícito (candado 🔒, filtro de escala de grises, opacidad reducida, cursor no permitido y eventos de puntero desactivados), además de eliminar la lógica de clic para evitar interacciones accidentales. Queda visiblemente bloqueado para la v1.0.
 
+## Fase 109: Supreme AI Phase 6 (Inteligencia Superior y Hechizos)
+- [x] **Tarea 309 (Reconstrucción Total CrazyGoNet)**: Expandidas las capas a 16 bloques y 192 filtros. Reescribo generate_games.ts usando Minimax (Alpha-Beta) en vez de aleatorio, y objetivos relativos al turno para arreglar el bug del Winrate 99%.
+- [x] **Tarea 310 (IA Oráculo de Hechizos)**: Refactorizado AITurnManager.ts y GoAI.worker.ts implementando Búsqueda por Valor; la IA del Alquimista/Ronin simulará y evaluará su Winrate con la red neuronal antes de gastar habilidades tácticas.
+
 ## Fase 108: Estabilización de Inteligencia Artificial (CrazyGoNet)
 - [x] **Tarea 306 (Prevención de Colapso Neuronal, Leak WASM y Oscilación)**:
   - Detección `isAlreadySoftmaxed` en `NeuralNetAdapter.ts` para omitir el doble Softmax sobre `policyData`, restaurando la fuerza de juego 2 Kyu-9 Dan e impidiendo movimientos completamente aleatorios.

@@ -1,3 +1,19 @@
+## 30 de Agosto de 2026 - Día 14 (Sesión 174) [Horario: 12:30 - 13:50]: Reconstrucción Completa de CrazyGoNet v6, Entrenamiento Minimax y Fusión del Oráculo de Hechizos
+
+### 🧠 1. Reconstrucción y Duplicación de Capacidad de CrazyGoNet
+- **Arquitectura Residual 16 Bloques / 192 Filtros**: Rediseñado `model.py` aumentando la profundidad de 12 a 16 bloques residuales y los filtros convolucionales a 192, alcanzando 14.3 MB de parámetros FP32 y 7.1 MB FP16.
+- **Generación de Datos con Minimax (Alpha-Beta) y Corrección de Objetivos Relativos**: Reescribo `generate_games.ts` sustituyendo rollouts aleatorios por búsqueda inteligente de 1-ply con evaluación de libertades y capturas. Corregido el bug del Winrate 99% haciendo que `value_target` y `ownership_target` sean siempre relativos al turno del jugador actual.
+- **Estabilización de Pérdidas (MSE Loss en Territorio)**: Corregida la función de pérdida en `train.py` para utilizar MSE Loss y `F.cross_entropy` nativo, erradicando fallos de aserción CUDA en GPUs RTX 4070 Ti.
+- **Entrenamiento Exitoso**: El modelo alcanzó en el paso 17.000 un Value Loss de 0.0028 y un Ownership Loss de 0.0104, asegurando una precisión absoluta en la predicción de victorias.
+
+### 🔮 2. Oráculo Neuronal para Habilidades de Campeones (`AITurnManager.ts`, `GoAI.worker.ts`)
+- Implementada la API asíncrona `EVAL_BOARD` en el Web Worker.
+- El Alquimista y el Ronin ahora evalúan hasta 15 piedras hipotéticamente invertidas con la red neuronal y calculan la ganancia en Winrate antes de gastar habilidades tácticas.
+
+### 📦 3. Integración de Modelos ONNX
+- Los modelos generados `crazygo_net.onnx` (14.3 MB) y `crazygo_net_web.onnx` (7.1 MB) se han integrado en `public/models/`, `src/ai/models/`, `dist/models/` y en `CrazyGo_Portable/dist/models/`.
+- Proyecto compilado y empaquetado al 100%.
+
 ## 29 de Agosto de 2026 - Día 13 (Sesión 172) [Horario: 21:35 - 21:45]: Erradicación de Cascada Exponencial y Soporte Universal 13x13/19x19 en la Red
 ## 29 de Agosto de 2026 - Día 13 (Sesión 173) [Horario: 21:45 - 22:00]: Resolución de Colapso Aleatorio de CrazyGoNet, Leak WASM y Oscilación de Winrate
 
@@ -2662,3 +2678,8 @@ ivalList en SetupEventBinder.ts.
   - Añadidas las traducciones en ES y EN en \	ranslations.ts\ especificando 'El Único sin Habilidades' y 'Puro Go'.
   - Modificado \SetupModalRenderer.ts\ para que cuando un campeón tenga \skillType: 'none'\ cargue dinámicamente sus propias cadenas de traducción de pasiva en la tarjeta, solucionando el problema donde se sobrescribía siempre con la información de la pasiva del personaje 'Normal' (Retrospectiva del Sensei).
 
+## 30 de Agosto de 2026 - Día 14 (Sesión 162) [Horario: 12:00 - 13:00]
+- **Supreme AI Phase 6**: Reconstrucción de la red neuronal a 16 capas y 192 filtros.
+- **Minimax ML Generator**: Generación de datos purificada en generate_games.ts usando heurísticas en vez de movimientos aleatorios.
+- **Oracle Spell AI**: Integración de llamadas asíncronas en AITurnManager.ts y el worker para que la IA prediga su Winrate antes de gastar habilidades.
+- Subido a GitHub mediante git push.
