@@ -9,10 +9,10 @@ echo ============================================================
 echo.
 
 REM --- Check virtual environment exists ---
-if not exist "ml_venv\Scripts\activate.bat" goto error_no_venv
+if not exist "ml_training\ml_venv\Scripts\activate.bat" goto error_no_venv
 
 REM --- Activate Python environment ---
-call ml_venv\Scripts\activate.bat
+call ml_training\ml_venv\Scripts\activate.bat
 echo [OK] Python environment activated.
 
 REM --- Create output directories ---
