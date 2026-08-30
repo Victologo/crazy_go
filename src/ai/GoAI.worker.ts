@@ -196,15 +196,13 @@ self.onmessage = (e: MessageEvent<AIWorkerIncomingMessage>) => {
                 NeuralNetAdapter.evaluate(board, state, msg.aiPlayerId).then((neuralResult) => {
                     console.log("[Worker] NeuralNetAdapter.evaluate resolved:", neuralResult ? "SUCCESS" : "NULL");
                     if (neuralResult) {
-                        let chosenMoveId = neuralResult.bestMoveId;
-                        let chosenProb = neuralResult.bestMoveProb;
+                        let chosenMoveId: string | null = null;
+                        let chosenProb: number = -1;
 
-                        // Apply temperature sampling if needed (Si Temp = 0, nos quedamos con el bestMoveId por defecto)
-                        if (temperature > 0 && neuralResult.policyProbabilities) {
-                            let total = 0;
-                            const candidateMoves: { id: string | null; w: number; prob: number }[] = [];
-                            
-                            // 1. Validar nodos del tablero
+                        // 1. Recolectar y clasificar todas las jugadas legales
+                        const validMoves: { id: string; prob: number; score: number }[] = [];
+                        
+                        if (neuralResult.policyProbabilities) {
                             for (const [id, prob] of neuralResult.policyProbabilities.entries()) {
                                 if (id === 'PASS') continue;
                                 const node = board!.nodes.get(id);
@@ -212,19 +210,43 @@ self.onmessage = (e: MessageEvent<AIWorkerIncomingMessage>) => {
                                     const isLegal = RulesEngine.isMoveLegal(board!, state!, id, msg.aiPlayerId);
                                     const isSelfEye = board!.isTrueEye(id, msg.aiPlayerId);
                                     
-                                    // Nunca jugar dentro de un ojo propio cerrado
                                     if (isLegal && !isSelfEye) {
-                                        if (prob >= 0.0005) {
-                                            const weight = Math.pow(prob, 1 / Math.max(temperature, 0.05));
-                                            candidateMoves.push({ id, w: weight, prob });
-                                            total += weight;
-                                        }
+                                        // Puntuación táctica: prior neural + bonificación por capturas inmediatas
+                                        const captCount = RulesEngine.countPotentialCaptures(board!, id, msg.aiPlayerId);
+                                        const score = prob * 100 + (captCount > 0 ? captCount * 25 : 0);
+                                        validMoves.push({ id, prob, score });
                                     }
                                 }
                             }
+                        }
 
-                            // 2. Incluir PASAR en el pool de decisiones proporcionales
-                            const passProb = neuralResult.policyProbabilities.get('PASS') || 0;
+                        // Ordenar de mayor a menor calidad
+                        validMoves.sort((a, b) => b.score - a.score);
+
+                        // 2. Selección según nivel / temperatura:
+                        if (temperature <= 0.05) {
+                            // Dan levels (10 Dan / 9 Dan): Mejor jugada legal absoluta
+                            if (validMoves.length > 0) {
+                                chosenMoveId = validMoves[0].id;
+                                chosenProb = validMoves[0].prob;
+                            } else {
+                                chosenMoveId = null;
+                            }
+                        } else {
+                            // Kyu levels: Muestreo proporcional según temperatura
+                            let total = 0;
+                            const candidateMoves: { id: string | null; w: number; prob: number }[] = [];
+
+                            for (const m of validMoves) {
+                                if (m.prob >= 0.0005) {
+                                    const weight = Math.pow(m.prob, 1 / Math.max(temperature, 0.05));
+                                    candidateMoves.push({ id: m.id, w: weight, prob: m.prob });
+                                    total += weight;
+                                }
+                            }
+
+                            // Incluir PASAR en el pool si la probabilidad es relevante
+                            const passProb = neuralResult.policyProbabilities?.get('PASS') || 0;
                             if (passProb >= 0.005) {
                                 const passWeight = Math.pow(passProb, 1 / Math.max(temperature, 0.05));
                                 candidateMoves.push({ id: null, w: passWeight, prob: passProb });
@@ -246,9 +268,9 @@ self.onmessage = (e: MessageEvent<AIWorkerIncomingMessage>) => {
                             }
                         }
 
-                        // Si la probabilidad de pasar es dominante (> 25%) y es mayor que la jugada elegida, pasar
+                        // 3. Pasar turno si es dominante
                         const passProb = neuralResult.policyProbabilities?.get('PASS') || 0;
-                        if (passProb > 0.25 && (chosenMoveId === null || passProb > chosenProb)) {
+                        if (passProb > 0.35 && (chosenMoveId === null || passProb > chosenProb)) {
                             chosenMoveId = null; 
                         }
 

@@ -6,8 +6,9 @@
  */
 
 import * as ort from 'onnxruntime-web/wasm';
-import { GraphBoard, type PlayerId } from '../core/GraphBoard';
-import { GameState } from '../core/GameState';
+import { type PlayerId, type GraphBoard } from '../core/GraphBoard';
+import type { GameState } from '../core/GameState';
+import { RulesEngine } from '../core/RulesEngine';
 
 export interface NeuralEvaluation {
     policyProbabilities: Map<string, number>; // nodeId -> prob, 'PASS' -> prob
@@ -241,9 +242,13 @@ export class NeuralNetAdapter {
 
                 // Check if legal move and highest probability
                 if (node.stone === null && node.terrain !== 'DESTROYED' && node.terrain !== 'OBSTACLE') {
-                    if (prob > bestProb) {
-                        bestProb = prob;
-                        bestMoveNodeId = id;
+                    const isLegal = RulesEngine.isMoveLegal(board, state, id, currentPlayer);
+                    const isSelfEye = board.isTrueEye(id, currentPlayer);
+                    if (isLegal && !isSelfEye) {
+                        if (prob > bestProb) {
+                            bestProb = prob;
+                            bestMoveNodeId = id;
+                        }
                     }
                 }
             }

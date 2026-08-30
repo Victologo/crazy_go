@@ -796,3 +796,8 @@ gba(255, 255, 255, 0.15)\) para asegurar su visibilidad tras quitar el fondo de 
 - [x] **Tarea 314**: Pestaña Tablero en Combat Log: Añadida pestaña de filtro 'board' en el Log de Combate para eventos de entorno.
 - [x] **Tarea 315**: Integración de Eventos de Tablero al Log: El gestor de peligros (\StageHazardManager\) ahora reporta erupciones volcánicas, expansión celestial y la inhalación del Oni directo al registro, y se muestra en la pestaña 'Board' y 'All'.
 
+
+## Fase 62: Ajustes de UI y Winrate en Combat Log
+- [x] **Tarea 316**: Personaje Sabio sin Habilidades. Añadido a index 0 como default, con descripción 'Pure Go / No Abilities'.
+- [x] **Tarea 317**: Correcciones Visuales de Portraits. Arreglado CSS (\object-position: top center\) y bug de ID en Setup Local.
+- [x] **Tarea 318**: Winrate en Combat Log. Se inyectan las probabilidades de la red neuronal en el \CombatLogEntry\ y se muestran en una barra bajo el visor interactivo de la partida.
