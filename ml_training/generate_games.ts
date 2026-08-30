@@ -52,7 +52,81 @@ function randomChoice<T>(arr: T[]): T {
 }
 
 /** Generates a smart policy using a fast 1-ply territory heuristic */
-function smartPolicy(sim: GoSimulator, legalMoveIds: string[], boardSize: number, currentPlayer: Player): { policy: number[], chosenMove: string | null } {
+/** Evaluates a move using authentic master Go principles (Corners, Lines 3/4, Anti-Dango, Cuts/Ataris) */
+function evaluateMoveHeuristic(sim: GoSimulator, move: string, boardSize: number, currentPlayer: Player, moveCount: number): number {
+    const [r, c] = move.split('-').map(Number);
+    const clone = sim.clone();
+    const res = clone.tryPlace(move, currentPlayer);
+    if (!res.success) return -9999;
+
+    let score = 0;
+
+    // 1. CAPTURES (Huge reward)
+    if (res.capturedIds.length > 0) {
+        score += res.capturedIds.length * 35;
+    }
+
+    const myChain = clone.getChain(move);
+    const myLibs = clone.getLiberties(myChain).size;
+
+    // 2. SUICIDE / ATARI BLUNDER PENALTY
+    if (myLibs === 1) {
+        score -= 45; // Never blunder into 1-liberty atari
+    } else if (myLibs === 2) {
+        score -= 8;
+    }
+
+    // 3. ATARI ON OPPONENT (Attack reward)
+    const opponent: Player = currentPlayer === 1 ? 2 : 1;
+    for (const neighborId of clone.getNeighbors(move)) {
+        const neighborNode = clone.getNode(neighborId);
+        if (neighborNode && neighborNode.stone === opponent) {
+            const oppChain = clone.getChain(neighborId);
+            const oppLibs = clone.getLiberties(oppChain).size;
+            if (oppLibs === 1) {
+                score += 25; // Enemy in atari!
+            }
+        }
+    }
+
+    // 4. OPENING / FUSEKI PRINCIPLES (First 20 moves)
+    const isOpening = moveCount < Math.min(boardSize * 2, 24);
+    const distEdgeR = Math.min(r, boardSize - 1 - r);
+    const distEdgeC = Math.min(c, boardSize - 1 - c);
+    const lineMin = Math.min(distEdgeR, distEdgeC);
+
+    if (isOpening) {
+        // Line 0 (very edge): Line of defeat in opening
+        if (lineMin === 0) score -= 35;
+        // Line 1: Second line (too low in opening)
+        else if (lineMin === 1) score -= 15;
+        // Line 2 & 3: 3rd and 4th lines (Golden Go Lines of Territory & Influence!)
+        else if (lineMin === 2 || lineMin === 3) score += 20;
+
+        // Corner star points (3-3, 3-4, 4-4)
+        if (distEdgeR >= 2 && distEdgeR <= 3 && distEdgeC >= 2 && distEdgeC <= 3) {
+            score += 18;
+        }
+    }
+
+    // 5. ANTI-SNAKE / ANTI-DANGO PENALTY (Prevents solid heavy clumps/lines)
+    if (myChain.size >= 2 && myLibs >= 3 && res.capturedIds.length === 0) {
+        score -= (myChain.size * 6); // Heavy dumpling penalty
+    }
+
+    // 6. SPREAD & INFLUENCE (Reward breathing space)
+    let emptyNeighbors = 0;
+    for (const nId of clone.getNeighbors(move)) {
+        const nNode = clone.getNode(nId);
+        if (nNode && nNode.stone === null) emptyNeighbors++;
+    }
+    score += emptyNeighbors * 4;
+
+    return score;
+}
+
+/** Generates a smart policy using the master Go heuristic */
+function smartPolicy(sim: GoSimulator, legalMoveIds: string[], boardSize: number, currentPlayer: Player, moveCount: number): { policy: number[], chosenMove: string | null } {
     const totalCells = boardSize * boardSize;
     const policy = new Array(totalCells + 1).fill(0); // +1 for PASS
 
@@ -65,39 +139,24 @@ function smartPolicy(sim: GoSimulator, legalMoveIds: string[], boardSize: number
     let maxScore = -999999;
 
     for (const move of legalMoveIds) {
-        const clone = sim.clone();
-        const res = clone.tryPlace(move, currentPlayer);
-        if (!res.success) {
-            scores.push({ move, score: -9999 });
-            continue;
-        }
-
-        // Fast evaluation: Captured stones + own liberties
-        let score = res.capturedIds.length * 10;
-        const myChain = clone.getChain(move);
-        const libs = clone.getLiberties(myChain).size;
-        score += libs;
-
-        // Penalize giving enemy captures in next turn
-        if (libs <= 1) score -= 20;
-
+        const score = evaluateMoveHeuristic(sim, move, boardSize, currentPlayer, moveCount);
         scores.push({ move, score });
         if (score > maxScore) maxScore = score;
     }
 
-    // Baseline score for pass (only chosen if everything else is terrible)
-    const passScore = -10;
+    // Baseline score for pass
+    const passScore = -15;
     if (passScore > maxScore) maxScore = passScore;
 
     let expSum = 0;
     const exps: Record<string, number> = {};
     for (const s of scores) {
         if (s.score <= -9990) continue;
-        const e = Math.exp(s.score - maxScore);
+        const e = Math.exp((s.score - maxScore) / 2.0); // Temperature scaled
         exps[s.move] = e;
         expSum += e;
     }
-    const passExp = Math.exp(passScore - maxScore);
+    const passExp = Math.exp((passScore - maxScore) / 2.0);
     expSum += passExp;
 
     if (expSum === 0 || !isFinite(expSum)) {
@@ -125,8 +184,8 @@ function smartPolicy(sim: GoSimulator, legalMoveIds: string[], boardSize: number
         bestMove = null;
     }
 
-    // Add some noise for exploration (AlphaZero style)
-    if (Math.random() < 0.25 && legalMoveIds.length > 0) {
+    // AlphaZero exploration noise
+    if (Math.random() < 0.20 && legalMoveIds.length > 0) {
         bestMove = randomChoice(legalMoveIds);
     }
 
@@ -169,7 +228,7 @@ function playSmartGame(boardSize: 9 | 13 | 19, topologyArg: string): GameRecord 
         const legalMoves = sim.getLegalMoves(currentPlayer);
 
         const tensor = sim.toTensor(currentPlayer);
-        const { policy: policyTarget, chosenMove } = smartPolicy(sim, legalMoves, boardSize, currentPlayer);
+        const { policy: policyTarget, chosenMove } = smartPolicy(sim, legalMoves, boardSize, currentPlayer, moveCount);
 
         if (chosenMove === null) {
             sim.pass(currentPlayer);
